@@ -1,0 +1,229 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🔄 Sync Template20 Intelligence",
+      "type": "shell",
+      "command": "curl",
+      "args": [
+        "-X", "POST",
+        "http://localhost:3001/api/template20-sync/run",
+        "-H", "Content-Type: application/json",
+        "-H", "Authorization: Bearer ${input:apiToken}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "detail": "Synchronize Template20 database intelligence to MongoDB"
+    },
+    
+    {
+      "label": "📋 Generate Prisma Schema",
+      "type": "shell", 
+      "command": "curl",
+      "args": [
+        "-X", "POST",
+        "http://localhost:3001/api/ai-schema/prisma/generate",
+        "-H", "Content-Type: application/json",
+        "-H", "Authorization: Bearer ${input:apiToken}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Generate Prisma schema from Template20 intelligence"
+    },
+    
+    {
+      "label": "🔗 Generate GraphQL Schema",
+      "type": "shell",
+      "command": "curl", 
+      "args": [
+        "-X", "POST",
+        "http://localhost:3001/api/ai-schema/graphql/generate",
+        "-H", "Content-Type: application/json",
+        "-H", "Authorization: Bearer ${input:apiToken}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Generate GraphQL schema from Template20 intelligence"
+    },
+    
+    {
+      "label": "📚 Generate AI Documentation",
+      "type": "shell",
+      "command": "curl",
+      "args": [
+        "-X", "POST", 
+        "http://localhost:3001/api/ai-schema/documentation/generate",
+        "-H", "Content-Type: application/json",
+        "-H", "Authorization: Bearer ${input:apiToken}",
+        "-d", "{\"minConfidence\": 0.8, \"batchSize\": 3}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Generate AI-powered stored procedure documentation"
+    },
+    
+    {
+      "label": "🚀 Generate All Schemas",
+      "type": "shell",
+      "command": "curl",
+      "args": [
+        "-X", "POST",
+        "http://localhost:3001/api/ai-schema/generate-all", 
+        "-H", "Content-Type: application/json",
+        "-H", "Authorization: Bearer ${input:apiToken}",
+        "-d", "{\"generatePrisma\": true, \"generateGraphQL\": true, \"generateDocumentation\": false}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Generate all schemas (Prisma + GraphQL, docs separate)"
+    },
+    
+    {
+      "label": "📊 Check Schema Status",
+      "type": "shell",
+      "command": "curl",
+      "args": [
+        "http://localhost:3001/api/ai-schema/status",
+        "-H", "Authorization: Bearer ${input:apiToken}"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Check status of generated schemas and documentation"
+    },
+    
+    {
+      "label": "🧪 Test Template20 Sync",
+      "type": "shell",
+      "command": "node",
+      "args": ["server/test-template20-sync.js"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "detail": "Run Template20 synchronization test suite"
+    },
+    
+    {
+      "label": "🤖 Test AI Schema Generation", 
+      "type": "shell",
+      "command": "node",
+      "args": ["server/test-ai-schema-generation.js"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "detail": "Run AI schema generation test suite"
+    },
+    
+    {
+      "label": "🔧 Generate Prisma Client",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prisma", "generate"],
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Generate TypeScript Prisma client from schema"
+    },
+    
+    {
+      "label": "🎯 Open Prisma Studio",
+      "type": "shell", 
+      "command": "npx",
+      "args": ["prisma", "studio"],
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "detail": "Open Prisma Studio for visual database exploration"
+    },
+    
+    {
+      "label": "🌐 Start Development Server",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "detail": "Start both frontend and backend development servers"
+    }
+  ],
+  
+  "inputs": [
+    {
+      "id": "apiToken",
+      "description": "API Token for Mirabel API authentication",
+      "default": "your-api-token-here",
+      "type": "promptString"
+    }
+  ]
+}

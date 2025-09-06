@@ -1,0 +1,21 @@
+echo "Running pre-commit checks..."
+
+# Allow skipping heavy checks via env var (use: SKIP_PRECOMMIT=1 git commit -m "...")
+if [ "$SKIP_PRECOMMIT" = "1" ]; then
+  echo "SKIP_PRECOMMIT=1 detected. Skipping pre-commit checks."
+  exit 0
+fi
+
+# Keep it lightweight to avoid blocking IDE commits
+# 1) Run lint-staged to format/lint only changed files
+if command -v npx >/dev/null 2>&1; then
+  npx lint-staged || {
+    echo "lint-staged failed. Fix issues or re-run with SKIP_PRECOMMIT=1 to bypass.";
+    exit 1;
+  }
+else
+  echo "npx not found; skipping lint-staged."
+fi
+
+# Note: Heavy checks (full lint, tests, audit) moved to pre-push/CI.
+echo "Pre-commit checks completed."

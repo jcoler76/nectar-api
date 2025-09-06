@@ -1,0 +1,41 @@
+[
+  {
+    "issueNumber": 11,
+    "title": "Update button color",
+    "url": "https://github.com/jcolermirabel/mirabel-api/issues/11",
+    "body": "Please update the 'Next' button in the screenshot (and any other buttons or toggles that have this color) to mirror the color of the Active toggle and Endpoint Wizard buttons.",
+    "labels": [
+      {
+        "name": "auto-resolve"
+      }
+    ],
+    "detectedAt": "2025-09-03T01:02:19.486Z",
+    "status": "completed",
+    "acceptanceCriteriaGenerated": false,
+    "claudeCommandReady": false,
+    "approvedAt": "2025-09-03T01:04:21.350Z",
+    "approvedBy": "user",
+    "completedAt": "2025-09-03T01:22:45.000Z",
+    "resolutionSummary": "Updated all wizard and role buttons to use ocean variant for consistent blue styling",
+    "commitHash": "cd38ab0",
+    "filesChanged": ["src/components/services/wizard/RoleStep.jsx", "src/components/services/wizard/ServiceStep.jsx", "src/components/services/wizard/ApplicationStep.jsx", "src/components/roles/CreateRole.jsx"]
+  },
+  {
+    "issueNumber": 12,
+    "title": "Test Rejection",
+    "url": "https://github.com/jcolermirabel/mirabel-api/issues/12",
+    "body": "Test issue for rejection workflow",
+    "labels": [
+      {
+        "name": "auto-resolve"
+      }
+    ],
+    "detectedAt": "2025-09-03T01:06:58.543Z",
+    "status": "rejected",
+    "acceptanceCriteriaGenerated": false,
+    "claudeCommandReady": false,
+    "rejectedAt": "2025-09-03T01:07:10.652Z",
+    "rejectedBy": "user",
+    "rejectionReason": "Not suitable for auto-resolution"
+  }
+]

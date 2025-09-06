@@ -1,0 +1,1248 @@
+/* Dark Mode Enhancements for Mirabel API */
+
+/* Define dark mode CSS variables on root when dark class is present */
+html.dark {
+  /* Enhanced Dark Mode Color Palette */
+  --dark-bg-primary: #0f1419; /* Main background - softer black */
+  --dark-bg-secondary: #1a1f2e; /* Card/panel backgrounds */
+  --dark-bg-tertiary: #232834; /* Elevated surfaces */
+  --dark-bg-hover: #2d3340; /* Hover states */
+
+  /* Sidebar Colors - More muted */
+  --dark-sidebar-bg: #1a2332; /* Darker blue-gray instead of bright teal */
+  --dark-sidebar-hover: #243447; /* Subtle hover */
+  --dark-sidebar-active: #2d4156; /* Active state */
+  --dark-sidebar-text: #a8b3c5; /* Muted text */
+  --dark-sidebar-icon: #7d8ca3; /* Icon color */
+
+  /* Text Colors with Better Contrast */
+  --dark-text-primary: #e1e6ee; /* Main text */
+  --dark-text-secondary: #a8b3c5; /* Secondary text */
+  --dark-text-muted: #6b7785; /* Muted text */
+  --dark-text-disabled: #4a5568; /* Disabled text */
+
+  /* Accent Colors - Much More Muted */
+  --dark-accent-primary: #475569; /* Muted slate blue */
+  --dark-accent-primary-hover: #64748b; /* Hover state */
+  --dark-accent-success: #10b981; /* Success green */
+  --dark-accent-warning: #f59e0b; /* Warning amber */
+  --dark-accent-error: #ef4444; /* Error red */
+  --dark-accent-info: #64748b; /* Muted info blue-gray */
+
+  /* Table Specific Colors */
+  --dark-table-header-bg: #1a2332; /* Table header background */
+  --dark-table-header-text: #e1e6ee; /* Table header text */
+  --dark-table-border: #2d3748; /* Table borders */
+  --dark-table-row-hover: #232834; /* Row hover */
+  --dark-table-row-stripe: #1a1f2e; /* Alternating row */
+
+  /* Chart/Graph Colors */
+  --dark-chart-line: #60a5fa; /* Softer blue for graphs */
+  --dark-chart-grid: #2d3748; /* Grid lines */
+
+  /* Border and Divider Colors */
+  --dark-border: #2d3748;
+  --dark-border-light: #374151;
+  --dark-divider: #1f2937;
+}
+
+/* Apply dark mode styles when html has 'dark' class */
+html.dark * {
+  --tw-bg-opacity: 1 !important;
+}
+
+/* Override Material-UI Components */
+
+/* Sidebar Navigation */
+html.dark .MuiDrawer-paper,
+html.dark nav[class*='sidebar'],
+html.dark div[class*='Sidebar'],
+html.dark aside {
+  background: var(--dark-sidebar-bg) !important;
+  border-right: 1px solid var(--dark-border) !important;
+}
+
+/* Sidebar Items */
+html.dark .MuiListItem-root,
+html.dark nav a,
+html.dark nav button,
+html.dark [class*='sidebar'] a,
+html.dark [class*='Sidebar'] a {
+  color: var(--dark-sidebar-text) !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark .MuiListItem-root:hover,
+html.dark nav a:hover,
+html.dark nav button:hover {
+  background: var(--dark-sidebar-hover) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+/* Active Navigation Item */
+html.dark .MuiListItem-root.Mui-selected,
+html.dark nav a[aria-current='page'],
+html.dark nav a.active,
+html.dark [class*='active'] {
+  background: var(--dark-sidebar-active) !important;
+  color: var(--dark-accent-primary) !important;
+  border-left: 3px solid var(--dark-accent-primary);
+}
+
+/* Sidebar Icons */
+html.dark .MuiListItemIcon-root,
+html.dark nav svg,
+html.dark [class*='sidebar'] svg {
+  color: var(--dark-sidebar-icon) !important;
+}
+
+/* Main Content Area */
+html.dark,
+html.dark body,
+html.dark .MuiPaper-root,
+html.dark main,
+html.dark [class*='content'],
+html.dark [class*='Content'] {
+  background: var(--dark-bg-primary) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+/* Cards and Panels */
+html.dark .MuiCard-root,
+html.dark [class*='card'],
+html.dark [class*='Card'],
+html.dark [class*='panel'],
+html.dark [class*='Panel'] {
+  background: var(--dark-bg-secondary) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Headers and Titles */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark .MuiTypography-h1,
+html.dark .MuiTypography-h2,
+html.dark .MuiTypography-h3,
+html.dark .MuiTypography-h4,
+html.dark .MuiTypography-h5,
+html.dark .MuiTypography-h6,
+html.dark [class*='title'],
+html.dark [class*='Title'],
+html.dark [class*='heading'],
+html.dark [class*='Heading'] {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Subtitle and Description Text */
+html.dark .MuiTypography-subtitle1,
+html.dark .MuiTypography-subtitle2,
+html.dark .MuiTypography-body2,
+html.dark [class*='subtitle'],
+html.dark [class*='description'] {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Tables - Complete Overhaul */
+html.dark .MuiTable-root,
+html.dark table,
+html.dark [class*='table'],
+html.dark [class*='Table'] {
+  background: var(--dark-bg-secondary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* Table Headers - Fix White Headers Issue */
+html.dark .MuiTableHead-root,
+html.dark thead,
+html.dark [class*='tableHead'],
+html.dark [class*='TableHead'],
+html.dark th {
+  background: var(--dark-table-header-bg) !important;
+  color: var(--dark-table-header-text) !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid var(--dark-border) !important;
+}
+
+/* Table Header Cells */
+html.dark .MuiTableCell-head,
+html.dark th,
+html.dark [class*='tableHeaderCell'] {
+  color: var(--dark-table-header-text) !important;
+  background: var(--dark-table-header-bg) !important;
+  font-weight: 600 !important;
+  padding: 12px 16px !important;
+  white-space: nowrap !important;
+}
+
+/* Table Body */
+html.dark .MuiTableBody-root,
+html.dark tbody {
+  background: var(--dark-bg-secondary) !important;
+}
+
+/* Table Rows */
+html.dark .MuiTableRow-root,
+html.dark tr {
+  border-bottom: 1px solid var(--dark-border) !important;
+  transition: background 0.2s ease !important;
+}
+
+/* Table Row Hover */
+html.dark .MuiTableRow-root:hover,
+html.dark tbody tr:hover {
+  background: var(--dark-table-row-hover) !important;
+}
+
+/* Table Cells */
+html.dark .MuiTableCell-root,
+html.dark .MuiTableCell-body,
+html.dark td {
+  color: var(--dark-text-primary) !important;
+  border-bottom: 1px solid var(--dark-border) !important;
+  padding: 12px 16px !important;
+}
+
+/* Striped Table Rows */
+html.dark tbody tr:nth-child(even) {
+  background: var(--dark-table-row-stripe) !important;
+}
+
+/* Buttons */
+html.dark .MuiButton-root,
+html.dark button,
+html.dark [class*='button'],
+html.dark [class*='Button'] {
+  transition: all 0.2s ease !important;
+}
+
+/* Primary Buttons - Override bright blues */
+html.dark .MuiButton-containedPrimary,
+html.dark [class*='primary'],
+html.dark [class*='Primary'],
+html.dark button[class*='bg-blue'],
+html.dark button[class*='bg-cyan'],
+html.dark [class*='bg-blue-500'],
+html.dark [class*='bg-blue-600'],
+html.dark [class*='bg-cyan-500'],
+html.dark [class*='bg-sky-500'] {
+  background: var(--dark-accent-primary) !important;
+  color: #e1e6ee !important;
+}
+
+html.dark .MuiButton-containedPrimary:hover,
+html.dark button[class*='bg-blue']:hover,
+html.dark [class*='primary']:hover {
+  background: var(--dark-accent-primary-hover) !important;
+}
+
+/* Secondary Buttons */
+html.dark .MuiButton-outlined,
+html.dark [class*='secondary'],
+html.dark [class*='Secondary'] {
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .MuiButton-outlined:hover {
+  background: var(--dark-bg-hover) !important;
+  border-color: var(--dark-accent-primary) !important;
+}
+
+/* Status Badges */
+html.dark [class*='badge'],
+html.dark [class*='Badge'],
+html.dark [class*='chip'],
+html.dark [class*='Chip'] {
+  background: var(--dark-bg-tertiary) !important;
+  color: var(--dark-text-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* Active Status */
+html.dark [class*='active'],
+html.dark [class*='Active'],
+html.dark [class*='success'],
+html.dark [class*='Success'] {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: var(--dark-accent-success) !important;
+  border-color: var(--dark-accent-success) !important;
+}
+
+/* Input Fields */
+html.dark .MuiTextField-root,
+html.dark .MuiInput-root,
+html.dark .MuiOutlinedInput-root,
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background: var(--dark-bg-tertiary) !important;
+  color: var(--dark-text-primary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .MuiOutlinedInput-notchedOutline {
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .MuiInput-root:hover .MuiOutlinedInput-notchedOutline,
+html.dark input:hover,
+html.dark textarea:hover {
+  border-color: var(--dark-border-light) !important;
+}
+
+html.dark .MuiInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+html.dark input:focus,
+html.dark textarea:focus {
+  border-color: var(--dark-accent-primary) !important;
+}
+
+/* Labels */
+html.dark .MuiFormLabel-root,
+html.dark .MuiInputLabel-root,
+html.dark label {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .MuiFormLabel-root.Mui-focused,
+html.dark .MuiInputLabel-root.Mui-focused {
+  color: var(--dark-accent-primary) !important;
+}
+
+/* Search Bars */
+html.dark [class*='search'],
+html.dark [class*='Search'] {
+  background: var(--dark-bg-tertiary) !important;
+  border: 1px solid var(--dark-border) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark [class*='search'] input,
+html.dark [class*='Search'] input {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark [class*='search']::placeholder,
+html.dark [class*='Search']::placeholder,
+html.dark input::placeholder {
+  color: var(--dark-text-muted) !important;
+}
+
+/* Dropdowns and Menus */
+html.dark .MuiMenu-paper,
+html.dark .MuiPopover-paper,
+html.dark [class*='dropdown'],
+html.dark [class*='Dropdown'],
+html.dark [class*='menu'],
+html.dark [class*='Menu'] {
+  background: var(--dark-bg-tertiary) !important;
+  border: 1px solid var(--dark-border) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .MuiMenuItem-root {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .MuiMenuItem-root:hover {
+  background: var(--dark-bg-hover) !important;
+}
+
+/* Dividers */
+html.dark .MuiDivider-root,
+html.dark hr,
+html.dark [class*='divider'],
+html.dark [class*='Divider'] {
+  background: var(--dark-divider) !important;
+  border-color: var(--dark-divider) !important;
+}
+
+/* Charts and Graphs */
+html.dark [class*='chart'],
+html.dark [class*='Chart'],
+html.dark [class*='graph'],
+html.dark [class*='Graph'] {
+  background: var(--dark-bg-secondary) !important;
+}
+
+/* Chart Lines */
+html.dark [class*='recharts-line'] path,
+html.dark [class*='chart'] path {
+  stroke: var(--dark-chart-line) !important;
+}
+
+/* Chart Grid */
+html.dark [class*='recharts-cartesian-grid'] line,
+html.dark [class*='grid'] line {
+  stroke: var(--dark-chart-grid) !important;
+}
+
+/* Chart Text */
+html.dark [class*='recharts-text'],
+html.dark [class*='chart'] text {
+  fill: var(--dark-text-secondary) !important;
+}
+
+/* Tooltips */
+html.dark .MuiTooltip-tooltip,
+html.dark [class*='tooltip'],
+html.dark [class*='Tooltip'] {
+  background: var(--dark-bg-tertiary) !important;
+  color: var(--dark-text-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* Modals and Dialogs - HIGH CONTRAST, READABLE STYLING */
+html.dark .MuiDialog-paper,
+html.dark .MuiModal-root,
+html.dark [class*='modal'],
+html.dark [class*='Modal'],
+html.dark [class*='dialog'],
+html.dark [class*='Dialog'],
+html.dark [role='dialog'],
+html.dark [data-radix-dialog-content] {
+  background: #1e293b !important; /* Keep the softer background */
+  color: #ffffff !important; /* High contrast white text */
+  border: 1px solid #334155 !important; /* Softer border */
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Modal Headers */
+html.dark [class*='dialog'] h1,
+html.dark [class*='dialog'] h2,
+html.dark [class*='dialog'] h3,
+html.dark [class*='Modal'] h1,
+html.dark [class*='Modal'] h2,
+html.dark [class*='Modal'] h3,
+html.dark [data-radix-dialog-title] {
+  color: #ffffff !important; /* High contrast white for headers */
+}
+
+/* Modal Description Text */
+html.dark [class*='dialog'] p,
+html.dark [class*='Modal'] p,
+html.dark [data-radix-dialog-description] {
+  color: #e2e8f0 !important; /* High contrast light gray for descriptions */
+}
+
+/* Modal Form Inputs */
+html.dark [role='dialog'] input,
+html.dark [role='dialog'] textarea,
+html.dark [role='dialog'] select,
+html.dark [class*='dialog'] input,
+html.dark [class*='dialog'] textarea,
+html.dark [class*='dialog'] select {
+  background: #374151 !important; /* Darker input background for contrast */
+  color: #ffffff !important; /* High contrast white text */
+  border: 1px solid #6b7280 !important; /* Higher contrast border */
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Modal input focus states */
+html.dark [role='dialog'] input:focus,
+html.dark [role='dialog'] textarea:focus,
+html.dark [role='dialog'] select:focus,
+html.dark [class*='dialog'] input:focus,
+html.dark [class*='dialog'] textarea:focus,
+html.dark [class*='dialog'] select:focus {
+  border-color: #60a5fa !important; /* Soft blue focus border */
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+}
+
+/* Modal Form Labels */
+html.dark [role='dialog'] label,
+html.dark [class*='dialog'] label {
+  color: #ffffff !important; /* High contrast white for labels */
+  font-weight: 500 !important;
+}
+
+/* Modal Buttons */
+html.dark [role='dialog'] button,
+html.dark [class*='dialog'] button {
+  transition: all 0.2s ease !important;
+}
+
+/* Modal Primary Buttons */
+html.dark [role='dialog'] button[type='submit'],
+html.dark [class*='dialog'] button[type='submit'],
+html.dark [role='dialog'] [class*='primary'],
+html.dark [class*='dialog'] [class*='primary'] {
+  background: #3b82f6 !important; /* Softer blue for primary buttons */
+  color: #ffffff !important;
+  border: 1px solid #3b82f6 !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark [role='dialog'] button[type='submit']:hover,
+html.dark [class*='dialog'] button[type='submit']:hover {
+  background: #2563eb !important; /* Softer hover state */
+}
+
+/* Modal Secondary/Cancel Buttons */
+html.dark [role='dialog'] button[type='button'],
+html.dark [class*='dialog'] button[type='button']:not([type='submit']) {
+  background: #374151 !important; /* Softer secondary button background */
+  color: #d1d5db !important; /* Softer text */
+  border: 1px solid #4b5563 !important; /* Softer border */
+  border-radius: 6px !important;
+}
+
+html.dark [role='dialog'] button[type='button']:hover,
+html.dark [class*='dialog'] button[type='button']:hover {
+  background: #4b5563 !important; /* Softer hover */
+  border-color: #6b7280 !important;
+}
+
+/* SPECIFIC MODAL FORM STYLING */
+/* Modal form labels - make them visible */
+html.dark [role='dialog'] div > label,
+html.dark [class*='dialog'] div > label,
+html.dark [role='dialog'] .text-sm,
+html.dark [class*='dialog'] .text-sm {
+  color: #ffffff !important; /* High contrast white for all labels */
+  font-weight: 500 !important;
+}
+
+/* Modal placeholders */
+html.dark [role='dialog'] input::placeholder,
+html.dark [role='dialog'] textarea::placeholder,
+html.dark [class*='dialog'] input::placeholder,
+html.dark [class*='dialog'] textarea::placeholder {
+  color: #9ca3af !important; /* Higher contrast placeholder text */
+}
+
+/* Modal select dropdowns */
+html.dark [role='dialog'] select,
+html.dark [class*='dialog'] select,
+html.dark [role='dialog'] [role='combobox'],
+html.dark [class*='dialog'] [role='combobox'] {
+  background: #374151 !important; /* Match updated input styling */
+  color: #ffffff !important; /* High contrast white text */
+  border: 1px solid #6b7280 !important; /* Higher contrast border */
+  border-radius: 6px !important;
+}
+
+/* Modal dropdown arrows */
+html.dark [role='dialog'] select:after,
+html.dark [class*='dialog'] select:after {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Service Name, Label, Description labels */
+html.dark [role='dialog'] span,
+html.dark [class*='dialog'] span:not([class*='translate']) {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Make sure all text in modals is visible - HIGH CONTRAST */
+html.dark [role='dialog'] *,
+html.dark [class*='dialog'] * {
+  color: inherit !important;
+}
+
+/* Force high contrast for all modal text elements */
+html.dark [role='dialog'] span,
+html.dark [role='dialog'] div,
+html.dark [class*='dialog'] span,
+html.dark [class*='dialog'] div {
+  color: #ffffff !important;
+}
+
+/* Ensure form field labels are always white */
+html.dark [role='dialog'] label *,
+html.dark [class*='dialog'] label * {
+  color: #ffffff !important;
+}
+
+/* Override any gray text that might be hard to read */
+html.dark [role='dialog'] .text-gray-500,
+html.dark [role='dialog'] .text-gray-600,
+html.dark [class*='dialog'] .text-gray-500,
+html.dark [class*='dialog'] .text-gray-600 {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Backdrop - Softer backdrop */
+html.dark .MuiBackdrop-root {
+  background: rgba(15, 23, 42, 0.6) !important; /* Softer, warmer backdrop */
+}
+
+/* Scrollbars */
+html.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: var(--dark-bg-primary);
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: var(--dark-bg-primary);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-border-light);
+}
+
+/* Loading Spinners */
+html.dark .MuiCircularProgress-root,
+html.dark [class*='spinner'],
+html.dark [class*='Spinner'],
+html.dark [class*='loading'],
+html.dark [class*='Loading'] {
+  color: var(--dark-accent-primary) !important;
+}
+
+/* Alerts and Notifications */
+html.dark .MuiAlert-root {
+  background: var(--dark-bg-tertiary) !important;
+  color: var(--dark-text-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+html.dark .MuiAlert-standardSuccess {
+  border-color: var(--dark-accent-success) !important;
+  color: var(--dark-accent-success) !important;
+}
+
+html.dark .MuiAlert-standardError {
+  border-color: var(--dark-accent-error) !important;
+  color: var(--dark-accent-error) !important;
+}
+
+html.dark .MuiAlert-standardWarning {
+  border-color: var(--dark-accent-warning) !important;
+  color: var(--dark-accent-warning) !important;
+}
+
+html.dark .MuiAlert-standardInfo {
+  border-color: var(--dark-accent-info) !important;
+  color: var(--dark-accent-info) !important;
+}
+
+/* Pagination */
+html.dark .MuiPagination-root,
+html.dark [class*='pagination'],
+html.dark [class*='Pagination'] {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .MuiPaginationItem-root {
+  color: var(--dark-text-primary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .MuiPaginationItem-root:hover {
+  background: var(--dark-bg-hover) !important;
+}
+
+html.dark .MuiPaginationItem-root.Mui-selected {
+  background: var(--dark-accent-primary) !important;
+  color: white !important;
+}
+
+/* Tabs */
+html.dark .MuiTabs-root,
+html.dark [class*='tabs'],
+html.dark [class*='Tabs'] {
+  border-bottom: 1px solid var(--dark-border) !important;
+}
+
+html.dark .MuiTab-root {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .MuiTab-root:hover {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .MuiTab-root.Mui-selected {
+  color: var(--dark-accent-primary) !important;
+}
+
+html.dark .MuiTabs-indicator {
+  background: var(--dark-accent-primary) !important;
+}
+
+/* Breadcrumbs */
+html.dark .MuiBreadcrumbs-root,
+html.dark [class*='breadcrumb'],
+html.dark [class*='Breadcrumb'] {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .MuiBreadcrumbs-root a,
+html.dark [class*='breadcrumb'] a {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .MuiBreadcrumbs-root a:hover,
+html.dark [class*='breadcrumb'] a:hover {
+  color: var(--dark-accent-primary) !important;
+}
+
+/* Code Blocks */
+html.dark pre,
+html.dark code,
+html.dark [class*='code'],
+html.dark [class*='Code'] {
+  background: var(--dark-bg-primary) !important;
+  color: var(--dark-text-primary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* Links - Override bright blues */
+html.dark a,
+html.dark [class*='text-blue'],
+html.dark [class*='text-cyan'],
+html.dark [class*='text-sky'],
+html.dark .text-blue-500,
+html.dark .text-blue-600,
+html.dark .text-cyan-500 {
+  color: var(--dark-accent-info) !important;
+}
+
+html.dark a:hover,
+html.dark [class*='text-blue']:hover {
+  color: var(--dark-accent-primary-hover) !important;
+  text-decoration: underline;
+}
+
+/* Focus States */
+html.dark *:focus-visible {
+  outline: 2px solid var(--dark-accent-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Disabled States */
+html.dark *:disabled,
+html.dark .Mui-disabled {
+  color: var(--dark-text-disabled) !important;
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+}
+
+/* Selection */
+html.dark ::selection {
+  background: rgba(59, 130, 246, 0.3) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+/* Dashboard Specific Fixes */
+html.dark [class*='Dashboard'] [class*='metric'],
+html.dark [class*='dashboard'] [class*='stat'] {
+  background: var(--dark-bg-tertiary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* Connection Page Specific */
+html.dark [class*='Connection'] [class*='status'],
+html.dark [class*='connection'] [class*='badge'] {
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* Fix white text on white background issue */
+html.dark * {
+  color: inherit;
+}
+
+/* Ensure all text is readable */
+html.dark [style*='color: white'],
+html.dark [style*='color:#fff'],
+html.dark [style*='color:#ffffff'],
+html.dark [style*='color: rgb(255'],
+html.dark .text-white {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Override inline styles that might cause issues */
+html.dark [style*='background: white'],
+html.dark [style*='background:#fff'],
+html.dark [style*='background:#ffffff'],
+html.dark [style*='background: rgb(255'],
+html.dark [style*='background-color: white'],
+html.dark [style*='background-color:#fff'],
+html.dark [style*='background-color:#ffffff'],
+html.dark [style*='background-color: rgb(255'] {
+  background: var(--dark-bg-secondary) !important;
+}
+
+/* COMPREHENSIVE BRIGHT BLUE OVERRIDES */
+/* Override all Tailwind bright blue/cyan/sky classes - MAXIMUM SPECIFICITY */
+html.dark .bg-blue-400,
+html.dark .bg-blue-500,
+html.dark .bg-blue-600,
+html.dark .bg-cyan-400,
+html.dark .bg-cyan-500,
+html.dark .bg-cyan-600,
+html.dark .bg-sky-400,
+html.dark .bg-sky-500,
+html.dark .bg-sky-600,
+html.dark .bg-indigo-400,
+html.dark .bg-indigo-500,
+html.dark .bg-indigo-600,
+html.dark [class*='bg-blue-4'],
+html.dark [class*='bg-blue-5'],
+html.dark [class*='bg-blue-6'],
+html.dark [class*='bg-cyan-4'],
+html.dark [class*='bg-cyan-5'],
+html.dark [class*='bg-cyan-6'],
+html.dark [class*='bg-sky-4'],
+html.dark [class*='bg-sky-5'],
+html.dark [class*='bg-sky-6'],
+html.dark button.bg-blue-500,
+html.dark button.bg-cyan-500,
+html.dark button.bg-sky-500,
+html.dark a.bg-blue-500,
+html.dark a.bg-cyan-500,
+html.dark a.bg-sky-500,
+html.dark div.bg-blue-500,
+html.dark div.bg-cyan-500,
+html.dark div.bg-sky-500 {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+}
+
+/* Force override Tailwind's RGB color values */
+html.dark [class*='bg-blue'],
+html.dark [class*='bg-cyan'],
+html.dark [class*='bg-sky'] {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+}
+
+/* Target buttons with any blue variant specifically */
+html.dark button[class*='blue'],
+html.dark button[class*='cyan'],
+html.dark button[class*='sky'],
+html.dark a[role='button'][class*='blue'],
+html.dark a[role='button'][class*='cyan'],
+html.dark a[role='button'][class*='sky'],
+html.dark [type='button'][class*='blue'],
+html.dark [type='submit'][class*='blue'],
+html.dark [class*='btn'][class*='blue'],
+html.dark [class*='Button'][class*='blue'] {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+  color: #e1e6ee !important;
+}
+
+/* Override inline styles and CSS variables */
+html.dark [style*='background-color: rgb(59, 130, 246)'],
+html.dark [style*='background-color: rgb(14, 165, 233)'],
+html.dark [style*='background-color: rgb(6, 182, 212)'],
+html.dark [style*='background: rgb(59, 130, 246)'],
+html.dark [style*='background: rgb(14, 165, 233)'],
+html.dark [style*='background: rgb(6, 182, 212)'],
+html.dark [style*='--tw-bg-opacity'] {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+}
+
+html.dark .hover\:bg-blue-500:hover,
+html.dark .hover\:bg-blue-600:hover,
+html.dark .hover\:bg-cyan-500:hover,
+html.dark .hover\:bg-cyan-600:hover,
+html.dark .hover\:bg-sky-500:hover,
+html.dark .hover\:bg-sky-600:hover {
+  background-color: var(--dark-accent-primary-hover) !important;
+}
+
+html.dark .text-blue-400,
+html.dark .text-blue-500,
+html.dark .text-blue-600,
+html.dark .text-cyan-400,
+html.dark .text-cyan-500,
+html.dark .text-cyan-600,
+html.dark .text-sky-400,
+html.dark .text-sky-500,
+html.dark .text-sky-600 {
+  color: var(--dark-accent-info) !important;
+}
+
+html.dark .border-blue-400,
+html.dark .border-blue-500,
+html.dark .border-blue-600,
+html.dark .border-cyan-400,
+html.dark .border-cyan-500,
+html.dark .border-cyan-600,
+html.dark .border-sky-400,
+html.dark .border-sky-500,
+html.dark .border-sky-600 {
+  border-color: var(--dark-accent-primary) !important;
+}
+
+/* Ring colors for focus states */
+html.dark .ring-blue-400,
+html.dark .ring-blue-500,
+html.dark .ring-blue-600,
+html.dark .ring-cyan-400,
+html.dark .ring-cyan-500,
+html.dark .ring-cyan-600,
+html.dark .ring-sky-400,
+html.dark .ring-sky-500,
+html.dark .ring-sky-600 {
+  --tw-ring-color: var(--dark-accent-primary) !important;
+}
+
+/* Override MUI blue theme colors */
+html.dark .MuiButton-root.MuiButton-containedInfo,
+html.dark .MuiChip-colorInfo,
+html.dark .MuiFab-info,
+html.dark .MuiIconButton-colorInfo {
+  background-color: var(--dark-accent-primary) !important;
+  color: #e1e6ee !important;
+}
+
+/* Breadcrumb and navigation links */
+html.dark nav a[class*='text-blue'],
+html.dark [class*='breadcrumb'] [class*='text-blue'],
+html.dark .MuiBreadcrumbs-root .text-blue-500 {
+  color: var(--dark-accent-info) !important;
+}
+
+/* Button specific overrides */
+html.dark button[class*='bg-gradient'],
+html.dark [class*='from-blue'][class*='to-cyan'],
+html.dark [class*='from-cyan'][class*='to-blue'] {
+  background: linear-gradient(
+    135deg,
+    var(--dark-accent-primary) 0%,
+    var(--dark-accent-primary-hover) 100%
+  ) !important;
+}
+
+/* Toggle/Switch overrides - COMPREHENSIVE */
+html.dark .MuiSwitch-colorPrimary.Mui-checked .MuiSwitch-thumb,
+html.dark .MuiSwitch-root.Mui-checked .MuiSwitch-thumb,
+html.dark [class*='Switch'].Mui-checked .MuiSwitch-thumb,
+html.dark [class*='switch'] input:checked + *,
+html.dark [class*='toggle'] input:checked + *,
+html.dark input[type='checkbox']:checked + [class*='slider'],
+html.dark input[type='checkbox']:checked + [class*='toggle'],
+html.dark [role='switch'][aria-checked='true'] > *,
+html.dark [class*='bg-blue'][class*='translate-x'] {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+}
+
+html.dark .MuiSwitch-colorPrimary.Mui-checked + .MuiSwitch-track,
+html.dark .MuiSwitch-root.Mui-checked + .MuiSwitch-track,
+html.dark [class*='Switch'].Mui-checked + .MuiSwitch-track {
+  background-color: var(--dark-accent-primary-hover) !important;
+}
+
+/* Tailwind toggle overrides */
+html.dark [class*='peer-checked'][class*='bg-blue'],
+html.dark [class*='peer-checked'][class*='bg-cyan'],
+html.dark [class*='peer-checked'][class*='bg-sky'] {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Toggle track/background when checked */
+html.dark input:checked ~ [class*='bg-blue'],
+html.dark input:checked ~ [class*='bg-cyan'],
+html.dark input:checked ~ [class*='bg-sky'],
+html.dark input:checked + * [class*='bg-blue'],
+html.dark input:checked + * [class*='bg-cyan'],
+html.dark input:checked + * [class*='bg-sky'] {
+  background-color: var(--dark-accent-primary-hover) !important;
+}
+
+/* Toggle thumb/knob - AGGRESSIVE TARGETING for Radix UI Switch */
+html.dark [class*='translate-x'][class*='bg-white'],
+html.dark [class*='translate-x-5'],
+html.dark [class*='translate-x-6'],
+html.dark .bg-background,
+html.dark [class*='pointer-events-none'][class*='block'][class*='rounded-full'],
+html.dark [class*='pointer-events-none'].block.h-5.w-5.rounded-full,
+html.dark .pointer-events-none.block.h-5.w-5.rounded-full.bg-background {
+  background-color: #9ca3af !important; /* Muted gray instead of white */
+}
+
+/* Target Radix Switch Thumb directly */
+html.dark [role='switch'] > [class*='pointer-events-none'],
+html.dark [data-radix-switch-thumb],
+html.dark [class*='SwitchThumb'] {
+  background-color: #9ca3af !important;
+}
+
+/* Toggle thumb when switch is ON (active) - more specific */
+html.dark [data-state='checked'] [class*='translate-x'],
+html.dark [data-state='checked'] > [class*='pointer-events-none'],
+html.dark [aria-checked='true'] [class*='translate-x'],
+html.dark [aria-checked='true'] > [class*='pointer-events-none'] {
+  background-color: #f3f4f6 !important; /* Slightly lighter when active */
+}
+
+/* Nuclear option - override any bg-background class */
+html.dark .bg-background {
+  background-color: #9ca3af !important;
+}
+
+/* Override CSS custom properties for Radix Switch */
+html.dark {
+  --background: 159 166 175 !important; /* #9ca3af in HSL */
+}
+
+/* Final override - target any white backgrounds in switches */
+html.dark [role='switch'] * {
+  background-color: #9ca3af !important;
+}
+
+/* Fix toggle switch text visibility */
+html.dark [class*='toggle'] span,
+html.dark [class*='switch'] span,
+html.dark [role='switch'] span,
+html.dark [class*='translate-x'] span {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Toggle switch labels and text */
+html.dark [class*='switch-'] span,
+html.dark [class*='toggle-'] span,
+html.dark .toggle span,
+html.dark .switch span {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Toggle track text/labels */
+html.dark [class*='peer-checked'] + span,
+html.dark input:checked + * span {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Radix UI Switch overrides */
+html.dark [data-radix-collection-item],
+html.dark [data-state='checked'],
+html.dark [data-state='unchecked'] {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Badge component text visibility - CRITICAL FIX */
+html.dark [class*='badge'],
+html.dark [class*='Badge'],
+html.dark .badge {
+  color: var(--dark-text-primary) !important;
+  background: var(--dark-bg-tertiary) !important;
+  border: 1px solid var(--dark-border) !important;
+}
+
+/* Active/Inactive Badge specific overrides - TARGET EXACT CLASSES */
+html.dark .inline-flex.items-center.rounded-full.border.px-2\.5.py-0\.5.text-xs.font-semibold,
+html.dark div[class*='bg-ocean-100'],
+html.dark div[class*='text-ocean-800'],
+html.dark div[class*='bg-gray-100'],
+html.dark div[class*='text-gray-600'] {
+  color: var(--dark-text-primary) !important;
+  background: var(--dark-bg-tertiary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+/* Active Badge - Green styling */
+html.dark div[class*='bg-ocean-100'][class*='text-ocean-800'] {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: var(--dark-accent-success) !important;
+  border-color: var(--dark-accent-success) !important;
+}
+
+/* Inactive Badge - Gray styling */
+html.dark div[class*='bg-gray-100'][class*='text-gray-600'] {
+  background: rgba(107, 114, 128, 0.2) !important;
+  color: var(--dark-text-secondary) !important;
+  border-color: var(--dark-text-muted) !important;
+}
+
+/* Legacy badge overrides */
+html.dark [data-variant='active'],
+html.dark .badge[data-variant='active'],
+html.dark [class*='badge'][class*='active'] {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: var(--dark-accent-success) !important;
+  border-color: var(--dark-accent-success) !important;
+}
+
+html.dark [data-variant='inactive'],
+html.dark .badge[data-variant='inactive'],
+html.dark [class*='badge'][class*='inactive'] {
+  background: rgba(107, 114, 128, 0.2) !important;
+  color: var(--dark-text-secondary) !important;
+  border-color: var(--dark-text-muted) !important;
+}
+
+/* Catch-all for any text in Status column */
+html.dark td:has(.inline-flex.items-center.gap-2) * {
+  color: var(--dark-text-primary) !important;
+}
+
+/* React Switch Component patterns */
+html.dark .react-switch-bg,
+html.dark [class*='switch'][class*='checked'],
+html.dark [class*='Switch'][class*='Checked'] {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+}
+
+/* Custom toggle implementations */
+html.dark [data-checked='true'],
+html.dark [data-state='checked'],
+html.dark .checked [class*='bg-blue'],
+html.dark .checked [class*='bg-cyan'] {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Radio and Checkbox overrides */
+html.dark .MuiRadio-colorPrimary.Mui-checked,
+html.dark .MuiCheckbox-colorPrimary.Mui-checked {
+  color: var(--dark-accent-primary) !important;
+}
+
+/* Slider overrides */
+html.dark .MuiSlider-colorPrimary .MuiSlider-thumb,
+html.dark .MuiSlider-colorPrimary .MuiSlider-track {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Progress indicators */
+html.dark .MuiLinearProgress-colorPrimary .MuiLinearProgress-bar,
+html.dark .MuiCircularProgress-colorPrimary {
+  background-color: var(--dark-accent-primary) !important;
+  color: var(--dark-accent-primary) !important;
+}
+
+/* Badge overrides */
+html.dark .MuiBadge-colorPrimary .MuiBadge-badge {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Active state overrides for navigation */
+html.dark [class*='bg-blue'][class*='text-white'],
+html.dark [class*='bg-cyan'][class*='text-white'] {
+  background-color: var(--dark-sidebar-active) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+/* ULTIMATE OVERRIDE - Target Tailwind CSS Variables directly */
+html.dark .bg-blue-500 {
+  --tw-bg-opacity: 1 !important;
+  background-color: var(--dark-accent-primary) !important;
+}
+
+html.dark .bg-cyan-500,
+html.dark .bg-cyan-600 {
+  --tw-bg-opacity: 1 !important;
+  background-color: var(--dark-accent-primary) !important;
+}
+
+html.dark .bg-sky-500,
+html.dark .bg-sky-600 {
+  --tw-bg-opacity: 1 !important;
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Force all elements with these specific blue colors */
+html.dark * {
+  /* Override Tailwind blue-500 rgb value */
+  --tw-bg-blue-500: var(--dark-accent-primary) !important;
+  --tw-bg-cyan-500: var(--dark-accent-primary) !important;
+  --tw-bg-sky-500: var(--dark-accent-primary) !important;
+}
+
+/* Target the specific buttons in your screenshot */
+html.dark button:not([disabled]) {
+  background-image: none !important;
+}
+
+html.dark button:not([disabled])[class*='bg-']:not([class*='gray']):not([class*='slate']) {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+html.dark button:not([disabled])[class*='bg-']:not([class*='gray']):not([class*='slate']):hover {
+  background-color: var(--dark-accent-primary-hover) !important;
+}
+
+/* Endpoint Wizard and Add Connection buttons specifically */
+html.dark button:has(+ svg),
+html.dark button:has(svg),
+html.dark [class*='Wizard'],
+html.dark [class*='Connection'] button {
+  background-color: var(--dark-accent-primary) !important;
+  color: #e1e6ee !important;
+}
+
+html.dark button:has(+ svg):hover,
+html.dark button:has(svg):hover,
+html.dark [class*='Wizard']:hover,
+html.dark [class*='Connection'] button:hover {
+  background-color: var(--dark-accent-primary-hover) !important;
+}
+
+/* FINAL OVERRIDE - Nuclear option for any remaining blue elements */
+/* Target any element with blue/cyan/sky background colors */
+html.dark [class*='bg-blue-'],
+html.dark [class*='bg-cyan-'],
+html.dark [class*='bg-sky-'],
+html.dark [style*='rgb(14, 165, 233)'],
+html.dark [style*='rgb(6, 182, 212)'],
+html.dark [style*='rgb(56, 189, 248)'],
+html.dark [style*='rgb(34, 211, 238)'],
+html.dark [style*='rgb(125, 211, 252)'],
+html.dark [style*='#0ea5e9'],
+html.dark [style*='#06b6d4'],
+html.dark [style*='#38bdf8'],
+html.dark [style*='#22d3ee'],
+html.dark [style*='#7dd3fc'] {
+  background-color: var(--dark-accent-primary) !important;
+  background-image: none !important;
+}
+
+/* Override Tailwind's peer-checked states for toggles */
+html.dark .peer:checked ~ [class*='bg-blue'],
+html.dark .peer:checked ~ [class*='bg-cyan'],
+html.dark .peer:checked ~ [class*='bg-sky'],
+html.dark input[type='checkbox']:checked ~ [class*='bg-'],
+html.dark input[type='checkbox']:checked + [class*='bg-'] {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Target toggle switches with data attributes */
+html.dark [data-headlessui-state*='checked'] [class*='bg-'],
+html.dark [aria-checked='true'] [class*='bg-'],
+html.dark [role='switch'][aria-checked='true'] {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Override any remaining cyan colors in Status column */
+html.dark td [class*='bg-cyan'],
+html.dark td [class*='bg-blue'],
+html.dark td [class*='bg-sky'],
+html.dark [class*='Status'] [class*='bg-cyan'],
+html.dark [class*='Status'] [class*='bg-blue'],
+html.dark [class*='toggle'] [class*='bg-cyan'],
+html.dark [class*='toggle'] [class*='bg-blue'] {
+  background-color: var(--dark-accent-primary) !important;
+}
+
+/* Force all toggle-like elements */
+html.dark [class*='relative'][class*='inline-flex'][class*='rounded-full'],
+html.dark [class*='switch'][class*='relative'],
+html.dark [role='switch'] > span {
+  background-color: inherit !important;
+}
+
+html.dark [class*='relative'][class*='inline-flex'][class*='rounded-full'][class*='bg-'],
+html.dark [role='switch'][aria-checked='true'] > span[class*='bg-'] {
+  background-color: var(--dark-accent-primary) !important;
+}

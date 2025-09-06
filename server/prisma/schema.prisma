@@ -1,0 +1,48 @@
+// Prisma Schema for Template20 Database
+// Generated from MongoDB Template20 Intelligence
+// Version: v1.0-ai-optimized
+// Generated: 2025-07-13T15:31:19.742Z
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+generator docs {
+  provider = "prisma-docs-generator"
+  output   = "./generated/docs"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEMPLATE20_DATABASE_URL")
+}
+
+// AI Assistant Configuration
+// This schema is optimized for AI coding assistants like Claude, GPT, and Cursor
+// Each model includes business context and usage examples
+
+// AI ASSISTANT METADATA
+// Business intelligence for AI coding assistants
+
+/// BUSINESS ENTITIES SUMMARY:
+/// - customer: Customer and contact management (0 procedures)
+/// - contract: Sales contracts and opportunities (0 procedures)
+/// - invoice: Billing and invoicing (0 procedures)
+/// - payment: Payment processing and tracking (0 procedures)
+/// - opportunity: Sales pipeline and opportunity tracking (0 procedures)
+
+/// COMMON QUERY PATTERNS:
+/// - Customer lookup: Customer.findUnique({ where: { id } })
+/// - Invoice with payments: Invoice.findMany({ include: { payments: true } })
+/// - Contract details: Contract.findFirst({ include: { customer: true, opportunities: true } })
+
+/// STORED PROCEDURE INTEGRATION:
+/// Use Template20Intelligence.getProceduresForEntity() to find relevant procedures
+/// High-confidence procedures are recommended for data operations
+
+
+
+
+// RELATIONSHIPS
+// Generated from view analysis and foreign key discovery

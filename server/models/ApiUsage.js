@@ -1,0 +1,62 @@
+const mongoose = require('mongoose');
+
+const apiUsageSchema = new mongoose.Schema({
+  service: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Service',
+    required: true,
+  },
+  endpoint: {
+    type: String,
+    required: true,
+  },
+  component: {
+    type: String,
+    required: true,
+  },
+  role: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+  },
+  application: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Application',
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  method: {
+    type: String,
+    required: true,
+    enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  },
+  statusCode: {
+    type: Number,
+    required: true,
+  },
+  requestSize: {
+    type: Number,
+    default: 0,
+  },
+  responseSize: {
+    type: Number,
+    default: 0,
+  },
+  // Optional count of records processed/returned by the call
+  records: {
+    type: Number,
+    default: 0,
+  },
+});
+
+apiUsageSchema.index({ service: 1, timestamp: 1 });
+apiUsageSchema.index({ role: 1, timestamp: 1 });
+apiUsageSchema.index({ application: 1, timestamp: 1 });
+apiUsageSchema.index({ component: 1 });
+apiUsageSchema.index({ timestamp: 1 });
+
+const ApiUsage = mongoose.model('ApiUsage', apiUsageSchema);
+
+module.exports = ApiUsage;

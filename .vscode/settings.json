@@ -1,0 +1,121 @@
+{
+  "// Template20 AI Schema Integration Settings": "VS Code configuration for AI coding assistants",
+  
+  "// Prisma Integration": "Configure Prisma for intelligent auto-completion",
+  "prisma.showPrismaDataPlatformNotification": false,
+  "prisma.fileWatcher": true,
+  "prisma.trace.server": "off",
+  
+  "// GraphQL Integration": "Configure GraphQL language server and schema discovery",
+  "graphql-config.load.configName": "graphql",
+  "graphql-config.load.legacy": true,
+  "graphql.useSchemaFileForIntrospection": true,
+  
+  "// TypeScript/JavaScript IntelliSense": "Enhanced for generated schemas",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "javascript.suggest.autoImports": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  
+  "// AI Coding Assistant Integration": "Configure for Claude, GitHub Copilot, Cursor AI",
+  "cursor.ai.contextFiles": [
+    "server/prisma/schema.prisma",
+    "server/graphql/generated/typeDefs.graphql", 
+    "server/docs/generated/README.md",
+    "CLAUDE.md",
+    "MCP-SCHEMA-INTELLIGENCE-IMPLEMENTATION.md"
+  ],
+  
+  "// File Associations": "Configure file types for better AI context",
+  "files.associations": {
+    "*.prisma": "prisma",
+    "*.graphql": "graphql",
+    "*.gql": "graphql"
+  },
+  
+  "// Search Configuration": "Enhanced search for schema discovery",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.git": true,
+    "**/coverage": true,
+    "**/.nyc_output": true
+  },
+  "search.followSymlinks": false,
+  "search.smartCase": true,
+  
+  "// File Explorer": "Organize generated files",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "schema.prisma": "generated/*.prisma",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.ts": "${capture}.js, ${capture}.d.ts.map, ${capture}.d.ts",
+    "index.js": "typeDefs.graphql, resolvers.js, ai-documentation.md"
+  },
+  
+  "// Database Integration": "SQL and database tooling",
+  "sql.connections": [
+    {
+      "name": "Template20 (Local)",
+      "driver": "mssql", 
+      "server": "localhost",
+      "database": "template20",
+      "authenticationType": "SQL Login",
+      "username": "${env:SQL_USERNAME}",
+      "password": "${env:SQL_PASSWORD}",
+      "encrypt": true,
+      "trustServerCertificate": true
+    }
+  ],
+  
+  "// AI Assistant Specific Settings": "Optimize for different AI tools",
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": false,
+    "plaintext": false,
+    "markdown": true
+  },
+  
+  "// Code Actions": "Quick fixes and refactoring",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  
+  "// IntelliSense": "Enhanced auto-completion",
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off", 
+    "strings": "on"
+  },
+  "editor.parameterHints.enabled": true,
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.wordBasedSuggestions": "matchingDocuments",
+  
+  "// Terminal Integration": "Configure for MCP and AI schema commands",
+  "terminal.integrated.env.windows": {
+    "PRISMA_SCHEMA_PATH": "${workspaceFolder}/server/prisma/schema.prisma",
+    "GRAPHQL_SCHEMA_PATH": "${workspaceFolder}/server/graphql/generated/typeDefs.graphql",
+    "MCP_INTELLIGENCE_API": "http://localhost:3001/api/template20-sync",
+    "AI_SCHEMA_API": "http://localhost:3001/api/ai-schema"
+  },
+  
+  "// Workspace Recommendations": "Suggest AI-optimized workflows",
+  "editor.rulers": [80, 120],
+  "editor.minimap.enabled": true,
+  "editor.minimap.showSlider": "always",
+  "breadcrumbs.enabled": true,
+  
+  "// Template20 Specific": "Business entity and procedure discovery",
+  "workbench.colorCustomizations": {
+    "editorRuler.foreground": "#ff00004d"
+  },
+  "editor.tokenColorCustomizations": {
+    "comments": "#6A9955",
+    "keywords": "#569CD6",
+    "strings": "#CE9178"
+  }
+}
