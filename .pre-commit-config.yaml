@@ -1,0 +1,50 @@
+repos:
+  - repo: local
+    hooks:
+      - id: lint-frontend
+        name: ESLint Frontend
+        entry: npm run lint
+        language: node
+        pass_filenames: false
+        files: '^src/.*\.(js|jsx|ts|tsx)$'
+        
+      - id: lint-backend
+        name: ESLint Backend  
+        entry: npm run lint:backend
+        language: node
+        pass_filenames: false
+        files: '^server/.*\.js$'
+        
+      - id: type-check
+        name: TypeScript Type Check
+        entry: npm run type-check
+        language: node
+        pass_filenames: false
+        files: '^(src|server)/.*\.(ts|tsx)$'
+        
+      - id: test-changed
+        name: Test Changed Files
+        entry: npm run test:changed
+        language: node
+        pass_filenames: false
+        files: '^(src|server)/.*\.(js|jsx|ts|tsx)$'
+        
+      - id: security-audit
+        name: Security Audit
+        entry: npm audit --audit-level high
+        language: node
+        pass_filenames: false
+        
+      - id: format-check
+        name: Prettier Format Check
+        entry: npm run format:check
+        language: node
+        pass_filenames: false
+        files: '^(src|server)/.*\.(js|jsx|ts|tsx|json|md|css)$'
+        
+      - id: security-review
+        name: Claude Code Security Review
+        entry: npm run security:review
+        language: node
+        pass_filenames: false
+        files: '^(src|server)/.*\.(js|jsx|ts|tsx)$'

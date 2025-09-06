@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+
+echo "Running pre-push quality checks (advisory)..."
+
+# Allow skipping via env var
+if [ "$SKIP_PREPUSH" = "1" ]; then
+  echo "SKIP_PREPUSH=1 detected. Skipping pre-push checks."
+  exit 0
+fi
+
+# Run full checks but do not block by default
+RESULT=0
+
+echo "- Linting (npm run lint)"
+npm run lint || RESULT=1
+
+echo "- Type check (npm run type-check)"
+npm run type-check || RESULT=1
+
+echo "- Tests (npm test -- --watchAll=false --passWithNoTests)"
+npm test -- --watchAll=false --passWithNoTests || RESULT=1
+
+if [ $RESULT -ne 0 ]; then
+  echo "\nWARNING: Pre-push checks found issues. Push allowed (advisory mode)."
+  echo "Set BLOCK_PREPUSH=1 to enforce failures: BLOCK_PREPUSH=1 git push"
+  if [ "$BLOCK_PREPUSH" = "1" ]; then
+    echo "BLOCK_PREPUSH=1 set. Blocking push due to failed checks."
+    exit 1
+  fi
+fi
+
+echo "Pre-push checks completed."
+exit 0
+

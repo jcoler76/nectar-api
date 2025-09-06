@@ -1,0 +1,54 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Force LF line endings for source files (cross-platform consistency)
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.svg text eol=lf
+*.sh text eol=lf
+
+# Denote all files that are binary and should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.tgz binary
+*.jar binary
+*.war binary
+*.ear binary
+*.dll binary
+*.exe binary
+*.so binary
+*.dylib binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+
+# Windows-specific files should keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Exclude files from language statistics
+*.min.js linguist-vendored
+*.min.css linguist-vendored
+build/* linguist-generated
+dist/* linguist-generated
+node_modules/* linguist-vendored

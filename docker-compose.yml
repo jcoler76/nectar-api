@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  mirabel-api:
+    image: ghcr.io/${GITHUB_REPOSITORY}:${VERSION:-latest}
+    container_name: mirabel-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3001}:3001"
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    volumes:
+      # Persistent data volumes
+      - ./server/logs:/app/server/logs
+      - ./server/backups:/app/server/backups
+      - ./server/uploads:/app/server/uploads
+    networks:
+      - mirabel-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # MongoDB (optional - remove if using external MongoDB)
+  mongodb:
+    image: mongo:7.0
+    container_name: mirabel-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=mirabel
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - mirabel-network
+
+  # Redis for Bull.js queues
+  redis:
+    image: redis:7-alpine
+    container_name: mirabel-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - mirabel-network
+
+networks:
+  mirabel-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  mongodb_config:
+  redis_data:

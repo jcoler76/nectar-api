@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build outputs
+build/
+dist/
+coverage/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation that should maintain specific formatting
+CHANGELOG.md
+LICENSE
+*.md
+
+# Config files that have specific formatting requirements
+*.json
+*.yml
+*.yaml
