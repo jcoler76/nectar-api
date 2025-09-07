@@ -120,12 +120,7 @@ const CheckoutPage = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // In a real app, you would integrate with Stripe here
-      console.log('Processing payment for:', {
-        plan: selectedPlan,
-        billing: billingCycle,
-        customer: formData,
-        amount: totalPrice
-      });
+      // Processing payment for: plan, billing, customer, amount
 
       // Simulate successful payment
       navigate('/checkout/success', { 
@@ -411,8 +406,8 @@ const CheckoutPage = () => {
                 </div>
                 <p>
                   By clicking "Start Free Trial", you agree to our{' '}
-                  <a href="#" className="text-blue-600 hover:underline">Terms of Service</a>{' '}
-                  and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+                  <button type="button" className="text-blue-600 hover:underline">Terms of Service</button>{' '}
+                  and <button type="button" className="text-blue-600 hover:underline">Privacy Policy</button>
                 </p>
               </div>
             </form>

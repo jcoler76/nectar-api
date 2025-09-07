@@ -11,6 +11,10 @@ import LazyRoute from './components/common/LazyRoute';
 import RateLimitErrorBoundary from './components/common/RateLimitErrorBoundary';
 import EndpointList from './components/endpoints/EndpointList';
 import ModernLayout from './components/layout/ModernLayout';
+import CheckoutPage from './components/marketing/CheckoutPage';
+import CheckoutSuccessPage from './components/marketing/CheckoutSuccessPage';
+import HomePage from './components/marketing/HomePage';
+import PricingPage from './components/marketing/PricingPage';
 import CreateRole from './components/roles/CreateRole';
 import RoleEdit from './components/roles/RoleEdit';
 import RoleList from './components/roles/RoleList';
@@ -83,13 +87,19 @@ function App() {
         <SelectionProvider>
           <NotificationProvider>
             <Routes>
+              {/* Marketing Site Routes - Public */}
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+              
               <Route
                 path="/"
                 element={
                   isAuthenticated ? (
                     <Navigate to="/dashboard" replace />
                   ) : (
-                    <Navigate to="/login" replace />
+                    <Navigate to="/home" replace />
                   )
                 }
               />
