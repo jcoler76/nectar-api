@@ -117,9 +117,16 @@ class NotificationService {
       const skip = (page - 1) * limit;
 
       const [notifications, total, unreadCount] = await Promise.all([
-        Notification.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-        Notification.countDocuments(query),
-        Notification.getUnreadCount(userId),
+        prismaService.prisma.notification.findMany({
+          where: query,
+          orderBy: { createdAt: 'desc' },
+          skip: skip,
+          take: limit,
+        }),
+        prismaService.prisma.notification.count({ where: query }),
+        prismaService.prisma.notification.count({
+          where: { userId: userId, isRead: false },
+        }),
       ]);
 
       return {

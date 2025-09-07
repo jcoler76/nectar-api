@@ -83,14 +83,14 @@ const adminOnly = async (req, res, next) => {
       userAgent: req.headers['user-agent'],
     });
 
-    const User = require('../models/User');
-    const user = await User.findById(req.user.userId || req.user._id).select('isAdmin');
+    const prismaService = require('../services/prismaService');
+    const user = await prismaService.findUserById(req.user.userId || req.user._id);
 
-    if (!user || !user.isAdmin) {
+    if (!user || (user.role !== 'OWNER' && user.role !== 'ADMIN')) {
       logger.warn('Database fallback: Unauthorized admin access attempt', {
         userId: req.user.userId || req.user._id,
         tokenHasAdmin: 'missing',
-        dbHasAdmin: !!user?.isAdmin,
+        dbHasAdmin: !!(user?.role === 'OWNER' || user?.role === 'ADMIN'),
         ip: req.ip,
         userAgent: req.headers['user-agent'],
       });
