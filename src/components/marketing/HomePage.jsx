@@ -1,4 +1,13 @@
-import { ArrowRight, CheckCircle, Zap, Shield, BarChart3, Users, Workflow, Globe } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle,
+  Zap,
+  Shield,
+  BarChart3,
+  Users,
+  Workflow,
+  Globe,
+} from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,42 +21,42 @@ const HomePage = () => {
   const features = [
     {
       icon: <Workflow className="w-8 h-8 text-blue-600" />,
-      title: "Visual Workflow Builder",
-      description: "Create complex business processes with our intuitive drag-and-drop interface"
+      title: 'Visual Workflow Builder',
+      description: 'Create complex business processes with our intuitive drag-and-drop interface',
     },
     {
       icon: <BarChart3 className="w-8 h-8 text-green-600" />,
-      title: "AI-Powered Analytics",
-      description: "Get intelligent insights from your data with natural language queries"
+      title: 'AI-Powered Analytics',
+      description: 'Get intelligent insights from your data with natural language queries',
     },
     {
       icon: <Shield className="w-8 h-8 text-purple-600" />,
-      title: "Enterprise Security",
-      description: "Bank-grade security with 2FA, encryption, and compliance features"
+      title: 'Enterprise Security',
+      description: 'Bank-grade security with 2FA, encryption, and compliance features',
     },
     {
       icon: <Users className="w-8 h-8 text-orange-600" />,
-      title: "Team Collaboration",
-      description: "Work together seamlessly with role-based permissions and real-time updates"
+      title: 'Team Collaboration',
+      description: 'Work together seamlessly with role-based permissions and real-time updates',
     },
     {
       icon: <Globe className="w-8 h-8 text-teal-600" />,
-      title: "API Integrations",
-      description: "Connect with 100+ third-party services and build custom integrations"
+      title: 'API Integrations',
+      description: 'Connect with 100+ third-party services and build custom integrations',
     },
     {
       icon: <Zap className="w-8 h-8 text-yellow-600" />,
-      title: "Lightning Fast",
-      description: "Optimized performance with real-time processing and intelligent caching"
-    }
+      title: 'Lightning Fast',
+      description: 'Optimized performance with real-time processing and intelligent caching',
+    },
   ];
 
   const benefits = [
-    "Reduce manual work by up to 90%",
-    "Improve team productivity instantly",
-    "Scale operations without adding headcount",
-    "Ensure compliance with automated workflows",
-    "Get insights from your data in seconds"
+    'Reduce manual work by up to 90%',
+    'Improve team productivity instantly',
+    'Scale operations without adding headcount',
+    'Ensure compliance with automated workflows',
+    'Get insights from your data in seconds',
   ];
 
   return (
@@ -63,9 +72,21 @@ const HomePage = () => {
               <span className="text-xl font-bold text-gray-900">Nectar</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</a>
-              <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">About</a>
+              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Pricing
+              </a>
+              <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">
+                About
+              </a>
+              <button
+                onClick={() => navigate('/login')}
+                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Sign In
+              </button>
               <button
                 onClick={handleTryNow}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
@@ -87,8 +108,8 @@ const HomePage = () => {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-4xl mx-auto leading-relaxed">
-            Transform your business operations with intelligent automation, powerful analytics, 
-            and seamless integrations. Built for modern teams who demand efficiency.
+            Transform your business operations with intelligent automation, powerful analytics, and
+            seamless integrations. Built for modern teams who demand efficiency.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
@@ -102,7 +123,9 @@ const HomePage = () => {
               Watch Demo
             </button>
           </div>
-          <p className="text-sm text-gray-500 mt-6">No credit card required • 14-day free trial • Cancel anytime</p>
+          <p className="text-sm text-gray-500 mt-6">
+            No credit card required • 14-day free trial • Cancel anytime
+          </p>
         </div>
       </section>
 
@@ -118,7 +141,7 @@ const HomePage = () => {
               Powerful features designed to streamline your operations and accelerate growth
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div
@@ -216,7 +239,9 @@ const HomePage = () => {
             Start Your Free Trial
             <ArrowRight className="w-6 h-6" />
           </button>
-          <p className="text-gray-400 mt-6">14-day free trial • No credit card required • Cancel anytime</p>
+          <p className="text-gray-400 mt-6">
+            14-day free trial • No credit card required • Cancel anytime
+          </p>
         </div>
       </section>
 
@@ -238,28 +263,76 @@ const HomePage = () => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
               <ul className="space-y-2 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">API</a></li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Integrations
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Security
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    API
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
               <ul className="space-y-2 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Blog</a></li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Blog
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
               <ul className="space-y-2 text-gray-600">
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Status</a></li>
-                <li><a href="#" className="hover:text-gray-900 transition-colors">Community</a></li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Status
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-gray-900 transition-colors">
+                    Community
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

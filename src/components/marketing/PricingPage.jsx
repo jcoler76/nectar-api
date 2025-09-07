@@ -7,7 +7,7 @@ const PricingPage = () => {
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [selectedPlan, setSelectedPlan] = useState(null);
 
-  const handleSelectPlan = (planId) => {
+  const handleSelectPlan = planId => {
     setSelectedPlan(planId);
     navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
   };
@@ -27,14 +27,11 @@ const PricingPage = () => {
         'Email support',
         'Basic analytics',
         '5 integrations',
-        'Standard templates'
+        'Standard templates',
       ],
-      limitations: [
-        'Limited to 10 workflows',
-        'Basic reporting only'
-      ],
+      limitations: ['Limited to 10 workflows', 'Basic reporting only'],
       popular: false,
-      color: 'blue'
+      color: 'blue',
     },
     {
       id: 'professional',
@@ -53,11 +50,11 @@ const PricingPage = () => {
         'Custom templates',
         'Role-based permissions',
         'Webhook support',
-        'SLA monitoring'
+        'SLA monitoring',
       ],
       limitations: [],
       popular: true,
-      color: 'purple'
+      color: 'purple',
     },
     {
       id: 'enterprise',
@@ -78,19 +75,19 @@ const PricingPage = () => {
         'SSO & SAML support',
         'Audit logs & compliance',
         'Custom SLA',
-        'On-premise deployment option'
+        'On-premise deployment option',
       ],
       limitations: [],
       popular: false,
-      color: 'emerald'
-    }
+      color: 'emerald',
+    },
   ];
 
-  const getPrice = (plan) => {
+  const getPrice = plan => {
     return billingCycle === 'monthly' ? plan.monthlyPrice : Math.floor(plan.yearlyPrice / 12);
   };
 
-  const getSavings = (plan) => {
+  const getSavings = plan => {
     const monthlyCost = plan.monthlyPrice * 12;
     const yearlyCost = plan.yearlyPrice;
     return Math.round(((monthlyCost - yearlyCost) / monthlyCost) * 100);
@@ -111,11 +108,19 @@ const PricingPage = () => {
                 Back to Home
               </button>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">Nectar</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Nectar</span>
+              <button
+                onClick={() => navigate('/login')}
+                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Sign In
+              </button>
             </div>
           </div>
         </div>
@@ -136,7 +141,9 @@ const PricingPage = () => {
 
           {/* Billing Toggle */}
           <div className="flex items-center justify-center gap-4 mb-12">
-            <span className={`font-medium ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>
+            <span
+              className={`font-medium ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}
+            >
               Monthly
             </span>
             <button
@@ -150,7 +157,9 @@ const PricingPage = () => {
               />
             </button>
             <div className="flex items-center gap-2">
-              <span className={`font-medium ${billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}>
+              <span
+                className={`font-medium ${billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}
+              >
                 Yearly
               </span>
               {billingCycle === 'yearly' && (
@@ -167,12 +176,12 @@ const PricingPage = () => {
       <section className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {plans.map((plan) => (
+            {plans.map(plan => (
               <div
                 key={plan.id}
                 className={`relative bg-white rounded-2xl border-2 p-8 transition-all duration-300 hover:scale-105 ${
-                  plan.popular 
-                    ? 'border-purple-500 shadow-2xl shadow-purple-500/25' 
+                  plan.popular
+                    ? 'border-purple-500 shadow-2xl shadow-purple-500/25'
                     : 'border-gray-200 hover:border-gray-300 shadow-xl hover:shadow-2xl'
                 }`}
               >
@@ -186,7 +195,9 @@ const PricingPage = () => {
                 )}
 
                 <div className="text-center mb-8">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-${plan.color}-500 to-${plan.color}-600 text-white mb-4`}>
+                  <div
+                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-${plan.color}-500 to-${plan.color}-600 text-white mb-4`}
+                  >
                     {plan.icon}
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
@@ -194,9 +205,7 @@ const PricingPage = () => {
 
                   <div className="mb-6">
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold text-gray-900">
-                        ${getPrice(plan)}
-                      </span>
+                      <span className="text-5xl font-bold text-gray-900">${getPrice(plan)}</span>
                       <span className="text-gray-600">
                         /{billingCycle === 'monthly' ? 'mo' : 'mo'}
                       </span>
@@ -207,9 +216,7 @@ const PricingPage = () => {
                       </div>
                     )}
                     {billingCycle === 'monthly' && (
-                      <div className="text-sm text-gray-500 mt-2">
-                        Billed monthly
-                      </div>
+                      <div className="text-sm text-gray-500 mt-2">Billed monthly</div>
                     )}
                   </div>
 
@@ -224,7 +231,9 @@ const PricingPage = () => {
                     Start Free Trial
                   </button>
                   <p className="text-xs text-gray-500 mt-3">
-                    14-day free trial, then ${billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}/{billingCycle === 'monthly' ? 'month' : 'year'}
+                    14-day free trial, then $
+                    {billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}/
+                    {billingCycle === 'monthly' ? 'month' : 'year'}
                   </p>
                 </div>
 
@@ -253,29 +262,34 @@ const PricingPage = () => {
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
                   <h3 className="font-semibold text-gray-900 mb-2">Can I change plans anytime?</h3>
                   <p className="text-gray-600">
-                    Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, 
-                    and you'll be prorated for the difference.
+                    Yes, you can upgrade or downgrade your plan at any time. Changes take effect
+                    immediately, and you'll be prorated for the difference.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-2">What payment methods do you accept?</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    What payment methods do you accept?
+                  </h3>
                   <p className="text-gray-600">
-                    We accept all major credit cards (Visa, Mastercard, American Express) and bank transfers 
-                    for Enterprise plans. All payments are processed securely through Stripe.
+                    We accept all major credit cards (Visa, Mastercard, American Express) and bank
+                    transfers for Enterprise plans. All payments are processed securely through
+                    Stripe.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
                   <h3 className="font-semibold text-gray-900 mb-2">Is there a setup fee?</h3>
                   <p className="text-gray-600">
-                    No setup fees. No hidden charges. You only pay for your chosen plan, 
-                    and you can cancel anytime without penalties.
+                    No setup fees. No hidden charges. You only pay for your chosen plan, and you can
+                    cancel anytime without penalties.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-2">Do you offer discounts for nonprofits?</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Do you offer discounts for nonprofits?
+                  </h3>
                   <p className="text-gray-600">
-                    Yes! We offer special pricing for qualified nonprofits, educational institutions, 
-                    and startups. Contact our sales team for more information.
+                    Yes! We offer special pricing for qualified nonprofits, educational
+                    institutions, and startups. Contact our sales team for more information.
                   </p>
                 </div>
               </div>
