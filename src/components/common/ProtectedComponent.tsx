@@ -1,10 +1,10 @@
 import * as React from 'react';
 
-import type { UserPermissions } from '../../constants/permissions';
+import type { CustomerPermissions } from '../../constants/permissions';
 import { usePermissions } from '../../context/PermissionContext';
 
 export interface ProtectedComponentProps {
-  permission: keyof UserPermissions;
+  permission: keyof CustomerPermissions;
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
