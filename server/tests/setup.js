@@ -1,4 +1,4 @@
-// Real Test Setup for Mirabel API Server
+// Real Test Setup for Nectar Studio Server
 // NO MOCKS - Uses real implementations for all tests
 
 const { testEnvironment } = require('../utils/testUtils');

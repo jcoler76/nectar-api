@@ -47,7 +47,7 @@ code-quality-assessment-report.md
 mongosh.exe
 
 # Business views (contain sensitive data structures)
-mirabel-api-library/
+nectar-api-library/
 
 # Security documentation (contains sensitive vulnerability details)
 SECURITY_CHECKLIST.md

@@ -54,14 +54,25 @@ const mountRoutes = app => {
   // API information endpoints (no auth required for basic info)
   app.use('/api', require('./apiInfo'));
 
+  // Marketing billing (public): Stripe checkout + webhook
+  // No auth or CSRF; webhook uses signature verification
+  app.use(
+    '/api/checkout',
+    (req, res, next) => next(),
+    require('./marketingBilling')
+  );
+
   // Public routes (no auth required) - apply stricter rate limiting
-  app.use('/api/auth', authLimiter, require('./auth'));
+  // Temporarily using Prisma-based auth routes
+  app.use('/api/auth', authLimiter, require('./auth-prisma'));
 
   // Versioned API routes (v1)
   app.use('/api/v1', authMiddleware, csrfProtection(csrfOptions), require('./v1'));
 
   // JWT protected routes (require login) with CSRF protection
   app.use('/api/users', authMiddleware, csrfProtection(csrfOptions), require('./users'));
+  // Temporarily disabled until auth is working
+  // app.use('/api/organizations', authMiddleware, csrfProtection(csrfOptions), require('./organizations'));
   app.use('/api/roles', authMiddleware, csrfProtection(csrfOptions), require('./roles'));
   app.use(
     '/api/applications',
@@ -70,86 +81,97 @@ const mountRoutes = app => {
     require('./applications')
   );
   app.use('/api/services', authMiddleware, csrfProtection(csrfOptions), require('./services'));
-  app.use(
-    '/api/database-objects',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./databaseObjects')
-  );
-  app.use(
-    '/api/schema-intelligence',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./schemaIntelligence')
-  );
-  app.use(
-    '/api/ai-generation',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./aiGeneration')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration
+  // TODO: Re-enable after implementing proper Prisma queries for schema intelligence
+  // app.use(
+  //   '/api/database-objects',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./databaseObjects')
+  // );
+  // app.use(
+  //   '/api/schema-intelligence',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./schemaIntelligence')
+  // );
+  // app.use(
+  //   '/api/ai-generation',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./aiGeneration')
+  // );
   app.use(
     '/api/connections',
     authMiddleware,
     csrfProtection(csrfOptions),
     require('./connections')
   );
-  app.use(
-    '/api/developer-endpoints',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./endpoints')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration - endpoints route
+  // app.use(
+  //   '/api/developer-endpoints',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./endpoints')
+  // );
+  // Reports route - Updated for Prisma  
   app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
   app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
-  app.use(
-    '/api/documentation',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./documentation')
-  );
-  app.use('/api/imports', authMiddleware, csrfProtection(csrfOptions), require('./imports'));
-  app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./ai'));
-  app.use(
-    '/api/acceptance-criteria',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./acceptanceCriteria')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration - documentation route
+  // app.use(
+  //   '/api/documentation',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./documentation')
+  // );
+  // Temporarily disabled during MongoDB to Prisma migration - imports/ai routes
+  // app.use('/api/imports', authMiddleware, csrfProtection(csrfOptions), require('./imports'));
+  // app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./ai'));
+  // app.use(
+  //   '/api/acceptance-criteria',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./acceptanceCriteria')
+  // );
+  // Re-enabled for SILO C - workflows route (needs MongoDB model updates)
   app.use('/api/workflows', authMiddleware, csrfProtection(csrfOptions), require('./workflows'));
-  app.use(
-    '/api/template20-sync',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./template20Sync')
-  );
-  app.use(
-    '/api/ai-schema',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./aiSchemaGeneration')
-  );
-  app.use(
-    '/api/schema-selection',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./schemaSelection')
-  );
-  app.use('/api/queue', authMiddleware, csrfProtection(csrfOptions), require('./queue'));
-  app.use(
-    '/api/rate-limits',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./rateLimitManagement')
-  );
-
-  // Admin rate limit management routes
-  app.use(
-    '/api/admin/rate-limits',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./rateLimitAdmin')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration - template20Sync route
+  // app.use(
+  //   '/api/template20-sync',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./template20Sync')
+  // );
+  // Temporarily disabled during MongoDB to Prisma migration - ai-schema route
+  // app.use(
+  //   '/api/ai-schema',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./aiSchemaGeneration')
+  // );
+  // Temporarily disabled during MongoDB to Prisma migration - schema-selection route
+  // app.use(
+  //   '/api/schema-selection',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./schemaSelection')
+  // );
+  // Temporarily disabled during MongoDB to Prisma migration - admin routes
+  // app.use('/api/queue', authMiddleware, csrfProtection(csrfOptions), require('./queue'));
+  // app.use(
+  //   '/api/rate-limits',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./rateLimitManagement')
+  // );
+  //
+  // // Admin rate limit management routes
+  // app.use(
+  //   '/api/admin/rate-limits',
+  //   authMiddleware,
+  //   csrfProtection(csrfOptions),
+  //   require('./rateLimitAdmin')
+  // );
   app.use(
     '/api/notifications',
     authMiddleware,
@@ -157,30 +179,33 @@ const mountRoutes = app => {
     require('./notifications')
   );
 
+  // Freemium limits and usage tracking
+  app.use('/api/freemium', require('./freemium'));
+
   // Activity logs API (admin/monitor access)
   app.use('/api/activity-logs', require('./activityLogs'));
 
   // GitHub Issue Poller API (development only)
   app.use('/api/issue-poller', require('./issue-poller'));
 
-  // Developer specific routes - CSRF protection for authenticated endpoints
-  app.use('/api/developer', require('./developer'));
+  // Temporarily disabled during MongoDB to Prisma migration - developer route not needed
+  // app.use('/api/developer', require('./developer'));
 
-  // Developer Intelligence API routes (auth required for production, optional for development)
-  app.use(
-    '/api/developer-intelligence',
-    process.env.NODE_ENV === 'production' ? authMiddleware : (req, res, next) => next(),
-    process.env.NODE_ENV === 'production'
-      ? csrfProtection(csrfOptions)
-      : (req, res, next) => next(),
-    require('./developerIntelligence')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration - developerIntelligence route
+  // app.use(
+  //   '/api/developer-intelligence',
+  //   process.env.NODE_ENV === 'production' ? authMiddleware : (req, res, next) => next(),
+  //   process.env.NODE_ENV === 'production'
+  //     ? csrfProtection(csrfOptions)
+  //     : (req, res, next) => next(),
+  //   require('./developerIntelligence')
+  // );
 
   // API key protected routes (no CSRF needed - uses API key auth)
   app.use('/api/v1', require('./api'));
   app.use('/api/v2', require('./publicApi'));
 
-  // Webhook routes - CSRF protection for management endpoints, exclude trigger endpoints
+  // Re-enabled for SILO C - webhooks route (MongoDB dependencies fixed)
   app.use(
     '/api/webhooks',
     (req, res, next) => {
@@ -193,75 +218,75 @@ const mountRoutes = app => {
     require('./webhooks')
   );
 
-  // Jira webhook routes - webhook endpoints use signature verification, management uses auth
-  app.use('/api/webhooks/jira', require('./jiraWebhook')); // Original static route
+  // Temporarily disabled during MongoDB to Prisma migration - Jira webhook routes
+  // app.use('/api/webhooks/jira', require('./jiraWebhook')); // Original static route
 
-  // Dynamic Jira webhook with conditional auth
-  app.use(
-    '/api/webhooks/jira/dynamic',
-    (req, res, next) => {
-      // Webhook receiver endpoints use signature verification (no auth needed)
-      if (req.method === 'POST' && (req.path === '/' || req.path.includes('/test/'))) {
-        return next();
-      }
-      // Management endpoints require authentication and CSRF protection
-      if (req.path.includes('/automations')) {
-        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-      }
-      next();
-    },
-    require('./jiraWebhookDynamic')
-  );
+  // // Dynamic Jira webhook with conditional auth
+  // app.use(
+  //   '/api/webhooks/jira/dynamic',
+  //   (req, res, next) => {
+  //     // Webhook receiver endpoints use signature verification (no auth needed)
+  //     if (req.method === 'POST' && (req.path === '/' || req.path.includes('/test/'))) {
+  //       return next();
+  //     }
+  //     // Management endpoints require authentication and CSRF protection
+  //     if (req.path.includes('/automations')) {
+  //       return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+  //     }
+  //     next();
+  //   },
+  //   require('./jiraWebhookDynamic')
+  // );
 
-  // Form routes - CSRF protection for management endpoints, exclude public submission
-  app.use(
-    '/api/forms',
-    (req, res, next) => {
-      // Apply CSRF only to non-public endpoints
-      if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-      }
-      next();
-    },
-    require('./forms')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration - forms route
+  // app.use(
+  //   '/api/forms',
+  //   (req, res, next) => {
+  //     // Apply CSRF only to non-public endpoints
+  //     if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
+  //       return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+  //     }
+  //     next();
+  //   },
+  //   require('./forms')
+  // );
 
-  // Email routes - CSRF protection for management endpoints, exclude trigger endpoints
-  app.use(
-    '/api/email',
-    (req, res, next) => {
-      // Apply CSRF only to non-trigger endpoints
-      if (!req.path.includes('/trigger/')) {
-        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-      }
-      next();
-    },
-    require('./email')
-  );
+  // Temporarily disabled during MongoDB to Prisma migration - email route
+  // app.use(
+  //   '/api/email',
+  //   (req, res, next) => {
+  //     // Apply CSRF only to non-trigger endpoints
+  //     if (!req.path.includes('/trigger/')) {
+  //       return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+  //     }
+  //     next();
+  //   },
+  //   require('./email')
+  // );
 
-  // File routes - CSRF protection for management endpoints, exclude public uploads
-  app.use(
-    '/api/files',
-    (req, res, next) => {
-      // Apply upload rate limiting for upload endpoints
-      if (req.path.includes('/upload')) {
-        return uploadLimiter(req, res, () => {
-          // Apply CSRF only to non-public endpoints
-          if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-            return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-          }
-          next();
-        });
-      }
+  // Temporarily disabled during MongoDB to Prisma migration - files route
+  // app.use(
+  //   '/api/files',
+  //   (req, res, next) => {
+  //     // Apply upload rate limiting for upload endpoints
+  //     if (req.path.includes('/upload')) {
+  //       return uploadLimiter(req, res, () => {
+  //         // Apply CSRF only to non-public endpoints
+  //         if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
+  //           return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+  //         }
+  //         next();
+  //       });
+  //     }
 
-      // Apply CSRF only to non-public endpoints
-      if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-      }
-      next();
-    },
-    require('./files')
-  );
+  //     // Apply CSRF only to non-public endpoints
+  //     if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
+  //       return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+  //     }
+  //     next();
+  //   },
+  //   require('./files')
+  // );
 
   console.log('✅ All routes mounted successfully');
 };

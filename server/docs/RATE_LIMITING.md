@@ -1,7 +1,7 @@
 # Rate Limiting Documentation
 
 ## Overview
-The Mirabel API implements advanced rate limiting with Redis backing, fallback mechanisms, and granular control.
+The Nectar Studio implements advanced rate limiting with Redis backing, fallback mechanisms, and granular control.
 
 ## Features
 

@@ -167,7 +167,7 @@ export class StripeConfigController {
 
       res.json({
         success: true,
-        data: webhooks.data.map(webhook => ({
+        data: webhooks.data.map((webhook: any) => ({
           id: webhook.id,
           url: webhook.url,
           status: webhook.status,

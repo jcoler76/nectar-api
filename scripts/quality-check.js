@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Mirabel API Quality Assessment Tool
+ * Nectar Studio Quality Assessment Tool
  * Non-intrusive analysis that doesn't affect the build process
  */
 
@@ -718,7 +718,7 @@ class MirabelQualityAnalyzer {
 
 // Main execution
 async function runQualityAnalysis() {
-  console.log('🚀 Starting Mirabel API Quality Analysis...\n');
+  console.log('🚀 Starting Nectar Studio Quality Analysis...\n');
   
   const analyzer = new MirabelQualityAnalyzer();
   

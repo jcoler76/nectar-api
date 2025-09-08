@@ -210,7 +210,7 @@ cd server && npm run mcp
 
 ## Architecture Overview
 
-**Mirabel API** is a full-stack business intelligence and workflow automation platform with hybrid database architecture:
+**Nectar API** is a full-stack business intelligence and workflow automation platform with hybrid database architecture:
 
 - **Frontend**: React 18 + Material-UI with feature-driven component organization
 - **Backend**: Express.js + Apollo GraphQL server with layered architecture
@@ -437,7 +437,7 @@ describe('POST /api/workflows', () => {
 
 ## MongoDB Backup System
 
-The Mirabel API includes a comprehensive MongoDB backup system with automated scheduling, health monitoring, and restoration capabilities.
+The Nectar API includes a comprehensive MongoDB backup system with automated scheduling, health monitoring, and restoration capabilities.
 
 ### Backup Architecture
 
@@ -515,7 +515,7 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-email@domain.com
 EMAIL_PASS=your-app-password
-EMAIL_FROM="Mirabel API Backup <no-reply@mirabeltechnologies.com>"
+EMAIL_FROM="Nectar API Backup <no-reply@mirabeltechnologies.com>"
 ```
 
 #### 3. Manual Operations

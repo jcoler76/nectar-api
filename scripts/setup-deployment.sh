@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Mirabel API Deployment Setup Script"
+echo "🚀 Nectar API Deployment Setup Script"
 echo "======================================"
 
 # Check if running as root
@@ -73,8 +73,8 @@ fi
 
 # Create application directory
 print_status "Creating application directory..."
-mkdir -p ~/mirabel-api
-cd ~/mirabel-api
+mkdir -p ~/nectar-api
+cd ~/nectar-api
 
 # Create necessary subdirectories
 mkdir -p server/logs server/backups server/uploads deployment-backups
@@ -89,9 +89,9 @@ if [ ! -f docker-compose.yml ]; then
 version: '3.8'
 
 services:
-  mirabel-api:
-    image: ghcr.io/jcolermirabel/mirabel-api:latest
-    container_name: mirabel-api
+  nectar-api:
+    image: ghcr.io/jcolermirabel/nectar-api:latest
+    container_name: nectar-api
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -105,7 +105,7 @@ services:
       - ./server/backups:/app/server/backups
       - ./server/uploads:/app/server/uploads
     networks:
-      - mirabel-network
+      - nectar-network
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"]
       interval: 30s
@@ -115,23 +115,23 @@ services:
 
   mongodb:
     image: mongo:7.0
-    container_name: mirabel-mongodb
+    container_name: nectar-mongodb
     restart: unless-stopped
     ports:
       - "127.0.0.1:27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=CHANGE_THIS_PASSWORD
-      - MONGO_INITDB_DATABASE=mirabel
+      - MONGO_INITDB_DATABASE=nectar
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
     networks:
-      - mirabel-network
+      - nectar-network
 
   redis:
     image: redis:7-alpine
-    container_name: mirabel-redis
+    container_name: nectar-redis
     restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"
@@ -139,10 +139,10 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - mirabel-network
+      - nectar-network
 
 networks:
-  mirabel-network:
+  nectar-network:
     driver: bridge
 
 volumes:
@@ -164,7 +164,7 @@ NODE_ENV=production
 PORT=3001
 
 # Database
-MONGODB_URI=mongodb://mongodb:27017/mirabel
+MONGODB_URI=mongodb://mongodb:27017/nectar
 MONGO_ROOT_USER=admin
 MONGO_ROOT_PASSWORD=CHANGE_THIS_PASSWORD
 
@@ -187,14 +187,14 @@ SQL_SERVER_DATABASE=your-database
 DB_BACKUP_ENABLED=true
 DB_BACKUP_SCHEDULE=0 2 * * *
 DB_BACKUP_RETENTION_DAYS=30
-BACKUP_ALERT_EMAIL=admin@mirabeltechnologies.com
+BACKUP_ALERT_EMAIL=admin@nectartechnologies.com
 
 # Email Configuration (optional)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-email@domain.com
 EMAIL_PASS=your-app-password
-EMAIL_FROM=Mirabel API <no-reply@mirabeltechnologies.com>
+EMAIL_FROM=Nectar API <no-reply@nectartechnologies.com>
 EOF
     print_warning "⚠️  IMPORTANT: Edit .env.production with your actual configuration values!"
 else
@@ -204,7 +204,7 @@ fi
 # Setup nginx if installed
 if command -v nginx &> /dev/null; then
     print_status "Creating nginx configuration..."
-    sudo tee /etc/nginx/sites-available/mirabel-api << 'EOF'
+    sudo tee /etc/nginx/sites-available/nectar-api << 'EOF'
 server {
     listen 80;
     server_name your-domain.com;
@@ -230,8 +230,8 @@ server {
 }
 EOF
     print_warning "Remember to:"
-    print_warning "  1. Update server_name in /etc/nginx/sites-available/mirabel-api"
-    print_warning "  2. Enable the site: sudo ln -s /etc/nginx/sites-available/mirabel-api /etc/nginx/sites-enabled/"
+    print_warning "  1. Update server_name in /etc/nginx/sites-available/nectar-api"
+    print_warning "  2. Enable the site: sudo ln -s /etc/nginx/sites-available/nectar-api /etc/nginx/sites-enabled/"
     print_warning "  3. Test nginx: sudo nginx -t"
     print_warning "  4. Reload nginx: sudo systemctl reload nginx"
     print_warning "  5. Setup SSL with certbot"
@@ -250,7 +250,7 @@ cat > deploy.sh << 'EOF'
 BRANCH=${1:-main}
 REGISTRY_USER=${GITHUB_USER:-$USER}
 
-echo "🚀 Deploying Mirabel API from branch: $BRANCH"
+echo "🚀 Deploying Nectar API from branch: $BRANCH"
 
 # Login to GitHub Container Registry
 echo "Logging into GitHub Container Registry..."
@@ -259,7 +259,7 @@ read -s GITHUB_TOKEN
 echo $GITHUB_TOKEN | docker login ghcr.io -u $REGISTRY_USER --password-stdin
 
 # Pull latest image
-IMAGE="ghcr.io/$REGISTRY_USER/mirabel-api:$BRANCH-latest"
+IMAGE="ghcr.io/$REGISTRY_USER/nectar-api:$BRANCH-latest"
 echo "Pulling image: $IMAGE"
 docker pull $IMAGE
 
@@ -268,7 +268,7 @@ sed -i "s|image: ghcr.io/.*|image: $IMAGE|g" docker-compose.yml
 
 # Deploy
 echo "Deploying application..."
-docker compose up -d --no-deps mirabel-api
+docker compose up -d --no-deps nectar-api
 
 # Wait for health check
 echo "Waiting for application to be healthy..."
@@ -301,6 +301,6 @@ echo "3. If using nginx, configure the reverse proxy"
 echo "4. Push your code to GitHub to trigger automatic deployment"
 echo ""
 echo "🔧 Manual deployment:"
-echo "   cd ~/mirabel-api && ./deploy.sh [branch]"
+echo "   cd ~/nectar-api && ./deploy.sh [branch]"
 echo ""
 print_warning "Remember to log out and back in for Docker group membership to take effect!"

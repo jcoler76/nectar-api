@@ -8,6 +8,7 @@ const endpointTypeDefs = gql`
     apiKey: String!
     createdBy: ID!
     creator: User!
+    connection: Connection
     createdAt: Date!
     updatedAt: Date!
     # Usage statistics

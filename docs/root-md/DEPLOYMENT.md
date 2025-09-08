@@ -1,8 +1,8 @@
-# Mirabel API Deployment Guide
+# Nectar API Deployment Guide
 
 ## 🚀 Overview
 
-This guide explains the automated deployment process for Mirabel API, replacing manual PuTTY deployments with GitHub Actions CI/CD pipeline.
+This guide explains the automated deployment process for Nectar API, replacing manual PuTTY deployments with GitHub Actions CI/CD pipeline.
 
 ## 📋 Deployment Architecture
 
@@ -25,7 +25,7 @@ SSH into each Linux server and run:
 
 ```bash
 # Download and run setup script
-curl -o setup-deployment.sh https://raw.githubusercontent.com/yourusername/mirabel-api/main/scripts/setup-deployment.sh
+curl -o setup-deployment.sh https://raw.githubusercontent.com/yourusername/nectar-api/main/scripts/setup-deployment.sh
 chmod +x setup-deployment.sh
 ./setup-deployment.sh
 ```
@@ -58,7 +58,7 @@ Go to your repository Settings → Secrets and variables → Actions, and add:
 
 ### 3. Environment Configuration
 
-On each server, edit `/home/ubuntu/mirabel-api/.env.production`:
+On each server, edit `/home/ubuntu/nectar-api/.env.production`:
 
 ```bash
 # Critical settings to update:
@@ -111,15 +111,15 @@ If GitHub Actions is unavailable:
 
 ```bash
 # On your Windows machine
-docker build -t mirabel-api:latest .
-docker save mirabel-api:latest | gzip > mirabel-api.tar.gz
+docker build -t nectar-api:latest .
+docker save nectar-api:latest | gzip > nectar-api.tar.gz
 
 # Transfer to server
-scp mirabel-api.tar.gz ubuntu@server:/home/ubuntu/
+scp nectar-api.tar.gz ubuntu@server:/home/ubuntu/
 
 # On server
-docker load < mirabel-api.tar.gz
-docker compose up -d mirabel-api
+docker load < nectar-api.tar.gz
+docker compose up -d nectar-api
 ```
 
 ## 🔄 Deployment Workflow
@@ -159,11 +159,11 @@ The deployment uses blue-green strategy:
 
 ```bash
 # Check GitHub Actions
-# https://github.com/yourusername/mirabel-api/actions
+# https://github.com/yourusername/nectar-api/actions
 
 # On server
 docker compose ps
-docker compose logs -f mirabel-api
+docker compose logs -f nectar-api
 ```
 
 ### Health Checks
@@ -173,7 +173,7 @@ docker compose logs -f mirabel-api
 curl http://localhost:3001/health
 
 # Check container health
-docker inspect mirabel-api | grep -A 5 Health
+docker inspect nectar-api | grep -A 5 Health
 ```
 
 ### Common Issues & Solutions
@@ -188,8 +188,8 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 #### Issue: Health check fails after deployment
 **Solution**: Check logs and environment variables
 ```bash
-docker compose logs --tail=100 mirabel-api
-docker compose exec mirabel-api env | grep -E "(NODE_ENV|PORT|MONGODB)"
+docker compose logs --tail=100 nectar-api
+docker compose exec nectar-api env | grep -E "(NODE_ENV|PORT|MONGODB)"
 ```
 
 #### Issue: "Permission denied" errors
@@ -216,20 +216,20 @@ If deployment fails, the system automatically maintains the previous version.
 
 ```bash
 # On server
-cd /home/ubuntu/mirabel-api
+cd /home/ubuntu/nectar-api
 
 # View available images
-docker images | grep mirabel-api
+docker images | grep nectar-api
 
 # Rollback to specific version
 docker compose down
-sed -i 's|image: .*|image: ghcr.io/username/mirabel-api:previous-tag|g' docker-compose.yml
+sed -i 's|image: .*|image: ghcr.io/username/nectar-api:previous-tag|g' docker-compose.yml
 docker compose up -d
 
 # Or restore from backup
 cd /home/ubuntu/deployment-backups/
 ls -la  # Find appropriate backup
-cp YYYYMMDD_HHMMSS/.env* /home/ubuntu/mirabel-api/
+cp YYYYMMDD_HHMMSS/.env* /home/ubuntu/nectar-api/
 ```
 
 ## 📈 Performance Optimization
@@ -252,7 +252,7 @@ deploy:
 ### Monitoring Commands
 ```bash
 # Check resource usage
-docker stats mirabel-api
+docker stats nectar-api
 
 # Check disk usage
 docker system df
@@ -321,7 +321,7 @@ git push origin main
 docker compose ps
 
 # View logs
-docker compose logs -f mirabel-api
+docker compose logs -f nectar-api
 
 # Rollback
 ./deploy.sh previous-version

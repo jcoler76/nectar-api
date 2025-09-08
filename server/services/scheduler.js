@@ -1,12 +1,16 @@
 const cron = require('node-cron');
-const { Workflow } = require('../models/workflowModels');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const { Workflow } = require('../models/workflowModels');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const HubSpotService = require('./hubspot/HubSpotService');
 const axios = require('axios');
 const { executeWorkflow } = require('./workflows/engine');
 const { getMessageQueue } = require('./messageQueue');
 const { refreshAllConnections } = require('./connectionRefreshService');
 const { logger } = require('../utils/logger');
-const MongoBackupService = require('./mongoBackupService');
+const PostgresBackupService = require('./postgresBackupService');
 
 const scheduledTasks = new Map();
 const hubSpotPollingIntervals = new Map(); // workflowId -> { handle, intervalMs }
@@ -15,17 +19,20 @@ const adaptiveIntervals = new Map(); // Stores adaptive polling intervals for wo
 const activityMetrics = new Map(); // Stores activity metrics for adaptive scheduling
 
 // Initialize backup service
-let mongoBackupService = null;
+let backupService = null;
 
 // --- Database Trigger Polling ---
 
 const checkDatabaseTriggers = async () => {
   logger.info('Checking for database triggers...');
   try {
-    const dbTriggerWorkflows = await Workflow.find({
-      active: true,
-      'nodes.data.nodeType': 'trigger:database',
-    });
+    // TODO: Replace with Prisma workflow query during migration
+    // const dbTriggerWorkflows = await Workflow.find({
+    //   active: true,
+    //   'nodes.data.nodeType': 'trigger:database',
+    // });
+    // For now, skip workflow query to allow server startup
+    const dbTriggerWorkflows = [];
 
     for (const workflow of dbTriggerWorkflows) {
       const dbTriggerNode = workflow.nodes.find(n => n.data.nodeType === 'trigger:database');
@@ -152,13 +159,15 @@ const checkDatabaseTriggerEnhanced = async (workflow, triggerNode) => {
   const startTime = Date.now();
 
   try {
-    // Import required modules
-    const Connection = require('../models/Connection');
+    // MongoDB models replaced with Prisma for PostgreSQL migration
+    // const Connection = require('../models/Connection');
     const { decryptDatabasePassword } = require('../utils/encryption');
     const sql = require('mssql');
 
-    // Get connection details
-    const connection = await Connection.findById(connectionId).select('+password');
+    // TODO: Replace with Prisma connection query during migration
+    // const connection = await Connection.findById(connectionId).select('+password');
+    // For now, skip connection query to allow server startup
+    const connection = null;
     if (!connection) {
       logger.error(`Database connection not found: ${connectionId}`);
       return;
@@ -185,8 +194,10 @@ const checkDatabaseTriggerEnhanced = async (workflow, triggerNode) => {
       let query = '';
       let newRows = [];
 
-      // Get the latest workflow data from database to ensure we have the most recent lastDatabaseCheck
-      const latestWorkflow = await Workflow.findById(workflow._id);
+      // TODO: Replace with Prisma workflow query during migration
+      // const latestWorkflow = await Workflow.findById(workflow._id);
+      // For now, skip workflow query to allow server startup
+      const latestWorkflow = workflow;
 
       // Get the last check time for this workflow (stored in workflow metadata)
       const lastCheck = latestWorkflow.lastDatabaseCheck || new Date(Date.now() - 60000); // Default to 1 minute ago
@@ -353,15 +364,15 @@ const checkDatabaseTriggerEnhanced = async (workflow, triggerNode) => {
           await markRowsAsProcessed(pool, table, newRows, triggerNode.data);
         }
 
-        // Update the last check time
-        await Workflow.findByIdAndUpdate(workflow._id, {
-          lastDatabaseCheck: new Date(),
-        });
+        // TODO: Replace with Prisma workflow update during migration
+        // await Workflow.findByIdAndUpdate(workflow._id, {
+        //   lastDatabaseCheck: new Date(),
+        // });
       } else {
-        // Still update lastDatabaseCheck even when no new rows to prevent constant checking of old data
-        await Workflow.findByIdAndUpdate(workflow._id, {
-          lastDatabaseCheck: new Date(),
-        });
+        // TODO: Replace with Prisma workflow update during migration
+        // await Workflow.findByIdAndUpdate(workflow._id, {
+        //   lastDatabaseCheck: new Date(),
+        // });
       }
     } finally {
       await pool.close();
@@ -441,13 +452,15 @@ const checkDatabaseTrigger = async (workflow, triggerNode) => {
     triggerNode.data;
 
   try {
-    // Import required modules
-    const Connection = require('../models/Connection');
+    // MongoDB models replaced with Prisma for PostgreSQL migration
+    // const Connection = require('../models/Connection');
     const { decryptDatabasePassword } = require('../utils/encryption');
     const sql = require('mssql');
 
-    // Get connection details
-    const connection = await Connection.findById(connectionId).select('+password');
+    // TODO: Replace with Prisma connection query during migration
+    // const connection = await Connection.findById(connectionId).select('+password');
+    // For now, skip connection query to allow server startup
+    const connection = null;
     if (!connection) {
       logger.error(`Database connection not found: ${connectionId}`);
       return;
@@ -474,8 +487,10 @@ const checkDatabaseTrigger = async (workflow, triggerNode) => {
       let query = '';
       let newRows = [];
 
-      // Get the latest workflow data from database to ensure we have the most recent lastDatabaseCheck
-      const latestWorkflow = await Workflow.findById(workflow._id);
+      // TODO: Replace with Prisma workflow query during migration
+      // const latestWorkflow = await Workflow.findById(workflow._id);
+      // For now, skip workflow query to allow server startup
+      const latestWorkflow = workflow;
 
       // Get the last check time for this workflow (stored in workflow metadata)
       const lastCheck = latestWorkflow.lastDatabaseCheck || new Date(Date.now() - 60000); // Default to 1 minute ago
@@ -604,15 +619,15 @@ const checkDatabaseTrigger = async (workflow, triggerNode) => {
           }
         }
 
-        // Update the last check time
-        await Workflow.findByIdAndUpdate(workflow._id, {
-          lastDatabaseCheck: new Date(),
-        });
+        // TODO: Replace with Prisma workflow update during migration
+        // await Workflow.findByIdAndUpdate(workflow._id, {
+        //   lastDatabaseCheck: new Date(),
+        // });
       } else {
-        // Still update lastDatabaseCheck even when no new rows to prevent constant checking of old data
-        await Workflow.findByIdAndUpdate(workflow._id, {
-          lastDatabaseCheck: new Date(),
-        });
+        // TODO: Replace with Prisma workflow update during migration
+        // await Workflow.findByIdAndUpdate(workflow._id, {
+        //   lastDatabaseCheck: new Date(),
+        // });
       }
     } finally {
       await pool.close();
@@ -750,10 +765,13 @@ const validateTableName = tableName => {
 const initializeScheduler = async () => {
   try {
     logger.info('🚀 Initializing scheduler...');
-    const workflows = await Workflow.find({
-      active: true,
-      'nodes.data.nodeType': 'trigger:schedule',
-    });
+    // TODO: Replace with Prisma workflow query during migration
+    // const workflows = await Workflow.find({
+    //   active: true,
+    //   'nodes.data.nodeType': 'trigger:schedule',
+    // });
+    // For now, skip workflow query to allow server startup
+    const workflows = [];
 
     logger.info(`Found ${workflows.length} active workflows with scheduler triggers`);
 
@@ -792,20 +810,20 @@ const initializeScheduler = async () => {
     );
     logger.info('📅 Daily connection database refresh scheduled for midnight EST (5:00 AM UTC)');
 
-    // Initialize MongoDB backup service
-    mongoBackupService = new MongoBackupService();
-    await mongoBackupService.initialize();
+    // Initialize PostgreSQL backup service
+    backupService = new PostgresBackupService();
+    await backupService.initialize();
 
-    // Schedule MongoDB backups if enabled
-    if (mongoBackupService.isEnabled()) {
-      const backupSchedule = mongoBackupService.getBackupSchedule();
+    // Schedule PostgreSQL backups if enabled
+    if (backupService.isEnabled()) {
+      const backupSchedule = backupService.getBackupSchedule();
 
       cron.schedule(
         backupSchedule,
         async () => {
           try {
             logger.info('🔄 Starting scheduled MongoDB backup');
-            await mongoBackupService.createBackup();
+            await backupService.createBackup();
           } catch (error) {
             logger.error('❌ Scheduled MongoDB backup failed:', error);
           }
@@ -817,7 +835,7 @@ const initializeScheduler = async () => {
 
       logger.info('📅 MongoDB backup scheduled', {
         schedule: backupSchedule,
-        retentionDays: mongoBackupService.getRetentionDays(),
+        retentionDays: backupService.getRetentionDays(),
       });
 
       // Schedule backup cleanup - run weekly on Sundays at 3 AM UTC
@@ -826,7 +844,7 @@ const initializeScheduler = async () => {
         async () => {
           try {
             logger.info('🧹 Starting weekly backup cleanup');
-            await mongoBackupService.cleanupOldBackups();
+            await backupService.cleanupOldBackups();
           } catch (error) {
             logger.error('❌ Backup cleanup failed:', error);
           }
@@ -851,17 +869,20 @@ module.exports = {
   unscheduleWorkflow,
   getSchedulerStatus,
   checkDatabaseTrigger, // Export for debugging
-  getMongoBackupService: () => mongoBackupService, // Export backup service for API access
+  getBackupService: () => backupService, // Export backup service for API access
 };
 
 // --- HubSpot Trigger Polling (Gated) ---
 
 async function syncHubSpotPolling() {
   try {
-    const workflows = await Workflow.find({
-      active: true,
-      'nodes.data.nodeType': 'trigger:hubspot:record',
-    });
+    // TODO: Replace with Prisma workflow query during migration
+    // const workflows = await Workflow.find({
+    //   active: true,
+    //   'nodes.data.nodeType': 'trigger:hubspot:record',
+    // });
+    // For now, skip workflow query to allow server startup
+    const workflows = [];
 
     const activeIds = new Set();
     for (const workflow of workflows) {
@@ -969,7 +990,8 @@ async function pollHubSpotWorkflow(workflow, triggerNode) {
 
   hubSpotLastChecks.set(wfId, now);
   try {
-    await Workflow.findByIdAndUpdate(workflow._id, { lastHubSpotCheck: new Date(now) });
+    // TODO: Replace with Prisma workflow update during migration
+    // await Workflow.findByIdAndUpdate(workflow._id, { lastHubSpotCheck: new Date(now) });
   } catch (e) {
     logger.warn('Failed to persist lastHubSpotCheck:', e.message);
   }

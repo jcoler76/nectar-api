@@ -10,7 +10,7 @@ require('dotenv').config();
 
 async function createPostgreSQLAdmin() {
   const email = 'meadmin@jestincoler.com';
-  const password = 'Fr33d0M!!@!NC';
+  const password = '<password>';
   const organizationName = 'Jestin Coler Organization';
 
   try {

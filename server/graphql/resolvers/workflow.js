@@ -1,11 +1,15 @@
-const { Workflow } = require('../../models/workflowModels');
-const WorkflowRun = require('../../models/WorkflowRun');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const { Workflow } = require('../../models/workflowModels');
+// const WorkflowRun = require('../../models/WorkflowRun');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
 const { executeWorkflow } = require('../../services/workflows/engine');
 const { scheduleWorkflow, unscheduleWorkflow } = require('../../services/scheduler');
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
 const { withFilter, PubSub } = require('graphql-subscriptions');
 const { createCursorConnection } = require('../utils/pagination');
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose'); // Removed for Prisma migration
 
 // Create PubSub instance for real-time subscriptions
 const pubsub = new PubSub();

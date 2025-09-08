@@ -13,10 +13,28 @@ export const loginUser = async (email, password) => {
 
     // Store user and token securely
     if (response.data && (response.data.token || response.data.accessToken)) {
+      const token = response.data.accessToken || response.data.token;
+      
+      // Decode JWT to extract user info including isAdmin flag
+      let decodedToken = null;
+      try {
+        const payload = token.split('.')[1];
+        decodedToken = JSON.parse(atob(payload));
+      } catch (error) {
+        console.warn('Could not decode JWT token:', error);
+      }
+
       const userData = {
-        token: response.data.accessToken || response.data.token,
+        token: token,
         refreshToken: response.data.refreshToken,
         ...response.data.user,
+        // Extract admin flags from JWT token payload
+        isAdmin: decodedToken?.isAdmin || false,
+        isSuperAdmin: decodedToken?.isSuperAdmin || false,
+        // Also include organization info from JWT
+        organizationId: decodedToken?.organizationId || response.data.organization?.id,
+        organizationSlug: decodedToken?.organizationSlug || response.data.organization?.slug,
+        role: decodedToken?.role || response.data.membership?.role,
       };
 
       secureStorage.setItem(userData);
@@ -69,6 +87,29 @@ export const getCurrentUser = () => {
   if (secureStorage.isTokenExpired(userData.token)) {
     secureStorage.removeItem();
     return null;
+  }
+
+  // If userData doesn't have isAdmin flag, decode JWT to extract it
+  if (userData.isAdmin === undefined && userData.token) {
+    try {
+      const payload = userData.token.split('.')[1];
+      const decodedToken = JSON.parse(atob(payload));
+      
+      // Update userData with missing JWT payload info
+      userData = {
+        ...userData,
+        isAdmin: decodedToken?.isAdmin || false,
+        isSuperAdmin: userData.isSuperAdmin || decodedToken?.isSuperAdmin || false,
+        organizationId: userData.organizationId || decodedToken?.organizationId,
+        organizationSlug: userData.organizationSlug || decodedToken?.organizationSlug,
+        role: userData.role || decodedToken?.role,
+      };
+      
+      // Update stored data with the new info
+      secureStorage.setItem(userData);
+    } catch (error) {
+      console.warn('Could not decode stored JWT token:', error);
+    }
   }
 
   return userData;
@@ -133,11 +174,27 @@ export const verify2FA = async (email, token, trustDevice = false) => {
     });
     if (response.data.accessToken) {
       // Upon successful 2FA verification, the user object and token are returned.
-      // We need to store them securely
+      const accessToken = response.data.accessToken;
+      
+      // Decode JWT to extract user info including isAdmin flag
+      let decodedToken = null;
+      try {
+        const payload = accessToken.split('.')[1];
+        decodedToken = JSON.parse(atob(payload));
+      } catch (error) {
+        console.warn('Could not decode JWT token:', error);
+      }
+
       const userData = {
-        token: response.data.accessToken,
+        token: accessToken,
         refreshToken: response.data.refreshToken,
         ...response.data.user,
+        // Extract admin flags from JWT token payload
+        isAdmin: decodedToken?.isAdmin || false,
+        isSuperAdmin: decodedToken?.isSuperAdmin || false,
+        organizationId: decodedToken?.organizationId || response.data.organization?.id,
+        organizationSlug: decodedToken?.organizationSlug || response.data.organization?.slug,
+        role: decodedToken?.role || response.data.membership?.role,
       };
       secureStorage.setItem(userData);
     }
@@ -161,10 +218,27 @@ export const verify2FASetup = async (email, token) => {
     const response = await api.post('/api/auth/2fa/setup-verify', { email, token });
     if (response.data.accessToken) {
       // Upon successful 2FA setup verification, store user data securely
+      const accessToken = response.data.accessToken;
+      
+      // Decode JWT to extract user info including isAdmin flag
+      let decodedToken = null;
+      try {
+        const payload = accessToken.split('.')[1];
+        decodedToken = JSON.parse(atob(payload));
+      } catch (error) {
+        console.warn('Could not decode JWT token:', error);
+      }
+
       const userData = {
-        token: response.data.accessToken,
+        token: accessToken,
         refreshToken: response.data.refreshToken,
         ...response.data.user,
+        // Extract admin flags from JWT token payload
+        isAdmin: decodedToken?.isAdmin || false,
+        isSuperAdmin: decodedToken?.isSuperAdmin || false,
+        organizationId: decodedToken?.organizationId || response.data.organization?.id,
+        organizationSlug: decodedToken?.organizationSlug || response.data.organization?.slug,
+        role: decodedToken?.role || response.data.membership?.role,
       };
       secureStorage.setItem(userData);
     }

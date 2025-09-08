@@ -1,228 +1,326 @@
+/**
+ * Roles Routes - GraphQL Integration
+ * Converted from MongoDB to GraphQL-based operations
+ */
+
 const express = require('express');
 const router = express.Router();
-const Role = require('../models/Role');
-// Auth middleware not needed - handled at app level
-const { fetchDatabaseObjects, updateDatabaseObjects } = require('../utils/schemaUtils');
-const { logger } = require('../middleware/logger');
-const Service = require('../models/Service');
-const { asyncHandler, errorResponses } = require('../utils/errorHandler');
+const { ROLE_QUERIES } = require('../utils/graphqlQueries');
 const {
-  verifyResourceOwnership,
-  verifyServiceAccess,
-} = require('../middleware/resourceAuthorization');
+  createListHandler,
+  createGetHandler,
+  createCreateHandler,
+  createUpdateHandler,
+  createDeleteHandler,
+  executeGraphQLMutation,
+  executeGraphQLQuery,
+  createGraphQLContext,
+  handleGraphQLError
+} = require('../utils/routeHelpers');
+const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
 const validationRules = require('../middleware/validationRules');
-const { cacheStaticResponse, noCache } = require('../middleware/httpCache');
+const { checkFreemiumLimits } = require('../middleware/freemiumLimits');
 
-// Apply auth middleware to all routes
-// Authentication is already handled at app level in server.js
+// Get all roles using GraphQL
+router.get('/', createListHandler(ROLE_QUERIES.GET_ALL, 'roles'));
 
-// Get all roles (cached for 5 minutes since roles don't change frequently)
-router.get('/', cacheStaticResponse(300), async (req, res) => {
-  try {
-    const roles = await Role.find().populate('createdBy', 'firstName lastName');
-    res.json(roles);
-  } catch (error) {
-    logger.error('Error fetching roles:', { error: error.message });
-    errorResponses.serverError(res, error);
-  }
+// Get single role by ID using GraphQL
+router.get('/:id', createGetHandler(ROLE_QUERIES.GET_BY_ID, 'role'));
+
+// Create new role using GraphQL
+router.post('/', checkFreemiumLimits('roles'), validate(validationRules.role.create), async (req, res) => {
+  const { name, description, serviceId, permissions, isActive } = req.body;
+  const context = createGraphQLContext(req);
+  
+  const result = await executeGraphQLMutation(
+    res,
+    ROLE_QUERIES.CREATE,
+    { 
+      input: {
+        name,
+        description,
+        serviceId,
+        permissions: permissions || [],
+        isActive
+      }
+    },
+    context,
+    'create role'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.status(201).json(result.createRole);
 });
 
-// Get a single role by ID
-router.get('/:id', verifyResourceOwnership(Role), async (req, res) => {
-  try {
-    const role = await Role.findById(req.params.id);
-    if (!role) {
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
+// Update role using GraphQL
+router.put('/:id', validate(validationRules.role.update), async (req, res) => {
+  const { id } = req.params;
+  const { name, description, serviceId, permissions, isActive } = req.body;
+  const context = createGraphQLContext(req);
+  
+  const result = await executeGraphQLMutation(
+    res,
+    ROLE_QUERIES.UPDATE,
+    { 
+      id,
+      input: {
+        name,
+        description,
+        serviceId,
+        permissions,
+        isActive
+      }
+    },
+    context,
+    'update role'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.updateRole);
+});
+
+// Delete role using GraphQL
+router.delete('/:id', createDeleteHandler(ROLE_QUERIES.DELETE, 'deleteRole'));
+
+// Add permission to role
+router.post('/:id/permissions', async (req, res) => {
+  const { id } = req.params;
+  const permission = req.body;
+  const context = createGraphQLContext(req);
+  
+  const ADD_PERMISSION = `
+    mutation AddPermission($roleId: ID!, $permission: PermissionInput!) {
+      addPermission(roleId: $roleId, permission: $permission) {
+        id
+        name
+        permissions
+        updatedAt
+      }
     }
-    res.json(role);
-  } catch (error) {
-    errorResponses.serverError(res, error);
-  }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    ADD_PERMISSION,
+    { roleId: id, permission },
+    context,
+    'add permission to role'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.addPermission);
 });
 
-// Create new role
-router.post('/', validate(validationRules.role.create), async (req, res) => {
-  try {
-    logger.info('Creating role with data:', req.body);
-
-    const role = new Role({
-      ...req.body,
-      createdBy: req.user.userId,
+// Remove permission from role
+router.delete('/:id/permissions', async (req, res) => {
+  const { id } = req.params;
+  const { serviceId, objectName } = req.query;
+  const context = createGraphQLContext(req);
+  
+  if (!serviceId || !objectName) {
+    return res.status(400).json({
+      success: false,
+      message: 'serviceId and objectName are required'
     });
-
-    // Validate service exists
-    const service = await Service.findById(role.serviceId);
-    if (!service) {
-      logger.error('Service not found:', { serviceId: role.serviceId });
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Service not found' } });
-    }
-
-    // Validate permissions
-    if (!role.permissions || !Array.isArray(role.permissions)) {
-      logger.error('Invalid permissions format:', { permissions: role.permissions });
-      return res
-        .status(400)
-        .json({ error: { code: 'BAD_REQUEST', message: 'Invalid permissions format' } });
-    }
-
-    // Log validation before save
-    logger.info('Role before save:', {
-      name: role.name,
-      serviceId: role.serviceId,
-      permissionCount: role.permissions.length,
-    });
-
-    await role.save();
-    logger.info('Role saved successfully:', { roleId: role._id, name: role.name });
-
-    res.status(201).json(role);
-  } catch (error) {
-    logger.error('Error creating role:', { error: error.message });
-    errorResponses.serverError(res, error);
   }
+  
+  const REMOVE_PERMISSION = `
+    mutation RemovePermission($roleId: ID!, $serviceId: ID!, $objectName: String!) {
+      removePermission(roleId: $roleId, serviceId: $serviceId, objectName: $objectName) {
+        id
+        name
+        permissions
+        updatedAt
+      }
+    }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    REMOVE_PERMISSION,
+    { roleId: id, serviceId, objectName },
+    context,
+    'remove permission from role'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.removePermission);
 });
 
-// Update role
-router.put(
-  '/:id',
-  validate(validationRules.role.update),
-  verifyResourceOwnership(Role),
-  async (req, res) => {
+// Test role permissions
+router.post('/:id/test', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const TEST_ROLE = `
+    mutation TestRole($id: ID!) {
+      testRole(id: $id) {
+        success
+        message
+        permissions {
+          objectName
+          actions
+          accessible
+          errors
+        }
+      }
+    }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    TEST_ROLE,
+    { id },
+    context,
+    'test role permissions'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.testRole);
+});
+
+// Refresh role schemas
+router.post('/:id/refresh-schemas', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const REFRESH_SCHEMAS = `
+    mutation RefreshRoleSchemas($id: ID!) {
+      refreshRoleSchemas(id: $id) {
+        id
+        name
+        permissions
+        updatedAt
+      }
+    }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    REFRESH_SCHEMAS,
+    { id },
+    context,
+    'refresh role schemas'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json({
+    success: true,
+    message: 'Role schemas refreshed successfully',
+    role: result.refreshRoleSchemas
+  });
+});
+
+// Get roles for a specific service
+router.get('/service/:serviceId', async (req, res) => {
+  const { serviceId } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const SERVICE_ROLES = `
+    query ServiceRoles($serviceId: ID!) {
+      serviceRoles(serviceId: $serviceId) {
+        id
+        name
+        description
+        isActive
+        permissions
+        creator {
+          id
+          email
+          firstName
+          lastName
+        }
+      }
+    }
+  `;
+  
+  const result = await executeGraphQLQuery(
+    res,
+    SERVICE_ROLES,
+    { serviceId },
+    context,
+    'get service roles'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.serviceRoles);
+});
+
+// Batch operations for roles
+router.post('/batch', async (req, res) => {
+  const { operation, ids } = req.body;
+  const context = createGraphQLContext(req);
+  
+  if (!['activate', 'deactivate', 'delete'].includes(operation)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid batch operation. Allowed: activate, deactivate, delete'
+    });
+  }
+  
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'IDs array is required for batch operations'
+    });
+  }
+  
+  const results = [];
+  const errors = [];
+  
+  for (const id of ids) {
     try {
-      logger.info('Updating role with data:', req.body);
-      const role = await Role.findById(req.params.id);
-      if (!role) {
-        return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
+      let result;
+      
+      switch (operation) {
+        case 'activate':
+        case 'deactivate':
+          result = await executeGraphQLMutation(
+            null, // Don't send response yet
+            ROLE_QUERIES.UPDATE,
+            { 
+              id,
+              input: { isActive: operation === 'activate' }
+            },
+            context,
+            `batch ${operation}`
+          );
+          results.push({ id, success: true, data: result?.updateRole });
+          break;
+          
+        case 'delete':
+          result = await executeGraphQLMutation(
+            null, // Don't send response yet  
+            ROLE_QUERIES.DELETE,
+            { id },
+            context,
+            'batch delete'
+          );
+          results.push({ id, success: result?.deleteRole || false });
+          break;
       }
-
-      // Update the role fields
-      role.name = req.body.name;
-      role.description = req.body.description;
-      role.serviceId = req.body.serviceId;
-      role.permissions = req.body.permissions;
-      role.isActive = req.body.isActive;
-
-      // Update permissions to remove dbo prefix
-      if (role.permissions) {
-        role.permissions = role.permissions.map(perm => {
-          if (perm.objectName && perm.objectName.startsWith('/proc/dbo.')) {
-            perm.objectName = perm.objectName.replace('/proc/dbo.', '/proc/');
-          }
-          return perm;
-        });
-      }
-
-      await role.save();
-      logger.info('Role updated successfully:', { roleId: role._id, name: role.name });
-      res.json(role);
     } catch (error) {
-      logger.error('Role update error:', { error: error.message });
-      errorResponses.serverError(res, error);
+      errors.push({ id, error: error.message });
     }
   }
-);
-
-// Delete role
-router.delete('/:id', verifyResourceOwnership(Role), async (req, res) => {
-  try {
-    await Role.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Role deleted successfully' });
-  } catch (error) {
-    errorResponses.serverError(res, error);
-  }
-});
-
-// Refresh service schema
-router.post('/:id/refresh-schema', verifyServiceAccess(), async (req, res) => {
-  try {
-    const service = await Service.findById(req.params.id);
-    if (!service) {
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Service not found' } });
-    }
-
-    const { decryptDatabasePassword } = require('../utils/encryption');
-
-    const config = {
-      server: service.host,
-      port: service.port,
-      database: service.database,
-      user: service.username,
-      password: decryptDatabasePassword(service.password),
-      options: {
-        encrypt: true,
-        trustServerCertificate: true,
-      },
-    };
-
-    const objects = await fetchDatabaseObjects(config);
-    const result = await updateDatabaseObjects(service._id, objects);
-
-    res.json({
-      message: 'Service schema refreshed successfully',
-      totalObjects: result.totalObjects,
-      tables: result.tables.length,
-      views: result.views.length,
-      procedures: result.procedures.length,
-    });
-  } catch (error) {
-    errorResponses.serverError(res, error);
-  }
-});
-
-// Get service schema
-router.get('/service/:id/schema', verifyServiceAccess(), async (req, res) => {
-  try {
-    logger.info('Fetching database objects for service:', req.params.id);
-
-    // Get the service with its objects
-    const service = await Service.findById(req.params.id).lean();
-
-    if (!service) {
-      logger.info('Service not found');
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Service not found' } });
-    }
-
-    if (!service.objects || service.objects.length === 0) {
-      logger.info('No objects found for service');
-      return res.json({ tables: [], views: [], procedures: [] });
-    }
-
-    logger.info(`Found ${service.objects.length} objects`);
-
-    // Transform the objects array into the expected schema format
-    const schema = {
-      tables: service.objects
-        .filter(obj => obj.path && obj.path.startsWith('/table/'))
-        .map(t => ({
-          name: t.path.split('/').pop(),
-          path: t.path,
-        })),
-      views: service.objects
-        .filter(obj => obj.path && obj.path.startsWith('/view/'))
-        .map(v => ({
-          name: v.path.split('/').pop(),
-          path: v.path,
-        })),
-      procedures: service.objects
-        .filter(obj => obj.path && obj.path.startsWith('/proc/'))
-        .map(p => ({
-          name: p.path.split('/').pop(),
-          path: p.path,
-        })),
-    };
-
-    logger.info('Schema object counts:', {
-      tables: schema.tables.length,
-      views: schema.views.length,
-      procedures: schema.procedures.length,
-    });
-
-    res.json(schema);
-  } catch (error) {
-    logger.error('Route error:', { error: error.message });
-    errorResponses.serverError(res, error);
-  }
+  
+  res.json({
+    success: errors.length === 0,
+    operation,
+    processed: ids.length,
+    successful: results.filter(r => r.success).length,
+    failed: errors.length,
+    results,
+    errors
+  });
 });
 
 module.exports = router;

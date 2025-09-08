@@ -111,7 +111,7 @@ async function executeInvoiceUpdateAPI() {
       method: 'GET',
       url: 'http://localhost:3001/api/v2/icoler/_proc/api_UpdateInvoiceReptoMatchContract',
       headers: {
-        'x-mirabel-api-key': apiKey,
+        'x-nectar-api-key': apiKey,
         Accept: 'application/json',
       },
       timeout: 30000, // 30 second timeout

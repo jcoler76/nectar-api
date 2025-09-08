@@ -1,7 +1,7 @@
 # File Upload Security Documentation
 
 ## Overview
-The Mirabel API implements comprehensive file upload security with multiple layers of protection against common attack vectors.
+The Nectar Studio implements comprehensive file upload security with multiple layers of protection against common attack vectors.
 
 ## Security Features
 

@@ -1,5 +1,5 @@
 {
-  "name": "mirabel-api",
+  "name": "nectar-api",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -105,6 +105,10 @@
     "runtime:remind": "echo '⚠️  REMINDER: If you modified React components or workflow panels, verify runtime functionality with npm start' && echo 'See CLAUDE.md Runtime Testing Requirements for details'",
     "quality:fix": "npm run lint:fix && npm run format",
     "prepare": "husky"
+    ,
+    "prisma:generate": "npx prisma generate --schema prisma/schema.prisma",
+    "prisma:push": "npx prisma db push --schema prisma/schema.prisma",
+    "prisma:studio": "npx prisma studio --schema prisma/schema.prisma"
   },
   "browserslist": {
     "production": [
@@ -174,6 +178,5 @@
     ]
   }
 }
-
 
 

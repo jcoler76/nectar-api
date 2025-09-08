@@ -178,7 +178,7 @@ class Template20SyncService {
   async enhanceViewRelationships(intelligence) {
     try {
       // Try to parse views from file system (if available)
-      const viewsPath = path.join(__dirname, '../../mirabel-api-library/views');
+      const viewsPath = path.join(__dirname, '../../nectar-api-library/views');
       let viewFiles = [];
 
       try {

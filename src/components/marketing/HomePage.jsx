@@ -69,15 +69,21 @@ const HomePage = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Workflow className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Nectar</span>
+              <div className="flex items-center">
+                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
+                <span className="text-xl font-bold text-blue-600">.ai</span>
+              </div>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <button
+                onClick={() => navigate('/pricing')}
+                className="text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-none cursor-pointer"
+              >
                 Pricing
-              </a>
+              </button>
               <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">
                 About
               </a>
@@ -254,7 +260,10 @@ const HomePage = () => {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Workflow className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">Nectar</span>
+                <div className="flex items-center">
+                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
+                <span className="text-xl font-bold text-blue-600">.ai</span>
+              </div>
               </div>
               <p className="text-gray-600">
                 The modern workflow automation platform built for growing businesses.
@@ -264,24 +273,36 @@ const HomePage = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Features
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Integrations
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Security
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     API
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -289,24 +310,36 @@ const HomePage = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     About
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Careers
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Contact
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Blog
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -314,24 +347,36 @@ const HomePage = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Help Center
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Documentation
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Status
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900 transition-colors">
+                  <button 
+                    onClick={() => {}}
+                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
+                  >
                     Community
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>

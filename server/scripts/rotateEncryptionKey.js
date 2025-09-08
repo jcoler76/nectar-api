@@ -11,7 +11,7 @@ const KeyManager = require('../utils/keyManagement');
 const { encryptDatabasePassword, decryptDatabasePassword } = require('../utils/encryption');
 
 async function rotateKey() {
-  console.log('🔄 Mirabel API - Complete Key Rotation');
+  console.log('🔄 Nectar Studio - Complete Key Rotation');
   console.log('=====================================');
 
   const keyManager = new KeyManager();

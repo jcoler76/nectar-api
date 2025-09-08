@@ -27,6 +27,7 @@ export interface JWTPayload {
     iat?: number;
     exp?: number;
 }
+import { Request } from 'express';
 export interface AuthRequest extends Request {
     admin?: AdminUser;
 }

@@ -1,329 +1,413 @@
+/**
+ * Connections Routes - GraphQL Integration
+ * Converted from MongoDB to GraphQL-based operations
+ */
+
 const express = require('express');
 const router = express.Router();
-const Connection = require('../models/Connection');
-const Service = require('../models/Service');
-const sql = require('mssql');
-const { encryptDatabasePassword, decryptDatabasePassword } = require('../utils/encryption');
+const { CONNECTION_QUERIES } = require('../utils/graphqlQueries');
+const {
+  createListHandler,
+  createGetHandler,
+  createCreateHandler,
+  createUpdateHandler,
+  createDeleteHandler,
+  executeGraphQLMutation,
+  executeGraphQLQuery,
+  createGraphQLContext,
+  handleGraphQLError
+} = require('../utils/routeHelpers');
 const { logger } = require('../utils/logger');
-// Auth middleware not needed - handled at app level
-const { asyncHandler, errorResponses } = require('../utils/errorHandler');
-const { verifyConnectionAccess } = require('../middleware/resourceAuthorization');
-const { connectionsCache } = require('../utils/cache');
+const { validate } = require('../middleware/validation');
+const validationRules = require('../middleware/validationRules');
+const { checkFreemiumLimits } = require('../middleware/freemiumLimits');
 
-// Authentication is already handled at app level in server.js
+// Get all connections using GraphQL
+router.get('/', createListHandler(CONNECTION_QUERIES.GET_ALL, 'connections'));
 
-// Helper function to get database list
-const getDatabaseList = async connection => {
-  let pool;
-  try {
-    const decryptedPassword = decryptDatabasePassword(connection.password);
-    const config = {
-      user: connection.username,
-      password: decryptedPassword,
-      server: connection.host,
-      port: connection.port,
-      options: {
-        encrypt: true,
-        trustServerCertificate: true,
-        connectTimeout: 15000,
-      },
-    };
-    pool = await sql.connect(config);
-    const result = await pool
-      .request()
-      .query('SELECT name FROM sys.databases WHERE state = 0 ORDER BY name');
-    return result.recordset.map(record => record.name);
-  } finally {
-    if (pool) {
-      await pool.close();
-    }
-  }
-};
+// Get single connection by ID using GraphQL
+router.get('/:id', createGetHandler(CONNECTION_QUERIES.GET_BY_ID, 'connection'));
 
-// GET all connections (only return user's own connections)
-router.get('/', async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const cacheKey = `connections_${userId}`;
-
-    // Try to get from cache first
-    let connections = connectionsCache.get(cacheKey);
-
-    if (!connections) {
-      // Build query
-      const query = req.user.isAdmin ? {} : { createdBy: userId };
-
-      connections = await Connection.find(query)
-        .select('-password') // Exclude sensitive password field
-        .lean() // Use lean() for better performance
-        .sort({ name: 1 }); // Sort by name for consistent ordering
-
-      // Cache the results
-      connectionsCache.set(cacheKey, connections);
-    }
-
-    res.json(connections);
-  } catch (error) {
-    logger.error('Error fetching connections:', error);
-    res.status(500).json({ error: 'Failed to fetch connections' });
-  }
+// Create new connection using GraphQL
+router.post('/', checkFreemiumLimits('connections'), validate(validationRules.connection.create), async (req, res) => {
+  const { name, host, port, username, password, isActive } = req.body;
+  const context = createGraphQLContext(req);
+  
+  const result = await executeGraphQLMutation(
+    res,
+    CONNECTION_QUERIES.CREATE,
+    { 
+      input: {
+        name,
+        host,
+        port,
+        username,
+        password,
+        isActive
+      }
+    },
+    context,
+    'create connection'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.status(201).json(result.createConnection);
 });
 
-// GET connection by ID (with authorization)
-router.get('/:id', verifyConnectionAccess(), async (req, res) => {
-  try {
-    // Connection is already attached to req by authorization middleware
-    res.json(req.connection);
-  } catch (error) {
-    logger.error('Error fetching connection:', error);
-    res.status(500).json({ error: 'Failed to fetch connection' });
-  }
+// Update connection using GraphQL
+router.put('/:id', validate(validationRules.connection.update), async (req, res) => {
+  const { id } = req.params;
+  const { name, host, port, username, password, isActive } = req.body;
+  const context = createGraphQLContext(req);
+  
+  const result = await executeGraphQLMutation(
+    res,
+    CONNECTION_QUERIES.UPDATE,
+    { 
+      id,
+      input: {
+        name,
+        host,
+        port,
+        username,
+        password,
+        isActive
+      }
+    },
+    context,
+    'update connection'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.updateConnection);
 });
 
-// GET databases for a connection (with authorization)
-router.get('/:id/databases', verifyConnectionAccess(), async (req, res) => {
-  try {
-    // Return the stored databases array from authorized connection
-    res.json(req.connection.databases || []);
-  } catch (error) {
-    logger.error(`Error fetching databases for connection ${req.params.id}:`, error);
-    errorResponses.serverError(res, error);
-  }
+// Delete connection using GraphQL
+router.delete('/:id', createDeleteHandler(CONNECTION_QUERIES.DELETE, 'deleteConnection'));
+
+// Test connection using GraphQL
+router.post('/:id/test', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const result = await executeGraphQLMutation(
+    res,
+    CONNECTION_QUERIES.TEST_CONNECTION,
+    { id },
+    context,
+    'test connection'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.testConnection);
 });
 
-// POST refresh databases for a connection (with authorization)
-router.post('/:id/databases/refresh', verifyConnectionAccess(), async (req, res) => {
-  try {
-    // Re-fetch with password field
-    const connection = await Connection.findById(req.params.id).select('+password');
-    const databaseNames = await getDatabaseList(connection);
-    connection.databases = databaseNames;
-    await connection.save();
-    res.json(databaseNames);
-  } catch (error) {
-    logger.error(`Error refreshing databases for connection ${req.params.id}:`, error);
-    errorResponses.serverError(res, error);
-  }
-});
-
-// POST create new connection
-router.post('/', async (req, res) => {
-  try {
-    // Connection creation request received
-
-    // Test connection first with unencrypted password
-    const connection = new Connection(req.body);
-    const testResult = await connection.testConnection();
-
-    if (!testResult.success) {
-      return res.status(400).json({
-        message: 'Connection test failed',
-        error: testResult.error,
-      });
-    }
-
-    // Save connection (password will be encrypted by pre-save middleware)
-    connection.createdBy = req.user.userId;
-    const savedConnection = await connection.save();
-
-    // Now, fetch and save the database list
-    let finalConnection = savedConnection;
-    try {
-      // Reload the connection from database to ensure we have the encrypted password
-      const reloadedConnection = await Connection.findById(savedConnection._id).select('+password');
-      const dbs = await getDatabaseList(reloadedConnection);
-      reloadedConnection.databases = dbs;
-      await reloadedConnection.save();
-      // Use the reloaded connection for the response
-      finalConnection = await Connection.findById(savedConnection._id);
-    } catch (dbError) {
-      logger.error(
-        `Could not automatically fetch database list for new connection ${savedConnection._id}: ${dbError.message}`
-      );
-      // Don't fail the whole request, just log the error. The user can refresh manually.
-    }
-
-    // Clear connections cache since we added a new connection
-    connectionsCache.clear();
-
-    res.status(201).json(finalConnection);
-  } catch (error) {
-    logger.error('Error creating connection:', { error: error.message });
-
-    // Handle duplicate key error specifically
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: `A connection with the name "${req.body.name}" already exists. Please use a different name.`,
-      });
-    }
-
-    errorResponses.serverError(res, error);
-  }
-});
-
-// PUT update connection (with authorization)
-router.put('/:id', verifyConnectionAccess(), async (req, res) => {
-  try {
-    const connection = req.connection;
-
-    // If password is being updated, test the connection first
-    if (req.body.password) {
-      const testConnection = new Connection({
-        ...connection.toObject(),
-        ...req.body,
-      });
-      const testResult = await testConnection.testConnection();
-
-      if (!testResult.success) {
-        return res.status(400).json({
-          message: 'Connection test failed',
-          error: testResult.error,
-        });
+// Test connection without saving (for connection setup)
+router.post('/test', async (req, res) => {
+  const { host, port, username, password } = req.body;
+  const context = createGraphQLContext(req);
+  
+  const TEST_CONNECTION_TEMP = `
+    mutation TestConnectionTemp($input: TestConnectionInput!) {
+      testConnectionTemp(input: $input) {
+        success
+        message
+        error
+        databases
       }
     }
-
-    // Update connection
-    Object.assign(connection, req.body);
-    const updatedConnection = await connection.save();
-
-    // Clear connections cache since we updated a connection
-    connectionsCache.clear();
-
-    res.json(updatedConnection);
-  } catch (error) {
-    logger.error('Error updating connection:', { error: error.message });
-    errorResponses.serverError(res, error);
-  }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    TEST_CONNECTION_TEMP,
+    { 
+      input: {
+        host,
+        port,
+        username,
+        password
+      }
+    },
+    context,
+    'test temporary connection'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.testConnectionTemp);
 });
 
-// DELETE connection (with authorization)
-router.delete('/:id', verifyConnectionAccess(), async (req, res) => {
-  try {
-    // Check if any services depend on this connection
-    const dependentServices = await Service.find({ connectionId: req.params.id });
-    if (dependentServices.length > 0) {
-      return res.status(400).json({
-        message: `Cannot delete connection. ${dependentServices.length} service(s) depend on it.`,
-        dependentServices: dependentServices.map(s => s.name),
-      });
+// Get databases for a connection
+router.get('/:id/databases', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const GET_CONNECTION_DATABASES = `
+    query GetConnectionDatabases($id: ID!) {
+      connection(id: $id) {
+        id
+        name
+        databases
+        host
+        port
+      }
     }
+  `;
+  
+  const result = await executeGraphQLQuery(
+    res,
+    GET_CONNECTION_DATABASES,
+    { id },
+    context,
+    'get connection databases'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json(result.connection.databases || []);
+});
 
-    const connection = await Connection.findByIdAndDelete(req.params.id);
-    if (!connection) {
-      return res
-        .status(404)
-        .json({ error: { code: 'NOT_FOUND', message: 'Connection not found' } });
+// Refresh databases for a connection
+router.post('/:id/databases/refresh', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const REFRESH_DATABASES = `
+    mutation RefreshConnectionDatabases($id: ID!) {
+      refreshConnectionDatabases(id: $id) {
+        id
+        name
+        databases
+        updatedAt
+      }
     }
-
-    res.json({ message: 'Connection deleted successfully' });
-  } catch (error) {
-    logger.error('Error deleting connection:', { error: error.message });
-    errorResponses.serverError(res, error);
-  }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    REFRESH_DATABASES,
+    { id },
+    context,
+    'refresh connection databases'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json({
+    message: 'Database list refreshed successfully',
+    databases: result.refreshConnectionDatabases.databases
+  });
 });
 
-// POST test connection (with authorization)
-router.post('/:id/test', verifyConnectionAccess(), async (req, res) => {
-  try {
-    const connection = req.connection;
-
-    const result = await connection.testConnection();
-    res.json(result);
-  } catch (error) {
-    logger.error('Test connection error:', error);
-    errorResponses.serverError(res, error);
-  }
+// Refresh databases (alternative endpoint)
+router.post('/:id/refresh-databases', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
+  const REFRESH_DATABASES = `
+    mutation RefreshConnectionDatabases($id: ID!) {
+      refreshConnectionDatabases(id: $id) {
+        id
+        name
+        databases
+        updatedAt
+      }
+    }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    REFRESH_DATABASES,
+    { id },
+    context,
+    'refresh connection databases'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  res.json({
+    message: 'Database list refreshed successfully.',
+    databases: result.refreshConnectionDatabases.databases
+  });
 });
 
-// POST test connection (without saving)
-router.post('/test', async (req, res) => {
-  try {
-    const tempConnection = new Connection(req.body);
-    const result = await tempConnection.testConnection();
-    res.json(result);
-  } catch (error) {
-    logger.error('Test connection error:', error);
-    errorResponses.serverError(res, error);
+// Get table columns for a specific table (for database triggers)
+router.post('/:id/table-columns', async (req, res) => {
+  const { id } = req.params;
+  const { database, table } = req.body;
+  const context = createGraphQLContext(req);
+  
+  if (!database || !table) {
+    return res.status(400).json({
+      success: false,
+      message: 'Database and table are required'
+    });
   }
+  
+  const GET_TABLE_COLUMNS = `
+    mutation GetTableColumns($connectionId: ID!, $database: String!, $table: String!) {
+      getTableColumns(connectionId: $connectionId, database: $database, table: $table) {
+        success
+        columns
+        error
+      }
+    }
+  `;
+  
+  const result = await executeGraphQLMutation(
+    res,
+    GET_TABLE_COLUMNS,
+    { connectionId: id, database, table },
+    context,
+    'get table columns'
+  );
+  
+  if (!result) return; // Error already handled
+  
+  if (!result.getTableColumns.success) {
+    return res.status(400).json({
+      success: false,
+      message: result.getTableColumns.error
+    });
+  }
+  
+  res.json(result.getTableColumns.columns);
 });
 
-// POST refresh databases for a connection (with authorization)
-router.post('/:id/refresh-databases', verifyConnectionAccess(), async (req, res) => {
+// Get connection health status
+router.get('/:id/health', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+  
   try {
-    // Re-fetch with password field
-    const connection = await Connection.findById(req.params.id).select('+password');
-
-    const databaseNames = await getDatabaseList(connection);
-    connection.databases = databaseNames;
-    await connection.save();
-
+    // First get the connection details
+    const connectionResult = await executeGraphQLQuery(
+      res,
+      CONNECTION_QUERIES.GET_BY_ID,
+      { id },
+      context,
+      'connection health check'
+    );
+    
+    if (!connectionResult) return; // Error already handled
+    
+    // Then test the connection
+    const testResult = await executeGraphQLMutation(
+      null, // Don't send response yet
+      CONNECTION_QUERIES.TEST_CONNECTION,
+      { id },
+      context,
+      'test connection for health'
+    );
+    
+    const connection = connectionResult.connection;
+    const connectionTest = testResult?.testConnection || { success: false, error: 'Connection test failed' };
+    
     res.json({
-      message: 'Database list refreshed successfully.',
-      databases: databaseNames,
+      id: connection.id,
+      name: connection.name,
+      host: connection.host,
+      port: connection.port,
+      isActive: connection.isActive,
+      isHealthy: connection.isActive && connectionTest.success,
+      connectionTest: {
+        success: connectionTest.success,
+        message: connectionTest.message,
+        error: connectionTest.error
+      },
+      lastChecked: new Date().toISOString()
     });
   } catch (error) {
-    logger.error(`Error refreshing databases for connection ${req.params.id}:`, error);
-    errorResponses.serverError(res, error);
+    handleGraphQLError(res, error, 'connection health check');
   }
 });
 
-// POST table columns for a specific table (for database triggers)
-router.post('/:id/table-columns', verifyConnectionAccess(), async (req, res) => {
-  try {
-    const { database, table } = req.body;
-    // Connection is already verified and available from middleware
-    const connection = req.connection;
-
-    if (!database || !table) {
-      return res
-        .status(400)
-        .json({ error: { code: 'BAD_REQUEST', message: 'Database and table are required' } });
-    }
-
-    // Parse table name and schema
-    const tableName = table.includes('.') ? table.split('.').pop() : table;
-    const schemaName = table.includes('.') ? table.split('.')[0] : 'dbo';
-
-    const decryptedPassword = decryptDatabasePassword(connection.password);
-    const config = {
-      user: connection.username,
-      password: decryptedPassword,
-      server: connection.host,
-      port: connection.port,
-      database: database,
-      options: {
-        encrypt: true,
-        trustServerCertificate: true,
-        connectTimeout: 15000,
-      },
-    };
-
-    const pool = await sql.connect(config);
-
-    try {
-      // Get timestamp columns from the table - use parameterized query
-      const request = pool.request();
-      request.input('tableName', sql.NVarChar, tableName);
-      request.input('schemaName', sql.NVarChar, schemaName);
-
-      const result = await request.query(`
-        SELECT COLUMN_NAME 
-        FROM INFORMATION_SCHEMA.COLUMNS 
-        WHERE TABLE_NAME = @tableName 
-        AND TABLE_SCHEMA = @schemaName
-        AND DATA_TYPE IN ('datetime', 'datetime2', 'timestamp', 'date')
-        ORDER BY ORDINAL_POSITION
-      `);
-
-      const timestampColumns = result.recordset.map(r => r.COLUMN_NAME);
-      res.json(timestampColumns);
-    } finally {
-      await pool.close();
-    }
-  } catch (error) {
-    logger.error(`Error fetching table columns for connection ${req.params.id}:`, error);
-    errorResponses.serverError(res, error);
+// Batch operations for connections
+router.post('/batch', async (req, res) => {
+  const { operation, ids } = req.body;
+  const context = createGraphQLContext(req);
+  
+  if (!['activate', 'deactivate', 'delete', 'test'].includes(operation)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid batch operation. Allowed: activate, deactivate, delete, test'
+    });
   }
+  
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'IDs array is required for batch operations'
+    });
+  }
+  
+  const results = [];
+  const errors = [];
+  
+  for (const id of ids) {
+    try {
+      let result;
+      
+      switch (operation) {
+        case 'activate':
+        case 'deactivate':
+          result = await executeGraphQLMutation(
+            null, // Don't send response yet
+            CONNECTION_QUERIES.UPDATE,
+            { 
+              id,
+              input: { isActive: operation === 'activate' }
+            },
+            context,
+            `batch ${operation}`
+          );
+          results.push({ id, success: true, data: result?.updateConnection });
+          break;
+          
+        case 'delete':
+          result = await executeGraphQLMutation(
+            null, // Don't send response yet  
+            CONNECTION_QUERIES.DELETE,
+            { id },
+            context,
+            'batch delete'
+          );
+          results.push({ id, success: result?.deleteConnection || false });
+          break;
+          
+        case 'test':
+          result = await executeGraphQLMutation(
+            null, // Don't send response yet
+            CONNECTION_QUERIES.TEST_CONNECTION,
+            { id },
+            context,
+            'batch test'
+          );
+          results.push({ 
+            id, 
+            success: result?.testConnection?.success || false,
+            connectionResult: result?.testConnection
+          });
+          break;
+      }
+    } catch (error) {
+      errors.push({ id, error: error.message });
+    }
+  }
+  
+  res.json({
+    success: errors.length === 0,
+    operation,
+    processed: ids.length,
+    successful: results.filter(r => r.success).length,
+    failed: errors.length,
+    results,
+    errors
+  });
 });
 
 module.exports = router;

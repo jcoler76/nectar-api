@@ -1,5 +1,5 @@
 /**
- * Real Integration Test Example for Mirabel API
+ * Real Integration Test Example for Nectar Studio
  * Demonstrates how to use all test utilities with REAL implementations
  * NO MOCKS - Everything uses real services, databases, and authentication
  */

@@ -2,7 +2,7 @@
 
 /**
  * Security Credential Generator
- * Generates secure credentials for the Mirabel API application
+ * Generates secure credentials for the Nectar Studio application
  *
  * Usage: node scripts/generateSecureCredentials.js
  */
@@ -40,7 +40,7 @@ function generateMCPKey() {
   return `mcp_${randomPart}`;
 }
 
-console.log('🔐 Generating Secure Credentials for Mirabel API\n');
+console.log('🔐 Generating Secure Credentials for Nectar Studio\n');
 console.log('='.repeat(60));
 
 console.log('\n📊 JWT AND ENCRYPTION SECRETS');
@@ -62,7 +62,7 @@ console.log('# Replace these with your actual database credentials:');
 console.log(
   'MONGODB_URI="mongodb://NEW_USERNAME:' +
     generateSecureString(32).substring(0, 16) +
-    '@your-mongo-host/mirabel-api"'
+    '@your-mongo-host/nectar-api"'
 );
 
 console.log('\n📧 EMAIL CONFIGURATION');
@@ -70,7 +70,7 @@ console.log('-'.repeat(40));
 console.log('# Generate app-specific password for your email provider');
 console.log('EMAIL_USER=your-email@domain.com');
 console.log('EMAIL_PASS=' + generateSecureString(16).substring(0, 16));
-console.log('EMAIL_FROM="Mirabel API <your-email@domain.com>"');
+console.log('EMAIL_FROM="Nectar Studio <your-email@domain.com>"');
 
 console.log('\n🔒 REDIS CONFIGURATION');
 console.log('-'.repeat(40));

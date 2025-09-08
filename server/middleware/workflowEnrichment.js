@@ -1,4 +1,5 @@
-const { Workflow } = require('../models/workflowModels');
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const { logger } = require('./logger');
 
 /**
@@ -9,20 +10,25 @@ const enrichWorkflowContext = async (req, res, next) => {
     // Only process workflow-related routes
     const path = req.originalUrl || req.url;
 
-    // Check if this is a workflow-specific route (has workflow ID in path)
-    const workflowIdMatch = path.match(/\/api\/workflows\/([0-9a-fA-F]{24})/);
+    // Check if this is a workflow-specific route (has workflow ID in path) 
+    // Updated for UUID format instead of MongoDB ObjectId
+    const workflowIdMatch = path.match(/\/api\/workflows\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/);
 
     if (workflowIdMatch) {
       const workflowId = workflowIdMatch[1];
 
       try {
-        // Look up the workflow name
-        const workflow = await Workflow.findById(workflowId).select('name').lean();
+        // Look up the workflow name using Prisma
+        const workflow = await prisma.workflow.findUnique({
+          where: { id: workflowId },
+          select: { id: true, name: true }
+        });
 
         if (workflow) {
           // Add workflow name to request context for activity logging
           req.workflowName = workflow.name;
           req.workflowId = workflowId;
+          req.workflow = workflow; // Add full workflow object for route usage
         }
       } catch (dbError) {
         // Don't fail the request if workflow lookup fails

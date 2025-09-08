@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.auditAction = exports.requireRole = exports.requireAdmin = exports.requireSuperAdmin = exports.authenticateAdmin = void 0;
+exports.adminAuth = exports.auditAction = exports.requireRole = exports.requireAdmin = exports.requireSuperAdmin = exports.authenticateAdmin = void 0;
 const adminAuth_1 = require("@/services/adminAuth");
 const auditService_1 = require("@/services/auditService");
 /**
@@ -114,4 +114,6 @@ const auditAction = (action, resourceType) => {
     };
 };
 exports.auditAction = auditAction;
+// Export alias for backwards compatibility
+exports.adminAuth = exports.authenticateAdmin;
 //# sourceMappingURL=adminAuth.js.map

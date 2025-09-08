@@ -1,7 +1,7 @@
 # CSRF Protection Implementation
 
 ## Overview
-Cross-Site Request Forgery (CSRF) protection has been implemented across the Mirabel API to prevent unauthorized state-changing requests.
+Cross-Site Request Forgery (CSRF) protection has been implemented across the Nectar Studio to prevent unauthorized state-changing requests.
 
 ## Implementation Details
 

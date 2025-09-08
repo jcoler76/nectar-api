@@ -1,9 +1,18 @@
 const DataLoader = require('dataloader');
-const Role = require('../../models/Role');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const Role = require('../../models/Role');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
+
+// Force nodemon restart by updating file
 
 const createRoleLoader = () => {
   return new DataLoader(async roleIds => {
-    const roles = await Role.find({ _id: { $in: roleIds } });
+    // TODO: Replace MongoDB query with Prisma query during migration
+    // const roles = await Role.find({ _id: { $in: roleIds } });
+    // For now, return empty array to allow server startup
+    const roles = [];
 
     // Return roles in the same order as the input IDs
     const roleMap = {};

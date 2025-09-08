@@ -1,0 +1,237 @@
+// Canonical Prisma schema for Nectar API (shared by server and admin-backend)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Contents based on admin-backend/prisma/schema.prisma
+
+// Platform Admin Users (separate from customer users)
+model PlatformAdmin {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  auditLogs AdminAuditLog[]
+  sessions  AdminSession[]
+
+  @@map("platform_admins")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  VIEWER
+  SUPPORT
+}
+
+// Admin Audit Logging
+model AdminAuditLog {
+  id           String   @id @default(uuid())
+  adminId      String   @map("admin_id")
+  action       String
+  resource     String?
+  resourceType String?  @map("resource_type")
+  details      Json?
+  ipAddress    String   @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  timestamp    DateTime @default(now())
+
+  // Relations
+  admin PlatformAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_audit_logs")
+  @@index([adminId])
+  @@index([timestamp])
+  @@index([action])
+}
+
+// System Configuration
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedBy   String?  @map("updated_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("system_config")
+}
+
+// Platform Announcements
+model PlatformAnnouncement {
+  id             String           @id @default(uuid())
+  title          String
+  message        String
+  type           AnnouncementType @default(INFO)
+  targetAudience String           @map("target_audience")
+  targetOrgs     String[]         @map("target_orgs")
+  isActive       Boolean          @default(true) @map("is_active")
+  scheduledFor   DateTime?        @map("scheduled_for")
+  expiresAt      DateTime?        @map("expires_at")
+  createdBy      String           @map("created_by")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  @@map("platform_announcements")
+  @@index([isActive])
+  @@index([scheduledFor])
+}
+
+enum AnnouncementType {
+  INFO
+  WARNING
+  MAINTENANCE
+  FEATURE
+  CRITICAL
+}
+
+// Admin Sessions
+model AdminSession {
+  id        String   @id @default(uuid())
+  adminId   String   @map("admin_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  admin PlatformAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_sessions")
+  @@index([adminId])
+  @@index([expiresAt])
+  @@index([token])
+}
+
+// Customer Organizations
+model Organization {
+  id               String   @id @default(uuid())
+  name             String
+  slug             String   @unique
+  domain           String?  @unique
+  logo             String?
+  website          String?
+  stripeCustomerId String?  @unique @map("stripe_customer_id")
+  billingEmail     String?  @map("billing_email")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  subscription  Subscription?
+  billingEvents BillingEvent[]
+  memberships   Membership[]
+
+  @@map("organizations")
+  @@index([slug])
+  @@index([createdAt])
+}
+
+// Customer Users
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String?  @map("password_hash")
+  firstName     String   @default("") @map("first_name")
+  lastName      String   @default("") @map("last_name")
+  isActive      Boolean  @default(true) @map("is_active")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  memberships Membership[]
+
+  @@map("users")
+  @@index([email])
+  @@index([createdAt])
+}
+
+// Organization memberships
+model Membership {
+  id             String   @id @default(uuid())
+  role           String   @default("MEMBER")
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  // Relations
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String   @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("memberships")
+}
+
+// Subscriptions
+model Subscription {
+  id                   String    @id @default(uuid())
+  plan                 String    @default("FREE")
+  status               String    @default("TRIALING")
+  trialStart           DateTime? @map("trial_start")
+  trialEnd             DateTime? @map("trial_end")
+  currentPeriodStart   DateTime  @map("current_period_start")
+  currentPeriodEnd     DateTime  @map("current_period_end")
+  canceledAt           DateTime? @map("canceled_at")
+  stripeCustomerId     String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  stripePriceId        String?   @map("stripe_price_id")
+  monthlyRevenue       Decimal?  @db.Decimal(10,2) @map("monthly_revenue")
+  cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organizationId String       @unique @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  billingEvents  BillingEvent[]
+
+  @@map("subscriptions")
+  @@index([status])
+  @@index([stripeCustomerId])
+  @@index([monthlyRevenue])
+}
+
+// Billing events
+model BillingEvent {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  subscriptionId String?  @map("subscription_id")
+  eventType      String   @map("event_type")
+  amount         Decimal? @db.Decimal(10,2)
+  currency       String?  @default("USD")
+  description    String?
+  stripeEventId  String?  @unique @map("stripe_event_id")
+  metadata       Json?
+  processedAt    DateTime? @map("processed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@map("billing_events")
+  @@index([organizationId])
+  @@index([subscriptionId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+

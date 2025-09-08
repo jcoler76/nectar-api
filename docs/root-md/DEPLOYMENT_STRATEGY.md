@@ -36,7 +36,7 @@ After running the script:
 4. Complete the runner registration:
    ```bash
    sudo -u github-runner /home/github-runner/actions-runner/config.sh \
-     --url https://github.com/jcolermirabel/mirabel-api \
+     --url https://github.com/jcolermirabel/nectar-api \
      --token YOUR_TOKEN \
      --name vpn-runner-$(hostname) \
      --labels vpn,staging,production
@@ -152,13 +152,13 @@ The `deploy-production.sh` script provides:
 echo $GITHUB_TOKEN | docker login ghcr.io -u username --password-stdin
 
 # Check image availability
-docker pull ghcr.io/jcolermirabel/mirabel-api:staging-abc123f
+docker pull ghcr.io/jcolermirabel/nectar-api:staging-abc123f
 ```
 
 #### 2. Health Check Failures
 ```bash
 # Check container logs
-docker logs mirabel-api
+docker logs nectar-api
 
 # Check specific endpoints
 curl http://localhost:3001/health
@@ -194,9 +194,9 @@ sudo systemctl restart github-runner
 #### Quick Rollback
 ```bash
 # Use the backup container
-docker rename mirabel-api mirabel-api-failed
-docker rename mirabel-api-backup mirabel-api
-docker start mirabel-api
+docker rename nectar-api nectar-api-failed
+docker rename nectar-api-backup nectar-api
+docker start nectar-api
 ```
 
 #### Database Issues
@@ -205,7 +205,7 @@ docker start mirabel-api
 sudo systemctl status mongod
 
 # Check database connectivity
-docker exec -it mirabel-api mongosh --eval "db.adminCommand('ping')"
+docker exec -it nectar-api mongosh --eval "db.adminCommand('ping')"
 ```
 
 ## 📊 Monitoring & Alerts

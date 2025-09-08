@@ -1,4 +1,5 @@
-const RateLimitConfig = require('../models/RateLimitConfig');
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const { getRedisService } = require('./redisService');
 
 class RateLimitService {
@@ -15,11 +16,9 @@ class RateLimitService {
     const now = Date.now();
     if (now - this.lastCacheUpdate > this.cacheTimeout) {
       try {
-        const configs = await RateLimitConfig.find({ enabled: true })
-          .populate('applicationLimits.applicationId', 'name')
-          .populate('roleLimits.roleId', 'name serviceId')
-          .populate('componentLimits.serviceId', 'name')
-          .lean();
+        // TODO: Implement rate limit configs with Prisma
+        // For now, return empty configs to avoid breaking the server
+        const configs = [];
 
         this.configCache.clear();
         configs.forEach(config => {

@@ -1,4 +1,5 @@
-import { Eye, EyeOff, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
+import { Eye, EyeOff, HelpCircle, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
+import { Tooltip } from '@mui/material';
 import { useState } from 'react';
 
 import { inviteUser, updateUser } from '../../services/userService';
@@ -98,7 +99,12 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
             >
               <FormGrid columns={2}>
                 <FormFieldGroup>
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Tooltip title="User's first name as it will appear throughout the system. This is required for creating a complete user profile.">
+                      <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                    </Tooltip>
+                  </div>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -115,7 +121,12 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
                 </FormFieldGroup>
 
                 <FormFieldGroup>
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Tooltip title="User's last name to complete their full name display. Required for professional identification within the system.">
+                      <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                    </Tooltip>
+                  </div>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -129,7 +140,12 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
               </FormGrid>
 
               <FormFieldGroup>
-                <Label htmlFor="email">Email Address *</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Tooltip title="Primary email address for user authentication and system notifications. Must be unique across all users and will be used for login and password recovery.">
+                    <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                  </Tooltip>
+                </div>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -152,7 +168,12 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
                 description="Update password and security preferences"
               >
                 <FormFieldGroup>
-                  <Label htmlFor="password">New Password</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="password">New Password</Label>
+                    <Tooltip title="Set a new password for this user account. Leave blank to keep the current password unchanged. Users can also change their own password through their profile settings.">
+                      <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                    </Tooltip>
+                  </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -201,6 +222,9 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
                     >
                       Administrator Access
                     </Label>
+                    <Tooltip title="Administrator users have complete access to all system features including user management, system configuration, database connections, and API settings. Regular users have limited access based on their assigned roles.">
+                      <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                    </Tooltip>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Grant full administrative privileges including user management, system settings,
@@ -221,37 +245,41 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
             )}
 
             <FormActions>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setFormData({
-                    firstName: user?.firstName || '',
-                    lastName: user?.lastName || '',
-                    email: user?.email || '',
-                    password: '',
-                    isAdmin: user?.isAdmin || false,
-                  });
-                  setError('');
-                }}
-              >
-                Reset
-              </Button>
-              <Button
-                type="submit"
-                variant="gradient"
-                disabled={saving}
-                className="min-w-[140px] w-full sm:w-auto"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {user ? 'Updating...' : 'Sending...'}
-                  </>
-                ) : (
-                  <>{user ? 'Update User' : 'Send Invitation'}</>
-                )}
-              </Button>
+              <Tooltip title="Reset all form fields to their original values, discarding any unsaved changes">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setFormData({
+                      firstName: user?.firstName || '',
+                      lastName: user?.lastName || '',
+                      email: user?.email || '',
+                      password: '',
+                      isAdmin: user?.isAdmin || false,
+                    });
+                    setError('');
+                  }}
+                >
+                  Reset
+                </Button>
+              </Tooltip>
+              <Tooltip title={user ? 'Save all changes to this user account. Any password change will take effect immediately.' : 'Create the new user account and send an invitation email with setup instructions.'}>
+                <Button
+                  type="submit"
+                  variant="gradient"
+                  disabled={saving}
+                  className="min-w-[140px] w-full sm:w-auto"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {user ? 'Updating...' : 'Sending...'}
+                    </>
+                  ) : (
+                    <>{user ? 'Update User' : 'Send Invitation'}</>
+                  )}
+                </Button>
+              </Tooltip>
             </FormActions>
           </form>
         </FormContainer>

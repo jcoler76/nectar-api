@@ -52,7 +52,7 @@ const CodePanel = ({ nodeData, onNodeDataChange }) => {
 
 const client = new MongoClient(env.MONGODB_URI);
 await client.connect();
-const db = client.db(env.DB_NAME || 'mirabel-api');
+const db = client.db(env.DB_NAME || 'nectar-api');
 
 const now = new Date();
 const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);

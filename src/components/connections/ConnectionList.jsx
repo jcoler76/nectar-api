@@ -1,5 +1,6 @@
-import { AlertCircle, Edit, Play, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { AlertCircle, Edit, HelpCircle, Info, Play, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { memo, useEffect, useMemo } from 'react';
+import { Tooltip } from '@mui/material';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnectionOperations } from '../../hooks/useConnectionOperations';
@@ -58,35 +59,64 @@ const ConnectionList = () => {
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: (
+          <div className="flex items-center gap-1">
+            Name
+            <Tooltip title="Unique identifier for this database connection. Used to reference this connection when creating services.">
+              <HelpCircle className="h-3 w-3 text-gray-500 cursor-help" />
+            </Tooltip>
+          </div>
+        ),
         sortable: true,
         width: '20%',
-        cell: ({ row }) => <div className="font-medium">{row.name}</div>,
+        cell: ({ row }) => (
+          <Tooltip title={`Connection name: ${row.name}`}>
+            <div className="font-medium cursor-help">{row.name}</div>
+          </Tooltip>
+        ),
       },
       {
         accessorKey: 'host',
-        header: 'Host',
+        header: (
+          <div className="flex items-center gap-1">
+            Host
+            <Tooltip title="Database server address. Can be an IP address, hostname, or FQDN. Failover hosts provide automatic backup connectivity.">
+              <HelpCircle className="h-3 w-3 text-gray-500 cursor-help" />
+            </Tooltip>
+          </div>
+        ),
         width: '30%',
         cell: ({ row }) => (
-          <div>
-            <div className="font-medium">{row.host}</div>
-            {row.failoverHost && (
-              <div className="text-xs text-muted-foreground">Mirror: {row.failoverHost}</div>
-            )}
-          </div>
+          <Tooltip title={row.failoverHost ? `Primary: ${row.host}\nFailover: ${row.failoverHost}` : `Server: ${row.host}`}>
+            <div className="cursor-help">
+              <div className="font-medium">{row.host}</div>
+              {row.failoverHost && (
+                <div className="text-xs text-muted-foreground">Mirror: {row.failoverHost}</div>
+              )}
+            </div>
+          </Tooltip>
         ),
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: (
+          <div className="flex items-center gap-1">
+            Status
+            <Tooltip title="Connection availability status. Active connections can be used for services, Inactive connections are disabled.">
+              <HelpCircle className="h-3 w-3 text-gray-500 cursor-help" />
+            </Tooltip>
+          </div>
+        ),
         width: '15%',
         cell: ({ row }) => {
           const isActive = row.isActive;
           const variant = isActive ? 'active' : 'secondary';
           return (
-            <Badge variant={variant} className="text-xs">
-              {isActive ? 'Active' : 'Inactive'}
-            </Badge>
+            <Tooltip title={isActive ? 'Connection is active and available for services' : 'Connection is inactive and cannot be used'}>
+              <Badge variant={variant} className="text-xs cursor-help">
+                {isActive ? 'Active' : 'Inactive'}
+              </Badge>
+            </Tooltip>
           );
         },
       },
@@ -99,11 +129,13 @@ const ConnectionList = () => {
           {
             label: 'Test Connection',
             icon: Play,
+            tooltip: 'Verify connectivity to the database server and validate credentials',
             onClick: connection => handleTest(connection._id),
           },
           {
             label: 'Refresh Databases',
             icon: RefreshCw,
+            tooltip: 'Update the list of available databases on this server (required before creating services)',
             onClick: connection => {
               // Prevent multiple rapid clicks
               if (operationInProgress[`refresh-${connection._id}`]) {
@@ -115,12 +147,14 @@ const ConnectionList = () => {
           {
             label: 'Edit Connection',
             icon: Edit,
+            tooltip: 'Modify connection settings including host, credentials, and configuration',
             onClick: handleEdit,
             separator: true,
           },
           {
             label: 'Delete Connection',
             icon: Trash2,
+            tooltip: 'Permanently remove this connection - this will break any services that depend on it',
             onClick: connection =>
               openConfirm(connection._id, {
                 title: 'Delete Connection',
@@ -152,23 +186,30 @@ const ConnectionList = () => {
       {/* Header - Responsive */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
-            Database Connections
-          </h1>
+          <div className="flex items-center gap-2 justify-center sm:justify-start">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
+              Database Connections
+            </h1>
+            <Tooltip title="Database connections are the foundation for your services. Configure server credentials, test connectivity, and manage database access here. Each connection can serve multiple services.">
+              <Info className="h-5 w-5 text-ocean-600 cursor-help" />
+            </Tooltip>
+          </div>
           <p className="text-muted-foreground text-sm sm:text-base">
             Manage your database connections and test connectivity
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
-          <Button
-            size="sm"
-            className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-            onClick={() => handleAdd()}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="sm:hidden">Add</span>
-            <span className="hidden sm:inline">Add Connection</span>
-          </Button>
+          <Tooltip title="Create a new database connection to establish secure access to your database servers">
+            <Button
+              size="sm"
+              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
+              onClick={() => handleAdd()}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">Add Connection</span>
+            </Button>
+          </Tooltip>
         </div>
       </div>
 

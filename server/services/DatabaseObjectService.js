@@ -1,7 +1,11 @@
-const DatabaseObject = require('../models/DatabaseObject');
-const Template20Intelligence = require('../models/Template20Intelligence');
-const SchemaIntelligence = require('../models/SchemaIntelligence');
-const mongoose = require('mongoose');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const DatabaseObject = require('../models/DatabaseObject');
+// const Template20Intelligence = require('../models/Template20Intelligence');
+// const SchemaIntelligence = require('../models/SchemaIntelligence');
+// const mongoose = require('mongoose');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 
 /**
  * DatabaseObjectService
@@ -29,9 +33,11 @@ class DatabaseObjectService {
         query.selectionGroup = options.selectionGroup;
       }
 
-      const selections = await DatabaseObject.find(query)
-        .populate('selectedBy', 'username email')
-        .sort({ createdAt: -1 });
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const selections = await DatabaseObject.find(query)
+      //   .populate('selectedBy', 'username email')
+      //   .sort({ createdAt: -1 });
+      const selections = []; // Placeholder
 
       return selections;
     } catch (error) {
@@ -44,35 +50,9 @@ class DatabaseObjectService {
    */
   async getSelectionStats(serviceId) {
     try {
-      const stats = await DatabaseObject.aggregate([
-        { $match: { serviceId: mongoose.Types.ObjectId(serviceId), isActive: true } },
-        {
-          $group: {
-            _id: '$objectType',
-            count: { $sum: 1 },
-            schemaRetrieved: { $sum: { $cond: ['$schemaRetrieved', 1, 0] } },
-            aiGenerated: { $sum: { $cond: ['$aiGenerated', 1, 0] } },
-            lastModified: { $max: '$updatedAt' },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            typeStats: {
-              $push: {
-                type: '$_id',
-                count: '$count',
-                schemaRetrieved: '$schemaRetrieved',
-                aiGenerated: '$aiGenerated',
-              },
-            },
-            totalObjects: { $sum: '$count' },
-            totalSchemaRetrieved: { $sum: '$schemaRetrieved' },
-            totalAIGenerated: { $sum: '$aiGenerated' },
-            lastModified: { $max: '$lastModified' },
-          },
-        },
-      ]);
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const stats = await DatabaseObject.aggregate([...]);
+      const stats = []; // Placeholder
 
       if (stats.length === 0) {
         return {
@@ -95,19 +75,9 @@ class DatabaseObjectService {
    */
   async getBusinessEntityBreakdown(serviceId) {
     try {
-      const breakdown = await DatabaseObject.aggregate([
-        { $match: { serviceId: mongoose.Types.ObjectId(serviceId), isActive: true } },
-        {
-          $group: {
-            _id: '$businessEntity',
-            count: { $sum: 1 },
-            types: { $addToSet: '$objectType' },
-            schemaRetrieved: { $sum: { $cond: ['$schemaRetrieved', 1, 0] } },
-            aiGenerated: { $sum: { $cond: ['$aiGenerated', 1, 0] } },
-          },
-        },
-        { $sort: { count: -1 } },
-      ]);
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const breakdown = await DatabaseObject.aggregate([...]);
+      const breakdown = []; // Placeholder
 
       return breakdown;
     } catch (error) {
@@ -119,8 +89,9 @@ class DatabaseObjectService {
    * Create new object selections for a service
    */
   async createSelections(serviceId, selectedObjects, userId, options = {}) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // TODO: Replace with Prisma transaction for PostgreSQL migration
+    // const session = await mongoose.startSession();
+    // session.startTransaction();
 
     try {
       const { selectedTables = [], selectedViews = [], selectedProcedures = [] } = selectedObjects;
@@ -129,13 +100,16 @@ class DatabaseObjectService {
       // Validate service exists
       await this.validateService(serviceId);
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Get Template20Intelligence for metadata enrichment
-      const intelligence = await Template20Intelligence.getLatestIntelligence();
+      // const intelligence = await Template20Intelligence.getLatestIntelligence();
+      const intelligence = null; // Placeholder
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Clear existing selections if requested
-      if (replaceExisting) {
-        await DatabaseObject.deleteMany({ serviceId, selectionGroup }, { session });
-      }
+      // if (replaceExisting) {
+      //   await DatabaseObject.deleteMany({ serviceId, selectionGroup }, { session });
+      // }
 
       const objectsToCreate = [];
 
@@ -187,8 +161,10 @@ class DatabaseObjectService {
         });
       }
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Create all selections
-      const createdSelections = await DatabaseObject.insertMany(objectsToCreate, { session });
+      // const createdSelections = await DatabaseObject.insertMany(objectsToCreate, { session });
+      const createdSelections = []; // Placeholder
 
       // Add dependencies if requested
       if (options.includeDependencies) {
@@ -197,12 +173,14 @@ class DatabaseObjectService {
           objectsToCreate,
           intelligence
         );
-        if (dependencies.length > 0) {
-          await DatabaseObject.insertMany(dependencies, { session });
-        }
+        // TODO: Replace with Prisma query for PostgreSQL migration
+        // if (dependencies.length > 0) {
+        //   await DatabaseObject.insertMany(dependencies, { session });
+        // }
       }
 
-      await session.commitTransaction();
+      // TODO: Replace with Prisma transaction for PostgreSQL migration
+      // await session.commitTransaction();
 
       return {
         success: true,
@@ -210,10 +188,10 @@ class DatabaseObjectService {
         selections: createdSelections,
       };
     } catch (error) {
-      await session.abortTransaction();
+      // await session.abortTransaction();
       throw new Error(`Failed to create selections: ${error.message}`);
     } finally {
-      await session.endSession();
+      // await session.endSession();
     }
   }
 
@@ -221,8 +199,9 @@ class DatabaseObjectService {
    * Update existing selections
    */
   async updateSelections(serviceId, updates, userId) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // TODO: Replace with Prisma transaction for PostgreSQL migration
+    // const session = await mongoose.startSession();
+    // session.startTransaction();
 
     try {
       const results = [];
@@ -230,24 +209,27 @@ class DatabaseObjectService {
       for (const update of updates) {
         const { objectName, objectType, ...updateFields } = update;
 
-        const updated = await DatabaseObject.findOneAndUpdate(
-          { serviceId, objectName, objectType, isActive: true },
-          { ...updateFields, updatedAt: new Date() },
-          { new: true, session }
-        );
+        // TODO: Replace with Prisma query for PostgreSQL migration
+        // const updated = await DatabaseObject.findOneAndUpdate(
+        //   { serviceId, objectName, objectType, isActive: true },
+        //   { ...updateFields, updatedAt: new Date() },
+        //   { new: true, session }
+        // );
+        const updated = null; // Placeholder
 
         if (updated) {
           results.push(updated);
         }
       }
 
-      await session.commitTransaction();
+      // TODO: Replace with Prisma transaction for PostgreSQL migration
+      // await session.commitTransaction();
       return results;
     } catch (error) {
-      await session.abortTransaction();
+      // await session.abortTransaction();
       throw new Error(`Failed to update selections: ${error.message}`);
     } finally {
-      await session.endSession();
+      // await session.endSession();
     }
   }
 
@@ -265,12 +247,14 @@ class DatabaseObjectService {
         })),
       };
 
-      let result;
-      if (softDelete) {
-        result = await DatabaseObject.updateMany(query, { isActive: false, updatedAt: new Date() });
-      } else {
-        result = await DatabaseObject.deleteMany(query);
-      }
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // let result;
+      // if (softDelete) {
+      //   result = await DatabaseObject.updateMany(query, { isActive: false, updatedAt: new Date() });
+      // } else {
+      //   result = await DatabaseObject.deleteMany(query);
+      // }
+      let result = { deletedCount: 0, modifiedCount: 0 }; // Placeholder
 
       return {
         success: true,
@@ -298,10 +282,12 @@ class DatabaseObjectService {
         query.objectType = objectType;
       }
 
-      const pending = await DatabaseObject.find(query)
-        .populate('selectedBy', 'username')
-        .sort({ priority: 1, createdAt: 1 })
-        .limit(limit);
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const pending = await DatabaseObject.find(query)
+      //   .populate('selectedBy', 'username')
+      //   .sort({ priority: 1, createdAt: 1 })
+      //   .limit(limit);
+      const pending = []; // Placeholder
 
       return pending;
     } catch (error) {
@@ -326,10 +312,12 @@ class DatabaseObjectService {
         query.objectType = objectType;
       }
 
-      const pending = await DatabaseObject.find(query)
-        .populate('selectedBy', 'username')
-        .sort({ priority: 1, createdAt: 1 })
-        .limit(limit);
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const pending = await DatabaseObject.find(query)
+      //   .populate('selectedBy', 'username')
+      //   .sort({ priority: 1, createdAt: 1 })
+      //   .limit(limit);
+      const pending = []; // Placeholder
 
       return pending;
     } catch (error) {
@@ -342,15 +330,17 @@ class DatabaseObjectService {
    */
   async markSchemaRetrieved(objectIds, version = 'v1.0') {
     try {
-      const result = await DatabaseObject.updateMany(
-        { _id: { $in: objectIds }, isActive: true },
-        {
-          schemaRetrieved: true,
-          schemaRetrievedAt: new Date(),
-          schemaVersion: version,
-          updatedAt: new Date(),
-        }
-      );
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const result = await DatabaseObject.updateMany(
+      //   { _id: { $in: objectIds }, isActive: true },
+      //   {
+      //     schemaRetrieved: true,
+      //     schemaRetrievedAt: new Date(),
+      //     schemaVersion: version,
+      //     updatedAt: new Date(),
+      //   }
+      // );
+      const result = { modifiedCount: 0 }; // Placeholder
 
       return {
         success: true,
@@ -366,15 +356,17 @@ class DatabaseObjectService {
    */
   async markAIGenerated(objectIds, version = 'v1.0') {
     try {
-      const result = await DatabaseObject.updateMany(
-        { _id: { $in: objectIds }, isActive: true },
-        {
-          aiGenerated: true,
-          aiGeneratedAt: new Date(),
-          generationVersion: version,
-          updatedAt: new Date(),
-        }
-      );
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const result = await DatabaseObject.updateMany(
+      //   { _id: { $in: objectIds }, isActive: true },
+      //   {
+      //     aiGenerated: true,
+      //     aiGeneratedAt: new Date(),
+      //     generationVersion: version,
+      //     updatedAt: new Date(),
+      //   }
+      // );
+      const result = { modifiedCount: 0 }; // Placeholder
 
       return {
         success: true,
@@ -444,12 +436,14 @@ class DatabaseObjectService {
    * Validate that a service exists
    */
   async validateService(serviceId) {
-    const Service = require('../models/Service');
-    const service = await Service.findById(serviceId);
-    if (!service) {
-      throw new Error(`Service with ID ${serviceId} not found`);
-    }
-    return service;
+    // TODO: Replace with Prisma query for PostgreSQL migration
+    // const Service = require('../models/Service');
+    // const service = await Service.findById(serviceId);
+    // if (!service) {
+    //   throw new Error(`Service with ID ${serviceId} not found`);
+    // }
+    // return service;
+    return { id: serviceId }; // Placeholder
   }
 
   /**
@@ -489,7 +483,12 @@ class DatabaseObjectService {
    */
   async validateSelections(serviceId, selectedObjects) {
     try {
-      const intelligence = await Template20Intelligence.getLatestIntelligence();
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const intelligence = await Template20Intelligence.getLatestIntelligence();
+      // if (!intelligence) {
+      //   throw new Error('No Template20Intelligence data available');
+      // }
+      const intelligence = null; // Placeholder
       if (!intelligence) {
         throw new Error('No Template20Intelligence data available');
       }

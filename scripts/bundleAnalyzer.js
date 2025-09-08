@@ -3,7 +3,7 @@
 /**
  * Bundle Analysis Script
  * 
- * This script provides bundle analysis capabilities for the Mirabel API frontend.
+ * This script provides bundle analysis capabilities for the Nectar Studio frontend.
  * It integrates with webpack-bundle-analyzer to provide insights into bundle size
  * and optimization opportunities.
  */

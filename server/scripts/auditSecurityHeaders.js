@@ -250,7 +250,7 @@ async function main() {
   const baseUrl = args[0] || process.env.AUDIT_URL || 'http://localhost:3001';
   const endpoint = args[1] || '/';
 
-  console.log('🔐 Mirabel API Security Headers Auditor');
+  console.log('🔐 Nectar Studio Security Headers Auditor');
   console.log('========================================');
 
   const auditor = new SecurityHeadersAuditor(baseUrl);

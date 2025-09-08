@@ -323,7 +323,7 @@ class Template20AnalysisService {
     console.log('Analyzing views for business intelligence...');
 
     // Get view files from the library directory
-    const viewsDir = path.join(process.cwd(), 'mirabel-api-library', 'views');
+    const viewsDir = path.join(process.cwd(), 'nectar-api-library', 'views');
     const viewIntelligence = [];
 
     try {

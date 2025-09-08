@@ -6,10 +6,10 @@ set -e
 # Usage: ./deploy-production.sh <image-tag>
 
 IMAGE_TAG=${1:-latest}
-CONTAINER_NAME="mirabel-api"
-NEW_CONTAINER_NAME="mirabel-api-new"
-BACKUP_CONTAINER_NAME="mirabel-api-backup"
-IMAGE_NAME="ghcr.io/jcolermirabel/mirabel-api:${IMAGE_TAG}"
+CONTAINER_NAME="nectar-api"
+NEW_CONTAINER_NAME="nectar-api-new"
+BACKUP_CONTAINER_NAME="nectar-api-backup"
+IMAGE_NAME="ghcr.io/jcolermirabel/nectar-api:${IMAGE_TAG}"
 PORT=3001
 HEALTH_ENDPOINT="http://localhost:${PORT}/health"
 MAX_HEALTH_CHECKS=30
@@ -123,7 +123,7 @@ echo "🆕 Starting new container for testing (host network on port 3003)..."
 docker run -d \
     --name $NEW_CONTAINER_NAME \
     --network host \
-    --env-file /home/ubuntu/mirabel-api/server/.env.production \
+    --env-file /home/ubuntu/nectar-api/server/.env.production \
     -e PORT=3003 \
     -e BIND_HOST=0.0.0.0 \
     -e DISABLE_GRAPHQL=true \
@@ -195,7 +195,7 @@ docker rm $NEW_CONTAINER_NAME
 docker run -d \
     --name $CONTAINER_NAME \
     --network host \
-    --env-file /home/ubuntu/mirabel-api/server/.env.production \
+    --env-file /home/ubuntu/nectar-api/server/.env.production \
     --restart unless-stopped \
     $IMAGE_NAME
 
@@ -234,7 +234,7 @@ fi
 # Cleanup old images (keep last 3)
 echo "🧹 Cleaning up old images..."
 docker images --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | \
-    grep "ghcr.io/jcolermirabel/mirabel-api" | \
+    grep "ghcr.io/jcolermirabel/nectar-api" | \
     tail -n +4 | \
     awk '{print $1}' | \
     xargs -r docker rmi

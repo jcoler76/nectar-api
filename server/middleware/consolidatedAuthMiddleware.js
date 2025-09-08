@@ -1,8 +1,7 @@
-const mongoose = require('mongoose');
+const { PrismaClient } = require('../prisma/generated/client');
+const bcryptjs = require('bcryptjs');
 
-const Application = require('../models/Application');
-const Service = require('../models/Service');
-
+const prisma = new PrismaClient();
 const { logger } = require('./logger');
 
 class AuthenticationError extends Error {
@@ -40,8 +39,8 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     let apiKey = null;
     let usedDreamFactoryHeader = false;
 
-    // Check for Mirabel API key (case-insensitive)
-    apiKey = getHeaderCaseInsensitive(req.headers, 'x-mirabel-api-key');
+    // Check for Nectar Studio key (case-insensitive)
+    apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectar-api-key');
 
     // Check for DreamFactory API key (case-insensitive) if Mirabel key not found
     if (!apiKey) {
@@ -72,20 +71,22 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     // 2. Find and validate application
     // First try to find by prefix for efficiency
     const apiKeyPrefix = apiKey.substring(0, 4);
-    const potentialApps = await Application.find({ apiKeyPrefix })
-      .select('+apiKeyHash')
-      .populate({
-        path: 'defaultRole',
-        populate: {
-          path: 'permissions',
+    const potentialApps = await prisma.application.findMany({
+      where: { apiKeyPrefix },
+      include: {
+        defaultRole: {
+          include: {
+            service: true,
+          },
         },
-      })
-      .exec();
+        organization: true,
+      },
+    });
 
     // Validate API key against hashes
     let application = null;
     for (const app of potentialApps) {
-      const isValid = await Application.validateApiKey(apiKey, app.apiKeyHash);
+      const isValid = await bcryptjs.compare(apiKey, app.apiKeyHash);
       if (isValid) {
         application = app;
         break;
@@ -100,12 +101,15 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
       throw new AuthenticationError('No active role associated with this application', 403);
     }
 
+    // Extract permissions for processing
+    const permissions = Array.isArray(application.defaultRole.permissions) 
+      ? application.defaultRole.permissions 
+      : [];
+
     logger.info('Role and permissions check', {
       requestId,
       role: application.defaultRole.name,
-      permissionCount: application.defaultRole.permissions
-        ? application.defaultRole.permissions.length
-        : 0,
+      permissionCount: permissions.length,
     });
 
     // 3. Parse URL for service and procedure
@@ -119,9 +123,12 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     }
 
     // 4. Find and validate service
-    const service = await Service.findOne({
-      name: serviceName,
-      isActive: true,
+    const service = await prisma.service.findFirst({
+      where: {
+        name: serviceName,
+        isActive: true,
+        organizationId: application.organizationId, // Multi-tenant security
+      },
     });
 
     if (!service) {
@@ -132,18 +139,15 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
 
     // 5. Validate procedure permission
     // Check if the role has permission for this procedure and service
-    const hasPermission = application.defaultRole.permissions.some(perm => {
+    const hasPermission = permissions.some(perm => {
       try {
-        // Convert subdocument to plain object if needed
-        const permission = perm.toObject ? perm.toObject() : perm;
-
         return (
-          permission.serviceId &&
-          permission.serviceId.toString() === service._id.toString() && // Match service
-          (permission.objectName === procedureName || // Match procedure name directly
-            permission.objectName === `/proc/${procedureName}`) && // Match with /proc/ prefix
-          permission.actions &&
-          permission.actions[req.method]
+          perm.serviceId &&
+          perm.serviceId === service.id && // Match service ID
+          (perm.objectName === procedureName || // Match procedure name directly
+            perm.objectName === `/proc/${procedureName}`) && // Match with /proc/ prefix
+          perm.actions &&
+          perm.actions[req.method]
         ); // Check method permission
       } catch (err) {
         logger.warn('Error checking permission', {

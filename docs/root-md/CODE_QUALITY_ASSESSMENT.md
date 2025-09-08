@@ -1,4 +1,4 @@
-# Mirabel API - Comprehensive Code Quality Assessment
+# Nectar API - Comprehensive Code Quality Assessment
 
 ## Overall Grade: **B-** (Above Average with Significant Improvement Opportunities)
 
@@ -299,7 +299,7 @@
 ## Quick Wins (< 2 hours each)
 
 1. **Enable TypeScript strict mode** in tsconfig.json (30 minutes)
-   - File: `C:\Users\JColer\mirabel-api\tsconfig.json`
+   - File: `C:\Users\JColer\nectar-api\tsconfig.json`
    - Change: `"strict": false` → `"strict": true`
 
 2. **Add npm script for finding console.log statements** (30 minutes)
@@ -325,7 +325,7 @@
    - Export all components for cleaner imports
 
 6. **Move hardcoded admin emails to .env** (30 minutes)
-   - File: `C:\Users\JColer\mirabel-api\server\middleware\auth.js`
+   - File: `C:\Users\JColer\nectar-api\server\middleware\auth.js`
    - Replace hardcoded values with process.env.ADMIN_EMAILS
 
 7. **Add basic accessibility test** (1 hour)
@@ -439,7 +439,7 @@ router.post('/', validate(connectionSchema), async (req, res) => {
 
 ## Conclusion
 
-The Mirabel API demonstrates **strong architectural foundations** with excellent security practices and sophisticated patterns in several areas. However, the codebase requires immediate attention in **testing coverage (2%)**, **TypeScript adoption**, and **performance optimization** to reach production-grade quality.
+The Nectar API demonstrates **strong architectural foundations** with excellent security practices and sophisticated patterns in several areas. However, the codebase requires immediate attention in **testing coverage (2%)**, **TypeScript adoption**, and **performance optimization** to reach production-grade quality.
 
 The recommended phased approach prioritizes critical issues while maintaining development velocity. Quick wins can provide immediate improvements, while the long-term roadmap addresses fundamental quality improvements.
 

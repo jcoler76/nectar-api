@@ -42,7 +42,7 @@ const sendEmail = async ({ to, subject, html }) => {
     const transporter = await getTransporter();
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Mirabel API" <no-reply@example.com>',
+      from: process.env.EMAIL_FROM || '"Nectar Studio" <no-reply@example.com>',
       to,
       subject,
       html,

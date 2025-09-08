@@ -2,8 +2,12 @@ const express = require('express');
 const router = express.Router();
 const SchemaIntelligenceService = require('../services/SchemaIntelligenceService');
 const DatabaseObjectService = require('../services/DatabaseObjectService');
-const SchemaIntelligence = require('../models/SchemaIntelligence');
-const DatabaseObject = require('../models/DatabaseObject');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const SchemaIntelligence = require('../models/SchemaIntelligence');
+// const DatabaseObject = require('../models/DatabaseObject');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const logger = require('../utils/logger');
 // Auth middleware not needed - handled at app level
 const { body, param, query, validationResult } = require('express-validator');

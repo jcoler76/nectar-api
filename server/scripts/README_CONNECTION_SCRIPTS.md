@@ -1,6 +1,6 @@
 # Connection Decryption Management Scripts
 
-This directory contains scripts to help diagnose and fix database connection decryption issues in the Mirabel API.
+This directory contains scripts to help diagnose and fix database connection decryption issues in the Nectar Studio.
 
 ## Scripts Overview
 

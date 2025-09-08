@@ -1,12 +1,17 @@
-import express, { Application, Request, Response } from 'express'
+import compression from 'compression'
 import cors from 'cors'
+import dotenv from 'dotenv'
+import express, { Application, Request, Response } from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
-import compression from 'compression'
-import dotenv from 'dotenv'
 
 // Import routes
 import authRoutes from '@/routes/auth'
+import analyticsRoutes from '@/routes/analytics'
+import stripeConfigRoutes from '@/routes/stripeConfig'
+import billingRoutes from '@/routes/billing'
+import webhookRoutes from '@/routes/webhooks'
+import marketingBillingRoutes from '@/routes/marketingBilling'
 
 // Load environment variables
 dotenv.config()
@@ -33,8 +38,8 @@ app.use(helmet({
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-  'http://localhost:3001',
-  'https://admin.nectar.com'
+  'http://localhost:3002',
+  'https://admin.nectarstudio.ai'
 ]
 
 app.use(cors({
@@ -81,9 +86,14 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API routes
 app.use('/api/auth', authRoutes)
+app.use('/api/analytics', analyticsRoutes)
+app.use('/api/stripe', stripeConfigRoutes)
+app.use('/api/billing', billingRoutes)
+app.use('/api/webhooks', webhookRoutes)
+app.use('/api/marketing', marketingBillingRoutes)
 
 // 404 handler
-app.use('*', (req: Request, res: Response) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: 'Endpoint not found',
     path: req.originalUrl,

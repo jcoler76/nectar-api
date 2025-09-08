@@ -9,7 +9,7 @@ require('dotenv').config();
 const KeyManager = require('../utils/keyManagement');
 
 async function generateNewKey() {
-  console.log('🔑 Mirabel API - New Encryption Key Generator');
+  console.log('🔑 Nectar Studio - New Encryption Key Generator');
   console.log('===========================================');
 
   const keyManager = new KeyManager();

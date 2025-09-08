@@ -114,7 +114,7 @@ function scanDirectory(dirPath) {
 }
 
 function main() {
-  console.log('🔍 Scanning for Exposed Credentials in Mirabel API');
+  console.log('🔍 Scanning for Exposed Credentials in Nectar Studio');
   console.log('='.repeat(60));
 
   const rootDir = path.resolve(__dirname, '../..');

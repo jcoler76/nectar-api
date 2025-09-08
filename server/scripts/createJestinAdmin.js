@@ -15,7 +15,7 @@ async function createJestinAdmin() {
     console.log('Connected to MongoDB');
 
     const adminEmail = 'meadmin@jestincoler.com';
-    const adminPassword = 'Fr33d0M!!@!NC';
+    const adminPassword = '<password>';
     console.log(`Creating/updating admin user: ${adminEmail}...`);
 
     // Find or create the user

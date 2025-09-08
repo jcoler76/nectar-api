@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { validateToken } = require('../../utils/tokenService');
-const User = require('../../models/User');
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
 
 const getUser = async req => {
   let token = req.headers.authorization;
@@ -16,15 +17,24 @@ const getUser = async req => {
   try {
     // Use enhanced token validation with blacklist checking
     const decoded = await validateToken(token);
-    const user = await User.findById(decoded.userId).populate('roles');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: { 
+        memberships: {
+          include: {
+            organization: true
+          }
+        }
+      }
+    });
 
     if (!user || !user.isActive) return null;
 
     return {
-      userId: user._id.toString(),
+      userId: user.id,
       email: user.email,
       isAdmin: user.isAdmin,
-      roles: user.roles,
+      roles: user.memberships || [], // Mapped from organization memberships
       user: user,
     };
   } catch (error) {

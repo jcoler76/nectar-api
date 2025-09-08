@@ -79,7 +79,7 @@ const generateTokens = (payload, fingerprint = null) => {
     algorithm: 'HS256', // Explicitly specify algorithm
     expiresIn: '1d', // 1 day access token
     jwtid: accessTokenId,
-    issuer: 'mirabel-api',
+    issuer: 'nectar-api',
     audience: 'mirabel-client',
   });
 
@@ -87,7 +87,7 @@ const generateTokens = (payload, fingerprint = null) => {
     algorithm: 'HS256', // Explicitly specify algorithm
     expiresIn: '7d', // Longer-lived refresh token
     jwtid: refreshTokenId,
-    issuer: 'mirabel-api',
+    issuer: 'nectar-api',
     audience: 'mirabel-client',
   });
 
@@ -109,8 +109,8 @@ const validateToken = async token => {
     // Verify token with algorithm restriction
     const decoded = jwt.verify(token, secret, {
       algorithms: ['HS256'], // Only allow HS256 algorithm
-      issuer: 'mirabel-api',
-      audience: 'mirabel-client',
+      issuer: 'nectar-api',
+      audience: 'nectar-users', // Match JWT_AUDIENCE in .env
     });
 
     // Check if token is blacklisted (Redis or in-memory)

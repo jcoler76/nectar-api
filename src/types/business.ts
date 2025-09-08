@@ -1,5 +1,5 @@
 /**
- * Business Entity Types for Mirabel API Template20 Intelligence
+ * Business Entity Types for Nectar Studio Template20 Intelligence
  * These types provide type safety for business data from Template20 database
  */
 

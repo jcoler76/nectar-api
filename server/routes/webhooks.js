@@ -1,6 +1,7 @@
 const express = require('express');
 const logger = require('../utils/logger');
-const { Workflow } = require('../models/workflowModels');
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const { executeWorkflow } = require('../services/workflows/engine');
 const { getFileStorageService } = require('../services/fileStorageService');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -14,16 +15,19 @@ router.use(express.json());
 router.post('/trigger/:workflowId', async (req, res) => {
   try {
     const { workflowId } = req.params;
-    const workflow = await Workflow.findById(workflowId);
+    const workflow = await prisma.workflow.findUnique({
+      where: { id: workflowId },
+      include: { organization: true }
+    });
 
-    if (!workflow || !workflow.active) {
+    if (!workflow || !workflow.isActive) {
       return res
         .status(404)
         .json({ error: { code: 'NOT_FOUND', message: 'Workflow not found or is inactive.' } });
     }
 
-    // Find the specific webhook trigger node in the workflow
-    const triggerNode = workflow.nodes.find(
+    // Find the specific webhook trigger node in the workflow definition
+    const triggerNode = workflow.definition?.nodes?.find(
       node =>
         node.data?.nodeType === 'trigger:webhook' || node.data?.nodeType === 'trigger:s3Bucket'
     );

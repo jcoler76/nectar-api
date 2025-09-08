@@ -1,15 +1,43 @@
 import { CheckCircle, ArrowRight, Mail, Calendar, CreditCard } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const CheckoutSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { plan, billing, amount } = location.state || {};
+  const { plan: statePlan, billing: stateBilling, amount: stateAmount } = location.state || {};
+  const [sessionData, setSessionData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get('session_id');
+    if (!sessionId) {
+      setLoading(false);
+      return;
+    }
+    const fetchSession = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/checkout/session/${encodeURIComponent(sessionId)}`);
+        const data = await res.json();
+        setSessionData(data);
+      } catch (e) {
+        console.error('Failed to load session details:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSession();
+  }, [location.search]);
 
   const handleContinue = () => {
     // In a real app, this would redirect to the dashboard or onboarding
     navigate('/login');
+  };
+
+  const handleManageBilling = () => {
+    navigate('/billing');
   };
 
   return (
@@ -23,10 +51,14 @@ const CheckoutSuccessPage = () => {
 
           {/* Success Message */}
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to Nectar!
+            Welcome to NectarStudio.ai!
           </h1>
           <p className="text-lg text-gray-600 mb-8">
-            Your free trial has started successfully. You now have access to all {plan} features.
+            {loading
+              ? 'Confirming your subscription...'
+              : sessionData?.payment_status === 'paid' || sessionData?.status === 'complete'
+                ? 'Your subscription is active. You now have access to all features.'
+                : 'We are processing your subscription. You will receive an email shortly.'}
           </p>
 
           {/* Order Details */}
@@ -38,20 +70,22 @@ const CheckoutSuccessPage = () => {
                   <CreditCard className="w-4 h-4" />
                   <span>Plan</span>
                 </div>
-                <span className="font-medium text-gray-900">{plan}</span>
+                <span className="font-medium text-gray-900">{statePlan || 'Selected Plan'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Calendar className="w-4 h-4" />
                   <span>Billing</span>
                 </div>
-                <span className="font-medium text-gray-900 capitalize">{billing}</span>
+                <span className="font-medium text-gray-900 capitalize">{stateBilling || 'monthly'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
                   <span>Amount</span>
                 </div>
-                <span className="font-medium text-gray-900">${amount}</span>
+                <span className="font-medium text-gray-900">
+                  {sessionData?.amount_total ? `$${(sessionData.amount_total / 100).toFixed(2)}` : (stateAmount ? `$${stateAmount}` : '—')}
+                </span>
               </div>
             </div>
           </div>
@@ -97,8 +131,7 @@ const CheckoutSuccessPage = () => {
               <span className="font-semibold">14-Day Free Trial Active</span>
             </div>
             <p className="text-green-700 text-sm">
-              Your trial ends on {new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString()}. 
-              You can cancel anytime before then to avoid charges.
+              A confirmation has been sent to {sessionData?.customer_email || 'your email address'}. You can manage billing from your account settings.
             </p>
           </div>
 
@@ -111,22 +144,38 @@ const CheckoutSuccessPage = () => {
             <ArrowRight className="w-5 h-5" />
           </button>
 
+          <button
+            onClick={handleManageBilling}
+            className="w-full border border-gray-300 text-gray-800 py-3 px-6 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all hover:bg-gray-50"
+          >
+            Manage Billing
+          </button>
+
           {/* Support Info */}
           <div className="text-center">
             <p className="text-gray-600 text-sm mb-2">Need help getting started?</p>
             <div className="flex items-center justify-center gap-4 text-sm">
-              <a href="#" className="text-blue-600 hover:underline flex items-center gap-1">
+              <button 
+                onClick={() => window.location.href = 'mailto:support@nectar.com'}
+                className="text-blue-600 hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer"
+              >
                 <Mail className="w-4 h-4" />
                 Contact Support
-              </a>
+              </button>
               <span className="text-gray-400">•</span>
-              <a href="#" className="text-blue-600 hover:underline">
+              <button 
+                onClick={() => {}}
+                className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
+              >
                 Help Center
-              </a>
+              </button>
               <span className="text-gray-400">•</span>
-              <a href="#" className="text-blue-600 hover:underline">
+              <button 
+                onClick={() => {}}
+                className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
+              >
                 Documentation
-              </a>
+              </button>
             </div>
           </div>
         </div>

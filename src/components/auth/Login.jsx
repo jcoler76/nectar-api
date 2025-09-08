@@ -245,7 +245,7 @@ const Login = () => {
           <div className="mx-auto w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
             <Lock className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">Mirabel Connect</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Nectar Studio</h2>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
         </div>
 

@@ -717,14 +717,14 @@ function generateOpenAPISpec(role, endpoints) {
       description: `API documentation for role: ${role.description || role.name}`,
       version: '1.0.0',
       contact: {
-        name: 'Mirabel API',
+        name: 'Nectar Studio',
         description: 'Generated API documentation',
       },
     },
     servers: [
       {
         url: process.env.API_BASE_URL || 'http://localhost:3001',
-        description: 'Mirabel API Server',
+        description: 'Nectar Studio Server',
       },
     ],
     paths,

@@ -4,15 +4,15 @@
   "description": "Platform Admin Portal Backend API",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "nodemon --exec \"ts-node -r tsconfig-paths/register src/app.ts\"",
     "build": "tsc",
     "start": "node dist/app.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "echo 'Backend linting configured'",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
+    "db:generate": "prisma generate --schema ../prisma/schema.prisma",
+    "db:migrate": "prisma db push --schema ../prisma/schema.prisma",
+    "db:studio": "prisma studio --schema ../prisma/schema.prisma",
     "db:seed": "ts-node prisma/seed.ts"
   },
   "keywords": [
@@ -35,7 +35,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
-    "prisma": "^6.15.0"
+    "prisma": "^6.15.0",
+    "stripe": "^18.5.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -52,6 +53,7 @@
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
   }
 }

@@ -1,6 +1,6 @@
 # Authentication Service Tests
 
-Comprehensive unit tests for the Mirabel API authentication system with **NO FALLBACKS** - all tests use real implementations only.
+Comprehensive unit tests for the Nectar API authentication system with **NO FALLBACKS** - all tests use real implementations only.
 
 ## 🎯 Testing Philosophy
 

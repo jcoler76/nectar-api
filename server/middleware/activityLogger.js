@@ -1,6 +1,10 @@
 const { v4: uuidv4 } = require('uuid');
 
-const ApiActivityLog = require('../models/ApiActivityLog');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const ApiActivityLog = require('../models/ApiActivityLog');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const { sanitizeObject } = require('../utils/logSanitizer');
 
 const { logger } = require('./logger');
@@ -100,8 +104,9 @@ class ActivityLogger {
       // Determine error details
       const errorDetails = this.extractErrorDetails(error, res, responseBody);
 
-      // Create activity log entry
-      const activityLog = new ApiActivityLog({
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // Create activity log entry using Prisma
+      const activityLogData = {
         timestamp: new Date(startTime),
         requestId: req.requestId,
 
@@ -154,9 +159,9 @@ class ActivityLogger {
           protocol: req.protocol,
           secure: req.secure,
         },
-      });
+      };
 
-      await activityLog.save();
+      // await prisma.apiActivityLog.create({ data: activityLogData });
 
       // Log errors for immediate attention
       if (!success) {

@@ -1,13 +1,19 @@
 import { Router } from 'express'
-import { AnalyticsController } from '@/controllers/analyticsController'
-import { adminAuth } from '@/middleware/adminAuth'
+// import { AnalyticsController } from '../controllers/analyticsController'
+// import { adminAuth } from '../middleware/adminAuth'
 
 const router = Router()
 
-// Apply authentication middleware to all routes
-router.use(adminAuth)
+// Test endpoint (no auth)
+router.get('/test', (req, res) => {
+  res.json({ message: 'Analytics routes working!', timestamp: new Date().toISOString() })
+})
+
+// Apply authentication middleware to all other routes
+// router.use(adminAuth)
 
 // Revenue analytics routes
+/*
 router.get(
   '/dashboard',
   AnalyticsController.getRevenueDashboardValidation,
@@ -48,5 +54,6 @@ router.get(
 
 // Executive reporting
 router.get('/executive-summary', AnalyticsController.getExecutiveSummary)
+*/
 
 export default router

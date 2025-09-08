@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const Endpoint = require('../models/Endpoint');
-const Connection = require('../models/Connection');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const Endpoint = require('../models/Endpoint');
+// const Connection = require('../models/Connection');
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const sql = require('mssql');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const { logger } = require('../utils/logger');
@@ -28,7 +31,10 @@ const devApiKeyAuth = async (req, res, next) => {
       });
     }
 
-    const endpoint = await Endpoint.findOne({ name: endpointName, apiKey: apiKey });
+    // TODO: Implement proper Prisma query for endpoint lookup
+    const endpoint = await prisma.endpoint.findFirst({ 
+      where: { name: endpointName, apiKey: apiKey } 
+    });
     if (!endpoint) {
       return res.status(403).json({
         error: { code: 'FORBIDDEN', message: 'Forbidden: Invalid API key or endpoint name' },
@@ -60,10 +66,12 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
 
   let pool;
   try {
-    // Find a connection that contains the requested database
-    const connection = await Connection.findOne({
-      databases: databaseName,
-    }).select('+password');
+    // TODO: Implement proper Prisma query for connection lookup
+    const connection = await prisma.connection.findFirst({
+      where: {
+        databases: { has: databaseName }
+      }
+    });
 
     if (!connection) {
       return res.status(404).json({

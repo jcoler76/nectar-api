@@ -43,7 +43,7 @@ Write-Host "⚙️ Configuring runner..." -ForegroundColor Yellow
 Write-Host "Runner will be configured with labels: windows,vpn,staging,production" -ForegroundColor Cyan
 
 $ConfigArgs = @(
-    "--url", "https://github.com/jcolermirabel/mirabel-api",
+    "--url", "https://github.com/jcolermirabel/nectar-api",
     "--token", $GitHubToken,
     "--name", $RunnerName,
     "--labels", "windows,vpn,staging,production",
@@ -86,13 +86,13 @@ Write-Host ""
 Write-Host "🎉 GitHub Actions Runner Setup Complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "📋 Next Steps:" -ForegroundColor Cyan
-Write-Host "1. Verify the runner appears in: https://github.com/jcolermirabel/mirabel-api/settings/actions/runners" -ForegroundColor White
+Write-Host "1. Verify the runner appears in: https://github.com/jcolermirabel/nectar-api/settings/actions/runners" -ForegroundColor White
 Write-Host "2. Connect to your VPN when deployments need to run" -ForegroundColor White
 Write-Host "3. Push to staging branch to test automated deployment" -ForegroundColor White
 Write-Host ""
 Write-Host "🔧 Service Management:" -ForegroundColor Cyan
 Write-Host "  Start:  `& '$RunnerDir\svc.cmd' start" -ForegroundColor White
 Write-Host "  Stop:   `& '$RunnerDir\svc.cmd' stop" -ForegroundColor White
-Write-Host "  Status: Get-Service 'actions.runner.jcolermirabel-mirabel-api.$RunnerName'" -ForegroundColor White
+Write-Host "  Status: Get-Service 'actions.runner.jcolermirabel-nectar-api.$RunnerName'" -ForegroundColor White
 Write-Host ""
 Write-Host "📁 Runner Location: $RunnerDir" -ForegroundColor Cyan
