@@ -221,7 +221,7 @@
   "inputs": [
     {
       "id": "apiToken",
-      "description": "API Token for Mirabel API authentication",
+      "description": "API Token for Nectar API authentication",
       "default": "your-api-token-here",
       "type": "promptString"
     }

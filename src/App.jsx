@@ -11,10 +11,6 @@ import LazyRoute from './components/common/LazyRoute';
 import RateLimitErrorBoundary from './components/common/RateLimitErrorBoundary';
 import EndpointList from './components/endpoints/EndpointList';
 import ModernLayout from './components/layout/ModernLayout';
-import CheckoutPage from './components/marketing/CheckoutPage';
-import CheckoutSuccessPage from './components/marketing/CheckoutSuccessPage';
-import HomePage from './components/marketing/HomePage';
-import PricingPage from './components/marketing/PricingPage';
 import CreateRole from './components/roles/CreateRole';
 import RoleEdit from './components/roles/RoleEdit';
 import RoleList from './components/roles/RoleList';
@@ -25,6 +21,7 @@ import { SelectionProvider } from './context/SelectionContext';
 import { BreadcrumbProvider } from './contexts/BreadcrumbContext';
 import WorkflowList from './features/workflows/WorkflowList';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
+import MarketingRoutes from './marketing/MarketingRoutes';
 import './utils/cssOptimizer';
 import './utils/performanceValidator';
 import './utils/bundleSplitValidation';
@@ -51,6 +48,7 @@ const ActivityLogsReport = lazy(() => import('./components/reports/ActivityLogsR
 // Lazy-load settings screens to reduce initial bundle size
 const AdminSettings = lazy(() => import('./components/settings/AdminSettings'));
 const UserSettings = lazy(() => import('./components/settings/UserSettings'));
+const BillingPage = lazy(() => import('./components/settings/BillingPage'));
 
 const ProtectedLayout = ({ children }) => {
   return <ModernLayout>{children}</ModernLayout>;
@@ -88,10 +86,7 @@ function App() {
           <NotificationProvider>
             <Routes>
               {/* Marketing Site Routes - Public */}
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+              {MarketingRoutes}
               
               <Route
                 path="/"
@@ -279,6 +274,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <LazyRoute component={UserSettings} routeName="User Settings" />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing"
+                element={
+                  <ProtectedRoute>
+                    <LazyRoute component={BillingPage} routeName="Billing" />
                   </ProtectedRoute>
                 }
               />

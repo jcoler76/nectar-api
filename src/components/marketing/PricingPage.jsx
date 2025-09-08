@@ -2,17 +2,78 @@ import { Check, ArrowLeft, Zap, Crown, Building2, Star } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { getCaptchaToken } from '../../utils/captcha';
+
 const PricingPage = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const [selectedPlan, setSelectedPlan] = useState(null);
 
-  const handleSelectPlan = planId => {
-    setSelectedPlan(planId);
-    navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
+  const handleSelectPlan = async planId => {
+    if (planId === 'free') {
+      navigate('/free-signup');
+      return;
+    }
+
+    const useStripe = process.env.REACT_APP_USE_STRIPE_CHECKOUT === 'true'
+    if (!useStripe) {
+      navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
+      return;
+    }
+
+    const priceMap = {
+      starter: process.env.REACT_APP_STRIPE_PRICE_ID_STARTER,
+      professional: process.env.REACT_APP_STRIPE_PRICE_ID_PROFESSIONAL,
+      enterprise: process.env.REACT_APP_STRIPE_PRICE_ID_ENTERPRISE,
+    };
+
+    const priceId = priceMap[planId];
+    if (!priceId) {
+      console.error('Missing Stripe price ID for plan', planId);
+      navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
+      return;
+    }
+
+    try {
+      // Get an invisible CAPTCHA token if configured (non-intrusive)
+      const captchaToken = await getCaptchaToken('checkout')
+      const res = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, trialDays: 14, captchaToken }),
+      });
+      const data = await res.json();
+      if (data && data.url) {
+        window.location.href = data.url;
+      } else {
+        navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
+      }
+    } catch (e) {
+      console.error('Checkout session error', e);
+      navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
+    }
   };
 
   const plans = [
+    {
+      id: 'free',
+      name: 'Free',
+      icon: <Zap className="w-8 h-8" />,
+      description: 'Perfect for individuals and small projects',
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      features: [
+        '1 database connection',
+        '1 service endpoint',
+        '1 user role',
+        'Up to 5 workflow components',
+        '500 API calls/month',
+        'Community support at NectarStudio.ai',
+        'Basic AI templates',
+      ],
+      limitations: ['Limited features for learning'],
+      popular: false,
+      color: 'green',
+    },
     {
       id: 'starter',
       name: 'Starter',
@@ -113,7 +174,10 @@ const PricingPage = () => {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Zap className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">Nectar</span>
+                <div className="flex items-center">
+                  <span className="text-xl font-bold text-gray-900">NectarStudio</span>
+                  <span className="text-xl font-bold text-blue-600">.ai</span>
+                </div>
               </div>
               <button
                 onClick={() => navigate('/login')}
@@ -175,7 +239,7 @@ const PricingPage = () => {
       {/* Pricing Cards */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {plans.map(plan => (
               <div
                 key={plan.id}

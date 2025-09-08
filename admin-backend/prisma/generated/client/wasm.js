@@ -120,47 +120,6 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.OrganizationScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  slug: 'slug',
-  isActive: 'isActive',
-  settings: 'settings',
-  stripeCustomerId: 'stripeCustomerId',
-  billingEmail: 'billingEmail',
-  trialEndsAt: 'trialEndsAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  email: 'email',
-  password: 'password',
-  firstName: 'firstName',
-  lastName: 'lastName',
-  phone: 'phone',
-  phoneCarrier: 'phoneCarrier',
-  organizationId: 'organizationId',
-  role: 'role',
-  accountSetupToken: 'accountSetupToken',
-  accountSetupTokenExpires: 'accountSetupTokenExpires',
-  twoFactorSecret: 'twoFactorSecret',
-  twoFactorBackupCodes: 'twoFactorBackupCodes',
-  twoFactorEnabledAt: 'twoFactorEnabledAt',
-  twoFactorOTP: 'twoFactorOTP',
-  trustedDevices: 'trustedDevices',
-  isActive: 'isActive',
-  isEmailVerified: 'isEmailVerified',
-  lastLoginAt: 'lastLoginAt',
-  loginAttempts: 'loginAttempts',
-  lockedUntil: 'lockedUntil',
-  passwordResetToken: 'passwordResetToken',
-  passwordResetTokenExpires: 'passwordResetTokenExpires',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.PlatformAdminScalarFieldEnum = {
   id: 'id',
   email: 'email',
@@ -169,13 +128,6 @@ exports.Prisma.PlatformAdminScalarFieldEnum = {
   lastName: 'lastName',
   role: 'role',
   isActive: 'isActive',
-  twoFactorSecret: 'twoFactorSecret',
-  twoFactorEnabled: 'twoFactorEnabled',
-  twoFactorBackupCodes: 'twoFactorBackupCodes',
-  twoFactorOTP: 'twoFactorOTP',
-  trustedDevices: 'trustedDevices',
-  loginAttempts: 'loginAttempts',
-  lockedUntil: 'lockedUntil',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -203,6 +155,21 @@ exports.Prisma.SystemConfigScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PlatformAnnouncementScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  message: 'message',
+  type: 'type',
+  targetAudience: 'targetAudience',
+  targetOrgs: 'targetOrgs',
+  isActive: 'isActive',
+  scheduledFor: 'scheduledFor',
+  expiresAt: 'expiresAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.AdminSessionScalarFieldEnum = {
   id: 'id',
   adminId: 'adminId',
@@ -214,34 +181,68 @@ exports.Prisma.AdminSessionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
-exports.Prisma.SubscriptionScalarFieldEnum = {
+exports.Prisma.OrganizationScalarFieldEnum = {
   id: 'id',
-  organizationId: 'organizationId',
-  stripeSubscriptionId: 'stripeSubscriptionId',
-  stripePriceId: 'stripePriceId',
-  plan: 'plan',
-  status: 'status',
-  currentPeriodStart: 'currentPeriodStart',
-  currentPeriodEnd: 'currentPeriodEnd',
-  trialStart: 'trialStart',
-  trialEnd: 'trialEnd',
-  canceledAt: 'canceledAt',
-  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
-  monthlyRevenue: 'monthlyRevenue',
-  yearlyRevenue: 'yearlyRevenue',
+  name: 'name',
+  slug: 'slug',
+  domain: 'domain',
+  logo: 'logo',
+  website: 'website',
+  stripeCustomerId: 'stripeCustomerId',
+  billingEmail: 'billingEmail',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  isActive: 'isActive',
+  emailVerified: 'emailVerified',
+  lastLoginAt: 'lastLoginAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MembershipScalarFieldEnum = {
+  id: 'id',
+  role: 'role',
+  joinedAt: 'joinedAt',
+  userId: 'userId',
+  organizationId: 'organizationId'
+};
+
+exports.Prisma.SubscriptionScalarFieldEnum = {
+  id: 'id',
+  plan: 'plan',
+  status: 'status',
+  trialStart: 'trialStart',
+  trialEnd: 'trialEnd',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  canceledAt: 'canceledAt',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  stripePriceId: 'stripePriceId',
+  monthlyRevenue: 'monthlyRevenue',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  organizationId: 'organizationId'
 };
 
 exports.Prisma.BillingEventScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   subscriptionId: 'subscriptionId',
-  stripeEventId: 'stripeEventId',
   eventType: 'eventType',
   amount: 'amount',
   currency: 'currency',
   description: 'description',
+  stripeEventId: 'stripeEventId',
   metadata: 'metadata',
   processedAt: 'processedAt',
   createdAt: 'createdAt'
@@ -257,12 +258,12 @@ exports.Prisma.RevenueMetricScalarFieldEnum = {
   upgradeRevenue: 'upgradeRevenue',
   downgradeRevenue: 'downgradeRevenue',
   activeSubscriptions: 'activeSubscriptions',
-  trialSubscriptions: 'trialSubscriptions',
-  churnedSubscriptions: 'churnedSubscriptions',
   newSubscriptions: 'newSubscriptions',
+  churnedSubscriptions: 'churnedSubscriptions',
+  trialSubscriptions: 'trialSubscriptions',
   churnRate: 'churnRate',
-  growthRate: 'growthRate',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.StripeConfigScalarFieldEnum = {
@@ -296,15 +297,15 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
-};
-
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
 };
 exports.AdminRole = exports.$Enums.AdminRole = {
   SUPER_ADMIN: 'SUPER_ADMIN',
@@ -313,54 +314,23 @@ exports.AdminRole = exports.$Enums.AdminRole = {
   SUPPORT: 'SUPPORT'
 };
 
-exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
-  FREE: 'FREE',
-  STARTER: 'STARTER',
-  PROFESSIONAL: 'PROFESSIONAL',
-  ENTERPRISE: 'ENTERPRISE',
-  CUSTOM: 'CUSTOM'
-};
-
-exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
-  TRIALING: 'TRIALING',
-  ACTIVE: 'ACTIVE',
-  PAST_DUE: 'PAST_DUE',
-  CANCELED: 'CANCELED',
-  UNPAID: 'UNPAID',
-  INCOMPLETE: 'INCOMPLETE',
-  INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED'
-};
-
-exports.BillingEventType = exports.$Enums.BillingEventType = {
-  SUBSCRIPTION_CREATED: 'SUBSCRIPTION_CREATED',
-  SUBSCRIPTION_UPDATED: 'SUBSCRIPTION_UPDATED',
-  SUBSCRIPTION_CANCELED: 'SUBSCRIPTION_CANCELED',
-  INVOICE_PAYMENT_SUCCEEDED: 'INVOICE_PAYMENT_SUCCEEDED',
-  INVOICE_PAYMENT_FAILED: 'INVOICE_PAYMENT_FAILED',
-  PAYMENT_METHOD_ATTACHED: 'PAYMENT_METHOD_ATTACHED',
-  PAYMENT_METHOD_DETACHED: 'PAYMENT_METHOD_DETACHED',
-  CUSTOMER_CREATED: 'CUSTOMER_CREATED',
-  CUSTOMER_UPDATED: 'CUSTOMER_UPDATED',
-  TRIAL_STARTED: 'TRIAL_STARTED',
-  TRIAL_ENDED: 'TRIAL_ENDED',
-  CHURN_RISK_DETECTED: 'CHURN_RISK_DETECTED'
-};
-
-exports.MetricPeriod = exports.$Enums.MetricPeriod = {
-  DAILY: 'DAILY',
-  WEEKLY: 'WEEKLY',
-  MONTHLY: 'MONTHLY',
-  QUARTERLY: 'QUARTERLY',
-  YEARLY: 'YEARLY'
+exports.AnnouncementType = exports.$Enums.AnnouncementType = {
+  INFO: 'INFO',
+  WARNING: 'WARNING',
+  MAINTENANCE: 'MAINTENANCE',
+  FEATURE: 'FEATURE',
+  CRITICAL: 'CRITICAL'
 };
 
 exports.Prisma.ModelName = {
-  Organization: 'Organization',
-  User: 'User',
   PlatformAdmin: 'PlatformAdmin',
   AdminAuditLog: 'AdminAuditLog',
   SystemConfig: 'SystemConfig',
+  PlatformAnnouncement: 'PlatformAnnouncement',
   AdminSession: 'AdminSession',
+  Organization: 'Organization',
+  User: 'User',
+  Membership: 'Membership',
   Subscription: 'Subscription',
   BillingEvent: 'BillingEvent',
   RevenueMetric: 'RevenueMetric',

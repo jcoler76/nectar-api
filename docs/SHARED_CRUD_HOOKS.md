@@ -1,6 +1,6 @@
 # Shared CRUD Hooks Documentation
 
-This document describes the shared CRUD hooks implementation for the Mirabel API frontend, eliminating code duplication across resource management hooks.
+This document describes the shared CRUD hooks implementation for the Nectar API frontend, eliminating code duplication across resource management hooks.
 
 ## Overview
 

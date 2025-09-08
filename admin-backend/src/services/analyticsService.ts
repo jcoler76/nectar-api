@@ -71,7 +71,7 @@ export class AnalyticsService {
       select: { monthlyRevenue: true }
     })
 
-    return activeSubscriptions.reduce((sum, sub) => {
+    return activeSubscriptions.reduce((sum: number, sub: any) => {
       return sum + (sub.monthlyRevenue ? Number(sub.monthlyRevenue) : 0)
     }, 0)
   }
@@ -118,7 +118,7 @@ export class AnalyticsService {
       }
     })
 
-    return metrics.map(metric => ({
+    return metrics.map((metric: any) => ({
       ...metric,
       netGrowth: metric.newSubscriptions - metric.churnedSubscriptions,
       date: metric.date.toISOString().split('T')[0]
@@ -172,7 +172,7 @@ export class AnalyticsService {
     return {
       byPlan: churnedByPlan,
       reasons: churnReasons,
-      trends: churnTrends.map(trend => ({
+      trends: churnTrends.map((trend: any) => ({
         ...trend,
         date: trend.date.toISOString().split('T')[0],
         churnRate: Number(trend.churnRate) || 0
@@ -193,9 +193,9 @@ export class AnalyticsService {
       _sum: { monthlyRevenue: true }
     })
 
-    const total = planCounts.reduce((sum, plan) => sum + plan._count._all, 0)
+    const total = planCounts.reduce((sum: number, plan: any) => sum + plan._count._all, 0)
 
-    return planCounts.map(plan => ({
+    return planCounts.map((plan: any) => ({
       plan: plan.plan,
       count: plan._count._all,
       percentage: total > 0 ? Math.round((plan._count._all / total) * 100) : 0,
@@ -310,7 +310,7 @@ export class AnalyticsService {
     }
 
     return growthRates.length > 0 
-      ? growthRates.reduce((sum, rate) => sum + rate, 0) / growthRates.length 
+      ? growthRates.reduce((sum: number, rate: number) => sum + rate, 0) / growthRates.length 
       : 0
   }
 
@@ -351,13 +351,13 @@ export class AnalyticsService {
 
     if (canceledSubscriptions.length === 0) return 0
 
-    const lifespans = canceledSubscriptions.map(sub => {
+    const lifespans = canceledSubscriptions.map((sub: any) => {
       const start = new Date(sub.createdAt)
       const end = new Date(sub.canceledAt!)
       return (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30) // Convert to months
     })
 
-    return lifespans.reduce((sum, span) => sum + span, 0) / lifespans.length
+    return lifespans.reduce((sum: number, span: number) => sum + span, 0) / lifespans.length
   }
 
   /**
@@ -380,7 +380,7 @@ export class AnalyticsService {
       StripeService.getUpcomingRenewals(30)
     ])
 
-    const totalUpcomingRevenue = upcomingRenewals.reduce((sum, renewal) => {
+    const totalUpcomingRevenue = upcomingRenewals.reduce((sum: number, renewal: any) => {
       return sum + (renewal.monthlyRevenue ? Number(renewal.monthlyRevenue) : 0)
     }, 0)
 

@@ -1,7 +1,7 @@
 # Code Quality Improvement TODO List
 
 ## Overview
-This document tracks code quality improvements for the Mirabel API codebase, organized by risk/reward ratio.
+This document tracks code quality improvements for the Nectar API codebase, organized by risk/reward ratio.
 - **Current Overall Grade**: B+ (85/100)
 - **Target Grade**: A (95/100)
 - **Last Updated**: 2025-08-30

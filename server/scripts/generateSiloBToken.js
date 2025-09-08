@@ -11,7 +11,7 @@ require('dotenv').config();
 
 function generateSiloBToken() {
   const email = 'meadmin@jestincoler.com';
-  const password = 'Fr33d0M!!@!NC'; // For reference only
+  const password = '<password>'; // For reference only
 
   try {
     console.log('🔑 Generating Silo B Access Token...');

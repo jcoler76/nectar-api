@@ -1,4 +1,5 @@
-const { PrismaClient } = require('../prisma/generated/client');
+// Use the shared Prisma client to ensure identical table mappings
+const { PrismaClient } = require('../../prisma/generated/client');
 
 // Create a singleton Prisma client instance
 class PrismaService {
@@ -35,7 +36,13 @@ class PrismaService {
     return this.prisma.user.findUnique({
       where: { email },
       include: {
-        organization: true,
+        memberships: {
+          include: {
+            organization: {
+              include: { subscription: true },
+            },
+          },
+        },
       },
     });
   }
@@ -44,7 +51,13 @@ class PrismaService {
     return this.prisma.user.findUnique({
       where: { id },
       include: {
-        organization: true,
+        memberships: {
+          include: {
+            organization: {
+              include: { subscription: true },
+            },
+          },
+        },
       },
     });
   }
@@ -53,7 +66,9 @@ class PrismaService {
     return this.prisma.user.create({
       data: userData,
       include: {
-        organization: true,
+        memberships: {
+          include: { organization: true },
+        },
       },
     });
   }
@@ -63,7 +78,9 @@ class PrismaService {
       where: { id },
       data: userData,
       include: {
-        organization: true,
+        memberships: {
+          include: { organization: true },
+        },
       },
     });
   }
@@ -72,7 +89,7 @@ class PrismaService {
     return this.prisma.user.update({
       where: { id },
       data: {
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         updatedAt: new Date(),
       },
     });
@@ -102,26 +119,22 @@ class PrismaService {
       select: {
         id: true,
         email: true,
-        password: true,
+        passwordHash: true,
         firstName: true,
         lastName: true,
-        role: true,
         isActive: true,
-        isEmailVerified: true,
-        organizationId: true,
-        loginAttempts: true,
-        lockedUntil: true,
+        emailVerified: true,
         lastLoginAt: true,
-        twoFactorSecret: true,
-        twoFactorBackupCodes: true,
-        twoFactorEnabledAt: true,
-        trustedDevices: true,
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            isActive: true,
+        memberships: {
+          include: {
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                subscription: true,
+              },
+            },
           },
         },
       },
@@ -145,6 +158,22 @@ class PrismaService {
       data: {
         loginAttempts: 0,
         lockedUntil: null,
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  // Expose raw Prisma client for transactions in other services
+  getClient() {
+    return this.prisma;
+  }
+
+  // Convenience helper to update last login safely
+  async updateUserLastLogin(id) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
         lastLoginAt: new Date(),
         updatedAt: new Date(),
       },

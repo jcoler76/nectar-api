@@ -1,4 +1,4 @@
-import { Bell, Eye, EyeOff, Loader2, Lock, Save, Shield, User } from 'lucide-react';
+import { Bell, Eye, EyeOff, Loader2, Lock, Save, Shield, User, CreditCard, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -49,6 +49,21 @@ const UserSettings = () => {
   const [notificationSuccess, setNotificationSuccess] = useState('');
 
   const { updatePassword, user } = useAuth();
+  const [billingLoading, setBillingLoading] = useState(false);
+  const openPortal = async () => {
+    try {
+      setBillingLoading(true);
+      const res = await fetch('/api/checkout/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (e) {
+      // no-op: keep UI simple here
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   // Load notification preferences on component mount
   useEffect(() => {
@@ -185,6 +200,23 @@ const UserSettings = () => {
       </div>
 
       <div className="grid gap-6">
+        {(user?.isAdmin || user?.role === 'OWNER' || user?.organizationRole === 'OWNER') && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Billing
+              </CardTitle>
+              <CardDescription>Manage your subscription, payment methods, and invoices</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={openPortal} disabled={billingLoading} className="inline-flex items-center gap-2">
+                {billingLoading ? 'Opening…' : 'Manage Billing'}
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
         {/* Account Information */}
         <Card>
           <CardHeader>

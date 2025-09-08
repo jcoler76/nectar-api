@@ -1,11 +1,11 @@
 #!/bin/bash
-# Gentle production deployment script for mirabel-api
+# Gentle production deployment script for nectar-api
 # Preserves ecosystem files, environment variables, and critical configurations
 
-echo "🚀 Starting Gentle Mirabel API deployment..."
+echo "🚀 Starting Gentle Nectar API deployment..."
 
 # Navigate to the project directory
-cd ~/mirabel-api || { echo "❌ Failed to navigate to project directory"; exit 1; }
+cd ~/nectar-api || { echo "❌ Failed to navigate to project directory"; exit 1; }
 
 # Create timestamped backup directory
 BACKUP_DIR=~/deployment-backups/$(date +%Y%m%d_%H%M%S)
@@ -58,7 +58,7 @@ fi
 
 # Stop PM2 gracefully
 echo "🔄 Gracefully stopping PM2 processes..."
-pm2 stop mirabel-api 2>/dev/null || echo "  - mirabel-api not running"
+pm2 stop nectar-api 2>/dev/null || echo "  - nectar-api not running"
 # Don't delete PM2 processes - just stop them
 
 # Pull latest changes (gentle approach)
@@ -165,7 +165,7 @@ if [ -f "./server/ecosystem.config.js" ]; then
 else
     echo "⚠️  No ecosystem.config.js found - using default PM2 start"
     cd server
-    pm2 start server.js --name mirabel-api --env production
+    pm2 start server.js --name nectar-api --env production
     cd ..
 fi
 
@@ -207,9 +207,9 @@ echo ""
 echo "🔧 Recovery commands (if needed):"
 echo "  📁 View backups: ls -la $BACKUP_DIR"
 echo "  🔄 Restore stashed changes: git stash list && git stash pop"
-echo "  📊 Check logs: pm2 logs mirabel-api"
+echo "  📊 Check logs: pm2 logs nectar-api"
 echo "  🏥 Health check: curl http://localhost:3001/api/health"
 echo ""
 echo "🔗 Application URLs:"
-echo "  🌐 Frontend: https://mirabelconnect.mirabeltechnologies.com"
-echo "  🔌 API Health: https://mirabelconnect.mirabeltechnologies.com/api/health"
+echo "  🌐 Frontend: https://nectarconnect.nectartechnologies.com"
+echo "  🔌 API Health: https://nectarconnect.nectartechnologies.com/api/health"

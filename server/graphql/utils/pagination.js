@@ -1,18 +1,21 @@
-const mongoose = require('mongoose');
+/**
+ * Pagination utilities for Prisma/GraphQL
+ * Converted from MongoDB to Prisma-compatible pagination
+ */
 
 /**
- * Creates a cursor-based connection for pagination
- * @param {mongoose.Model} Model - Mongoose model to query
+ * Creates a cursor-based connection for pagination with Prisma
+ * @param {Object} prismaModel - Prisma model client
  * @param {Object} paginationArgs - Pagination arguments {first, after, last, before}
- * @param {Object} query - MongoDB query object
- * @param {Object} sort - MongoDB sort object
+ * @param {Object} where - Prisma where clause
+ * @param {Object} orderBy - Prisma orderBy clause
  * @returns {Object} Connection object with edges, pageInfo, and totalCount
  */
 const createCursorConnection = async (
-  Model,
+  prismaModel,
   paginationArgs = {},
-  query = {},
-  sort = { _id: 1 }
+  where = {},
+  orderBy = { id: 'asc' }
 ) => {
   const { first, after, last, before } = paginationArgs;
 
@@ -32,59 +35,35 @@ const createCursorConnection = async (
   const isForward = Boolean(first || (!first && !last));
 
   // Build the base query
-  let mongoQuery = { ...query };
+  let prismaQuery = {
+    where,
+    orderBy,
+    take: limit + 1, // +1 to check if there are more results
+  };
 
   // Handle cursor-based filtering
   if (after) {
-    try {
-      const afterDoc = await Model.findById(after);
-      if (afterDoc) {
-        const sortKey = Object.keys(sort)[0];
-        const sortValue = afterDoc[sortKey];
-
-        if (sort[sortKey] === 1) {
-          mongoQuery[sortKey] = { $gt: sortValue };
-        } else {
-          mongoQuery[sortKey] = { $lt: sortValue };
-        }
-      }
-    } catch (error) {
-      // Invalid cursor, ignore
-    }
+    prismaQuery.cursor = { id: after };
+    prismaQuery.skip = 1; // Skip the cursor item
   }
 
   if (before) {
-    try {
-      const beforeDoc = await Model.findById(before);
-      if (beforeDoc) {
-        const sortKey = Object.keys(sort)[0];
-        const sortValue = beforeDoc[sortKey];
-
-        if (sort[sortKey] === 1) {
-          mongoQuery[sortKey] = { ...mongoQuery[sortKey], $lt: sortValue };
-        } else {
-          mongoQuery[sortKey] = { ...mongoQuery[sortKey], $gt: sortValue };
-        }
-      }
-    } catch (error) {
-      // Invalid cursor, ignore
+    prismaQuery.cursor = { id: before };
+    prismaQuery.skip = 1; // Skip the cursor item
+    // Reverse order for backward pagination
+    if (Array.isArray(orderBy)) {
+      prismaQuery.orderBy = orderBy.map(order => {
+        const key = Object.keys(order)[0];
+        return { [key]: order[key] === 'asc' ? 'desc' : 'asc' };
+      });
+    } else {
+      const key = Object.keys(orderBy)[0];
+      prismaQuery.orderBy = { [key]: orderBy[key] === 'asc' ? 'desc' : 'asc' };
     }
   }
 
-  // Adjust sort for backward pagination
-  let mongoSort = { ...sort };
-  if (!isForward) {
-    // Reverse sort direction for backward pagination
-    Object.keys(mongoSort).forEach(key => {
-      mongoSort[key] = mongoSort[key] * -1;
-    });
-  }
-
   // Execute the query
-  const documents = await Model.find(mongoQuery)
-    .sort(mongoSort)
-    .limit(limit + 1) // +1 to check if there are more results
-    .lean();
+  const documents = await prismaModel.findMany(prismaQuery);
 
   // Check if there are more results
   const hasMore = documents.length > limit;
@@ -93,14 +72,14 @@ const createCursorConnection = async (
   }
 
   // Reverse results for backward pagination
-  if (!isForward) {
+  if (before) {
     documents.reverse();
   }
 
   // Create edges
   const edges = documents.map(doc => ({
     node: doc,
-    cursor: doc._id.toString(),
+    cursor: doc.id.toString(),
   }));
 
   // Calculate page info
@@ -111,7 +90,7 @@ const createCursorConnection = async (
   const endCursor = edges.length > 0 ? edges[edges.length - 1].cursor : null;
 
   // Get total count (only when needed)
-  const totalCount = await Model.countDocuments(query);
+  const totalCount = await prismaModel.count({ where });
 
   return {
     edges,
@@ -126,26 +105,31 @@ const createCursorConnection = async (
 };
 
 /**
- * Creates simple offset-based pagination (for simpler use cases)
- * @param {mongoose.Model} Model - Mongoose model to query
+ * Creates simple offset-based pagination for Prisma
+ * @param {Object} prismaModel - Prisma model client
  * @param {Object} paginationArgs - Pagination arguments {page, limit}
- * @param {Object} query - MongoDB query object
- * @param {Object} sort - MongoDB sort object
+ * @param {Object} where - Prisma where clause
+ * @param {Object} orderBy - Prisma orderBy clause
  * @returns {Object} Paginated results with metadata
  */
 const createOffsetPagination = async (
-  Model,
+  prismaModel,
   paginationArgs = {},
-  query = {},
-  sort = { _id: 1 }
+  where = {},
+  orderBy = { id: 'asc' }
 ) => {
   const { page = 1, limit = 10 } = paginationArgs;
 
   const skip = (page - 1) * limit;
 
   const [documents, totalCount] = await Promise.all([
-    Model.find(query).sort(sort).skip(skip).limit(limit).lean(),
-    Model.countDocuments(query),
+    prismaModel.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    prismaModel.count({ where }),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);

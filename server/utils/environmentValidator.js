@@ -258,7 +258,7 @@ class EnvironmentValidator {
       .minLength('ENCRYPTION_KEY', 32)
       .isSecureSecret('ENCRYPTION_KEY')
 
-      .optional('JWT_ISSUER', { default: 'mirabel-api' })
+      .optional('JWT_ISSUER', { default: 'nectar-api' })
       .optional('JWT_AUDIENCE', { default: 'mirabel-users' })
       .optional('JWT_EXPIRES_IN', { default: '4h' })
       .optional('JWT_REFRESH_EXPIRES_IN', { default: '7d' })

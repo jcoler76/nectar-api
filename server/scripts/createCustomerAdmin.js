@@ -14,7 +14,7 @@ const User = require('../models/User');
 
 async function createCustomerAdmin() {
   const email = 'meadmin@jestincoler.com';
-  const password = 'Fr33d0M!!@!NC';
+  const password = '<password>';
 
   try {
     console.log('Connecting to MongoDB...');

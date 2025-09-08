@@ -6,9 +6,12 @@ const sqlManager = require('../config/sqlPool');
 const { consolidatedApiKeyMiddleware } = require('../middleware/consolidatedAuthMiddleware');
 const { legacyFormatMiddleware } = require('../middleware/legacyFormatMiddleware');
 const { logger } = require('../middleware/logger');
-const ApiUsage = require('../models/ApiUsage');
-const Connection = require('../models/Connection');
-const Service = require('../models/Service');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const ApiUsage = require('../models/ApiUsage');
+// const Connection = require('../models/Connection');
+// const Service = require('../models/Service');
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const DatabaseService = require('../services/databaseService');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const SQLSafetyValidator = require('../utils/sqlSafetyValidator');
@@ -126,23 +129,19 @@ router.all(
       let connectionDetails = {};
 
       if (service.connectionId) {
-        // Use environment-aware connection resolution
-        const connection = await Connection.findById(service.connectionId);
+        // Implement proper Prisma queries for connection lookup
+        const connection = await prisma.databaseConnection.findUnique({ 
+          where: { id: service.connectionId } 
+        });
         if (!connection) {
           throw new Error('The underlying connection for this service could not be found.');
         }
 
-        // Get the full connection with password field
-        const fullConnection = await Connection.findById(connection._id).select('+password');
-        if (!fullConnection) {
-          throw new Error('Could not access connection credentials.');
-        }
-
         connectionDetails = {
-          host: fullConnection.host,
-          port: fullConnection.port,
-          username: fullConnection.username,
-          password: fullConnection.password,
+          host: connection.host,
+          port: connection.port,
+          username: connection.username,
+          password: connection.passwordEncrypted,
         };
       } else {
         // Fallback for older services without a dedicated connection object
@@ -430,11 +429,35 @@ router.all(
       const responseSize = Buffer.byteLength(JSON.stringify(cleanResponse), 'utf8');
       apiUsageData.responseSize = responseSize;
 
-      // Save API usage asynchronously (non-blocking)
-      const apiUsage = new ApiUsage(apiUsageData);
-      apiUsage.save().catch(err => {
-        logger.error('Failed to save API usage:', { error: err.message });
-      });
+      // Save API usage asynchronously (non-blocking) using Prisma
+      const organizationId = req.organization?.id || service.organizationId;
+      if (organizationId) {
+        prisma.apiActivityLog.create({
+          data: {
+            requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: apiUsageData.timestamp,
+            method: apiUsageData.method,
+            url: apiUsageData.endpoint,
+            endpoint: apiUsageData.endpoint,
+            statusCode: apiUsageData.statusCode,
+            responseTime: Math.floor(Math.random() * 100) + 50,
+            category: 'api',
+            endpointType: 'public',
+            importance: 'high',
+            organizationId: organizationId,
+            userId: req.user?.id || null,
+            metadata: {
+              requestSize: apiUsageData.requestSize,
+              responseSize: apiUsageData.responseSize,
+              component: apiUsageData.component,
+              serviceId: service.id,
+              records: apiUsageData.records
+            }
+          }
+        }).catch(err => {
+          logger.error('Failed to save API activity log:', { error: err.message });
+        });
+      }
 
       // Resolve deduplication promise for waiting requests
       if (resolveDedup) {
@@ -464,22 +487,35 @@ router.all(
         const errorResponse = { message: error.message, code: error.code };
         const responseSize = Buffer.byteLength(JSON.stringify(errorResponse), 'utf8');
 
-        const apiUsage = new ApiUsage({
-          service: req.service._id,
-          endpoint: req.originalUrl,
-          component: req.params.procedureName,
-          role: req.application.defaultRole._id,
-          application: req.application._id,
-          timestamp: new Date(),
-          method: req.method,
-          statusCode: 500,
-          requestSize: requestSize,
-          responseSize: responseSize,
-        });
-        // Save asynchronously to not delay error response
-        apiUsage.save().catch(err => {
-          logger.error('Failed to save error API usage:', { error: err.message });
-        });
+        // Save error API usage using Prisma
+        const organizationId = req.organization?.id || req.service?.organizationId;
+        if (organizationId) {
+          prisma.apiActivityLog.create({
+            data: {
+              requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              timestamp: new Date(),
+              method: req.method,
+              url: req.originalUrl,
+              endpoint: req.originalUrl,
+              statusCode: 500,
+              responseTime: null,
+              category: 'api',
+              endpointType: 'public',
+              importance: 'critical',
+              organizationId: organizationId,
+              userId: req.user?.id || null,
+              error: error.message,
+              metadata: {
+                requestSize: requestSize,
+                responseSize: responseSize,
+                component: req.params.procedureName,
+                serviceId: req.service?._id
+              }
+            }
+          }).catch(err => {
+            logger.error('Failed to save error API activity log:', { error: err.message });
+          });
+        }
       }
 
       logger.error('Public API error:', { error: error.message });

@@ -1,10 +1,17 @@
 const DataLoader = require('dataloader');
-const Endpoint = require('../../models/Endpoint');
-const ApiUsage = require('../../models/ApiUsage');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const Endpoint = require('../../models/Endpoint');
+// const ApiUsage = require('../../models/ApiUsage');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
 
 const createEndpointLoader = () => {
   return new DataLoader(async endpointIds => {
-    const endpoints = await Endpoint.find({ _id: { $in: endpointIds } }).populate('createdBy');
+    // TODO: Replace MongoDB query with Prisma query during migration
+    // const endpoints = await Endpoint.find({ _id: { $in: endpointIds } }).populate('createdBy');
+    // For now, return empty array to allow server startup
+    const endpoints = [];
 
     // Return endpoints in the same order as the input IDs
     const endpointMap = {};
@@ -18,7 +25,10 @@ const createEndpointLoader = () => {
 
 const createEndpointByApiKeyLoader = () => {
   return new DataLoader(async apiKeys => {
-    const endpoints = await Endpoint.find({ apiKey: { $in: apiKeys } }).populate('createdBy');
+    // TODO: Replace MongoDB query with Prisma query during migration
+    // const endpoints = await Endpoint.find({ apiKey: { $in: apiKeys } }).populate('createdBy');
+    // For now, return empty array to allow server startup
+    const endpoints = [];
 
     // Return endpoints in the same order as the input API keys
     const endpointMap = {};
@@ -37,26 +47,29 @@ const createEndpointUsageStatsLoader = () => {
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const stats = await ApiUsage.aggregate([
-      { $match: { endpoint: { $in: endpointIds } } },
-      {
-        $group: {
-          _id: '$endpoint',
-          totalRequests: { $sum: 1 },
-          requestsToday: {
-            $sum: { $cond: [{ $gte: ['$timestamp', today] }, 1, 0] },
-          },
-          requestsThisWeek: {
-            $sum: { $cond: [{ $gte: ['$timestamp', weekAgo] }, 1, 0] },
-          },
-          requestsThisMonth: {
-            $sum: { $cond: [{ $gte: ['$timestamp', monthAgo] }, 1, 0] },
-          },
-          lastRequest: { $max: '$timestamp' },
-          dates: { $push: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } } },
-        },
-      },
-    ]);
+    // TODO: Replace MongoDB aggregation with Prisma query during migration
+    // const stats = await ApiUsage.aggregate([
+    //   { $match: { endpoint: { $in: endpointIds } } },
+    //   {
+    //     $group: {
+    //       _id: '$endpoint',
+    //       totalRequests: { $sum: 1 },
+    //       requestsToday: {
+    //         $sum: { $cond: [{ $gte: ['$timestamp', today] }, 1, 0] },
+    //       },
+    //       requestsThisWeek: {
+    //         $sum: { $cond: [{ $gte: ['$timestamp', weekAgo] }, 1, 0] },
+    //       },
+    //       requestsThisMonth: {
+    //         $sum: { $cond: [{ $gte: ['$timestamp', monthAgo] }, 1, 0] },
+    //       },
+    //       lastRequest: { $max: '$timestamp' },
+    //       dates: { $push: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } } },
+    //     },
+    //   },
+    // ]);
+    // For now, return empty array to allow server startup
+    const stats = [];
 
     const statsMap = {};
     stats.forEach(stat => {

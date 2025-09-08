@@ -6,7 +6,7 @@ set -e
 
 RUNNER_VERSION="2.319.1"
 GITHUB_OWNER="jcolermirabel"
-GITHUB_REPO="mirabel-api"
+GITHUB_REPO="nectar-api"
 RUNNER_NAME="vpn-runner-$(hostname)"
 
 echo "🏃 Setting up GitHub Self-Hosted Runner for ${GITHUB_OWNER}/${GITHUB_REPO}"

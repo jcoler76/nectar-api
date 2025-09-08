@@ -229,7 +229,7 @@ export class BillingController {
         data: renewals,
         summary: {
           total: renewals.length,
-          totalRevenue: renewals.reduce((sum, sub) => {
+          totalRevenue: renewals.reduce((sum: number, sub: any) => {
             return sum + (sub.monthlyRevenue ? Number(sub.monthlyRevenue) : 0)
           }, 0)
         }

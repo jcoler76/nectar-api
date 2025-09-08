@@ -160,7 +160,7 @@ router.post('/register', validate(registerValidation), async (req, res) => {
     await user.save();
 
     // Respond with QR code for setup
-    const otpAuthUrl = otplib.authenticator.keyuri(user.email, 'Mirabel API', secret);
+    const otpAuthUrl = otplib.authenticator.keyuri(user.email, 'Nectar Studio', secret);
     const qrCodeImage = await qrcode.toDataURL(otpAuthUrl);
 
     res.status(201).json({
@@ -839,7 +839,7 @@ router.post('/login', validate(validationRules.auth.login), async (req, res) => 
 
           await user.save();
 
-          const otpAuthUrl = otplib.authenticator.keyuri(user.email, 'Mirabel API', secret);
+          const otpAuthUrl = otplib.authenticator.keyuri(user.email, 'Nectar Studio', secret);
           const qrCodeImage = await qrcode.toDataURL(otpAuthUrl);
 
           return res.status(200).json({

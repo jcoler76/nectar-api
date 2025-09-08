@@ -1,4 +1,4 @@
-# Credential Rotation Guide - Mirabel API
+# Credential Rotation Guide - Nectar API
 
 **Document Version:** 1.0  
 **Created:** 2025-01-19  
@@ -7,7 +7,7 @@
 
 ## 🎯 Overview
 
-This guide provides step-by-step instructions for rotating all credentials in the Mirabel API application to maintain security and prevent unauthorized access.
+This guide provides step-by-step instructions for rotating all credentials in the Nectar API application to maintain security and prevent unauthorized access.
 
 ## 🚨 Emergency Credential Rotation
 
@@ -37,7 +37,7 @@ This will output secure replacements for all credentials:
 JWT_SECRET=YOUR_NEW_JWT_SECRET_HERE
 ENCRYPTION_KEY=YOUR_NEW_ENCRYPTION_KEY_HERE
 SESSION_SECRET=YOUR_NEW_SESSION_SECRET_HERE
-MONGODB_URI="mongodb://NEW_USERNAME:NEW_SECURE_PASSWORD@your-mongo-host/mirabel-api"
+MONGODB_URI="mongodb://NEW_USERNAME:NEW_SECURE_PASSWORD@your-mongo-host/nectar-api"
 OPENAI_API_KEY=YOUR_NEW_OPENAI_API_KEY_HERE
 EMAIL_PASS=YOUR_NEW_EMAIL_APP_PASSWORD_HERE
 ```

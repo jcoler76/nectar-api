@@ -2,6 +2,8 @@ import { ArrowLeft, CheckCircle, CreditCard, Lock, Zap } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { getCaptchaToken } from '../../utils/captcha';
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,6 +55,48 @@ const CheckoutPage = () => {
       navigate('/pricing');
     }
   }, [selectedPlan, navigate]);
+
+  // If Stripe Checkout is enabled, auto-redirect to Stripe from this page
+  useEffect(() => {
+    const useStripe = process.env.REACT_APP_USE_STRIPE_CHECKOUT === 'true';
+    if (!useStripe) return;
+
+    const doRedirect = async () => {
+      try {
+        setLoading(true);
+        const priceMap = {
+          starter: process.env.REACT_APP_STRIPE_PRICE_ID_STARTER,
+          professional: process.env.REACT_APP_STRIPE_PRICE_ID_PROFESSIONAL,
+          enterprise: process.env.REACT_APP_STRIPE_PRICE_ID_ENTERPRISE,
+        };
+        const priceId = priceMap[planId];
+        if (!priceId) {
+          console.error('Missing Stripe price ID for plan', planId);
+          navigate('/pricing');
+          return;
+        }
+        const captchaToken = await getCaptchaToken('checkout');
+        const res = await fetch('/api/checkout/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ priceId, trialDays: 14, captchaToken }),
+        });
+        const data = await res.json();
+        if (data && data.url) {
+          window.location.href = data.url;
+        } else {
+          console.error('Stripe session not returned, falling back to simulated checkout');
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error('Stripe redirect error:', e);
+        setLoading(false);
+      }
+    };
+
+    doRedirect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId, billingCycle]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -142,6 +186,8 @@ const CheckoutPage = () => {
     return null;
   }
 
+  const useStripe = process.env.REACT_APP_USE_STRIPE_CHECKOUT === 'true';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Navigation */}
@@ -161,7 +207,10 @@ const CheckoutPage = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Nectar</span>
+              <div className="flex items-center">
+                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
+                <span className="text-xl font-bold text-blue-600">.ai</span>
+              </div>
             </div>
           </div>
         </div>
@@ -226,13 +275,31 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Checkout Form */}
+          {/* Checkout Form or Stripe redirect notice */}
           <div className="bg-white rounded-2xl p-8 border border-gray-200">
             <div className="flex items-center gap-3 mb-8">
               <CreditCard className="w-8 h-8 text-blue-600" />
               <h2 className="text-2xl font-bold text-gray-900">Payment Details</h2>
             </div>
 
+            {useStripe ? (
+              <div className="space-y-6 text-center py-8">
+                <div className="mx-auto w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Lock className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">Redirecting to Secure Checkout</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  You’ll be redirected to our secure Stripe checkout to complete your purchase. This keeps your payment details safe and compliant.
+                </p>
+                <p className="text-sm text-gray-500">If you’re not redirected automatically, please check your network and try again.</p>
+                {loading && (
+                  <div className="flex items-center justify-center gap-3 text-gray-500">
+                    <span className="animate-spin border-2 border-blue-600 border-t-transparent rounded-full w-5 h-5 inline-block" />
+                    <span>Preparing checkout…</span>
+                  </div>
+                )}
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Contact Information */}
               <div className="space-y-4">
@@ -411,6 +478,7 @@ const CheckoutPage = () => {
                 </p>
               </div>
             </form>
+            )}
           </div>
         </div>
       </div>

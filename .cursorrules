@@ -2,7 +2,7 @@
 # Enhanced context and intelligent code suggestions for business logic development
 
 ## Project Context
-You are working on the Mirabel API platform with Template20 database schema intelligence. This system provides AI-powered schema discovery, Prisma generation, and GraphQL integration for business applications.
+You are working on the Nectar API platform with Template20 database schema intelligence. This system provides AI-powered schema discovery, Prisma generation, and GraphQL integration for business applications.
 
 ## Key Architecture Components
 - **MongoDB Intelligence**: Central store of Template20 database schema and business logic

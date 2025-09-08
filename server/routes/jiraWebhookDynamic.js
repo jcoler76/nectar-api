@@ -167,7 +167,7 @@ async function executeStoredProcedure(spConfig) {
       method: 'GET',
       url: url,
       headers: {
-        'x-mirabel-api-key': apiKey,
+        'x-nectar-api-key': apiKey,
         Accept: 'application/json',
       },
       params: spConfig.parameters || {},

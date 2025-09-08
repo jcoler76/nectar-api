@@ -10,8 +10,10 @@ router.post('/:workflowId/runs/:runId/approvals/:approvalId/decision', async (re
       return res.status(400).json({ error: 'Invalid decision' });
     }
 
-    const { Approval } = require('../models/Approval');
-    const approval = await Approval.findOne({ _id: approvalId, workflowId, runId });
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+    // TODO: Add Approval model to Prisma schema if approval functionality is needed
+    // const approval = await prisma.approval.findFirst({ where: { id: approvalId, workflowId, runId } });
     if (!approval || approval.status !== 'pending') {
       return res.status(404).json({ error: 'Approval not found or not pending' });
     }
@@ -40,7 +42,7 @@ const {
   unscheduleWorkflow,
   getSchedulerStatus,
 } = require('../services/scheduler');
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose'); // Removed for Prisma migration
 const { verifyWorkflowAccess } = require('../middleware/resourceAuthorization');
 const { asyncHandler, errorResponses } = require('../utils/errorHandler');
 const { logger } = require('../middleware/logger');
@@ -239,14 +241,16 @@ router.get('/:id/runs', enrichWorkflowContext, workflowController.getWorkflowRun
 router.get('/scheduler/status', async (req, res) => {
   try {
     const status = getSchedulerStatus();
-    const activeWorkflows = await mongoose
-      .model('Workflow')
-      .find({
-        active: true,
-        'nodes.data.nodeType': 'trigger:schedule',
-        userId: req.user.userId,
-      })
-      .select('name _id nodes');
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+    const activeWorkflows = await prisma.workflow.findMany({
+      where: {
+        isActive: true,
+        organizationId: req.user.organizationId
+        // TODO: Add JSON filter for trigger:schedule nodes when needed
+      },
+      select: { id: true, name: true, definition: true }
+    });
 
     const detailedStatus = {
       ...status,
@@ -273,9 +277,14 @@ router.get('/scheduler/status', async (req, res) => {
 // Add a new route to manually trigger scheduler for a specific workflow
 router.post('/:id/schedule/test', async (req, res) => {
   try {
-    const workflow = await mongoose
-      .model('Workflow')
-      .findOne({ _id: req.params.id, userId: req.user.userId });
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+    const workflow = await prisma.workflow.findFirst({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId
+      }
+    });
     if (!workflow) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Workflow not found' } });
     }

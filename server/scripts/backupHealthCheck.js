@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * MongoDB Backup Health Check Script for Mirabel API
+ * PostgreSQL Backup Health Check Script for Nectar API
  * Validates backup system health, integrity, and sends alerts if issues are found
  */
 
 require('dotenv').config();
 const { logger } = require('../utils/logger');
-const MongoBackupService = require('../services/mongoBackupService');
+const PostgresBackupService = require('../services/postgresBackupService');
 const nodemailer = require('nodemailer');
 
 class BackupHealthChecker {
   constructor() {
-    this.backupService = new MongoBackupService();
+    this.backupService = new PostgresBackupService();
     this.healthStatus = {
       overall: 'unknown',
       checks: {},
@@ -102,13 +102,12 @@ class BackupHealthChecker {
         );
       }
 
-      // Check MongoDB URI
-      const mongoUri = process.env.MONGODB_URI;
-      check.details.mongoUriConfigured = !!mongoUri;
-
-      if (!mongoUri) {
+      // Check PostgreSQL DATABASE_URL
+      const databaseUrl = process.env.DATABASE_URL;
+      check.details.databaseUrlConfigured = !!databaseUrl;
+      if (!databaseUrl) {
         check.status = 'fail';
-        check.issues.push('MONGODB_URI environment variable is not configured');
+        check.issues.push('DATABASE_URL environment variable is not configured');
       }
 
       // Check backup schedule
@@ -149,7 +148,7 @@ class BackupHealthChecker {
       const fs = require('fs').promises;
       const path = require('path');
 
-      const backupDir = path.join(__dirname, '../../backups/mongodb');
+      const backupDir = path.join(__dirname, '../../backups/postgres');
       check.details.directory = backupDir;
 
       // Check if directory exists
@@ -384,11 +383,11 @@ class BackupHealthChecker {
   }
 
   /**
-   * Check MongoDB tools availability
+   * Check PostgreSQL tools availability
    */
   async checkMongoTools() {
     const check = {
-      name: 'MongoDB Tools',
+      name: 'PostgreSQL Tools',
       status: 'pass',
       details: {},
       issues: [],
@@ -399,24 +398,25 @@ class BackupHealthChecker {
       const { promisify } = require('util');
       const execAsync = promisify(exec);
 
-      // Check mongodump
+      // Check pg_dump
       try {
-        const { stdout } = await execAsync('mongodump --version');
-        check.details.mongodump = stdout.trim().split('\n')[0];
+        const { stdout } = await execAsync('pg_dump --version');
+        check.details.pg_dump = stdout.trim().split('\n')[0];
       } catch (error) {
         check.status = 'fail';
-        check.issues.push('mongodump is not available');
-        check.details.mongodumpError = error.message;
+        check.issues.push('pg_dump is not available');
+        check.details.pgDumpError = error.message;
       }
 
-      // Check mongorestore
+      // Check pg_restore (optional but recommended)
       try {
-        const { stdout } = await execAsync('mongorestore --version');
-        check.details.mongorestore = stdout.trim().split('\n')[0];
+        const { stdout } = await execAsync('pg_restore --version');
+        check.details.pg_restore = stdout.trim().split('\n')[0];
       } catch (error) {
-        check.status = 'fail';
-        check.issues.push('mongorestore is not available');
-        check.details.mongorestoreError = error.message;
+        // Do not mark fail if pg_restore missing; still warn
+        check.status = check.status === 'fail' ? 'fail' : 'warning';
+        check.issues.push('pg_restore is not available');
+        check.details.pgRestoreError = error.message;
       }
 
       // Check gzip (for compression)
@@ -430,9 +430,7 @@ class BackupHealthChecker {
       }
 
       if (check.status === 'fail') {
-        this.healthStatus.recommendations.push(
-          'Install MongoDB Database Tools from https://docs.mongodb.com/database-tools/'
-        );
+        this.healthStatus.recommendations.push('Install PostgreSQL client tools (pg_dump/pg_restore).');
       }
     } catch (error) {
       check.status = 'fail';
@@ -496,7 +494,7 @@ class BackupHealthChecker {
         },
       });
 
-      const subject = `🚨 Mirabel API Backup Health Alert - ${this.healthStatus.overall.toUpperCase()}`;
+      const subject = `🚨 Nectar Studio Backup Health Alert - ${this.healthStatus.overall.toUpperCase()}`;
 
       let emailBody = `
 Backup Health Check Results
@@ -524,11 +522,11 @@ ${check.issues.length > 0 ? check.issues.map(issue => `  - ${issue}`).join('\n')
 Please address these issues promptly to ensure backup system reliability.
 
 ---
-Mirabel API Backup Health Monitor
+Nectar Studio Backup Health Monitor
       `;
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Mirabel API" <no-reply@example.com>',
+        from: process.env.EMAIL_FROM || '"Nectar Studio" <no-reply@example.com>',
         to: alertEmail,
         subject: subject,
         text: emailBody,
@@ -547,7 +545,7 @@ Mirabel API Backup Health Monitor
    * Generate health report
    */
   generateReport() {
-    console.log('🏥 Mirabel API - Backup Health Check Report');
+    console.log('🏥 Nectar Studio - Backup Health Check Report');
     console.log('==========================================');
     console.log(`Overall Status: ${this.healthStatus.overall.toUpperCase()}`);
     console.log(`Timestamp: ${this.healthStatus.timestamp}`);

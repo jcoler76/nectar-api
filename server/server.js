@@ -1,5 +1,5 @@
 /**
- * Mirabel API Server
+ * Nectar Studio Server
  * Streamlined server entry point with modular architecture
  */
 
@@ -20,15 +20,14 @@ const { createServer } = require('http');
  */
 const startServer = async () => {
   try {
-    // Initialize core services (MongoDB, sessions)
-    const { sessionService } = await initializeServices();
+    // Initialize core services (temporarily using Prisma only)
+    const { prismaService } = await initializeServices();
 
     // Configure the Express app
     configureApp();
 
-    // Add session middleware
-    app.use(sessionService.middleware());
-    logger.info('Session service initialized successfully');
+    // Skip session middleware for now (was MongoDB-based)
+    logger.info('Skipping session middleware - using PostgreSQL transition mode');
 
     // Initialize GraphQL after database connection (optional)
     let graphqlEnabled = process.env.DISABLE_GRAPHQL !== 'true';

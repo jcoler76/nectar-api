@@ -1,58 +1,121 @@
-const Role = require('../../models/Role');
-const Application = require('../../models/Application');
-const ApiUsage = require('../../models/ApiUsage');
+const { PrismaClient } = require('../../prisma/generated/client');
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
-const { createCursorConnection } = require('../utils/pagination');
+const { logger } = require('../../utils/logger');
 const { fetchSchemaFromDatabase } = require('../../utils/schemaUtils');
+
+const prisma = new PrismaClient();
 
 const roleResolvers = {
   // Type resolvers
   Role: {
-    service: async (role, _, { dataloaders }) => {
-      return dataloaders.serviceLoader.load(role.serviceId);
+    // Resolver for service field - ensures service info is populated
+    service: async (role) => {
+      if (role.service) return role.service;
+      
+      if (!role.serviceId) return null;
+      
+      return await prisma.service.findUnique({
+        where: { id: role.serviceId },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          connection: true
+        }
+      });
     },
 
-    creator: async (role, _, { dataloaders }) => {
-      return dataloaders.userLoader.load(role.createdBy);
+    // Resolver for creator field - ensures user info is populated
+    creator: async (role) => {
+      if (role.creator) return role.creator;
+      
+      if (!role.createdBy) return null;
+      
+      return await prisma.user.findUnique({
+        where: { id: role.createdBy },
+        select: { id: true, email: true, firstName: true, lastName: true }
+      });
     },
 
+    // Applications using this role as default
     applications: async role => {
-      return Application.find({ defaultRole: role._id });
+      return await prisma.application.findMany({
+        where: { defaultRoleId: role.id },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          organization: true
+        }
+      });
     },
 
+    // Usage statistics - will be implemented when API usage tracking is migrated
     usageCount: async role => {
-      return ApiUsage.countDocuments({ role: role._id });
+      // TODO: Implement when ApiActivityLog is used for usage tracking
+      return 0;
     },
 
     lastUsed: async role => {
-      const lastUsage = await ApiUsage.findOne({ role: role._id })
-        .sort({ timestamp: -1 })
-        .select('timestamp');
-      return lastUsage?.timestamp || null;
+      // TODO: Implement when ApiActivityLog is used for usage tracking
+      return null;
     },
   },
 
   Permission: {
-    service: async (permission, _, { dataloaders }) => {
-      return dataloaders.serviceLoader.load(permission.serviceId);
+    // Resolver for service field in permissions
+    service: async (permission) => {
+      if (!permission.serviceId) return null;
+      
+      return await prisma.service.findUnique({
+        where: { id: permission.serviceId },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          connection: true
+        }
+      });
     },
   },
 
   // Query resolvers
   Query: {
-    role: async (_, { id }, { user, jwtUser, apiKeyUser, dataloaders }) => {
+    role: async (_, { id }, { user: currentUser, jwtUser, apiKeyUser }) => {
       // Block client API keys from accessing role management
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError('Client API keys cannot access role management');
       }
 
-      if (!user) throw new AuthenticationError('Authentication required');
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const role = await dataloaders.roleLoader.load(id);
-      if (!role) return null;
+      const role = await prisma.role.findFirst({
+        where: {
+          id,
+          organizationId: currentUser.organizationId
+        },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          service: {
+            include: {
+              creator: {
+                select: { id: true, email: true, firstName: true, lastName: true }
+              },
+              connection: true
+            }
+          },
+          organization: true
+        }
+      });
+
+      if (!role) {
+        throw new UserInputError('Role not found');
+      }
 
       // Check if user can access this role
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
+      if (role.createdBy !== currentUser.userId && !currentUser.isAdmin) {
         throw new ForbiddenError('Access denied');
       }
 
@@ -61,349 +124,873 @@ const roleResolvers = {
 
     roles: async (
       _,
-      { first = 10, after, filters = {}, orderBy = 'DESC' },
-      { user, jwtUser, apiKeyUser }
+      { filters = {}, pagination = {} },
+      { user: currentUser, jwtUser, apiKeyUser }
     ) => {
       // Block client API keys from accessing roles list
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError('Client API keys cannot access role management');
       }
 
-      if (!user) throw new AuthenticationError('Authentication required');
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const query = {};
+      const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'desc' } = pagination;
 
-      // Apply filters
+      // Build where clause for filters
+      const where = {
+        organizationId: currentUser.organizationId
+      };
+
       if (filters.name) {
-        query.name = { $regex: filters.name, $options: 'i' };
+        where.name = { contains: filters.name, mode: 'insensitive' };
       }
       if (filters.isActive !== undefined) {
-        query.isActive = filters.isActive;
+        where.isActive = filters.isActive;
       }
       if (filters.serviceId) {
-        query.serviceId = filters.serviceId;
+        where.serviceId = filters.serviceId;
       }
       if (filters.createdBy) {
-        query.createdBy = filters.createdBy;
-      } else if (!user.isAdmin) {
+        where.createdBy = filters.createdBy;
+      } else if (!currentUser.isAdmin) {
         // Non-admin users can only see their own roles
-        query.createdBy = user.userId;
+        where.createdBy = currentUser.userId;
       }
-      if (filters.hasPermissions !== undefined) {
-        if (filters.hasPermissions) {
-          query['permissions.0'] = { $exists: true };
-        } else {
-          query.permissions = { $size: 0 };
-        }
+      
+      if (filters.search) {
+        where.OR = [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { description: { contains: filters.search, mode: 'insensitive' } }
+        ];
       }
 
-      return createCursorConnection(Role, { first, after }, query, {
-        createdAt: orderBy === 'DESC' ? -1 : 1,
+      // Get total count for pagination
+      const totalCount = await prisma.role.count({ where });
+
+      // Get roles with pagination
+      const roles = await prisma.role.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
+        include: {
+          organization: {
+            select: { id: true, name: true }
+          },
+          service: {
+            select: { id: true, name: true, database: true }
+          },
+          _count: {
+            select: { 
+              applications: true
+            }
+          }
+        }
       });
+
+      return {
+        edges: roles.map((role, index) => ({
+          node: role,
+          cursor: Buffer.from((offset + index).toString()).toString('base64'),
+        })),
+        pageInfo: {
+          hasNextPage: offset + limit < totalCount,
+          hasPreviousPage: offset > 0,
+          totalCount,
+          startCursor:
+            roles.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
+          endCursor:
+            roles.length > 0
+              ? Buffer.from((offset + roles.length - 1).toString()).toString('base64')
+              : null,
+        },
+      };
     },
 
-    serviceRoles: async (_, { serviceId }, { user, jwtUser, apiKeyUser }) => {
+    serviceRoles: async (_, { serviceId }, { user: currentUser, jwtUser, apiKeyUser }) => {
       // Block client API keys from accessing service roles
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError('Client API keys cannot access role management');
       }
 
-      if (!user) throw new AuthenticationError('Authentication required');
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const query = { serviceId };
-      if (!user.isAdmin) {
-        query.createdBy = user.userId;
+      const where = { 
+        serviceId,
+        organizationId: currentUser.organizationId 
+      };
+      
+      if (!currentUser.isAdmin) {
+        where.createdBy = currentUser.userId;
       }
 
-      return Role.find(query).sort({ name: 1 });
+      return await prisma.role.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          service: {
+            select: { id: true, name: true, database: true }
+          }
+        }
+      });
     },
 
-    userRoles: async (_, { userId }, { user, jwtUser, apiKeyUser }) => {
+    userRoles: async (_, { userId }, { user: currentUser, jwtUser, apiKeyUser }) => {
       // Block client API keys from accessing user roles
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError('Client API keys cannot access role management');
       }
 
-      if (!user) throw new AuthenticationError('Authentication required');
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
       // Users can only see their own roles unless they're admin
-      const targetUserId = userId || user.userId;
-      if (targetUserId !== user.userId && !user.isAdmin) {
+      const targetUserId = userId || currentUser.userId;
+      if (targetUserId !== currentUser.userId && !currentUser.isAdmin) {
         throw new ForbiddenError('Access denied');
       }
 
-      return Role.find({ createdBy: targetUserId }).sort({ name: 1 });
+      // If asking for user's assigned roles, get from user relationship
+      const user = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        include: {
+          roles: {
+            where: { 
+              isActive: true,
+              organizationId: currentUser.organizationId 
+            },
+            include: {
+              service: {
+                select: { id: true, name: true, database: true }
+              }
+            },
+            orderBy: { name: 'asc' }
+          }
+        }
+      });
+
+      return user?.roles || [];
     },
 
-    myRoles: async (_, __, { user, jwtUser, apiKeyUser }) => {
+    myRoles: async (_, __, { user: currentUser, jwtUser, apiKeyUser }) => {
       // Block client API keys from accessing roles
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError('Client API keys cannot access role management');
       }
 
-      if (!user) throw new AuthenticationError('Authentication required');
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      return Role.find({ createdBy: user.userId }).sort({ name: 1 });
+      // Get roles assigned to the current user
+      const user = await prisma.user.findUnique({
+        where: { id: currentUser.userId },
+        include: {
+          roles: {
+            where: { 
+              isActive: true,
+              organizationId: currentUser.organizationId 
+            },
+            include: {
+              service: {
+                select: { id: true, name: true, database: true }
+              }
+            },
+            orderBy: { name: 'asc' }
+          }
+        }
+      });
+
+      return user?.roles || [];
     },
   },
 
   // Mutation resolvers
   Mutation: {
-    createRole: async (_, { input }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
+    createRole: async (_, { input }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const role = new Role({
-        ...input,
-        createdBy: user.userId,
-      });
+      try {
+        const { serviceId, permissions = [], ...roleData } = input;
 
-      await role.save();
-      return role;
+        // Verify service exists and belongs to organization
+        const service = await prisma.service.findFirst({
+          where: {
+            id: serviceId,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!service) {
+          throw new UserInputError('Service not found');
+        }
+
+        const role = await prisma.role.create({
+          data: {
+            ...roleData,
+            serviceId,
+            permissions,
+            organizationId: currentUser.organizationId,
+            createdBy: currentUser.userId,
+          },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Role created via GraphQL', {
+          roleId: role.id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        if (error.code === 'P2002') {
+          throw new UserInputError('Role name already exists in your organization');
+        }
+        logger.error('GraphQL role creation error', { error: error.message, input });
+        throw new Error('Failed to create role');
+      }
     },
 
-    updateRole: async (_, { id, input }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
+    updateRole: async (_, { id, input }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const role = await Role.findById(id);
-      if (!role) {
-        throw new UserInputError('Role not found');
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        const { serviceId, ...updateData } = input;
+
+        // Verify service if being updated
+        if (serviceId && serviceId !== existingRole.serviceId) {
+          const service = await prisma.service.findFirst({
+            where: {
+              id: serviceId,
+              organizationId: currentUser.organizationId
+            }
+          });
+
+          if (!service) {
+            throw new UserInputError('Service not found');
+          }
+
+          updateData.serviceId = serviceId;
+        }
+
+        const role = await prisma.role.update({
+          where: { id },
+          data: updateData,
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Role updated via GraphQL', {
+          roleId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        if (error.code === 'P2002') {
+          throw new UserInputError('Role name already exists in your organization');
+        }
+        logger.error('GraphQL role update error', { error: error.message, roleId: id });
+        throw new Error('Failed to update role');
       }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      Object.assign(role, input);
-      await role.save();
-
-      return role;
     },
 
-    deleteRole: async (_, { id }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
+    deleteRole: async (_, { id }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const role = await Role.findById(id);
-      if (!role) {
-        throw new UserInputError('Role not found');
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        // Check if role is being used by applications
+        const applicationsUsingRole = await prisma.application.count({
+          where: { defaultRoleId: id }
+        });
+        
+        if (applicationsUsingRole > 0) {
+          throw new UserInputError(
+            `Cannot delete role. It is being used by ${applicationsUsingRole} application(s).`
+          );
+        }
+
+        // Check if role is assigned to users
+        const usersWithRole = await prisma.user.count({
+          where: {
+            roles: {
+              some: { id }
+            }
+          }
+        });
+
+        if (usersWithRole > 0) {
+          throw new UserInputError(
+            `Cannot delete role. It is assigned to ${usersWithRole} user(s).`
+          );
+        }
+
+        await prisma.role.delete({ where: { id } });
+
+        logger.info('Role deleted via GraphQL', {
+          roleId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return true;
+      } catch (error) {
+        if (error.code === 'P2003') {
+          throw new UserInputError('Cannot delete role: it has dependent records');
+        }
+        logger.error('GraphQL role deletion error', { error: error.message, roleId: id });
+        return false;
       }
+    },
 
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
+    activateRole: async (_, { id }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
+
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        const role = await prisma.role.update({
+          where: { id },
+          data: { isActive: true },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Role activated via GraphQL', {
+          roleId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        logger.error('GraphQL role activation error', { error: error.message, roleId: id });
+        throw new Error('Failed to activate role');
       }
+    },
 
-      // Check if role is being used by applications
-      const applicationsUsingRole = await Application.countDocuments({ defaultRole: id });
-      if (applicationsUsingRole > 0) {
-        throw new UserInputError(
-          `Cannot delete role. It is being used by ${applicationsUsingRole} application(s).`
+    deactivateRole: async (_, { id }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
+
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        const role = await prisma.role.update({
+          where: { id },
+          data: { isActive: false },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Role deactivated via GraphQL', {
+          roleId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        logger.error('GraphQL role deactivation error', { error: error.message, roleId: id });
+        throw new Error('Failed to deactivate role');
+      }
+    },
+
+    addPermission: async (_, { roleId, permission }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
+
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id: roleId,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        // Check if permission already exists
+        const existingPermissions = existingRole.permissions || [];
+        const existingPermission = existingPermissions.find(
+          (p) =>
+            p.serviceId === permission.serviceId && p.objectName === permission.objectName
         );
-      }
 
-      await Role.findByIdAndDelete(id);
-      return true;
-    },
-
-    activateRole: async (_, { id }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
-
-      const role = await Role.findById(id);
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      role.isActive = true;
-      await role.save();
-
-      return role;
-    },
-
-    deactivateRole: async (_, { id }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
-
-      const role = await Role.findById(id);
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      role.isActive = false;
-      await role.save();
-
-      return role;
-    },
-
-    addPermission: async (_, { roleId, permission }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
-
-      const role = await Role.findById(roleId);
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      // Check if permission already exists
-      const existingPermission = role.permissions.find(
-        p =>
-          p.serviceId.toString() === permission.serviceId && p.objectName === permission.objectName
-      );
-
-      if (existingPermission) {
-        throw new UserInputError('Permission for this service and object already exists');
-      }
-
-      role.permissions.push(permission);
-      await role.save();
-
-      return role;
-    },
-
-    removePermission: async (_, { roleId, serviceId, objectName }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
-
-      const role = await Role.findById(roleId);
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      role.permissions = role.permissions.filter(
-        p => !(p.serviceId.toString() === serviceId && p.objectName === objectName)
-      );
-
-      await role.save();
-
-      return role;
-    },
-
-    updatePermission: async (_, { roleId, permission }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
-
-      const role = await Role.findById(roleId);
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      const existingPermissionIndex = role.permissions.findIndex(
-        p =>
-          p.serviceId.toString() === permission.serviceId && p.objectName === permission.objectName
-      );
-
-      if (existingPermissionIndex === -1) {
-        throw new UserInputError('Permission not found');
-      }
-
-      role.permissions[existingPermissionIndex] = {
-        ...role.permissions[existingPermissionIndex].toObject(),
-        ...permission,
-      };
-
-      await role.save();
-
-      return role;
-    },
-
-    testRole: async (_, { id }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
-
-      const role = await Role.findById(id).populate('serviceId');
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
-
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      const permissionTests = [];
-
-      for (const permission of role.permissions) {
-        try {
-          // Test database connection for this permission
-          await fetchSchemaFromDatabase(role.serviceId, permission.objectName);
-
-          permissionTests.push({
-            objectName: permission.objectName,
-            actions: permission.actions,
-            accessible: true,
-            errors: [],
-          });
-        } catch (error) {
-          permissionTests.push({
-            objectName: permission.objectName,
-            actions: permission.actions,
-            accessible: false,
-            errors: [error.message],
-          });
+        if (existingPermission) {
+          throw new UserInputError('Permission for this service and object already exists');
         }
+
+        // Verify the service exists and belongs to organization
+        const service = await prisma.service.findFirst({
+          where: {
+            id: permission.serviceId,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!service) {
+          throw new UserInputError('Service not found');
+        }
+
+        // Add the new permission
+        const updatedPermissions = [...existingPermissions, permission];
+
+        const role = await prisma.role.update({
+          where: { id: roleId },
+          data: { permissions: updatedPermissions },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Permission added to role via GraphQL', {
+          roleId,
+          permission,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        logger.error('GraphQL add permission error', { error: error.message, roleId, permission });
+        throw new Error('Failed to add permission');
       }
-
-      const allAccessible = permissionTests.every(test => test.accessible);
-
-      return {
-        success: allAccessible,
-        message: allAccessible ? 'All permissions are accessible' : 'Some permissions have issues',
-        permissions: permissionTests,
-      };
     },
 
-    refreshRoleSchemas: async (_, { id }, { user }) => {
-      if (!user) throw new AuthenticationError('Authentication required');
+    removePermission: async (_, { roleId, serviceId, objectName }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const role = await Role.findById(id).populate('serviceId');
-      if (!role) {
-        throw new UserInputError('Role not found');
-      }
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id: roleId,
+            organizationId: currentUser.organizationId
+          }
+        });
 
-      // Check ownership
-      if (role.createdBy.toString() !== user.userId && !user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-
-      // Refresh schemas for all permissions
-      for (const permission of role.permissions) {
-        try {
-          const schema = await fetchSchemaFromDatabase(role.serviceId, permission.objectName);
-          permission.schema = {
-            lastUpdated: new Date(),
-            ...schema,
-          };
-        } catch (error) {
-          console.error(`Failed to refresh schema for ${permission.objectName}:`, error);
-          permission.schema = {
-            lastUpdated: new Date(),
-            error: error.message,
-          };
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
         }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        // Remove the permission
+        const existingPermissions = existingRole.permissions || [];
+        const updatedPermissions = existingPermissions.filter(
+          (p) => !(p.serviceId === serviceId && p.objectName === objectName)
+        );
+
+        const role = await prisma.role.update({
+          where: { id: roleId },
+          data: { permissions: updatedPermissions },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Permission removed from role via GraphQL', {
+          roleId,
+          serviceId,
+          objectName,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        logger.error('GraphQL remove permission error', { error: error.message, roleId, serviceId, objectName });
+        throw new Error('Failed to remove permission');
       }
+    },
 
-      await role.save();
+    updatePermission: async (_, { roleId, permission }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      return role;
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id: roleId,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        // Find and update the permission
+        const existingPermissions = existingRole.permissions || [];
+        const existingPermissionIndex = existingPermissions.findIndex(
+          (p) =>
+            p.serviceId === permission.serviceId && p.objectName === permission.objectName
+        );
+
+        if (existingPermissionIndex === -1) {
+          throw new UserInputError('Permission not found');
+        }
+
+        // Verify the service exists and belongs to organization
+        const service = await prisma.service.findFirst({
+          where: {
+            id: permission.serviceId,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!service) {
+          throw new UserInputError('Service not found');
+        }
+
+        // Update the permission
+        const updatedPermissions = [...existingPermissions];
+        updatedPermissions[existingPermissionIndex] = {
+          ...updatedPermissions[existingPermissionIndex],
+          ...permission,
+        };
+
+        const role = await prisma.role.update({
+          where: { id: roleId },
+          data: { permissions: updatedPermissions },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Permission updated in role via GraphQL', {
+          roleId,
+          permission,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        logger.error('GraphQL update permission error', { error: error.message, roleId, permission });
+        throw new Error('Failed to update permission');
+      }
+    },
+
+    testRole: async (_, { id }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
+
+      try {
+        // Verify role exists and user has access
+        const role = await prisma.role.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          },
+          include: {
+            service: {
+              include: {
+                connection: true
+              }
+            }
+          }
+        });
+
+        if (!role) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (role.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        const permissionTests = [];
+        const permissions = role.permissions || [];
+
+        for (const permission of permissions) {
+          try {
+            // Test database connection for this permission
+            await fetchSchemaFromDatabase(role.service, permission.objectName);
+
+            permissionTests.push({
+              objectName: permission.objectName,
+              actions: permission.actions,
+              accessible: true,
+              errors: [],
+            });
+          } catch (error) {
+            permissionTests.push({
+              objectName: permission.objectName,
+              actions: permission.actions,
+              accessible: false,
+              errors: [error.message],
+            });
+          }
+        }
+
+        const allAccessible = permissionTests.every(test => test.accessible);
+
+        logger.info('Role tested via GraphQL', {
+          roleId: id,
+          userId: currentUser.userId,
+          success: allAccessible,
+          organizationId: currentUser.organizationId
+        });
+
+        return {
+          success: allAccessible,
+          message: allAccessible ? 'All permissions are accessible' : 'Some permissions have issues',
+          permissions: permissionTests,
+        };
+      } catch (error) {
+        logger.error('GraphQL role test error', { error: error.message, roleId: id });
+        throw new Error('Failed to test role');
+      }
+    },
+
+    refreshRoleSchemas: async (_, { id }, { user: currentUser }) => {
+      if (!currentUser) throw new AuthenticationError('Authentication required');
+
+      try {
+        // Verify role exists and user has access
+        const existingRole = await prisma.role.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          },
+          include: {
+            service: {
+              include: {
+                connection: true
+              }
+            }
+          }
+        });
+
+        if (!existingRole) {
+          throw new UserInputError('Role not found');
+        }
+
+        // Check ownership
+        if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
+          throw new ForbiddenError('Access denied');
+        }
+
+        const permissions = existingRole.permissions || [];
+        const updatedPermissions = [];
+
+        // Refresh schemas for all permissions
+        for (const permission of permissions) {
+          try {
+            const schema = await fetchSchemaFromDatabase(existingRole.service, permission.objectName);
+            updatedPermissions.push({
+              ...permission,
+              schema: {
+                lastUpdated: new Date(),
+                ...schema,
+              },
+            });
+          } catch (error) {
+            logger.error(`Failed to refresh schema for ${permission.objectName}:`, error);
+            updatedPermissions.push({
+              ...permission,
+              schema: {
+                lastUpdated: new Date(),
+                error: error.message,
+              },
+            });
+          }
+        }
+
+        const role = await prisma.role.update({
+          where: { id },
+          data: { permissions: updatedPermissions },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            service: {
+              include: {
+                creator: {
+                  select: { id: true, email: true, firstName: true, lastName: true }
+                },
+                connection: true
+              }
+            },
+            organization: true
+          }
+        });
+
+        logger.info('Role schemas refreshed via GraphQL', {
+          roleId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return role;
+      } catch (error) {
+        logger.error('GraphQL role schema refresh error', { error: error.message, roleId: id });
+        throw new Error('Failed to refresh role schemas');
+      }
     },
   },
 };

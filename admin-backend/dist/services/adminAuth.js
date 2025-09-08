@@ -54,7 +54,7 @@ class AdminAuthService {
             type: 'platform_admin',
         };
         return jsonwebtoken_1.default.sign(payload, this.JWT_SECRET, {
-            expiresIn: this.JWT_EXPIRES_IN,
+            expiresIn: '8h',
         });
     }
     /**

@@ -1,6 +1,13 @@
 const { interpolateSecure, validateInterpolationContext } = require('./interpolationSecure');
-const { ObjectId } = require('mongodb');
-const WorkflowRun = require('../../models/WorkflowRun');
+// MongoDB dependencies replaced with Prisma for PostgreSQL migration
+// const { ObjectId } = require('mongodb');
+// const WorkflowRun = require('../../models/WorkflowRun');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
+
+// UUID generator for Prisma (replaces MongoDB ObjectId)
+const { v4: uuidv4 } = require('uuid');
 const { logger } = require('../../utils/logger');
 
 const nodeRegistry = {

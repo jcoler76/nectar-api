@@ -4,7 +4,6 @@
  */
 
 const express = require('express');
-const mongoose = require('mongoose');
 const path = require('path');
 const { logger } = require('./middleware/logger');
 
@@ -24,6 +23,9 @@ app.set('trust proxy', 1);
 const configureApp = () => {
   // Apply security middleware
   applySecurityMiddleware(app);
+
+  // Stripe webhook requires raw body to verify signature; mount before JSON parser
+  app.use('/api/checkout/webhook', express.raw({ type: 'application/json' }));
 
   // Basic middleware
   app.use(express.json());
@@ -59,19 +61,6 @@ const configureApp = () => {
   // Mount all routes
   mountRoutes(app);
 
-  // Add MongoDB connection event handlers
-  mongoose.connection.on('connected', () => {
-    logger.info('MongoDB connected successfully');
-  });
-
-  mongoose.connection.on('error', err => {
-    console.error('MongoDB connection error:', {
-      message: err.message,
-      code: err.code,
-      name: err.name,
-    });
-  });
-
   return app;
 };
 
@@ -82,6 +71,11 @@ const configureApp = () => {
 const addProductionMiddleware = app => {
   // Serve static files in production with caching headers (MUST be before catch-all route)
   if (process.env.NODE_ENV === 'production') {
+    // Resolve build directory (configurable), default to CRA build at repo root
+    const buildDir = process.env.PUBLIC_DIR
+      ? path.resolve(process.env.PUBLIC_DIR)
+      : path.join(__dirname, '../build')
+
     // Cache static assets (JS, CSS, images) for 1 year
     app.use(
       '/static',
@@ -90,12 +84,12 @@ const addProductionMiddleware = app => {
         res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
         next();
       },
-      express.static(path.join(__dirname, '../client/build/static'))
+      express.static(path.join(buildDir, 'static'))
     );
 
     // Cache other static files (favicon, manifest, etc.) for 1 day
     app.use(
-      express.static(path.join(__dirname, '../client/build'), {
+      express.static(buildDir, {
         setHeaders: (res, path) => {
           if (path.endsWith('.html')) {
             // Don't cache HTML files to ensure users get updates
@@ -116,7 +110,7 @@ const addProductionMiddleware = app => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      res.sendFile(path.join(__dirname, '../client/build/index.html'));
+      res.sendFile(path.join(buildDir, 'index.html'));
     });
   } else {
     // Add catch-all route for 404 errors in non-production environments

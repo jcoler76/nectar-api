@@ -1,5 +1,5 @@
 /**
- * Real Workflow Engine Test Utilities for Mirabel API
+ * Real Workflow Engine Test Utilities for Nectar Studio
  * NO MOCKS - Uses real workflow execution, real queue processing, real database operations
  */
 

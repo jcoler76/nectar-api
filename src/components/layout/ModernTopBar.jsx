@@ -15,6 +15,7 @@ import {
   Trash2,
   User,
   Zap,
+  CreditCard,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -471,6 +472,12 @@ const ModernTopBar = ({ sidebarCollapsed, onSidebarToggle }) => {
                 <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
                 Settings
               </DropdownMenuItem>
+              {(user?.isAdmin || user?.role === 'OWNER' || user?.organizationRole === 'OWNER') && (
+                <DropdownMenuItem onClick={() => navigate('/billing')} role="menuitem">
+                  <CreditCard className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Billing
+                </DropdownMenuItem>
+              )}
               {user?.isAdmin && (
                 <DropdownMenuItem onClick={() => navigate('/admin-settings')} role="menuitem">
                   <Settings className="mr-2 h-4 w-4" aria-hidden="true" />

@@ -1,4 +1,4 @@
-# Mirabel API
+# Nectar API
 
 A comprehensive full-stack business intelligence and workflow automation platform with hybrid database architecture.
 
@@ -15,7 +15,7 @@ A comprehensive full-stack business intelligence and workflow automation platfor
 
 ```bash
 git clone <repository-url>
-cd mirabel-api
+cd nectar-api
 
 # Install frontend dependencies
 npm install
@@ -62,7 +62,7 @@ npm run start:backend   # Express API on :3001
 ## 📁 Project Structure
 
 ```
-mirabel-api/
+nectar-api/
 ├── src/                    # React frontend
 │   ├── components/         # UI components
 │   ├── context/           # Global state management

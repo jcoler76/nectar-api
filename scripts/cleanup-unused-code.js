@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Automated Cleanup Script for Mirabel API
+ * Automated Cleanup Script for Nectar Studio
  * Removes confirmed unused files, dependencies, and code
  * 
  * Usage: node scripts/cleanup-unused-code.js [--dry-run] [--category=showcase|deps|utils|all]
@@ -14,7 +14,7 @@ const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
 const category = args.find(arg => arg.startsWith('--category='))?.split('=')[1] || 'all';
 
-console.log(`🧹 Mirabel API Code Cleanup Script`);
+console.log(`🧹 Nectar Studio Code Cleanup Script`);
 console.log(`Mode: ${isDryRun ? 'DRY RUN (simulation only)' : 'LIVE CLEANUP'}`);
 console.log(`Category: ${category}`);
 console.log('---'.repeat(20));

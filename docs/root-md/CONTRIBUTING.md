@@ -1,6 +1,6 @@
-# Contributing to Mirabel API
+# Contributing to Nectar API
 
-Welcome to the Mirabel API project! This document provides guidelines and standards for contributing to the codebase.
+Welcome to the Nectar API project! This document provides guidelines and standards for contributing to the codebase.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -14,7 +14,7 @@ Welcome to the Mirabel API project! This document provides guidelines and standa
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/mirabel-api.git`
+2. Clone your fork: `git clone https://github.com/your-username/nectar-api.git`
 3. Create a feature branch: `git checkout -b feature/your-feature-name`
 4. Make your changes following the guidelines below
 5. Submit a pull request
@@ -354,4 +354,4 @@ git commit --no-verify
 
 ## License
 
-By contributing to Mirabel API, you agree that your contributions will be licensed under the project's license terms.
+By contributing to Nectar API, you agree that your contributions will be licensed under the project's license terms.

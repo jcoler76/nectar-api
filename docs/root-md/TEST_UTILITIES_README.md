@@ -1,8 +1,8 @@
-# Mirabel API Test Utilities
+# Nectar API Test Utilities
 
 ## Overview
 
-This document describes the comprehensive test utilities created for the Mirabel API project. These utilities are designed with **NO MOCKS** - all tests use real implementations, real databases, real API calls, and real authentication.
+This document describes the comprehensive test utilities created for the Nectar API project. These utilities are designed with **NO MOCKS** - all tests use real implementations, real databases, real API calls, and real authentication.
 
 ## Philosophy: Real Testing, No Mocks
 
@@ -462,6 +462,6 @@ This will show:
 
 ## Conclusion
 
-The Mirabel API test utilities provide a comprehensive framework for real integration testing without mocks. This approach ensures high confidence in code quality, catches real-world issues early, and provides accurate performance metrics.
+The Nectar API test utilities provide a comprehensive framework for real integration testing without mocks. This approach ensures high confidence in code quality, catches real-world issues early, and provides accurate performance metrics.
 
 All tests use real implementations, making them more reliable indicators of production behavior while maintaining the speed and isolation necessary for effective testing.

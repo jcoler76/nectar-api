@@ -1,9 +1,9 @@
 module.exports = {
   apps: [
     {
-      name: 'mirabel-api',
+      name: 'nectar-api',
       script: 'server.js',
-      cwd: '/home/ubuntu/mirabel-api/server',
+      cwd: '/home/ubuntu/nectar-api/server',
       env_production: {
         NODE_ENV: 'production',
       },

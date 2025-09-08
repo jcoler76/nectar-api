@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Application = require('../models/Application');
-const Service = require('../models/Service');
+const prismaService = require('../services/prismaService');
 const logger = require('../config/winston');
 const tokenService = require('../utils/tokenService');
 
@@ -30,19 +28,32 @@ class AuthFactory {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-          issuer: process.env.JWT_ISSUER || 'mirabel-api',
+          issuer: process.env.JWT_ISSUER || 'nectar-api',
           audience: process.env.JWT_AUDIENCE || 'mirabel-users',
         });
 
         if (requireUser) {
-          const user = await User.findById(decoded.userId);
+          const user = await prismaService.findUserById(decoded.userId);
           if (!user || !user.isActive) {
             return res.status(401).json({
               success: false,
               message: 'User not found or inactive',
             });
           }
-          req.user = user;
+          
+          // Update last login time
+          try {
+            await prismaService.updateUserLastLogin(decoded.userId);
+          } catch (error) {
+            logger.warn('Failed to update last login time:', error);
+          }
+          
+          req.user = {
+            ...user,
+            userId: user.id, // Add userId for compatibility with existing code
+            isAdmin: user.memberships?.some(m => m.role === 'OWNER') || false, // Check if user is owner of any org
+            isSuperAdmin: user.isSuperAdmin || false, // Platform-level access
+          };
         }
 
         req.token = token;
@@ -67,7 +78,7 @@ class AuthFactory {
 
   static createAPIKeyMiddleware(options = {}) {
     const {
-      keyHeader = 'x-mirabel-api-key',
+      keyHeader = 'x-nectar-api-key',
       requirePermissions = true,
       allowedRoles = [],
     } = options;

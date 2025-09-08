@@ -1,13 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const ApiUsage = require('../models/ApiUsage');
-const Service = require('../models/Service');
-const Role = require('../models/Role');
-const Application = require('../models/Application');
-const WorkflowRun = require('../models/WorkflowRun');
-// Auth middleware not needed - handled at app level
-const mongoose = require('mongoose');
+const { PrismaClient } = require('../prisma/generated/client');
 const { logger } = require('../middleware/logger');
+
+const prisma = new PrismaClient();
 
 // Apply auth middleware to all routes
 // Authentication is already handled at app level in server.js
@@ -50,131 +46,101 @@ router.get('/api-usage', async (req, res) => {
       parsedEndDateTime: endDateTime.toISOString(),
     });
 
-    const match = {
+    // Build Prisma where clause
+    const where = {
       timestamp: {
-        $gte: startDateTime,
-        $lte: endDateTime,
+        gte: startDateTime,
+        lte: endDateTime,
       },
     };
 
-    if (service) match.service = new mongoose.Types.ObjectId(service);
-    if (role) match.role = new mongoose.Types.ObjectId(role);
-    if (application) match.application = new mongoose.Types.ObjectId(application);
-    if (component) match.component = component;
-
-    let pipeline = [];
-
-    if (showDetails === 'true') {
-      // Detailed view
-      pipeline = [
-        { $match: match },
-        {
-          $lookup: {
-            from: 'services',
-            localField: 'service',
-            foreignField: '_id',
-            as: 'serviceInfo',
-          },
-        },
-        {
-          $lookup: {
-            from: 'roles',
-            localField: 'role',
-            foreignField: '_id',
-            as: 'roleInfo',
-          },
-        },
-        {
-          $lookup: {
-            from: 'applications',
-            localField: 'application',
-            foreignField: '_id',
-            as: 'applicationInfo',
-          },
-        },
-        {
-          $project: {
-            serviceName: { $arrayElemAt: ['$serviceInfo.name', 0] },
-            roleName: { $arrayElemAt: ['$roleInfo.name', 0] },
-            applicationName: { $arrayElemAt: ['$applicationInfo.name', 0] },
-            component: 1,
-            method: 1,
-            timestamp: 1,
-            requestSize: { $ifNull: ['$requestSize', 0] },
-            responseSize: { $ifNull: ['$responseSize', 0] },
-          },
-        },
-        {
-          $sort: {
-            timestamp: -1,
-          },
-        },
-      ];
-    } else {
-      // Summary view
-      pipeline = [
-        { $match: match },
-        {
-          $lookup: {
-            from: 'services',
-            localField: 'service',
-            foreignField: '_id',
-            as: 'serviceInfo',
-          },
-        },
-        {
-          $lookup: {
-            from: 'roles',
-            localField: 'role',
-            foreignField: '_id',
-            as: 'roleInfo',
-          },
-        },
-        {
-          $lookup: {
-            from: 'applications',
-            localField: 'application',
-            foreignField: '_id',
-            as: 'applicationInfo',
-          },
-        },
-        {
-          $group: {
-            _id: {
-              service: '$service',
-              component: '$component',
-              role: '$role',
-              application: '$application',
-              method: '$method',
-            },
-            count: { $sum: 1 },
-            serviceName: { $first: { $arrayElemAt: ['$serviceInfo.name', 0] } },
-            roleName: { $first: { $arrayElemAt: ['$roleInfo.name', 0] } },
-            applicationName: { $first: { $arrayElemAt: ['$applicationInfo.name', 0] } },
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            serviceName: 1,
-            component: '$_id.component',
-            roleName: 1,
-            applicationName: 1,
-            method: '$_id.method',
-            count: 1,
-          },
-        },
-        {
-          $sort: {
-            serviceName: 1,
-            component: 1,
-            count: -1,
-          },
-        },
-      ];
+    // Add filters based on relationships
+    if (service) {
+      where.endpointUsage = {
+        service: {
+          id: service
+        }
+      };
     }
 
-    const usageData = await ApiUsage.aggregate(pipeline);
+    if (component) {
+      where.endpoint = {
+        contains: component,
+        mode: 'insensitive'
+      };
+    }
+
+    // Get API usage data with all necessary includes
+    const apiLogs = await prisma.apiActivityLog.findMany({
+      where,
+      include: {
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true }
+        },
+        organization: {
+          select: { id: true, name: true }
+        },
+        endpointUsage: {
+          include: {
+            service: {
+              select: { id: true, name: true, database: true }
+            }
+          }
+        }
+      },
+      orderBy: {
+        timestamp: 'desc'
+      }
+    });
+
+    let usageData = [];
+
+    if (showDetails === 'true') {
+      // Detailed view - return individual records
+      usageData = apiLogs.map(log => ({
+        serviceName: log.endpointUsage?.service?.name || 'Unknown Service',
+        roleName: 'N/A', // Role info not directly available in current schema
+        applicationName: 'N/A', // Application info not directly available
+        component: log.endpoint || 'Unknown Component',
+        method: log.method,
+        timestamp: log.timestamp,
+        requestSize: 0, // Not tracked in current schema
+        responseSize: 0, // Not tracked in current schema
+        url: log.url,
+        statusCode: log.statusCode,
+        responseTime: log.responseTime,
+        userEmail: log.user?.email || 'Unknown User'
+      }));
+    } else {
+      // Summary view - group and count
+      const groupedData = {};
+      
+      apiLogs.forEach(log => {
+        const serviceName = log.endpointUsage?.service?.name || 'Unknown Service';
+        const component = log.endpoint || 'Unknown Component';
+        const method = log.method;
+        const key = `${serviceName}|${component}|${method}`;
+        
+        if (!groupedData[key]) {
+          groupedData[key] = {
+            serviceName,
+            component,
+            roleName: 'N/A',
+            applicationName: 'N/A',
+            method,
+            count: 0
+          };
+        }
+        groupedData[key].count++;
+      });
+
+      usageData = Object.values(groupedData).sort((a, b) => {
+        if (a.serviceName !== b.serviceName) return a.serviceName.localeCompare(b.serviceName);
+        if (a.component !== b.component) return a.component.localeCompare(b.component);
+        return b.count - a.count;
+      });
+    }
+
     logger.info('API Usage Report Response:', {
       recordCount: usageData.length,
       sampleRecord: usageData[0],
@@ -183,7 +149,12 @@ router.get('/api-usage', async (req, res) => {
     res.json(usageData);
   } catch (error) {
     logger.error('Error fetching API usage:', { error: error.message });
-    errorResponses.serverError(res, error);
+    res.status(500).json({ 
+      error: { 
+        code: 'SERVER_ERROR', 
+        message: 'Failed to fetch API usage data' 
+      } 
+    });
   }
 });
 
@@ -192,16 +163,45 @@ router.get('/components', async (req, res) => {
   try {
     const { service, role, application } = req.query;
 
-    const match = {};
-    if (service) match.service = new mongoose.Types.ObjectId(service);
-    if (role) match.role = new mongoose.Types.ObjectId(role);
-    if (application) match.application = new mongoose.Types.ObjectId(application);
+    // Since the component field doesn't exist in the current Prisma schema,
+    // we'll return distinct endpoints instead as a reasonable substitute
+    const where = {};
+    
+    // Add filters based on relationships if provided
+    if (service || role || application) {
+      // For now, return empty array until proper component tracking is implemented
+      // TODO: Implement component field in ApiActivityLog schema if needed
+      res.json([]);
+      return;
+    }
 
-    const components = await ApiUsage.distinct('component', match);
-    res.json(components);
+    // Get distinct endpoints from ApiActivityLog as a substitute for components
+    const components = await prisma.apiActivityLog.findMany({
+      select: {
+        endpoint: true
+      },
+      distinct: ['endpoint'],
+      where: {
+        endpoint: {
+          not: null
+        }
+      },
+      orderBy: {
+        endpoint: 'asc'
+      }
+    });
+
+    // Extract just the endpoint values
+    const componentList = components.map(item => item.endpoint).filter(Boolean);
+    res.json(componentList);
   } catch (error) {
     logger.error('Error fetching components:', { error: error.message });
-    errorResponses.serverError(res, error);
+    res.status(500).json({ 
+      error: { 
+        code: 'SERVER_ERROR', 
+        message: 'Failed to fetch components' 
+      } 
+    });
   }
 });
 
@@ -223,71 +223,78 @@ router.get('/workflow-executions', async (req, res) => {
     // Create proper EST timezone date range
     const dateRange = createEasternDateRange(startDate, endDate);
 
-    const match = {
-      startedAt: dateRange, // Use startedAt field for workflow execution filtering
+    // Build Prisma where clause
+    const where = {
+      startedAt: {
+        gte: dateRange.$gte,
+        lte: dateRange.$lte,
+      },
     };
 
-    if (workflowId) match.workflowId = new mongoose.Types.ObjectId(workflowId);
-    if (status) match.status = status;
-
-    let pipeline = [
-      { $match: match },
-      {
-        $lookup: {
-          from: 'workflows', // The collection name for the Workflow model
-          localField: 'workflowId',
-          foreignField: '_id',
-          as: 'workflowInfo',
-        },
-      },
-      {
-        $unwind: '$workflowInfo',
-      },
-      {
-        $addFields: {
-          duration: {
-            $subtract: ['$finishedAt', '$startedAt'],
-          },
-        },
-      },
-      {
-        $sort: {
-          createdAt: -1,
-        },
-      },
-    ];
-
-    if (showDetails === 'true') {
-      pipeline.push({
-        $project: {
-          _id: 1,
-          workflowName: '$workflowInfo.name',
-          status: 1,
-          startedAt: 1,
-          finishedAt: 1,
-          duration: 1,
-          trigger: 1,
-          steps: 1,
-        },
-      });
-    } else {
-      pipeline.push({
-        $project: {
-          _id: 1,
-          workflowName: '$workflowInfo.name',
-          status: 1,
-          startedAt: 1,
-          finishedAt: 1,
-          duration: 1,
-        },
-      });
+    if (workflowId && workflowId !== 'all') {
+      where.workflowId = workflowId;
+    }
+    if (status && status !== 'all') {
+      // Map status values to Prisma enum if needed
+      const statusMap = {
+        'succeeded': 'COMPLETED',
+        'failed': 'FAILED', 
+        'running': 'RUNNING'
+      };
+      where.status = statusMap[status] || status.toUpperCase();
     }
 
-    const results = await WorkflowRun.aggregate(pipeline);
+    // Query workflow executions with workflow information
+    const executions = await prisma.workflowExecution.findMany({
+      where,
+      include: {
+        workflow: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
+      },
+      orderBy: {
+        startedAt: 'desc'
+      },
+      take: 1000 // Limit results for performance
+    });
+
+    // Transform data to match expected format
+    const results = executions.map(execution => {
+      const duration = execution.completedAt && execution.startedAt 
+        ? execution.completedAt.getTime() - execution.startedAt.getTime()
+        : null;
+
+      const baseResult = {
+        _id: execution.id, // Keep _id for frontend compatibility
+        id: execution.id,
+        workflowName: execution.workflow?.name || 'Unknown Workflow',
+        status: execution.status.toLowerCase(), // Convert back to lowercase for frontend
+        startedAt: execution.startedAt,
+        finishedAt: execution.completedAt,
+        duration,
+      };
+
+      // Include details if requested
+      if (showDetails === 'true') {
+        baseResult.trigger = execution.logs?.trigger || null;
+        baseResult.steps = execution.logs?.results || null;
+      }
+
+      return baseResult;
+    });
+
     res.json(results);
   } catch (error) {
     logger.error('Error fetching workflow execution report:', { error: error.message });
-    errorResponses.serverError(res, error);
+    res.status(500).json({ 
+      error: { 
+        code: 'SERVER_ERROR', 
+        message: 'Failed to fetch workflow execution data' 
+      } 
+    });
   }
 });
 

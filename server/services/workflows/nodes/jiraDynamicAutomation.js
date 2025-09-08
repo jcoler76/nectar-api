@@ -403,7 +403,7 @@ async function executeStoredProc(spConfig, issue) {
     method: 'GET',
     url,
     headers: {
-      'x-mirabel-api-key': apiKey,
+      'x-nectar-api-key': apiKey,
       Accept: 'application/json',
     },
     params: spConfig.parameters || {},

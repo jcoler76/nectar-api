@@ -287,3 +287,13 @@ module.exports = {
   asyncHandler,
   errorResponses,
 };
+
+// Backwards-compatible named exports for direct function access
+// so that callers using `require('../utils/errorHandler').serverError(...)` keep working
+module.exports.serverError = errorResponses.serverError;
+module.exports.badRequest = errorResponses.badRequest;
+module.exports.unauthorized = errorResponses.unauthorized;
+module.exports.forbidden = errorResponses.forbidden;
+module.exports.notFound = errorResponses.notFound;
+module.exports.conflict = errorResponses.conflict;
+module.exports.validationError = errorResponses.validationError;

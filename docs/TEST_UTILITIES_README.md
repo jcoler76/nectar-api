@@ -1,6 +1,6 @@
 # Test Utilities Documentation
 
-This document provides comprehensive guidance for using the test utilities in the Mirabel API project. All utilities follow the **NO MOCKS** principle, using real implementations for reliable testing.
+This document provides comprehensive guidance for using the test utilities in the Nectar API project. All utilities follow the **NO MOCKS** principle, using real implementations for reliable testing.
 
 ## Philosophy: Real Implementation Testing
 

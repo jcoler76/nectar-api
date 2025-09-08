@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { prisma } from '@/utils/database'
 import { CreateAdminData, AdminUser, JWTPayload } from '@/types/auth'
 
 export class AdminAuthService {
   private static readonly JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'fallback-secret'
-  private static readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h'
+  private static readonly JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '8h'
   private static readonly BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12')
 
   /**
@@ -32,7 +32,8 @@ export class AdminAuthService {
    * Validate admin credentials and return user if valid
    */
   static async validateAdmin(email: string, password: string): Promise<AdminUser | null> {
-    const admin = await prisma.platformAdmin.findUnique({
+    // Use findFirst because we're filtering by a non-unique field (isActive)
+    const admin = await prisma.platformAdmin.findFirst({
       where: { email, isActive: true },
     })
 
@@ -63,7 +64,7 @@ export class AdminAuthService {
 
     return jwt.sign(payload, this.JWT_SECRET, {
       expiresIn: this.JWT_EXPIRES_IN,
-    })
+    } as SignOptions)
   }
 
   /**
@@ -87,7 +88,8 @@ export class AdminAuthService {
    * Get admin user by ID
    */
   static async getAdminById(id: string): Promise<AdminUser | null> {
-    const admin = await prisma.platformAdmin.findUnique({
+    // Use findFirst because we're filtering by a non-unique field (isActive)
+    const admin = await prisma.platformAdmin.findFirst({
       where: { id, isActive: true },
     })
 

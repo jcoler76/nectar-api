@@ -1,6 +1,6 @@
 # Modular Server Architecture
 
-This document describes the new modular architecture for the Mirabel API server, which breaks down the monolithic `server.js` file into focused, maintainable modules.
+This document describes the new modular architecture for the Nectar API server, which breaks down the monolithic `server.js` file into focused, maintainable modules.
 
 ## 📁 Architecture Overview
 

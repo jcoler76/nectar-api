@@ -1,6 +1,6 @@
 # Bundle Analysis Guide
 
-This document describes the webpack bundle analysis setup for the Mirabel API frontend.
+This document describes the webpack bundle analysis setup for the Nectar API frontend.
 
 ## Overview
 

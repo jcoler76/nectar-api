@@ -139,3 +139,6 @@ export const auditAction = (action: string, resourceType?: string) => {
     next()
   }
 }
+
+// Export alias for backwards compatibility
+export const adminAuth = authenticateAdmin

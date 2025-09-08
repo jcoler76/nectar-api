@@ -281,7 +281,7 @@ const WorkflowExecutionReport = () => {
               <SelectContent>
                 <SelectItem value="all">All Workflows</SelectItem>
                 {workflows.map(wf => (
-                  <SelectItem key={wf._id} value={wf._id}>
+                  <SelectItem key={wf.id || wf._id} value={wf.id || wf._id}>
                     {wf.name}
                   </SelectItem>
                 ))}

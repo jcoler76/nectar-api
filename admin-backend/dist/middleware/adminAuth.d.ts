@@ -27,4 +27,5 @@ export declare const requireRole: (...roles: string[]) => (req: AuthRequest, res
  * Middleware to log admin actions
  */
 export declare const auditAction: (action: string, resourceType?: string) => (req: AuthRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const adminAuth: (req: AuthRequest, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=adminAuth.d.ts.map

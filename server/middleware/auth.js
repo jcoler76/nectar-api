@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { logger } = require('../utils/logger');
 const { validateToken } = require('../utils/tokenService');
-const Service = require('../models/Service');
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -83,14 +84,16 @@ const adminOnly = async (req, res, next) => {
       userAgent: req.headers['user-agent'],
     });
 
-    const prismaService = require('../services/prismaService');
-    const user = await prismaService.findUserById(req.user.userId || req.user._id);
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId || req.user._id },
+      select: { isAdmin: true }
+    });
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'ADMIN')) {
+    if (!user || !user.isAdmin) {
       logger.warn('Database fallback: Unauthorized admin access attempt', {
         userId: req.user.userId || req.user._id,
         tokenHasAdmin: 'missing',
-        dbHasAdmin: !!(user?.role === 'OWNER' || user?.role === 'ADMIN'),
+        dbHasAdmin: !!user?.isAdmin,
         ip: req.ip,
         userAgent: req.headers['user-agent'],
       });

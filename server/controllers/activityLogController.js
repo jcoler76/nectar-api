@@ -1,4 +1,8 @@
-const ApiActivityLog = require('../models/ApiActivityLog');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const ApiActivityLog = require('../models/ApiActivityLog');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 const { logger } = require('../middleware/logger');
 const {
   createEasternDateRange,
@@ -36,24 +40,37 @@ class ActivityLogController {
         sort = '-timestamp',
       } = req.query;
 
-      // Build filter object
-      const filter = {};
+      // Build Prisma filter object
+      const where = {};
 
       // Date range filter with EST timezone handling
       if (startDate || endDate) {
-        filter.timestamp = createEasternDateRange(startDate, endDate);
+        const dateRange = createEasternDateRange(startDate, endDate);
+        where.timestamp = {};
+        if (dateRange.$gte) where.timestamp.gte = dateRange.$gte;
+        if (dateRange.$lte) where.timestamp.lte = dateRange.$lte;
       }
 
-      // Boolean filters
-      if (success !== undefined) filter.success = success === 'true';
+      // Boolean filters - map success to statusCode < 400
+      if (success !== undefined) {
+        const isSuccess = success === 'true';
+        where.statusCode = isSuccess ? { lt: 400 } : { gte: 400 };
+      }
 
       // Exact match filters
-      if (method) filter.method = method;
-      if (endpointType) filter.endpointType = endpointType;
-      if (userId) filter.userId = userId;
-      if (userEmail) filter.userEmail = new RegExp(userEmail, 'i');
-      if (errorType) filter.errorType = errorType;
-      if (responseStatus) filter.responseStatus = parseInt(responseStatus);
+      if (method) where.method = method;
+      if (endpointType) where.endpointType = endpointType;
+      if (userId) where.userId = userId;
+      if (userEmail) {
+        where.user = {
+          email: {
+            contains: userEmail,
+            mode: 'insensitive'
+          }
+        };
+      }
+      if (errorType) where.error = { contains: errorType };
+      if (responseStatus) where.statusCode = parseInt(responseStatus);
 
       // Multi-value filters (comma-separated)
       if (category && typeof category === 'string') {
@@ -62,7 +79,7 @@ class ActivityLogController {
           .map(c => c.trim())
           .filter(c => c.length > 0);
         if (categoryValues.length > 0) {
-          filter.category = categoryValues.length > 1 ? { $in: categoryValues } : categoryValues[0];
+          where.category = categoryValues.length > 1 ? { in: categoryValues } : categoryValues[0];
         }
       }
       if (importance && typeof importance === 'string') {
@@ -71,49 +88,62 @@ class ActivityLogController {
           .map(i => i.trim())
           .filter(i => i.length > 0);
         if (importanceValues.length > 0) {
-          filter.importance =
-            importanceValues.length > 1 ? { $in: importanceValues } : importanceValues[0];
+          where.importance = importanceValues.length > 1 ? { in: importanceValues } : importanceValues[0];
         }
       }
 
-      // Range filters
+      // Range filters - map to responseTime
       if (minDuration || maxDuration) {
-        filter.duration = {};
-        if (minDuration) filter.duration.$gte = parseInt(minDuration);
-        if (maxDuration) filter.duration.$lte = parseInt(maxDuration);
+        where.responseTime = {};
+        if (minDuration) where.responseTime.gte = parseInt(minDuration);
+        if (maxDuration) where.responseTime.lte = parseInt(maxDuration);
       }
 
-      // Text search across multiple fields
+      // Text search across multiple fields using OR conditions
       if (search) {
-        const searchRegex = new RegExp(search, 'i');
-        filter.$or = [
-          { url: searchRegex },
-          { endpoint: searchRegex },
-          { userAgent: searchRegex },
-          { errorMessage: searchRegex },
-          { 'metadata.query': searchRegex },
+        where.OR = [
+          { url: { contains: search, mode: 'insensitive' } },
+          { endpoint: { contains: search, mode: 'insensitive' } },
+          { userAgent: { contains: search, mode: 'insensitive' } },
+          { error: { contains: search, mode: 'insensitive' } }
         ];
       }
 
       // Endpoint pattern filter
       if (endpoint) {
-        filter.endpoint = new RegExp(endpoint, 'i');
+        where.endpoint = { contains: endpoint, mode: 'insensitive' };
       }
 
       // Calculate pagination
       const skip = (parseInt(page) - 1) * parseInt(limit);
 
-      // Execute query with population
+      // Parse sort parameter for Prisma (default: newest first)
+      const orderBy = {};
+      if (sort.startsWith('-')) {
+        orderBy[sort.substring(1)] = 'desc';
+      } else {
+        orderBy[sort] = 'asc';
+      }
+
+      // Execute query with Prisma
       const [logs, total] = await Promise.all([
-        ApiActivityLog.find(filter)
-          .sort(sort)
-          .skip(skip)
-          .limit(parseInt(limit))
-          .populate('userId', 'email name role')
-          .populate('workflowId', 'name')
-          .populate('workflowRunId', 'status')
-          .lean(),
-        ApiActivityLog.countDocuments(filter),
+        prisma.apiActivityLog.findMany({
+          where,
+          orderBy,
+          skip,
+          take: parseInt(limit),
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }),
+        prisma.apiActivityLog.count({ where }),
       ]);
 
       // Calculate pagination info
@@ -152,10 +182,19 @@ class ActivityLogController {
     try {
       const { id } = req.params;
 
-      const log = await ApiActivityLog.findById(id)
-        .populate('userId', 'email name role')
-        .populate('workflowId', 'name description')
-        .populate('workflowRunId', 'status startedAt finishedAt');
+      const log = await prisma.apiActivityLog.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      });
 
       if (!log) {
         return res.status(404).json({
@@ -188,28 +227,61 @@ class ActivityLogController {
     try {
       const { timeframe = '24h', onlyImportant = false } = req.query;
 
-      // Get activity summary
-      const summary = await ApiActivityLog.getActivitySummary(timeframe, onlyImportant);
+      // Calculate time range
+      const now = new Date();
+      const timeframeMap = {
+        '1h': 60 * 60 * 1000,
+        '24h': 24 * 60 * 60 * 1000,
+        '7d': 7 * 24 * 60 * 60 * 1000,
+        '30d': 30 * 24 * 60 * 60 * 1000,
+        '90d': 90 * 24 * 60 * 60 * 1000,
+      };
 
-      // Get error breakdown
-      const errorBreakdown = await module.exports.getErrorBreakdown(timeframe, onlyImportant);
+      let startTime;
+      if (timeframe === '24h') {
+        startTime = toEasternTimeStart(now);
+      } else {
+        startTime = new Date(now.getTime() - (timeframeMap[timeframe] || timeframeMap['24h']));
+      }
 
-      // Get top endpoints
-      const topEndpoints = await module.exports.getTopEndpoints(timeframe, onlyImportant);
+      const baseWhere = {
+        timestamp: { gte: startTime },
+        category: { in: ['api', 'workflow'] },
+        endpointType: { in: ['client', 'public'] },
+        ...(onlyImportant && { importance: { in: ['critical', 'high'] } }),
+      };
 
-      // Get user activity
-      const userActivity = await module.exports.getUserActivity(timeframe, onlyImportant);
+      // Get activity summary using Prisma aggregations
+      const [totalRequests, successfulRequests, avgResponseTime] = await Promise.all([
+        prisma.apiActivityLog.count({ where: baseWhere }),
+        prisma.apiActivityLog.count({ 
+          where: { ...baseWhere, statusCode: { lt: 400 } } 
+        }),
+        prisma.apiActivityLog.aggregate({
+          where: baseWhere,
+          _avg: { responseTime: true }
+        })
+      ]);
+
+      const summary = {
+        totalRequests,
+        successfulRequests,
+        failedRequests: totalRequests - successfulRequests,
+        averageResponseTime: Math.round(avgResponseTime._avg?.responseTime || 0),
+        totalDataTransferred: 0, // Not easily calculable with current schema
+      };
+
+      // Get error breakdown, top endpoints, and user activity
+      const [errorBreakdown, topEndpoints, userActivity] = await Promise.all([
+        ActivityLogController.getErrorBreakdown(timeframe, onlyImportant),
+        ActivityLogController.getTopEndpoints(timeframe, onlyImportant),
+        ActivityLogController.getUserActivity(timeframe, onlyImportant)
+      ]);
 
       res.json({
         success: true,
         data: {
-          summary: summary[0] || {
-            totalRequests: 0,
-            successfulRequests: 0,
-            failedRequests: 0,
-            averageResponseTime: 0,
-            totalDataTransferred: 0,
-          },
+          summary,
           errorBreakdown,
           topEndpoints,
           userActivity,
@@ -233,21 +305,32 @@ class ActivityLogController {
     try {
       const { startDate, endDate, success, method, endpoint, category, format = 'csv' } = req.query;
 
-      // Build filter (similar to getLogs but without pagination)
+      // Build Prisma filter (similar to getLogs but without pagination)
       const filter = {};
       if (startDate || endDate) {
-        filter.timestamp = createEasternDateRange(startDate, endDate);
+        const dateRange = createEasternDateRange(startDate, endDate);
+        filter.timestamp = {};
+        if (dateRange.$gte) filter.timestamp.gte = dateRange.$gte;
+        if (dateRange.$lte) filter.timestamp.lte = dateRange.$lte;
       }
-      if (success !== undefined) filter.success = success === 'true';
+      if (success !== undefined) {
+        const isSuccess = success === 'true';
+        filter.statusCode = isSuccess ? { lt: 400 } : { gte: 400 };
+      }
       if (method) filter.method = method;
       if (category) filter.category = category;
-      if (endpoint) filter.endpoint = new RegExp(endpoint, 'i');
+      if (endpoint) filter.endpoint = { contains: endpoint, mode: 'insensitive' };
 
-      const logs = await ApiActivityLog.find(filter)
-        .sort('-timestamp')
-        .limit(10000) // Limit export size
-        .populate('userId', 'email')
-        .lean();
+      const logs = await prisma.apiActivityLog.findMany({
+        where: filter,
+        orderBy: { timestamp: 'desc' },
+        take: 10000, // Limit export size
+        include: {
+          user: {
+            select: { email: true }
+          }
+        }
+      });
 
       if (format === 'csv') {
         // Generate CSV
@@ -318,14 +401,16 @@ class ActivityLogController {
 
       const cutoffTime = new Date(Date.now() - (timeframeMap[olderThan] || timeframeMap['90d']));
 
-      const result = await ApiActivityLog.deleteMany({
-        timestamp: { $lt: cutoffTime },
+      const result = await prisma.apiActivityLog.deleteMany({
+        where: {
+          timestamp: { lt: cutoffTime }
+        }
       });
 
       res.json({
         success: true,
-        message: `Deleted ${result.deletedCount} old activity logs`,
-        deletedCount: result.deletedCount,
+        message: `Deleted ${result.count} old activity logs`,
+        deletedCount: result.count,
         cutoffDate: cutoffTime,
       });
     } catch (error) {
@@ -340,7 +425,7 @@ class ActivityLogController {
 
   // Helper methods for statistics
 
-  async getErrorBreakdown(timeframe, onlyImportant = false) {
+  static async getErrorBreakdown(timeframe, onlyImportant = false) {
     const now = new Date();
     const timeframeMap = {
       '1h': 60 * 60 * 1000,
@@ -352,37 +437,40 @@ class ActivityLogController {
 
     let startTime;
     if (timeframe === '24h') {
-      // For 24h timeframe, use Eastern Time start of today
       startTime = toEasternTimeStart(now);
     } else {
-      // For other timeframes, use standard UTC-based calculation from now
       startTime = new Date(now.getTime() - (timeframeMap[timeframe] || timeframeMap['24h']));
     }
 
-    return await ApiActivityLog.aggregate([
-      {
-        $match: {
-          timestamp: { $gte: startTime },
-          success: false,
-          category: { $in: ['api', 'workflow'] },
-          endpointType: { $in: ['client', 'public'] },
-          ...(onlyImportant && { importance: { $in: ['critical', 'high'] } }),
-        },
-      },
-      {
-        $group: {
-          _id: '$errorType',
-          count: { $sum: 1 },
-          averageResponseTime: { $avg: '$duration' },
-        },
-      },
-      {
-        $sort: { count: -1 },
-      },
-    ]);
+    // Use raw query for complex aggregation
+    let query = `
+      SELECT 
+        COALESCE(error, 'Unknown Error') as "_id",
+        COUNT(*)::int as count,
+        ROUND(AVG("responseTime"))::int as "averageResponseTime"
+      FROM "ApiActivityLog"
+      WHERE 
+        timestamp >= $1
+        AND "statusCode" >= 400
+        AND category IN ('api', 'workflow')
+        AND "endpointType" IN ('client', 'public')
+    `;
+    
+    const params = [startTime];
+    
+    if (onlyImportant) {
+      query += ` AND importance IN ('critical', 'high')`;
+    }
+    
+    query += `
+      GROUP BY COALESCE(error, 'Unknown Error')
+      ORDER BY count DESC
+    `;
+
+    return await prisma.$queryRawUnsafe(query, ...params);
   }
 
-  async getTopEndpoints(timeframe, onlyImportant = false) {
+  static async getTopEndpoints(timeframe, onlyImportant = false) {
     const now = new Date();
     const timeframeMap = {
       '1h': 60 * 60 * 1000,
@@ -394,42 +482,40 @@ class ActivityLogController {
 
     let startTime;
     if (timeframe === '24h') {
-      // For 24h timeframe, use Eastern Time start of today
       startTime = toEasternTimeStart(now);
     } else {
-      // For other timeframes, use standard UTC-based calculation from now
       startTime = new Date(now.getTime() - (timeframeMap[timeframe] || timeframeMap['24h']));
     }
 
-    return await ApiActivityLog.aggregate([
-      {
-        $match: {
-          timestamp: { $gte: startTime },
-          category: { $in: ['api', 'workflow'] },
-          endpointType: { $in: ['client', 'public'] },
-          ...(onlyImportant && { importance: { $in: ['critical', 'high'] } }),
-        },
-      },
-      {
-        $group: {
-          _id: '$endpoint',
-          totalRequests: { $sum: 1 },
-          successfulRequests: {
-            $sum: { $cond: [{ $eq: ['$success', true] }, 1, 0] },
-          },
-          averageResponseTime: { $avg: '$duration' },
-        },
-      },
-      {
-        $sort: { totalRequests: -1 },
-      },
-      {
-        $limit: 10,
-      },
-    ]);
+    let query = `
+      SELECT 
+        endpoint as "_id",
+        COUNT(*)::int as "totalRequests",
+        COUNT(CASE WHEN "statusCode" < 400 THEN 1 END)::int as "successfulRequests",
+        ROUND(AVG("responseTime"))::int as "averageResponseTime"
+      FROM "ApiActivityLog"
+      WHERE 
+        timestamp >= $1
+        AND category IN ('api', 'workflow')
+        AND "endpointType" IN ('client', 'public')
+    `;
+    
+    const params = [startTime];
+    
+    if (onlyImportant) {
+      query += ` AND importance IN ('critical', 'high')`;
+    }
+    
+    query += `
+      GROUP BY endpoint
+      ORDER BY "totalRequests" DESC
+      LIMIT 10
+    `;
+
+    return await prisma.$queryRawUnsafe(query, ...params);
   }
 
-  async getUserActivity(timeframe, onlyImportant = false) {
+  static async getUserActivity(timeframe, onlyImportant = false) {
     const now = new Date();
     const timeframeMap = {
       '1h': 60 * 60 * 1000,
@@ -441,40 +527,39 @@ class ActivityLogController {
 
     let startTime;
     if (timeframe === '24h') {
-      // For 24h timeframe, use Eastern Time start of today
       startTime = toEasternTimeStart(now);
     } else {
-      // For other timeframes, use standard UTC-based calculation from now
       startTime = new Date(now.getTime() - (timeframeMap[timeframe] || timeframeMap['24h']));
     }
 
-    return await ApiActivityLog.aggregate([
-      {
-        $match: {
-          timestamp: { $gte: startTime },
-          userId: { $ne: null },
-          category: { $in: ['api', 'workflow'] },
-          endpointType: { $in: ['client', 'public'] },
-          ...(onlyImportant && { importance: { $in: ['critical', 'high'] } }),
-        },
-      },
-      {
-        $group: {
-          _id: '$userEmail',
-          totalRequests: { $sum: 1 },
-          successfulRequests: {
-            $sum: { $cond: [{ $eq: ['$success', true] }, 1, 0] },
-          },
-          lastActivity: { $max: '$timestamp' },
-        },
-      },
-      {
-        $sort: { totalRequests: -1 },
-      },
-      {
-        $limit: 10,
-      },
-    ]);
+    let query = `
+      SELECT 
+        u.email as "_id",
+        COUNT(*)::int as "totalRequests",
+        COUNT(CASE WHEN "statusCode" < 400 THEN 1 END)::int as "successfulRequests",
+        MAX(timestamp) as "lastActivity"
+      FROM "ApiActivityLog" a
+      LEFT JOIN "User" u ON a."userId" = u.id
+      WHERE 
+        timestamp >= $1
+        AND a."userId" IS NOT NULL
+        AND category IN ('api', 'workflow')
+        AND "endpointType" IN ('client', 'public')
+    `;
+    
+    const params = [startTime];
+    
+    if (onlyImportant) {
+      query += ` AND importance IN ('critical', 'high')`;
+    }
+    
+    query += `
+      GROUP BY u.email
+      ORDER BY "totalRequests" DESC
+      LIMIT 10
+    `;
+
+    return await prisma.$queryRawUnsafe(query, ...params);
   }
 }
 

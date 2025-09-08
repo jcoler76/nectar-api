@@ -1,8 +1,8 @@
 #!/bin/bash
-# Emergency rollback script for mirabel-api
+# Emergency rollback script for nectar-api
 # Restores from the most recent backup
 
-echo "🚨 Emergency Rollback Script for Mirabel API"
+echo "🚨 Emergency Rollback Script for Nectar API"
 echo "============================================"
 
 # Find the most recent backup
@@ -22,7 +22,7 @@ BACKUP_DIR="$BACKUP_BASE/$LATEST_BACKUP"
 echo "📁 Using backup: $BACKUP_DIR"
 
 # Navigate to project directory
-cd ~/mirabel-api || { echo "❌ Failed to navigate to project directory"; exit 1; }
+cd ~/nectar-api || { echo "❌ Failed to navigate to project directory"; exit 1; }
 
 echo "🛑 Stopping current PM2 processes..."
 pm2 stop all
@@ -63,7 +63,7 @@ if [ -f "./server/ecosystem.config.js" ]; then
     pm2 start server/ecosystem.config.js --env production
 else
     cd server
-    pm2 start server.js --name mirabel-api --env production
+    pm2 start server.js --name nectar-api --env production
     cd ..
 fi
 

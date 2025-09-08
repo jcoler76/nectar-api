@@ -6,7 +6,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 // Configuration
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mirabel_db';
-const DB_NAME = process.env.DB_NAME || 'mirabel-api';
+const DB_NAME = process.env.DB_NAME || 'nectar-api';
 const EMAIL_TO = 'jcoler@mirabeltechnologies.com';
 
 async function runHealthCheck() {
@@ -231,7 +231,7 @@ function generateEmailHTML(metrics, healthScore, issues, now, oneDayAgo) {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Daily Health Report - Mirabel API</h1>
+      <h1>Daily Health Report - Nectar Studio</h1>
       <div>${now.toLocaleDateString()} ${now.toLocaleTimeString()}</div>
       <div class="health-score">Health Score: ${healthScore}/100 - ${status}</div>
     </div>

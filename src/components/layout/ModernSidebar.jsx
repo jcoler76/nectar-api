@@ -1,23 +1,23 @@
 import {
-  Activity,
-  BarChart3,
-  Cable,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Code,
-  Database,
-  Gauge,
-  GitBranch,
-  Grid3X3,
-  LayoutDashboard,
-  Search,
-  Settings,
-  Shield,
-  Timer,
-  TrendingUp,
-  Users,
+    Activity,
+    BarChart3,
+    Cable,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    Code,
+    Database,
+    Gauge,
+    GitBranch,
+    Grid3X3,
+    LayoutDashboard,
+    Search,
+    Settings,
+    Shield,
+    Timer,
+    TrendingUp,
+    Users,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -428,7 +428,7 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-white text-sm transition-colors duration-200">
-                Mirabel Connect
+                Nectar Studio
               </span>
               <span className="text-xs text-blue-100">Admin Dashboard</span>
             </div>

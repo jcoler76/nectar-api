@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Starting Mirabel API Development Environment..."
+echo "Starting Nectar API Development Environment..."
 
 # Check if node_modules exists in root and server directories
 if [ ! -d "node_modules" ]; then

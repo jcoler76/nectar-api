@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Template20Intelligence = require('../models/Template20Intelligence');
-const DatabaseObject = require('../models/DatabaseObject');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const Template20Intelligence = require('../models/Template20Intelligence');
+// const DatabaseObject = require('../models/DatabaseObject');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 // Auth middleware not needed - handled at app level
 const { body, param, validationResult } = require('express-validator');
 const { logger } = require('../utils/logger');
@@ -29,8 +33,10 @@ router.get(
 
       const { serviceId } = req.params;
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Get the latest Template20Intelligence data
-      const intelligence = await Template20Intelligence.getLatestIntelligence();
+      // const intelligence = await Template20Intelligence.getLatestIntelligence();
+      const intelligence = null; // Placeholder
 
       if (!intelligence) {
         return res.status(404).json({
@@ -110,8 +116,10 @@ router.post(
         });
       }
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Get or create intelligence document
-      let intelligence = await Template20Intelligence.getLatestIntelligence();
+      // let intelligence = await Template20Intelligence.getLatestIntelligence();
+      let intelligence = null; // Placeholder
       if (!intelligence) {
         return res.status(404).json({
           success: false,
@@ -119,22 +127,23 @@ router.post(
         });
       }
 
+      // TODO: Replace with Prisma logic for PostgreSQL migration
       // Find or create selection
-      let selection = intelligence.getSelection(selectionName);
-      if (!selection) {
-        selection = intelligence.createSelection(selectionName, description);
-      }
-
+      // let selection = intelligence.getSelection(selectionName);
+      // if (!selection) {
+      //   selection = intelligence.createSelection(selectionName, description);
+      // }
+      //
       // Update selection with new objects
-      intelligence.updateSelectionItems(
-        selectionName,
-        selectedTables,
-        selectedViews,
-        selectedProcedures
-      );
-
+      // intelligence.updateSelectionItems(
+      //   selectionName,
+      //   selectedTables,
+      //   selectedViews,
+      //   selectedProcedures
+      // );
+      //
       // Save the updated intelligence
-      await intelligence.save();
+      // await intelligence.save();
 
       // Create/update individual DatabaseObject records for tracking
       await saveDatabaseObjectSelections(
@@ -190,8 +199,10 @@ router.get(
 
       const { serviceId } = req.params;
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Get selections from DatabaseObject model
-      const selections = await DatabaseObject.find({ serviceId }).sort({ createdAt: -1 });
+      // const selections = await DatabaseObject.find({ serviceId }).sort({ createdAt: -1 });
+      const selections = []; // Placeholder
 
       if (selections.length === 0) {
         return res.json({
@@ -282,8 +293,9 @@ router.put(
       const { serviceId } = req.params;
       const { selectedTables = [], selectedViews = [], selectedProcedures = [] } = req.body;
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Clear existing selections
-      await DatabaseObject.deleteMany({ serviceId });
+      // await DatabaseObject.deleteMany({ serviceId });
 
       // Save new selections
       await saveDatabaseObjectSelections(
@@ -345,11 +357,13 @@ router.delete(
       const { serviceId, objectName } = req.params;
       const { objectType } = req.body;
 
-      const deleted = await DatabaseObject.findOneAndDelete({
-        serviceId,
-        objectName,
-        objectType,
-      });
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const deleted = await DatabaseObject.findOneAndDelete({
+      //   serviceId,
+      //   objectName,
+      //   objectType,
+      // });
+      const deleted = null; // Placeholder
 
       if (!deleted) {
         return res.status(404).json({
@@ -408,11 +422,13 @@ router.delete(
       // Convert plural to singular for database query
       const singularType = objectType.slice(0, -1); // tables -> table, views -> view, procedures -> procedure
 
-      const result = await DatabaseObject.deleteMany({
-        serviceId,
-        objectType: singularType,
-        objectName: { $in: objectNames },
-      });
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const result = await DatabaseObject.deleteMany({
+      //   serviceId,
+      //   objectType: singularType,
+      //   objectName: { $in: objectNames },
+      // });
+      const result = { deletedCount: 0 }; // Placeholder
 
       res.json({
         success: true,
@@ -479,10 +495,11 @@ async function saveDatabaseObjectSelections(
     });
   }
 
+  // TODO: Replace with Prisma query for PostgreSQL migration
   // Bulk insert selections
-  if (selections.length > 0) {
-    await DatabaseObject.insertMany(selections);
-  }
+  // if (selections.length > 0) {
+  //   await DatabaseObject.insertMany(selections);
+  // }
 }
 
 module.exports = router;

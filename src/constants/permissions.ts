@@ -67,29 +67,29 @@ export const ORG_ADMIN_PERMISSIONS: CustomerPermissions = {
   canManageApplications: true,
   canManageWorkflows: true,
   canManageOrgUsers: true,
-  canManageOrgSettings: false, // Cannot change org settings
+  canManageOrgSettings: false,
   canViewOrgReports: true,
-  canManageOrgBilling: false,  // Cannot manage billing
+  canManageOrgBilling: false,
   canExportData: true,
   canImportData: true,
-  canDeleteData: false,        // Cannot delete data
+  canDeleteData: false,
 } as const;
 
 /**
- * Organization Member permissions - standard access
+ * Organization Member permissions - standard user access
  */
 export const ORG_MEMBER_PERMISSIONS: CustomerPermissions = {
   canViewDashboard: true,
-  canManageConnections: false,
-  canManageServices: false,
-  canManageApplications: false,
-  canManageWorkflows: true,     // Can create/edit workflows
+  canManageConnections: true,
+  canManageServices: true,
+  canManageApplications: true,
+  canManageWorkflows: true,
   canManageOrgUsers: false,
   canManageOrgSettings: false,
   canViewOrgReports: false,
   canManageOrgBilling: false,
-  canExportData: false,
-  canImportData: false,
+  canExportData: true,
+  canImportData: true,
   canDeleteData: false,
 } as const;
 
@@ -109,4 +109,31 @@ export const ORG_VIEWER_PERMISSIONS: CustomerPermissions = {
   canExportData: false,
   canImportData: false,
   canDeleteData: false,
+} as const;
+
+// Platform admin permissions type (for admin portal)
+export interface UserPermissions {
+  canViewDashboard: boolean;
+  canManageServices: boolean;
+  canManageUsers: boolean;
+  canManageRoles: boolean;
+  canViewDocs: boolean;
+  canManageApplications: boolean;
+  canAccessSettings: boolean;
+  canViewAllOrganizations?: boolean;
+  canManagePlatform?: boolean;
+  canViewSystemLogs?: boolean;
+}
+
+export const SUPERADMIN_PERMISSIONS: UserPermissions = {
+  canViewDashboard: true,
+  canManageServices: true,
+  canManageUsers: true,
+  canManageRoles: true,
+  canViewDocs: true,
+  canManageApplications: true,
+  canAccessSettings: true,
+  canViewAllOrganizations: true,
+  canManagePlatform: true,
+  canViewSystemLogs: true,
 } as const;

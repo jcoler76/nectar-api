@@ -149,7 +149,7 @@ async function addTrustedDevice(user, fingerprint, deviceName = null) {
  * @param {String} issuer - App name/issuer
  * @returns {String} Partial data for QR generation
  */
-function generateQRData(email, issuer = 'Mirabel API') {
+function generateQRData(email, issuer = 'Nectar Studio') {
   // Return only the label part, secret will be added server-side only
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}`;
 }

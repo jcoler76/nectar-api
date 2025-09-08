@@ -97,7 +97,7 @@ describe('Authentication Service - Complete Test Suite', () => {
         expect(decoded.email).toBe(testUser.email);
         expect(decoded.role).toBe(testUser.role);
         expect(decoded.type).toBe('access');
-        expect(decoded.iss).toBe('mirabel-api');
+        expect(decoded.iss).toBe('nectar-api');
         expect(decoded.aud).toBe('mirabel-client');
         expect(decoded.jti).toBeTruthy();
       } catch (error) {
@@ -126,7 +126,7 @@ describe('Authentication Service - Complete Test Suite', () => {
         'wrong-secret',
         {
           algorithm: 'HS256',
-          issuer: 'mirabel-api',
+          issuer: 'nectar-api',
           audience: 'mirabel-client',
         }
       );
@@ -357,7 +357,7 @@ describe('Authentication Service - Complete Test Suite', () => {
         {
           expiresIn: '1ms',
           algorithm: 'HS256',
-          issuer: 'mirabel-api',
+          issuer: 'nectar-api',
           audience: 'mirabel-client',
         }
       );

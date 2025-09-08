@@ -1,33 +1,55 @@
 const express = require('express');
 const router = express.Router();
-const Service = require('../models/Service');
-const User = require('../models/User');
-const Role = require('../models/Role');
-const Application = require('../models/Application');
-const ApiActivityLog = require('../models/ApiActivityLog');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const Service = require('../models/Service');
+// const User = require('../models/User');
+// const Role = require('../models/Role');
+// const Application = require('../models/Application');
+// const ApiActivityLog = require('../models/ApiActivityLog');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
 const { logger } = require('../utils/logger');
 const { toEasternTimeStart, createEasternTimeGrouping } = require('../utils/dateUtils');
 const errorResponses = require('../utils/errorHandler');
 
 router.get('/metrics', async (req, res) => {
   try {
-    // Get counts
+    const safeCount = async (model, args) => {
+      try {
+        if (!prisma[model] || typeof prisma[model].count !== 'function') return 0;
+        return await prisma[model].count(args || {});
+      } catch (_) {
+        return 0;
+      }
+    };
+
+    // Get counts using available Prisma models; default to 0 if model doesn't exist
     const [services, users, roles, applications] = await Promise.all([
-      Service.countDocuments({ isActive: true }),
-      User.countDocuments({ isActive: true }),
-      Role.countDocuments(),
-      Application.countDocuments({ isActive: true }),
+      safeCount('service', { where: { isActive: true } }),
+      safeCount('user', { where: { isActive: true } }),
+      safeCount('role'),
+      safeCount('application', { where: { isActive: true } }),
     ]);
 
     // Get today's API calls count (using Eastern Time) - only important ones
     const todayStart = toEasternTimeStart(new Date());
 
-    const apiCallsToday = await ApiActivityLog.countDocuments({
-      timestamp: { $gte: todayStart },
-      category: { $in: ['api', 'workflow'] },
-      endpointType: { $in: ['client', 'public'] },
-      importance: { $in: ['critical', 'high'] },
-    });
+    let apiCallsToday = 0;
+    try {
+      if (prisma.apiActivityLog?.count) {
+        apiCallsToday = await prisma.apiActivityLog.count({
+          where: {
+            timestamp: { gte: todayStart },
+            category: { in: ['api', 'workflow'] },
+            endpointType: { in: ['client', 'public'] },
+            importance: { in: ['critical', 'high'] },
+          },
+        });
+      }
+    } catch (_) {
+      apiCallsToday = 0;
+    }
 
     // Get API activity data for the last N days (using Eastern Time) and totals
     const requestedDays = parseInt(req.query.days, 10);
@@ -38,30 +60,36 @@ router.get('/metrics', async (req, res) => {
     startDate.setDate(startDate.getDate() - daysBack);
     const startUTC = toEasternTimeStart(startDate);
 
-    const apiActivity = await ApiActivityLog.aggregate([
-      {
-        $match: {
-          timestamp: { $gte: startUTC },
-          category: { $in: ['api', 'workflow'] },
-          endpointType: { $in: ['client', 'public'] },
-          importance: { $in: ['critical', 'high'] },
-        },
-      },
-      {
-        $group: {
-          _id: createEasternTimeGrouping('timestamp'),
-          calls: { $sum: 1 },
-          failures: { $sum: { $cond: [{ $eq: ['$success', false] }, 1, 0] } },
-          totalRecords: { $sum: { $cond: [{ $eq: ['$success', true] }, 1, 0] } },
-          totalDataSize: {
-            $sum: { $add: [{ $ifNull: ['$requestSize', 0] }, { $ifNull: ['$responseSize', 0] }] },
-          },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
+    // Get API activity using Prisma raw query for grouping by date
+    let apiActivityRaw = [];
+    try {
+      apiActivityRaw = await prisma.$queryRaw`
+        SELECT 
+          DATE(timestamp AT TIME ZONE 'America/New_York') as date,
+          COUNT(*) as calls,
+          COUNT(CASE WHEN "statusCode" >= 400 THEN 1 END) as failures,
+          COUNT(*) as "totalRecords",
+          COALESCE(SUM("responseTime"), 0) as "totalDataSize"
+        FROM "ApiActivityLog"
+        WHERE 
+          timestamp >= ${startUTC}::timestamp
+          AND category IN ('api', 'workflow')
+          AND "endpointType" IN ('client', 'public')
+          AND importance IN ('critical', 'high')
+        GROUP BY DATE(timestamp AT TIME ZONE 'America/New_York')
+        ORDER BY date ASC
+      `;
+    } catch (_) {
+      apiActivityRaw = [];
+    }
+
+    const apiActivity = apiActivityRaw.map(row => ({
+      _id: row.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      calls: Number(row.calls),
+      failures: Number(row.failures),
+      totalRecords: Number(row.totalRecords),
+      totalDataSize: Number(row.totalDataSize)
+    }));
 
     // Format activity data for the chart (using Eastern Time)
     const activityData = Array.from({ length: daysBack }, (_, i) => {

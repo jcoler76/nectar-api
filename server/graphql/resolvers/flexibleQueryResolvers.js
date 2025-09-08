@@ -1,5 +1,9 @@
 const DatabaseService = require('../../services/databaseService');
-const Service = require('../../models/Service');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const Service = require('../../models/Service');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
 const {
   hasClientPermission,
   hasDeveloperPermission,
@@ -132,9 +136,11 @@ const flexibleQueryResolvers = {
             throw new UserInputError('Service name is required for admin queries');
           }
 
-          service = await Service.findOne({ name: serviceName, isActive: true }).populate(
-            'connectionId'
-          );
+          // TODO: Replace with Prisma service query during migration
+          // service = await Service.findOne({ name: serviceName, isActive: true }).populate(
+          //   'connectionId'
+          // );
+          service = null;
 
           if (!service) {
             throw new UserInputError(`Service ${serviceName} not found or inactive`);
@@ -192,20 +198,26 @@ const flexibleQueryResolvers = {
       if (apiKeyUser && apiKeyUser.type === 'client') {
         const serviceIds = apiKeyUser.permissions.map(perm => perm.serviceId._id || perm.serviceId);
 
-        return await Service.find({
-          _id: { $in: serviceIds },
-          isActive: true,
-        }).populate('connectionId');
+        // TODO: Replace with Prisma service query during migration
+        // return await Service.find({
+        //   _id: { $in: serviceIds },
+        //   isActive: true,
+        // }).populate('connectionId');
+        return [];
       }
 
       // DEVELOPER API KEY - Return all active services
       if (apiKeyUser && apiKeyUser.type === 'developer') {
-        return await Service.find({ isActive: true }).populate('connectionId');
+        // TODO: Replace with Prisma service query during migration
+        // return await Service.find({ isActive: true }).populate('connectionId');
+        return [];
       }
 
       // JWT USER - Return all services (admin access)
       if (jwtUser) {
-        return await Service.find({ isActive: true }).populate('connectionId');
+        // TODO: Replace with Prisma service query during migration
+        // return await Service.find({ isActive: true }).populate('connectionId');
+        return [];
       }
 
       return [];
@@ -235,9 +247,11 @@ const flexibleQueryResolvers = {
         throw new ForbiddenError('Access denied to service schema');
       }
 
-      const service = await Service.findOne({ name: serviceName, isActive: true }).populate(
-        'connectionId'
-      );
+      // TODO: Replace with Prisma service query during migration
+      // const service = await Service.findOne({ name: serviceName, isActive: true }).populate(
+      //   'connectionId'
+      // );
+      const service = null;
 
       if (!service) {
         throw new UserInputError(`Service ${serviceName} not found`);

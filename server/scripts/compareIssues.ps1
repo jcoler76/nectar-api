@@ -11,7 +11,7 @@ Write-Host "Comparing REST vs GraphQL for issuesetID=$IssueSetID" -ForegroundCol
 
 $headers = @{
   'x-dreamfactory-api-key' = $ApiKey
-  'x-mirabel-api-key' = $ApiKey
+  'x-nectar-api-key' = $ApiKey
   'Accept' = 'application/json'
 }
 

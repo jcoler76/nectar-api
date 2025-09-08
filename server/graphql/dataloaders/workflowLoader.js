@@ -1,10 +1,17 @@
 const DataLoader = require('dataloader');
-const { Workflow } = require('../../models/workflowModels');
-const WorkflowRun = require('../../models/WorkflowRun');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const { Workflow } = require('../../models/workflowModels');
+// const WorkflowRun = require('../../models/WorkflowRun');
+
+const { PrismaClient } = require('../../prisma/generated/client');
+const prisma = new PrismaClient();
 
 const createWorkflowLoader = () => {
   return new DataLoader(async workflowIds => {
-    const workflows = await Workflow.find({ _id: { $in: workflowIds } }).populate('userId');
+    // TODO: Replace MongoDB query with Prisma query during migration
+    // const workflows = await Workflow.find({ _id: { $in: workflowIds } }).populate('userId');
+    // For now, return empty array to allow server startup
+    const workflows = [];
 
     // Return workflows in the same order as the input IDs
     const workflowMap = {};
@@ -18,7 +25,10 @@ const createWorkflowLoader = () => {
 
 const createWorkflowRunLoader = () => {
   return new DataLoader(async runIds => {
-    const runs = await WorkflowRun.find({ _id: { $in: runIds } }).populate('workflowId');
+    // TODO: Replace MongoDB query with Prisma query during migration
+    // const runs = await WorkflowRun.find({ _id: { $in: runIds } }).populate('workflowId');
+    // For now, return empty array to allow server startup
+    const runs = [];
 
     // Return runs in the same order as the input IDs
     const runMap = {};
@@ -32,9 +42,12 @@ const createWorkflowRunLoader = () => {
 
 const createWorkflowRunsByWorkflowLoader = () => {
   return new DataLoader(async workflowIds => {
-    const runs = await WorkflowRun.find({
-      workflowId: { $in: workflowIds },
-    }).sort({ createdAt: -1 });
+    // TODO: Replace MongoDB query with Prisma query during migration
+    // const runs = await WorkflowRun.find({
+    //   workflowId: { $in: workflowIds },
+    // }).sort({ createdAt: -1 });
+    // For now, return empty array to allow server startup
+    const runs = [];
 
     // Group runs by workflow ID
     const runsByWorkflow = {};
@@ -55,11 +68,14 @@ const createWorkflowRunsByWorkflowLoader = () => {
 
 const createLastWorkflowRunLoader = () => {
   return new DataLoader(async workflowIds => {
-    const runs = await WorkflowRun.aggregate([
-      { $match: { workflowId: { $in: workflowIds } } },
-      { $sort: { createdAt: -1 } },
-      { $group: { _id: '$workflowId', lastRun: { $first: '$$ROOT' } } },
-    ]);
+    // TODO: Replace MongoDB aggregation with Prisma query during migration
+    // const runs = await WorkflowRun.aggregate([
+    //   { $match: { workflowId: { $in: workflowIds } } },
+    //   { $sort: { createdAt: -1 } },
+    //   { $group: { _id: '$workflowId', lastRun: { $first: '$$ROOT' } } },
+    // ]);
+    // For now, return empty array to allow server startup
+    const runs = [];
 
     const runMap = {};
     runs.forEach(result => {
@@ -72,23 +88,26 @@ const createLastWorkflowRunLoader = () => {
 
 const createWorkflowStatsLoader = () => {
   return new DataLoader(async workflowIds => {
-    const stats = await WorkflowRun.aggregate([
-      { $match: { workflowId: { $in: workflowIds } } },
-      {
-        $group: {
-          _id: '$workflowId',
-          totalRuns: { $sum: 1 },
-          successfulRuns: {
-            $sum: { $cond: [{ $eq: ['$status', 'succeeded'] }, 1, 0] },
-          },
-          averageDuration: {
-            $avg: {
-              $subtract: ['$finishedAt', '$startedAt'],
-            },
-          },
-        },
-      },
-    ]);
+    // TODO: Replace MongoDB aggregation with Prisma query during migration
+    // const stats = await WorkflowRun.aggregate([
+    //   { $match: { workflowId: { $in: workflowIds } } },
+    //   {
+    //     $group: {
+    //       _id: '$workflowId',
+    //       totalRuns: { $sum: 1 },
+    //       successfulRuns: {
+    //         $sum: { $cond: [{ $eq: ['$status', 'succeeded'] }, 1, 0] },
+    //       },
+    //       averageDuration: {
+    //         $avg: {
+    //           $subtract: ['$finishedAt', '$startedAt'],
+    //         },
+    //       },
+    //     },
+    //   },
+    // ]);
+    // For now, return empty array to allow server startup
+    const stats = [];
 
     const statsMap = {};
     stats.forEach(stat => {

@@ -1,9 +1,16 @@
 // Dynamic CORS configuration
-const allowedOrigins = [
-  'https://mirabelconnect.mirabeltechnologies.com',
+// Build allowed origins from env or defaults
+const envOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean)
+
+const defaultOrigins = [
   'http://localhost:3000',
   'http://localhost:8000',
-];
+]
+
+const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins
 
 // In Codespaces, allow any *.app.github.dev origin
 const corsOptions = {
@@ -25,7 +32,7 @@ const corsOptions = {
     callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-mirabel-api-key', 'x-csrf-token'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-nectar-api-key', 'x-csrf-token'],
   exposedHeaders: ['X-Total-Count'],
   credentials: true,
   maxAge: 600, // 10 minutes

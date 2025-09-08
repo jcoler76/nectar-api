@@ -175,8 +175,8 @@ export class AnalyticsController {
         data: distribution,
         summary: {
           totalActivePlans: distribution.length,
-          totalActiveSubscriptions: distribution.reduce((sum, plan) => sum + plan.count, 0),
-          totalMonthlyRevenue: distribution.reduce((sum, plan) => sum + plan.revenue, 0)
+          totalActiveSubscriptions: distribution.reduce((sum: number, plan: any) => sum + plan.count, 0),
+          totalMonthlyRevenue: distribution.reduce((sum: number, plan: any) => sum + plan.revenue, 0)
         }
       })
     } catch (error) {
@@ -199,7 +199,7 @@ export class AnalyticsController {
         data: topCustomers,
         summary: {
           totalShown: topCustomers.length,
-          totalRevenue: topCustomers.reduce((sum, customer) => {
+          totalRevenue: topCustomers.reduce((sum: number, customer: any) => {
             return sum + (customer.monthlyRevenue ? Number(customer.monthlyRevenue) : 0)
           }, 0)
         }

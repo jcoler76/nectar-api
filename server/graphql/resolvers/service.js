@@ -1,12 +1,14 @@
-const Service = require('../../models/Service');
-const Connection = require('../../models/Connection');
+const { PrismaClient } = require('../../prisma/generated/client');
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
 const databaseService = require('../../services/databaseService');
-const { encryptDatabasePassword } = require('../../utils/encryption');
+const { encryptDatabasePassword, decryptDatabasePassword } = require('../../utils/encryption');
+const { logger } = require('../../utils/logger');
+
+const prisma = new PrismaClient();
 
 const serviceResolvers = {
   Query: {
-    service: async (_, { id }, { user: currentUser, jwtUser, apiKeyUser, dataloaders }) => {
+    service: async (_, { id }, { user: currentUser, jwtUser, apiKeyUser }) => {
       // Block client API keys from accessing individual services
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError(
@@ -16,7 +18,27 @@ const serviceResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      return await dataloaders.serviceLoader.load(id);
+      const service = await prisma.service.findFirst({
+        where: {
+          id,
+          organizationId: currentUser.organizationId
+        },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          connection: true,
+          roles: {
+            where: { isActive: true }
+          }
+        }
+      });
+
+      if (!service) {
+        throw new UserInputError('Service not found');
+      }
+
+      return service;
     },
 
     services: async (
@@ -33,30 +55,53 @@ const serviceResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'ASC' } = pagination;
+      const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'desc' } = pagination;
 
-      let query = {};
-      if (filters.isActive !== undefined) query.isActive = filters.isActive;
-      if (filters.database) query.database = { $regex: filters.database, $options: 'i' };
-      if (filters.host) query.host = { $regex: filters.host, $options: 'i' };
-      if (filters.createdBy) query.createdBy = filters.createdBy;
+      // Build where clause for filters
+      const where = {
+        organizationId: currentUser.organizationId
+      };
+
+      if (filters.isActive !== undefined) where.isActive = filters.isActive;
+      if (filters.database) {
+        where.database = { contains: filters.database, mode: 'insensitive' };
+      }
+      if (filters.host) {
+        where.host = { contains: filters.host, mode: 'insensitive' };
+      }
+      if (filters.createdBy) where.createdBy = filters.createdBy;
+      
       if (filters.search) {
-        query.$or = [
-          { name: { $regex: filters.search, $options: 'i' } },
-          { database: { $regex: filters.search, $options: 'i' } },
-          { host: { $regex: filters.search, $options: 'i' } },
+        where.OR = [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { database: { contains: filters.search, mode: 'insensitive' } },
+          { host: { contains: filters.search, mode: 'insensitive' } }
         ];
       }
 
-      const sort = { [sortBy]: sortOrder === 'ASC' ? 1 : -1 };
+      // Get total count for pagination
+      const totalCount = await prisma.service.count({ where });
 
-      const totalCount = await Service.countDocuments(query);
-      const services = await Service.find(query)
-        .populate('createdBy')
-        .populate('connectionId')
-        .sort(sort)
-        .limit(limit)
-        .skip(offset);
+      // Get services with pagination
+      const services = await prisma.service.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
+        include: {
+          creator: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          connection: true,
+          roles: {
+            where: { isActive: true },
+            select: { id: true, name: true }
+          },
+          _count: {
+            select: { roles: true }
+          }
+        }
+      });
 
       return {
         edges: services.map((service, index) => ({
@@ -89,88 +134,225 @@ const serviceResolvers = {
           throw new UserInputError('Missing required fields: name, database');
         }
 
-        let serviceData = {
+        const serviceData = {
           name,
           database,
+          organizationId: currentUser.organizationId,
           createdBy: currentUser.userId,
           ...otherData,
         };
 
-        // If connectionId is provided, use connection details
+        // If connectionId is provided, verify it exists and belongs to organization
         if (connectionId) {
-          const connection = await Connection.findById(connectionId).select('+password');
+          const connection = await prisma.databaseConnection.findFirst({
+            where: {
+              id: connectionId,
+              organizationId: currentUser.organizationId
+            }
+          });
+          
           if (!connection) {
             throw new UserInputError('Associated connection not found');
           }
 
-          serviceData = {
-            ...serviceData,
-            connectionId,
-            host: connection.host,
-            port: connection.port,
-            username: connection.username,
-            password: connection.password, // Already encrypted
-            failoverHost: connection.failoverHost,
-          };
+          serviceData.connectionId = connectionId;
+          // Inherit connection details
+          serviceData.host = connection.host;
+          serviceData.port = connection.port;
+          serviceData.username = connection.username;
+          serviceData.passwordEncrypted = connection.passwordEncrypted;
+          serviceData.failoverHost = connection.failoverHost || null;
         } else if (password) {
           // Encrypt password if provided directly
-          serviceData.password = encryptDatabasePassword(password);
+          serviceData.passwordEncrypted = encryptDatabasePassword(password);
         }
 
-        const service = new Service(serviceData);
-        await service.save();
+        const service = await prisma.service.create({
+          data: serviceData,
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            connection: true,
+            organization: true
+          }
+        });
 
-        return await Service.findById(service._id).populate('createdBy').populate('connectionId');
+        logger.info('Service created via GraphQL', {
+          serviceId: service.id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return service;
       } catch (error) {
-        if (error.code === 11000) {
-          throw new UserInputError('Service name already exists');
+        if (error.code === 'P2002') {
+          throw new UserInputError('Service name already exists in your organization');
         }
-        throw error;
+        logger.error('GraphQL service creation error', { error: error.message, input });
+        throw new Error('Failed to create service');
       }
     },
 
     updateService: async (_, { id, input }, { user: currentUser }) => {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const service = await Service.findById(id);
-      if (!service) throw new UserInputError('Service not found');
+      try {
+        // Verify service exists and user has access
+        const existingService = await prisma.service.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          }
+        });
 
-      const { password, ...updateData } = input;
+        if (!existingService) {
+          throw new UserInputError('Service not found');
+        }
 
-      // Handle password update if provided
-      if (password && !password.includes(':')) {
-        updateData.password = encryptDatabasePassword(password);
-      } else if (password) {
-        updateData.password = password; // Already encrypted
+        const { password, ...updateData } = input;
+
+        // Handle password update if provided
+        if (password) {
+          updateData.passwordEncrypted = encryptDatabasePassword(password);
+        }
+
+        const service = await prisma.service.update({
+          where: { id },
+          data: updateData,
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true }
+            },
+            connection: true,
+            organization: true
+          }
+        });
+
+        logger.info('Service updated via GraphQL', {
+          serviceId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return service;
+      } catch (error) {
+        if (error.code === 'P2002') {
+          throw new UserInputError('Service name already exists in your organization');
+        }
+        logger.error('GraphQL service update error', { error: error.message, serviceId: id });
+        throw new Error('Failed to update service');
       }
-
-      Object.assign(service, updateData);
-      await service.save();
-
-      return await Service.findById(id).populate('createdBy').populate('connectionId');
     },
 
     deleteService: async (_, { id }, { user: currentUser }) => {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const deletedService = await Service.findByIdAndDelete(id);
-      return !!deletedService;
+      try {
+        // Verify service exists and user has access
+        const existingService = await prisma.service.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          }
+        });
+
+        if (!existingService) {
+          throw new UserInputError('Service not found');
+        }
+
+        await prisma.service.delete({
+          where: { id }
+        });
+
+        logger.info('Service deleted via GraphQL', {
+          serviceId: id,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId
+        });
+
+        return true;
+      } catch (error) {
+        if (error.code === 'P2003') {
+          throw new UserInputError('Cannot delete service: it has dependent records (roles, endpoints, etc.)');
+        }
+        logger.error('GraphQL service deletion error', { error: error.message, serviceId: id });
+        return false;
+      }
     },
 
     testService: async (_, { id }, { user: currentUser }) => {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        const service = await Service.findById(id).select('+password');
+        const service = await prisma.service.findFirst({
+          where: {
+            id,
+            organizationId: currentUser.organizationId
+          },
+          include: {
+            connection: true
+          }
+        });
+
         if (!service) throw new UserInputError('Service not found');
 
-        const result = await databaseService.testConnection(service);
+        // Build connection config for testing
+        let connectionConfig = {
+          host: service.host,
+          port: service.port,
+          database: service.database,
+          username: service.username
+        };
+
+        // Decrypt password if exists
+        if (service.passwordEncrypted) {
+          try {
+            connectionConfig.password = decryptDatabasePassword(service.passwordEncrypted);
+          } catch (decryptError) {
+            return {
+              success: false,
+              error: 'Failed to decrypt service password'
+            };
+          }
+        }
+
+        // If service uses a connection, override with connection details
+        if (service.connection) {
+          connectionConfig = {
+            ...connectionConfig,
+            host: service.connection.host,
+            port: service.connection.port,
+            username: service.connection.username
+          };
+
+          if (service.connection.passwordEncrypted) {
+            try {
+              connectionConfig.password = decryptDatabasePassword(service.connection.passwordEncrypted);
+            } catch (decryptError) {
+              return {
+                success: false,
+                error: 'Failed to decrypt connection password'
+              };
+            }
+          }
+        }
+
+        const result = await databaseService.testConnection(connectionConfig);
+        
+        logger.info('Service connection tested via GraphQL', {
+          serviceId: id,
+          userId: currentUser.userId,
+          success: result.success
+        });
+
         return {
           success: result.success || false,
           message: result.message,
           error: result.error,
         };
       } catch (error) {
+        logger.error('GraphQL service test error', { error: error.message, serviceId: id });
         return {
           success: false,
           error: error.message,
@@ -180,22 +362,41 @@ const serviceResolvers = {
   },
 
   Service: {
-    createdBy: async (service, _, { dataloaders }) => {
+    // Resolver for createdBy field - ensures user info is populated
+    createdBy: async (service) => {
+      if (service.creator) return service.creator;
+      
       if (!service.createdBy) return null;
-      return await dataloaders.userLoader.load(service.createdBy);
+      
+      return await prisma.user.findUnique({
+        where: { id: service.createdBy },
+        select: { id: true, email: true, firstName: true, lastName: true }
+      });
     },
 
-    connection: async (service, _, { dataloaders }) => {
+    // Resolver for connection field - ensures connection info is populated  
+    connection: async (service) => {
+      if (service.connection) return service.connection;
+      
       if (!service.connectionId) return null;
-      return await dataloaders.connectionLoader.load(service.connectionId);
+      
+      return await prisma.databaseConnection.findUnique({
+        where: { id: service.connectionId }
+      });
     },
 
-    effectiveHost: async service => {
-      try {
-        return await service.getEffectiveHost();
-      } catch (error) {
-        return service.host;
+    // Resolver for effectiveHost field - returns the actual host being used
+    effectiveHost: async (service) => {
+      // If service uses a connection, return connection's host
+      if (service.connectionId) {
+        const connection = service.connection || await prisma.databaseConnection.findUnique({
+          where: { id: service.connectionId }
+        });
+        return connection?.host || service.host;
       }
+      
+      // Otherwise return service's own host
+      return service.host;
     },
   },
 };

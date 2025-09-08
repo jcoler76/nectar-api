@@ -1,8 +1,12 @@
 const sql = require('mssql');
-const DatabaseObject = require('../models/DatabaseObject');
-const SchemaIntelligence = require('../models/SchemaIntelligence');
-const Connection = require('../models/Connection');
-const mongoose = require('mongoose');
+// MongoDB models replaced with Prisma for PostgreSQL migration
+// const DatabaseObject = require('../models/DatabaseObject');
+// const SchemaIntelligence = require('../models/SchemaIntelligence');
+// const Connection = require('../models/Connection');
+// const mongoose = require('mongoose');
+
+const { PrismaClient } = require('../prisma/generated/client');
+const prisma = new PrismaClient();
 
 /**
  * SchemaIntelligenceService
@@ -21,17 +25,21 @@ class SchemaIntelligenceService {
    */
   async initializeConnection(serviceId) {
     try {
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Get the service to find associated connection
-      const Service = require('../models/Service');
-      const service = await Service.findById(serviceId);
+      // const Service = require('../models/Service');
+      // const service = await Service.findById(serviceId);
+      const service = null; // Placeholder
       if (!service) {
         throw new Error(`Service ${serviceId} not found`);
       }
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Find Template20 connection (assuming it's the connection for this service)
-      const connection = await Connection.findOne({
-        $or: [{ name: /template20/i }, { database: /template20/i }, { host: service.host }],
-      });
+      // const connection = await Connection.findOne({
+      //   $or: [{ name: /template20/i }, { database: /template20/i }, { host: service.host }],
+      // });
+      const connection = null; // Placeholder
 
       if (!connection) {
         throw new Error('Template20 database connection not found');
@@ -83,8 +91,9 @@ class SchemaIntelligenceService {
    * Retrieve schema information for selected objects
    */
   async retrieveSchemaForSelections(serviceId, userId, options = {}) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // TODO: Replace with Prisma transaction for PostgreSQL migration
+    // const session = await mongoose.startSession();
+    // session.startTransaction();
 
     try {
       const { objectTypes = ['table', 'view', 'procedure'], batchSize = 10 } = options;
@@ -92,13 +101,15 @@ class SchemaIntelligenceService {
       // Initialize connection
       await this.initializeConnection(serviceId);
 
+      // TODO: Replace with Prisma query for PostgreSQL migration
       // Get pending objects for schema retrieval
-      const pendingObjects = await DatabaseObject.find({
-        serviceId,
-        isActive: true,
-        schemaRetrieved: false,
-        objectType: { $in: objectTypes },
-      }).sort({ priority: 1, createdAt: 1 });
+      // const pendingObjects = await DatabaseObject.find({
+      //   serviceId,
+      //   isActive: true,
+      //   schemaRetrieved: false,
+      //   objectType: { $in: objectTypes },
+      // }).sort({ priority: 1, createdAt: 1 });
+      const pendingObjects = []; // Placeholder
 
       const results = {
         success: true,
@@ -137,8 +148,9 @@ class SchemaIntelligenceService {
               session
             );
 
+            // TODO: Replace with Prisma query for PostgreSQL migration
             // Mark DatabaseObject as schema retrieved
-            await dbObject.markSchemaRetrieved('v1.0');
+            // await dbObject.markSchemaRetrieved('v1.0');
 
             results.processed++;
             results.objects.push({
@@ -160,13 +172,14 @@ class SchemaIntelligenceService {
         }
       }
 
-      await session.commitTransaction();
+      // TODO: Replace with Prisma transaction for PostgreSQL migration
+      // await session.commitTransaction();
       return results;
     } catch (error) {
-      await session.abortTransaction();
+      // await session.abortTransaction();
       throw new Error(`Schema retrieval failed: ${error.message}`);
     } finally {
-      await session.endSession();
+      // await session.endSession();
       await this.closeConnection();
     }
   }
@@ -547,7 +560,27 @@ class SchemaIntelligenceService {
    */
   async createSchemaIntelligenceRecord(databaseObject, schemaData, userId, session) {
     try {
-      const schemaIntelligence = new SchemaIntelligence({
+      // TODO: Replace with Prisma query for PostgreSQL migration
+      // const schemaIntelligence = new SchemaIntelligence({
+      //   databaseObjectId: databaseObject._id,
+      //   serviceId: databaseObject.serviceId,
+      //   objectName: databaseObject.objectName,
+      //   objectType: databaseObject.objectType,
+      //   retrievedBy: userId,
+      //   sourceLastModified:
+      //     schemaData.tableSchema?.modifiedDate ||
+      //     schemaData.viewSchema?.modifiedDate ||
+      //     schemaData.procedureSchema?.modifiedDate,
+      //   ...schemaData,
+      //   businessContext: {
+      //     businessEntity: databaseObject.businessEntity,
+      //     businessImportance: databaseObject.businessImportance,
+      //   },
+      // });
+      //
+      // return await schemaIntelligence.save({ session });
+      
+      const schemaIntelligenceData = {
         databaseObjectId: databaseObject._id,
         serviceId: databaseObject.serviceId,
         objectName: databaseObject.objectName,
@@ -562,9 +595,10 @@ class SchemaIntelligenceService {
           businessEntity: databaseObject.businessEntity,
           businessImportance: databaseObject.businessImportance,
         },
-      });
-
-      return await schemaIntelligence.save({ session });
+      };
+      
+      // return await prisma.schemaIntelligence.create({ data: schemaIntelligenceData });
+      return { id: 'placeholder' }; // Placeholder
     } catch (error) {
       throw new Error(`Failed to create SchemaIntelligence record: ${error.message}`);
     }

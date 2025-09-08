@@ -39,7 +39,7 @@ export class StripeService {
    */
   static async updateStripeConfig(data: {
     isLive?: boolean
-    publishableKey?: string
+    publishableKey: string
     webhookSecret?: string
     defaultCurrency?: string
     taxRateId?: string
@@ -49,7 +49,14 @@ export class StripeService {
     await prisma.stripeConfig.deleteMany({})
     
     return prisma.stripeConfig.create({
-      data
+      data: {
+        isLive: data.isLive ?? false,
+        publishableKey: data.publishableKey,
+        webhookSecret: data.webhookSecret,
+        defaultCurrency: data.defaultCurrency ?? 'USD',
+        taxRateId: data.taxRateId,
+        updatedBy: data.updatedBy
+      }
     })
   }
 

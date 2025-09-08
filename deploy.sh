@@ -1,11 +1,11 @@
 #!/bin/bash
-# Production deployment script for mirabel-api
+# Production deployment script for nectar-api
 # Updated for ShadCN UI migration, Prisma integration, and enhanced security features
 
-echo "Starting Mirabel API deployment..."
+echo "Starting Nectar API deployment..."
 
 # Navigate to the project directory
-cd ~/mirabel-api || { echo "Failed to navigate to project directory"; exit 1; }
+cd ~/nectar-api || { echo "Failed to navigate to project directory"; exit 1; }
 
 # Create timestamped backup directory
 BACKUP_DIR=~/deployment-backups/$(date +%Y%m%d_%H%M%S)
@@ -133,7 +133,7 @@ npm install --legacy-peer-deps --force
 
 # Setup frontend environment
 echo "Setting up frontend environment..."
-echo "REACT_APP_API_URL=https://mirabelconnect.mirabeltechnologies.com" > .env.production
+echo "REACT_APP_API_URL=https://nectarconnect.nectartechnologies.com" > .env.production
 
 # Install server dependencies with special handling for mongoose and missing modules
 echo "Installing server dependencies..."
@@ -274,9 +274,9 @@ fi
 echo "Updating CORS configuration..."
 cat > server/config/corsOptions.js << 'EOF'
 const corsOptions = {
-  origin: ['https://mirabelconnect.mirabeltechnologies.com', 'http://localhost:3000', 'http://localhost:8000'],
+  origin: ['https://nectarconnect.nectartechnologies.com', 'http://localhost:3000', 'http://localhost:8000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-mirabel-api-key'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-nectar-api-key'],
   exposedHeaders: ['X-Total-Count'],
   credentials: true,
   maxAge: 600 // 10 minutes
@@ -315,9 +315,9 @@ cat > server/ecosystem.config.js << 'EOF'
 module.exports = {
   apps: [
     {
-      name: 'mirabel-api',
+      name: 'nectar-api',
       script: 'server.js',
-      cwd: '/home/ubuntu/mirabel-api/server',
+      cwd: '/home/ubuntu/nectar-api/server',
       interpreter: '/usr/bin/node',
       env_production: {
         NODE_ENV: 'production'
@@ -444,7 +444,7 @@ if [ -f postcss.config.js.backup ]; then
 fi
 
 echo "🔍 Health Checks:"
-echo "- Frontend: https://mirabelconnect.mirabeltechnologies.com"
-echo "- API Health: https://mirabelconnect.mirabeltechnologies.com/api/health"
+echo "- Frontend: https://nectarconnect.nectartechnologies.com"
+echo "- API Health: https://nectarconnect.nectartechnologies.com/api/health"
 echo "- Queue Status: Check PM2 logs for Bull queue initialization"
 echo "- Database: Prisma schema validation completed"

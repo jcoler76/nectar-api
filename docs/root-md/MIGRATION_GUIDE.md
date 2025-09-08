@@ -6,8 +6,8 @@
 ```bash
 # You currently:
 1. SSH into server via PuTTY
-2. Run: chmod +x ~/mirabel-api/deploy-gentle.sh
-3. Run: cd ~/mirabel-api && ./deploy-gentle.sh main
+2. Run: chmod +x ~/nectar-api/deploy-gentle.sh
+3. Run: cd ~/nectar-api && ./deploy-gentle.sh main
 4. Run: sudo nginx -t && sudo systemctl reload nginx
 5. Hope nothing breaks 🤞
 ```
@@ -35,7 +35,7 @@ git push origin main
 ```
 
 2. **Set up GitHub Secrets:**
-   - Go to: https://github.com/jcolermirabel/mirabel-api/settings/secrets/actions
+   - Go to: https://github.com/jcolermirabel/nectar-api/settings/secrets/actions
    - Add these secrets:
      - `STAGING_HOST`: Your staging server IP
      - `PRODUCTION_HOST`: Your production server IP  
@@ -49,7 +49,7 @@ git push origin main
 2. **Run the setup script:**
 ```bash
 # Download setup script
-curl -o setup-deployment.sh https://raw.githubusercontent.com/jcolermirabel/mirabel-api/main/scripts/setup-deployment.sh
+curl -o setup-deployment.sh https://raw.githubusercontent.com/jcolermirabel/nectar-api/main/scripts/setup-deployment.sh
 chmod +x setup-deployment.sh
 ./setup-deployment.sh
 ```
@@ -57,7 +57,7 @@ chmod +x setup-deployment.sh
 3. **Configure environment:**
 ```bash
 # Edit the production environment file
-nano ~/mirabel-api/.env.production
+nano ~/nectar-api/.env.production
 
 # Copy your existing environment variables from your current setup
 # Make sure to include all your database connections, JWT secrets, etc.
@@ -84,7 +84,7 @@ git push origin staging
 ```
 
 2. **Monitor deployment:**
-   - Go to: https://github.com/jcolermirabel/mirabel-api/actions
+   - Go to: https://github.com/jcolermirabel/nectar-api/actions
    - Watch the "Build & Deploy" workflow
    - It should deploy to your staging server automatically
 
@@ -92,7 +92,7 @@ git push origin staging
 ```bash
 # SSH into staging server
 docker compose ps
-docker compose logs -f mirabel-api
+docker compose logs -f nectar-api
 curl http://localhost:3001/health
 ```
 
@@ -119,7 +119,7 @@ After successful deployments:
 1. **Archive old deployment script:**
 ```bash
 # On server
-mv ~/mirabel-api/deploy-gentle.sh ~/mirabel-api/deploy-gentle.sh.backup
+mv ~/nectar-api/deploy-gentle.sh ~/nectar-api/deploy-gentle.sh.backup
 ```
 
 2. **Remove old PM2 processes (if not using Docker):**
@@ -157,9 +157,9 @@ sudo usermod -aG docker $USER
 ### Issue: "Health check failed"
 **Solution:** Check application logs
 ```bash
-docker compose logs --tail=100 mirabel-api
+docker compose logs --tail=100 nectar-api
 # Check environment variables
-docker compose exec mirabel-api env | grep NODE_ENV
+docker compose exec nectar-api env | grep NODE_ENV
 ```
 
 ## Rollback Procedure
@@ -169,7 +169,7 @@ If something goes wrong:
 ### Quick Rollback (Use old method temporarily)
 ```bash
 # SSH into server
-cd ~/mirabel-api
+cd ~/nectar-api
 ./deploy-gentle.sh.backup main  # Use your old script
 ```
 
@@ -180,10 +180,10 @@ docker images | grep mirabel
 
 # Rollback to previous version
 docker compose down
-docker run -d --name mirabel-api-temp \
+docker run -d --name nectar-api-temp \
   -p 3001:3001 \
   --env-file .env.production \
-  ghcr.io/jcolermirabel/mirabel-api:previous-tag
+  ghcr.io/jcolermirabel/nectar-api:previous-tag
 ```
 
 ## Benefits You'll Experience
@@ -205,7 +205,7 @@ docker run -d --name mirabel-api-temp \
 
 ## Support Resources
 
-- GitHub Actions logs: https://github.com/jcolermirabel/mirabel-api/actions
+- GitHub Actions logs: https://github.com/jcolermirabel/nectar-api/actions
 - Docker documentation: https://docs.docker.com
 - GitHub Container Registry: https://docs.github.com/en/packages
 
@@ -220,10 +220,10 @@ git push origin main
 
 # Check deployment status (on server)
 docker compose ps
-docker compose logs -f mirabel-api
+docker compose logs -f nectar-api
 
 # Restart service (on server)
-docker compose restart mirabel-api
+docker compose restart nectar-api
 
 # Emergency stop (on server)
 docker compose down

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design document outlines the comprehensive modernization of the Mirabel Connect admin dashboard interface. The refresh will transform the current Material-UI based interface into a modern, professional design system using shadcn/ui components with custom styling. The design maintains all existing functionality while implementing contemporary visual patterns, improved user experience, and a cohesive design language.
+This design document outlines the comprehensive modernization of the Nectar Studio admin dashboard interface. The refresh will transform the current Material-UI based interface into a modern, professional design system using shadcn/ui components with custom styling. The design maintains all existing functionality while implementing contemporary visual patterns, improved user experience, and a cohesive design language.
 
 The design system centers around a purple-blue gradient primary color (HSL 262, 83%, 58%) with sophisticated neutral backgrounds, professional gradients, and multi-layered shadows to create depth and visual hierarchy.
 

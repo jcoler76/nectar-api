@@ -349,6 +349,101 @@ const validationRules = {
       .isIn(['name', 'createdAt', 'updatedAt', '-name', '-createdAt', '-updatedAt'])
       .withMessage('Invalid sort field'),
   ],
+
+  // Connection validation rules
+  connection: {
+    create: [
+      body('name')
+        .isString()
+        .withMessage('Connection name must be a string')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Connection name must be between 1 and 100 characters')
+        .matches(/^[a-zA-Z0-9_\-\s]+$/)
+        .withMessage(
+          'Connection name can only contain letters, numbers, spaces, hyphens, and underscores'
+        ),
+      body('host')
+        .isString()
+        .withMessage('Host must be a string')
+        .trim()
+        .notEmpty()
+        .withMessage('Host is required'),
+      body('port')
+        .isInt({ min: 1, max: 65535 })
+        .withMessage('Port must be a valid port number (1-65535)')
+        .toInt(),
+      body('username')
+        .isString()
+        .withMessage('Username must be a string')
+        .trim()
+        .notEmpty()
+        .withMessage('Username is required'),
+      body('password')
+        .isString()
+        .withMessage('Password must be a string')
+        .notEmpty()
+        .withMessage('Password is required'),
+      body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive must be a boolean'),
+      body('failoverHost')
+        .optional()
+        .isString()
+        .withMessage('Failover host must be a string')
+        .trim(),
+      body('databases')
+        .optional()
+        .isArray()
+        .withMessage('Databases must be an array'),
+    ],
+    update: [
+      body('name')
+        .optional()
+        .isString()
+        .withMessage('Connection name must be a string')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Connection name must be between 1 and 100 characters')
+        .matches(/^[a-zA-Z0-9_\-\s]+$/)
+        .withMessage(
+          'Connection name can only contain letters, numbers, spaces, hyphens, and underscores'
+        ),
+      body('host')
+        .optional()
+        .isString()
+        .withMessage('Host must be a string')
+        .trim(),
+      body('port')
+        .optional()
+        .isInt({ min: 1, max: 65535 })
+        .withMessage('Port must be a valid port number (1-65535)')
+        .toInt(),
+      body('username')
+        .optional()
+        .isString()
+        .withMessage('Username must be a string')
+        .trim(),
+      body('password')
+        .optional()
+        .isString()
+        .withMessage('Password must be a string'),
+      body('isActive')
+        .optional()
+        .isBoolean()
+        .withMessage('isActive must be a boolean'),
+      body('failoverHost')
+        .optional()
+        .isString()
+        .withMessage('Failover host must be a string')
+        .trim(),
+      body('databases')
+        .optional()
+        .isArray()
+        .withMessage('Databases must be an array'),
+    ],
+  },
 };
 
 module.exports = validationRules;

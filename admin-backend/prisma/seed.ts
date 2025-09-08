@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
 import { AdminAuthService } from '../src/services/adminAuth'
 
 const prisma = new PrismaClient()
@@ -18,7 +17,7 @@ async function main() {
 
     // Create super admin user
     const superAdmin = await AdminAuthService.createAdmin({
-      email: 'admin@nectar.com',
+      email: 'admin.nectarstudio.ai',
       password: 'AdminPassword123!',
       firstName: 'Super',
       lastName: 'Admin',
@@ -89,7 +88,7 @@ async function main() {
     // Create a sample platform announcement
     await prisma.platformAnnouncement.create({
       data: {
-        title: 'Welcome to Nectar Admin Portal',
+        title: 'Welcome to Admin Portal - NectarStudio.ai',
         message: 'The platform administration portal is now active. Use this system to monitor organizations, manage users, and configure platform settings.',
         type: 'INFO',
         targetAudience: 'all',
@@ -103,7 +102,7 @@ async function main() {
 
     console.log('\n🎉 Seeding completed successfully!')
     console.log('\n📋 Default admin accounts created:')
-    console.log('   Super Admin: admin@nectar.com / AdminPassword123!')
+    console.log('   Super Admin: admin.nectarstudio.ai / AdminPassword123!')
     console.log('   Admin: support@nectar.com / SupportPassword123!')
     console.log('   Viewer: viewer@nectar.com / ViewerPassword123!')
     console.log('\n⚠️  Please change these default passwords in production!')

@@ -10,7 +10,7 @@ async function createAdminUser() {
     console.log('🔐 Creating admin user...')
 
     const email = 'meadminportal@jestincoler.com'
-    const password = 'Fr33d0M!!@!NC'
+    const password = '<password>'
     const firstName = 'Jestin'
     const lastName = 'Coler'
     const role = 'SUPER_ADMIN'

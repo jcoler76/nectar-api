@@ -9,7 +9,7 @@ require('dotenv').config();
 const KeyManager = require('../utils/keyManagement');
 
 async function restoreKey() {
-  console.log('🔐 Mirabel API - Encryption Key Restore Tool');
+  console.log('🔐 Nectar Studio - Encryption Key Restore Tool');
   console.log('==========================================');
 
   const keyManager = new KeyManager();

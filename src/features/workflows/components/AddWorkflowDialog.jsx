@@ -1,4 +1,6 @@
+import { HelpCircle } from 'lucide-react';
 import React, { useState } from 'react';
+import { Tooltip } from '@mui/material';
 
 import { Button } from '../../../components/ui/button';
 import {
@@ -39,13 +41,20 @@ const AddWorkflowDialog = ({ open, onClose, onSave }) => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Workflow</DialogTitle>
-          <DialogDescription>Enter a name for your new workflow to get started.</DialogDescription>
+          <DialogDescription>
+            Enter a descriptive name for your new workflow. After creation, you'll be taken to the workflow designer to add nodes and configure automation logic.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
+            <div className="flex items-center gap-2 justify-end">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Tooltip title="Choose a descriptive name that clearly identifies the workflow's purpose, such as 'Customer Onboarding', 'Invoice Processing', or 'Data Sync Weekly'. This name will be used throughout the system.">
+                <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+              </Tooltip>
+            </div>
             <Input
               id="name"
               value={name}
@@ -58,12 +67,16 @@ const AddWorkflowDialog = ({ open, onClose, onSave }) => {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!name.trim()}>
-            Create
-          </Button>
+          <Tooltip title="Close this dialog without creating a workflow">
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+          </Tooltip>
+          <Tooltip title="Create the workflow and open the workflow designer to configure nodes, triggers, and automation logic">
+            <Button onClick={handleSave} disabled={!name.trim()}>
+              Create
+            </Button>
+          </Tooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
