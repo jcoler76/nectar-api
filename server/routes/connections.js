@@ -15,7 +15,7 @@ const {
   executeGraphQLMutation,
   executeGraphQLQuery,
   createGraphQLContext,
-  handleGraphQLError
+  handleGraphQLError,
 } = require('../utils/routeHelpers');
 const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
@@ -29,58 +29,97 @@ router.get('/', createListHandler(CONNECTION_QUERIES.GET_ALL, 'connections'));
 router.get('/:id', createGetHandler(CONNECTION_QUERIES.GET_BY_ID, 'connection'));
 
 // Create new connection using GraphQL
-router.post('/', checkFreemiumLimits('connections'), validate(validationRules.connection.create), async (req, res) => {
-  const { name, host, port, username, password, isActive } = req.body;
-  const context = createGraphQLContext(req);
-  
-  const result = await executeGraphQLMutation(
-    res,
-    CONNECTION_QUERIES.CREATE,
-    { 
-      input: {
-        name,
-        host,
-        port,
-        username,
-        password,
-        isActive
-      }
-    },
-    context,
-    'create connection'
-  );
-  
-  if (!result) return; // Error already handled
-  
-  res.status(201).json(result.createConnection);
-});
+router.post(
+  '/',
+  checkFreemiumLimits('connections'),
+  validate(validationRules.connection.create),
+  async (req, res) => {
+    const {
+      name,
+      type,
+      host,
+      port,
+      username,
+      password,
+      database,
+      sslEnabled,
+      isActive,
+      failoverHost,
+      databases,
+    } = req.body;
+    const context = createGraphQLContext(req);
+
+    const result = await executeGraphQLMutation(
+      res,
+      CONNECTION_QUERIES.CREATE,
+      {
+        input: {
+          name,
+          type,
+          host,
+          port,
+          username,
+          password,
+          database,
+          sslEnabled: sslEnabled || false,
+          isActive: isActive !== undefined ? isActive : true,
+          failoverHost,
+          databases,
+        },
+      },
+      context,
+      'create connection'
+    );
+
+    if (!result) return; // Error already handled
+
+    res.status(201).json(result.createConnection);
+  }
+);
 
 // Update connection using GraphQL
 router.put('/:id', validate(validationRules.connection.update), async (req, res) => {
   const { id } = req.params;
-  const { name, host, port, username, password, isActive } = req.body;
+  const {
+    name,
+    type,
+    host,
+    port,
+    username,
+    password,
+    database,
+    sslEnabled,
+    isActive,
+    failoverHost,
+    databases,
+  } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     CONNECTION_QUERIES.UPDATE,
-    { 
+    {
       id,
       input: {
         name,
+        type,
         host,
         port,
         username,
         password,
-        isActive
-      }
+        database,
+        sslEnabled,
+        isActive,
+        failoverHost,
+        databases,
+      },
     },
     context,
     'update connection'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.updateConnection);
 });
 
@@ -91,7 +130,7 @@ router.delete('/:id', createDeleteHandler(CONNECTION_QUERIES.DELETE, 'deleteConn
 router.post('/:id/test', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     CONNECTION_QUERIES.TEST_CONNECTION,
@@ -99,17 +138,17 @@ router.post('/:id/test', async (req, res) => {
     context,
     'test connection'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.testConnection);
 });
 
 // Test connection without saving (for connection setup)
 router.post('/test', async (req, res) => {
-  const { host, port, username, password } = req.body;
+  const { type, host, port, username, password, database, sslEnabled } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const TEST_CONNECTION_TEMP = `
     mutation TestConnectionTemp($input: TestConnectionInput!) {
       testConnectionTemp(input: $input) {
@@ -120,24 +159,27 @@ router.post('/test', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLMutation(
     res,
     TEST_CONNECTION_TEMP,
-    { 
+    {
       input: {
+        type,
         host,
         port,
         username,
-        password
-      }
+        password,
+        database,
+        sslEnabled: sslEnabled || false,
+      },
     },
     context,
     'test temporary connection'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.testConnectionTemp);
 });
 
@@ -145,7 +187,7 @@ router.post('/test', async (req, res) => {
 router.get('/:id/databases', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   const GET_CONNECTION_DATABASES = `
     query GetConnectionDatabases($id: ID!) {
       connection(id: $id) {
@@ -157,7 +199,7 @@ router.get('/:id/databases', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLQuery(
     res,
     GET_CONNECTION_DATABASES,
@@ -165,9 +207,9 @@ router.get('/:id/databases', async (req, res) => {
     context,
     'get connection databases'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.connection.databases || []);
 });
 
@@ -175,7 +217,7 @@ router.get('/:id/databases', async (req, res) => {
 router.post('/:id/databases/refresh', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   const REFRESH_DATABASES = `
     mutation RefreshConnectionDatabases($id: ID!) {
       refreshConnectionDatabases(id: $id) {
@@ -186,7 +228,7 @@ router.post('/:id/databases/refresh', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLMutation(
     res,
     REFRESH_DATABASES,
@@ -194,12 +236,12 @@ router.post('/:id/databases/refresh', async (req, res) => {
     context,
     'refresh connection databases'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json({
     message: 'Database list refreshed successfully',
-    databases: result.refreshConnectionDatabases.databases
+    databases: result.refreshConnectionDatabases.databases,
   });
 });
 
@@ -207,7 +249,7 @@ router.post('/:id/databases/refresh', async (req, res) => {
 router.post('/:id/refresh-databases', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   const REFRESH_DATABASES = `
     mutation RefreshConnectionDatabases($id: ID!) {
       refreshConnectionDatabases(id: $id) {
@@ -218,7 +260,7 @@ router.post('/:id/refresh-databases', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLMutation(
     res,
     REFRESH_DATABASES,
@@ -226,12 +268,12 @@ router.post('/:id/refresh-databases', async (req, res) => {
     context,
     'refresh connection databases'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json({
     message: 'Database list refreshed successfully.',
-    databases: result.refreshConnectionDatabases.databases
+    databases: result.refreshConnectionDatabases.databases,
   });
 });
 
@@ -240,14 +282,14 @@ router.post('/:id/table-columns', async (req, res) => {
   const { id } = req.params;
   const { database, table } = req.body;
   const context = createGraphQLContext(req);
-  
+
   if (!database || !table) {
     return res.status(400).json({
       success: false,
-      message: 'Database and table are required'
+      message: 'Database and table are required',
     });
   }
-  
+
   const GET_TABLE_COLUMNS = `
     mutation GetTableColumns($connectionId: ID!, $database: String!, $table: String!) {
       getTableColumns(connectionId: $connectionId, database: $database, table: $table) {
@@ -257,7 +299,7 @@ router.post('/:id/table-columns', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLMutation(
     res,
     GET_TABLE_COLUMNS,
@@ -265,16 +307,16 @@ router.post('/:id/table-columns', async (req, res) => {
     context,
     'get table columns'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   if (!result.getTableColumns.success) {
     return res.status(400).json({
       success: false,
-      message: result.getTableColumns.error
+      message: result.getTableColumns.error,
     });
   }
-  
+
   res.json(result.getTableColumns.columns);
 });
 
@@ -282,7 +324,7 @@ router.post('/:id/table-columns', async (req, res) => {
 router.get('/:id/health', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   try {
     // First get the connection details
     const connectionResult = await executeGraphQLQuery(
@@ -292,9 +334,9 @@ router.get('/:id/health', async (req, res) => {
       context,
       'connection health check'
     );
-    
+
     if (!connectionResult) return; // Error already handled
-    
+
     // Then test the connection
     const testResult = await executeGraphQLMutation(
       null, // Don't send response yet
@@ -303,10 +345,13 @@ router.get('/:id/health', async (req, res) => {
       context,
       'test connection for health'
     );
-    
+
     const connection = connectionResult.connection;
-    const connectionTest = testResult?.testConnection || { success: false, error: 'Connection test failed' };
-    
+    const connectionTest = testResult?.testConnection || {
+      success: false,
+      error: 'Connection test failed',
+    };
+
     res.json({
       id: connection.id,
       name: connection.name,
@@ -317,9 +362,9 @@ router.get('/:id/health', async (req, res) => {
       connectionTest: {
         success: connectionTest.success,
         message: connectionTest.message,
-        error: connectionTest.error
+        error: connectionTest.error,
       },
-      lastChecked: new Date().toISOString()
+      lastChecked: new Date().toISOString(),
     });
   } catch (error) {
     handleGraphQLError(res, error, 'connection health check');
@@ -330,47 +375,47 @@ router.get('/:id/health', async (req, res) => {
 router.post('/batch', async (req, res) => {
   const { operation, ids } = req.body;
   const context = createGraphQLContext(req);
-  
+
   if (!['activate', 'deactivate', 'delete', 'test'].includes(operation)) {
     return res.status(400).json({
       success: false,
-      message: 'Invalid batch operation. Allowed: activate, deactivate, delete, test'
+      message: 'Invalid batch operation. Allowed: activate, deactivate, delete, test',
     });
   }
-  
+
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({
       success: false,
-      message: 'IDs array is required for batch operations'
+      message: 'IDs array is required for batch operations',
     });
   }
-  
+
   const results = [];
   const errors = [];
-  
+
   for (const id of ids) {
     try {
       let result;
-      
+
       switch (operation) {
         case 'activate':
         case 'deactivate':
           result = await executeGraphQLMutation(
             null, // Don't send response yet
             CONNECTION_QUERIES.UPDATE,
-            { 
+            {
               id,
-              input: { isActive: operation === 'activate' }
+              input: { isActive: operation === 'activate' },
             },
             context,
             `batch ${operation}`
           );
           results.push({ id, success: true, data: result?.updateConnection });
           break;
-          
+
         case 'delete':
           result = await executeGraphQLMutation(
-            null, // Don't send response yet  
+            null, // Don't send response yet
             CONNECTION_QUERIES.DELETE,
             { id },
             context,
@@ -378,7 +423,7 @@ router.post('/batch', async (req, res) => {
           );
           results.push({ id, success: result?.deleteConnection || false });
           break;
-          
+
         case 'test':
           result = await executeGraphQLMutation(
             null, // Don't send response yet
@@ -387,10 +432,10 @@ router.post('/batch', async (req, res) => {
             context,
             'batch test'
           );
-          results.push({ 
-            id, 
+          results.push({
+            id,
             success: result?.testConnection?.success || false,
-            connectionResult: result?.testConnection
+            connectionResult: result?.testConnection,
           });
           break;
       }
@@ -398,7 +443,7 @@ router.post('/batch', async (req, res) => {
       errors.push({ id, error: error.message });
     }
   }
-  
+
   res.json({
     success: errors.length === 0,
     operation,
@@ -406,7 +451,7 @@ router.post('/batch', async (req, res) => {
     successful: results.filter(r => r.success).length,
     failed: errors.length,
     results,
-    errors
+    errors,
   });
 });
 

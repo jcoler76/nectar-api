@@ -43,9 +43,12 @@ export const useServices = () => {
         setOperationInProgress(prev => ({ ...prev, [`delete-${serviceId}`]: true }));
         const result = await deleteService(serviceId);
         if (result.success) {
-          setServices(prevServices => prevServices.filter(service => service._id !== serviceId));
+          setServices(prevServices => prevServices.filter(service => service.id !== serviceId));
           showNotification('Service deleted successfully', 'success');
           return { success: true };
+        } else {
+          setError('Failed to delete service');
+          return { success: false, error: result.error || 'Delete operation failed' };
         }
       } catch (err) {
         setError('Failed to delete service');
@@ -64,9 +67,9 @@ export const useServices = () => {
   const handleToggleActive = useCallback(
     async service => {
       try {
-        await updateService(service._id, { isActive: !service.isActive });
+        await updateService(service.id, { isActive: !service.isActive });
         setServices(prevServices =>
-          prevServices.map(s => (s._id === service._id ? { ...s, isActive: !service.isActive } : s))
+          prevServices.map(s => (s.id === service.id ? { ...s, isActive: !service.isActive } : s))
         );
         showNotification('Service status updated successfully', 'success');
         return { success: true };
@@ -93,11 +96,11 @@ export const useServices = () => {
           await onConnectionsNeeded();
         }
 
-        const service = services.find(s => s._id === serviceId);
+        const service = services.find(s => s.id === serviceId);
         if (!service) return { success: false };
 
         setServices(prevServices =>
-          prevServices.map(s => (s._id === serviceId ? { ...s, isRefreshing: true } : s))
+          prevServices.map(s => (s.id === serviceId ? { ...s, isRefreshing: true } : s))
         );
 
         const result = await refreshServiceSchema(serviceId);
@@ -129,7 +132,7 @@ export const useServices = () => {
         });
 
         setServices(prevServices =>
-          prevServices.map(s => (s._id === serviceId ? { ...s, isRefreshing: false } : s))
+          prevServices.map(s => (s.id === serviceId ? { ...s, isRefreshing: false } : s))
         );
       }
     },

@@ -18,7 +18,7 @@ const ApplicationFormShadcn = ({ application, onSubmitted, onCancel }) => {
     name: application?.name || '',
     description: application?.description || '',
     apiKey: application?.apiKey || '',
-    defaultRole: application?.defaultRole?._id || '',
+    defaultRole: application?.defaultRole?.id || '',
     isActive: application?.isActive ?? true,
   });
   const [roles, setRoles] = useState([]);
@@ -67,7 +67,7 @@ const ApplicationFormShadcn = ({ application, onSubmitted, onCancel }) => {
       }
 
       if (application) {
-        await updateApplication(application._id, submitData);
+        await updateApplication(application.id, submitData);
       } else {
         await createApplication(submitData);
       }
@@ -186,7 +186,7 @@ const ApplicationFormShadcn = ({ application, onSubmitted, onCancel }) => {
               {roles
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map(role => (
-                  <SelectItem key={role._id} value={role._id}>
+                  <SelectItem key={role.id} value={role.id}>
                     {role.name}
                   </SelectItem>
                 ))}

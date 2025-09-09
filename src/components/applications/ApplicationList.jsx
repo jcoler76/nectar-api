@@ -1,6 +1,16 @@
-import { AlertCircle, Copy, Download, Edit, HelpCircle, Info, Plus, RefreshCw, Trash2 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
 import { Tooltip } from '@mui/material';
+import {
+  AlertCircle,
+  Copy,
+  Download,
+  Edit,
+  HelpCircle,
+  Info,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 
 import { useApplications } from '../../hooks/useApplications';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
@@ -82,8 +92,15 @@ const ApplicationList = () => {
         ),
         className: 'hidden md:table-cell min-w-[200px] w-auto',
         cell: ({ row }) => (
-          <Tooltip title={row.description || 'No description provided - consider adding one to document the application\'s purpose'}>
-            <div className={`text-muted-foreground cursor-help truncate ${!row.description ? 'italic text-gray-400' : ''}`}>
+          <Tooltip
+            title={
+              row.description ||
+              "No description provided - consider adding one to document the application's purpose"
+            }
+          >
+            <div
+              className={`text-muted-foreground cursor-help truncate ${!row.description ? 'italic text-gray-400' : ''}`}
+            >
               {row.description || 'No description'}
             </div>
           </Tooltip>
@@ -102,8 +119,16 @@ const ApplicationList = () => {
         sortable: true,
         className: 'hidden sm:table-cell min-w-[100px] w-auto',
         cell: ({ row }) => (
-          <Tooltip title={row.defaultRole?.name ? `Default role: ${row.defaultRole.name}` : 'No default role assigned - users will have limited access'}>
-            <div className={`font-medium cursor-help ${!row.defaultRole?.name ? 'text-gray-400 italic' : ''}`}>
+          <Tooltip
+            title={
+              row.defaultRole?.name
+                ? `Default role: ${row.defaultRole.name}`
+                : 'No default role assigned - users will have limited access'
+            }
+          >
+            <div
+              className={`font-medium cursor-help ${!row.defaultRole?.name ? 'text-gray-400 italic' : ''}`}
+            >
               {row.defaultRole?.name || 'None'}
             </div>
           </Tooltip>
@@ -131,7 +156,15 @@ const ApplicationList = () => {
               </Badge>
             )}
             <div className="flex items-center gap-1">
-              <Tooltip title={user?.isAdmin ? 'Copy full API key to clipboard (Admin access)' : row.isNewKey ? 'Copy API key to clipboard' : 'Key is masked - only admins can copy existing keys'}>
+              <Tooltip
+                title={
+                  user?.isAdmin
+                    ? 'Copy full API key to clipboard (Admin access)'
+                    : row.isNewKey
+                      ? 'Copy API key to clipboard'
+                      : 'Key is masked - only admins can copy existing keys'
+                }
+              >
                 <Button
                   variant="ghost"
                   size="icon"
@@ -140,7 +173,7 @@ const ApplicationList = () => {
                     // If user is admin, always use reveal (which copies automatically)
                     // If not admin, use the basic copy (only works for new keys)
                     if (user?.isAdmin) {
-                      handleRevealApiKey(row._id);
+                      handleRevealApiKey(row.id);
                     } else {
                       handleCopyApiKey(row.apiKey);
                     }
@@ -158,10 +191,10 @@ const ApplicationList = () => {
                   className="h-6 w-6"
                   onClick={() => {
                     // Prevent multiple rapid clicks
-                    if (operationInProgress[`regenerate-${row._id}`]) {
+                    if (operationInProgress[`regenerate-${row.id}`]) {
                       return;
                     }
-                    handleRegenerateApiKey(row._id);
+                    handleRegenerateApiKey(row.id);
                   }}
                   aria-label="Regenerate API key"
                 >
@@ -185,13 +218,19 @@ const ApplicationList = () => {
         type: 'switch',
         className: 'min-w-[100px] w-auto',
         cell: ({ row, value }) => (
-          <Tooltip title={value ? 'Application is active and accepting API requests' : 'Application is inactive and will reject API requests'}>
+          <Tooltip
+            title={
+              value
+                ? 'Application is active and accepting API requests'
+                : 'Application is inactive and will reject API requests'
+            }
+          >
             <div className="flex items-center gap-2">
               <Switch
                 checked={value}
                 onCheckedChange={() => {
                   // Prevent multiple rapid clicks
-                  if (operationInProgress[`toggle-${row._id}`]) {
+                  if (operationInProgress[`toggle-${row.id}`]) {
                     return;
                   }
                   handleToggleActive(row);
@@ -218,32 +257,35 @@ const ApplicationList = () => {
           {
             label: 'Edit Application',
             icon: Edit,
-            tooltip: 'Modify application name, description, role assignments, and other configuration settings',
+            tooltip:
+              'Modify application name, description, role assignments, and other configuration settings',
             onClick: handleEdit,
           },
           {
             label: 'Regenerate API Key',
             icon: RefreshCw,
-            tooltip: 'Generate a new API key - the current key will be immediately invalidated and all clients must update',
+            tooltip:
+              'Generate a new API key - the current key will be immediately invalidated and all clients must update',
             onClick: application => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`regenerate-${application._id}`]) {
+              if (operationInProgress[`regenerate-${application.id}`]) {
                 return;
               }
-              handleRegenerateApiKey(application._id);
+              handleRegenerateApiKey(application.id);
             },
             separator: true,
           },
           {
             label: 'Delete Application',
             icon: Trash2,
-            tooltip: 'Permanently remove this application - all API keys will be invalidated and cannot be recovered',
+            tooltip:
+              'Permanently remove this application - all API keys will be invalidated and cannot be recovered',
             onClick: application => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`delete-${application._id}`]) {
+              if (operationInProgress[`delete-${application.id}`]) {
                 return;
               }
-              openConfirm(application._id, {
+              openConfirm(application.id, {
                 title: 'Delete Application',
                 message:
                   'Are you sure you want to delete this application? This action cannot be undone.',
@@ -324,7 +366,7 @@ const ApplicationList = () => {
       {/* Mobile Card List */}
       <div className="sm:hidden space-y-3">
         {applications.map(app => (
-          <Card key={app._id}>
+          <Card key={app.id}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -336,7 +378,7 @@ const ApplicationList = () => {
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={!!app.isActive}
-                    onCheckedChange={() => handleToggleActive(app._id, !app.isActive)}
+                    onCheckedChange={() => handleToggleActive(app.id, !app.isActive)}
                     aria-label={app.isActive ? 'Disable application' : 'Enable application'}
                   />
                 </div>
@@ -362,7 +404,7 @@ const ApplicationList = () => {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      user?.isAdmin ? handleRevealApiKey(app._id) : handleCopyApiKey(app.apiKey)
+                      user?.isAdmin ? handleRevealApiKey(app.id) : handleCopyApiKey(app.apiKey)
                     }
                     disabled={!user?.isAdmin && !app.isNewKey && app.apiKey?.includes('�?�')}
                     aria-label={user?.isAdmin ? 'Copy full API key (Admin)' : 'Copy API key'}
@@ -373,8 +415,8 @@ const ApplicationList = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      if (operationInProgress[`regenerate-${app._id}`]) return;
-                      handleRegenerateApiKey(app._id);
+                      if (operationInProgress[`regenerate-${app.id}`]) return;
+                      handleRegenerateApiKey(app.id);
                     }}
                     aria-label="Regenerate API key"
                   >
@@ -392,7 +434,7 @@ const ApplicationList = () => {
                     variant="destructive"
                     size="sm"
                     onClick={() =>
-                      openConfirm(app._id, {
+                      openConfirm(app.id, {
                         title: 'Delete Application',
                         message:
                           'Are you sure you want to delete this application? This action cannot be undone.',

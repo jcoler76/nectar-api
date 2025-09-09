@@ -25,14 +25,14 @@ export const useApplications = () => {
           Description: app.description,
           DefaultRole: app.defaultRole?.name || '',
           Status: app.isActive ? 'Active' : 'Inactive',
-          CreatedAt: formatDate.full(app.createdAt || app.created),
+          CreatedAt: formatDate.full(app.createdAt),
         })),
     },
   });
 
   // Custom toggle that uses isActive field
   const handleToggleActive = async application => {
-    return crud.update(application._id, { isActive: !application.isActive });
+    return crud.update(application.id, { isActive: !application.isActive });
   };
 
   const handleCopyApiKey = useCallback(

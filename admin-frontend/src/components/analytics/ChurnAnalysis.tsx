@@ -7,7 +7,6 @@ import {
   ShieldExclamationIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
-import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
@@ -242,7 +241,7 @@ export default function ChurnAnalysis() {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="p-3 rounded-lg bg-red-100">
-                <TrendingDownIcon className="h-6 w-6 text-red-600" />
+                <ArrowTrendingDownIcon className="h-6 w-6 text-red-600" />
               </div>
               <div className="ml-4 flex-1">
                 <p className="text-sm font-medium text-gray-600">Monthly Churn Rate</p>

@@ -83,6 +83,8 @@ model User {
   notifications     Notification[] @relation("NotificationUser")
   apiActivityLogs   ApiActivityLog[] @relation("ApiActivityUser")
   endpointsCreated  Endpoint[]
+  databaseConnectionsCreated DatabaseConnection[]
+  workflowsCreated  Workflow[]
   
   @@index([email])
   @@index([createdAt])
@@ -195,8 +197,13 @@ model DatabaseConnection {
   isActive         Boolean          @default(true)
   lastTestedAt     DateTime?
   lastTestResult   Boolean?
+  databases        Json?            // Available databases on this server
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+  
+  // Audit fields
+  createdBy        String?          // Made optional for existing records
+  creator          User?            @relation(fields: [createdBy], references: [id])
   
   // Relations
   organizationId   String
@@ -305,6 +312,10 @@ model Workflow {
   runCount         Int          @default(0)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  
+  // Audit fields
+  createdBy        String?      // Made optional for existing records
+  creator          User?        @relation(fields: [createdBy], references: [id])
   
   // Relations
   organizationId   String

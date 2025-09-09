@@ -1,6 +1,16 @@
-import { AlertCircle, CheckCircle, Download, Edit, HelpCircle, Info, Plus, RefreshCw, Trash2 } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo } from 'react';
 import { Tooltip } from '@mui/material';
+import {
+  AlertCircle,
+  CheckCircle,
+  Download,
+  Edit,
+  HelpCircle,
+  Info,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnections } from '../../hooks/useConnections';
@@ -96,7 +106,13 @@ const ServiceList = () => {
         sortable: true,
         width: '15%',
         cell: ({ row }) => (
-          <Tooltip title={row.label ? `Display name: ${row.label}` : 'No label set - consider adding one for better organization'}>
+          <Tooltip
+            title={
+              row.label
+                ? `Display name: ${row.label}`
+                : 'No label set - consider adding one for better organization'
+            }
+          >
             <div className={`cursor-help ${!row.label ? 'text-gray-400 italic' : ''}`}>
               {row.label || 'No label'}
             </div>
@@ -115,8 +131,15 @@ const ServiceList = () => {
         ),
         width: '25%',
         cell: ({ row }) => (
-          <Tooltip title={row.description || 'No description provided - consider adding one to document the service purpose'}>
-            <div className={`text-muted-foreground cursor-help truncate ${!row.description ? 'italic text-gray-400' : ''}`}>
+          <Tooltip
+            title={
+              row.description ||
+              'No description provided - consider adding one to document the service purpose'
+            }
+          >
+            <div
+              className={`text-muted-foreground cursor-help truncate ${!row.description ? 'italic text-gray-400' : ''}`}
+            >
               {row.description || 'No description'}
             </div>
           </Tooltip>
@@ -153,7 +176,13 @@ const ServiceList = () => {
         type: 'switch',
         width: '10%',
         cell: ({ row, value }) => (
-          <Tooltip title={value ? 'Service is active and accessible via API endpoints' : 'Service is inactive and blocked from API access'}>
+          <Tooltip
+            title={
+              value
+                ? 'Service is active and accessible via API endpoints'
+                : 'Service is inactive and blocked from API access'
+            }
+          >
             <div className="flex items-center gap-2">
               <Switch
                 checked={value}
@@ -185,22 +214,23 @@ const ServiceList = () => {
             tooltip: 'Update database schema information to reflect recent structural changes',
             onClick: service => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`refresh-${service._id}`]) {
+              if (operationInProgress[`refresh-${service.id}`]) {
                 return;
               }
-              handleRefreshSchema(service._id, fetchConnections);
+              handleRefreshSchema(service.id, fetchConnections);
             },
           },
           {
             label: 'Delete',
             icon: Trash2,
-            tooltip: 'Permanently remove this service - this action cannot be undone and will break any dependent workflows',
+            tooltip:
+              'Permanently remove this service - this action cannot be undone and will break any dependent workflows',
             onClick: service => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`delete-${service._id}`]) {
+              if (operationInProgress[`delete-${service.id}`]) {
                 return;
               }
-              openConfirm(service._id, {
+              openConfirm(service.id, {
                 title: 'Delete Service',
                 message:
                   'Are you sure you want to delete this service? This action cannot be undone.',
@@ -249,7 +279,9 @@ const ServiceList = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="text-center sm:text-left">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">Services</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
+              Services
+            </h1>
             <Tooltip title="Services are database connections that expose your data through secure API endpoints. Create, manage, and monitor your database integrations here.">
               <Info className="h-5 w-5 text-ocean-600 cursor-help" />
             </Tooltip>

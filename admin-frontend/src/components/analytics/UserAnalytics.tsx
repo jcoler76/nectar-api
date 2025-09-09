@@ -1,9 +1,7 @@
 import {
-  UsersIcon,
   UserPlusIcon,
   ArrowTrendingUpIcon,
   ClockIcon,
-  EyeIcon,
   CalendarDaysIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
@@ -288,7 +286,7 @@ export default function UserAnalytics() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUpIcon className="h-5 w-5" />
+            <ArrowTrendingUpIcon className="h-5 w-5" />
             User Acquisition Details
           </CardTitle>
         </CardHeader>

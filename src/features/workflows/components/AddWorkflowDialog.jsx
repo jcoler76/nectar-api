@@ -1,6 +1,6 @@
+import { Tooltip } from '@mui/material';
 import { HelpCircle } from 'lucide-react';
 import React, { useState } from 'react';
-import { Tooltip } from '@mui/material';
 
 import { Button } from '../../../components/ui/button';
 import {
@@ -42,7 +42,8 @@ const AddWorkflowDialog = ({ open, onClose, onSave }) => {
         <DialogHeader>
           <DialogTitle>Create New Workflow</DialogTitle>
           <DialogDescription>
-            Enter a descriptive name for your new workflow. After creation, you'll be taken to the workflow designer to add nodes and configure automation logic.
+            Enter a descriptive name for your new workflow. After creation, you'll be taken to the
+            workflow designer to add nodes and configure automation logic.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

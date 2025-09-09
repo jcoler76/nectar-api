@@ -15,6 +15,8 @@ import UserManagement from './users/UserManagement'
 import OrganizationManagement from './users/OrganizationManagement'
 import SubscriptionManagement from './users/SubscriptionManagement'
 import BillingDashboard from './billing/BillingDashboard'
+import StripeConfiguration from './billing/StripeConfiguration'
+import TransactionReport from './billing/TransactionReport'
 
 interface DashboardStats {
   totalUsers: number
@@ -231,6 +233,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         
         {/* Billing Pages */}
         {currentPage === '/billing/overview' && <BillingDashboard />}
+        {currentPage === '/billing/transactions' && <TransactionReport />}
+        {currentPage === '/billing/stripe' && <StripeConfiguration />}
         
         {/* Other Pages */}
         {currentPage !== '/dashboard' && 
@@ -240,7 +244,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
          currentPage !== '/users/all' &&
          currentPage !== '/users/organizations' &&
          currentPage !== '/users/subscriptions' &&
-         currentPage !== '/billing/overview' && (
+         currentPage !== '/billing/overview' &&
+         currentPage !== '/billing/transactions' &&
+         currentPage !== '/billing/stripe' && (
           <div className="bg-white rounded-lg shadow p-8">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">{getPageTitle()}</h2>

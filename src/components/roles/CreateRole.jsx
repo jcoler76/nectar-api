@@ -169,7 +169,7 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
               isActive: formData.isActive,
             };
 
-            const result = await updateRole(existingRole._id, updatedRole);
+            const result = await updateRole(existingRole.id, updatedRole);
 
             setRole(prev => ({
               ...prev,
@@ -217,7 +217,7 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
       }
 
       if (mode === 'edit') {
-        await updateRole(existingRole._id, roleData);
+        await updateRole(existingRole.id, roleData);
       } else {
         await createRole(roleData);
       }
@@ -379,7 +379,7 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
                 </SelectTrigger>
                 <SelectContent>
                   {services.map(service => (
-                    <SelectItem key={service._id} value={service._id}>
+                    <SelectItem key={service.id} value={service.id}>
                       {service.name}
                     </SelectItem>
                   ))}
@@ -482,7 +482,7 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
             <TableBody>
               {role.permissions.map((permission, index) => (
                 <TableRow key={`${permission.serviceId}-${permission.objectName}`}>
-                  <TableCell>{services.find(s => s._id === permission.serviceId)?.name}</TableCell>
+                  <TableCell>{services.find(s => s.id === permission.serviceId)?.name}</TableCell>
                   <TableCell>{permission.objectName}</TableCell>
                   <TableCell>
                     {Object.entries(permission.actions)

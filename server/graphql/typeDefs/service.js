@@ -4,6 +4,8 @@ const serviceTypeDefs = gql`
   type Service implements Node {
     id: ID!
     name: String!
+    label: String
+    description: String
     host: String
     port: Int
     database: String!
@@ -13,6 +15,7 @@ const serviceTypeDefs = gql`
     createdBy: User
     failoverHost: String
     connection: Connection
+    objects: JSON
     createdAt: Date!
     updatedAt: Date!
     effectiveHost: String
@@ -36,6 +39,8 @@ const serviceTypeDefs = gql`
 
   input CreateServiceInput {
     name: String!
+    label: String
+    description: String
     host: String
     port: Int
     database: String!
@@ -44,10 +49,13 @@ const serviceTypeDefs = gql`
     isActive: Boolean = true
     failoverHost: String
     connectionId: ID
+    objects: JSON
   }
 
   input UpdateServiceInput {
     name: String
+    label: String
+    description: String
     host: String
     port: Int
     database: String
@@ -56,6 +64,7 @@ const serviceTypeDefs = gql`
     isActive: Boolean
     failoverHost: String
     connectionId: ID
+    objects: JSON
   }
 
   input ServiceFilters {

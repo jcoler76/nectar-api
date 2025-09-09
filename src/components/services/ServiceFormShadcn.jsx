@@ -1,6 +1,6 @@
+import { Tooltip } from '@mui/material';
 import { HelpCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Tooltip } from '@mui/material';
 
 import { getConnectionDatabases, getConnections } from '../../services/connectionService';
 import { createService, updateService, refreshServiceSchema } from '../../services/serviceService';
@@ -108,7 +108,7 @@ const ServiceFormShadcn = ({ service, onServiceSubmitted, onCancel }) => {
     setSuccess('');
     try {
       if (service) {
-        await updateService(service._id, formData);
+        await updateService(service.id, formData);
         onServiceSubmitted();
       } else {
         // Create the service first
@@ -117,7 +117,7 @@ const ServiceFormShadcn = ({ service, onServiceSubmitted, onCancel }) => {
         // Automatically refresh schema for the newly created service
         try {
           setSuccess('Service created successfully. Refreshing schema...');
-          const schemaResult = await refreshServiceSchema(createdService._id);
+          const schemaResult = await refreshServiceSchema(createdService.id);
           setSuccess(
             `Service created and schema refreshed: ${schemaResult.objectCount.total} objects found (${schemaResult.objectCount.tables} tables, ${schemaResult.objectCount.views} views, ${schemaResult.objectCount.procedures} procedures)`
           );
@@ -219,7 +219,7 @@ const ServiceFormShadcn = ({ service, onServiceSubmitted, onCancel }) => {
           </SelectTrigger>
           <SelectContent>
             {connections.map(c => (
-              <SelectItem key={c._id} value={c._id}>
+              <SelectItem key={c.id} value={c.id}>
                 {c.name} ({c.host})
               </SelectItem>
             ))}

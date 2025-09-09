@@ -21,17 +21,17 @@ const serviceResolvers = {
       const service = await prisma.service.findFirst({
         where: {
           id,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           connection: true,
           roles: {
-            where: { isActive: true }
-          }
-        }
+            where: { isActive: true },
+          },
+        },
       });
 
       if (!service) {
@@ -59,7 +59,7 @@ const serviceResolvers = {
 
       // Build where clause for filters
       const where = {
-        organizationId: currentUser.organizationId
+        organizationId: currentUser.organizationId,
       };
 
       if (filters.isActive !== undefined) where.isActive = filters.isActive;
@@ -70,12 +70,12 @@ const serviceResolvers = {
         where.host = { contains: filters.host, mode: 'insensitive' };
       }
       if (filters.createdBy) where.createdBy = filters.createdBy;
-      
+
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
           { database: { contains: filters.search, mode: 'insensitive' } },
-          { host: { contains: filters.search, mode: 'insensitive' } }
+          { host: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -90,17 +90,17 @@ const serviceResolvers = {
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           connection: true,
           roles: {
             where: { isActive: true },
-            select: { id: true, name: true }
+            select: { id: true, name: true },
           },
           _count: {
-            select: { roles: true }
-          }
-        }
+            select: { roles: true },
+          },
+        },
       });
 
       return {
@@ -147,10 +147,10 @@ const serviceResolvers = {
           const connection = await prisma.databaseConnection.findFirst({
             where: {
               id: connectionId,
-              organizationId: currentUser.organizationId
-            }
+              organizationId: currentUser.organizationId,
+            },
           });
-          
+
           if (!connection) {
             throw new UserInputError('Associated connection not found');
           }
@@ -171,17 +171,17 @@ const serviceResolvers = {
           data: serviceData,
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: true,
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Service created via GraphQL', {
           serviceId: service.id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return service;
@@ -202,8 +202,8 @@ const serviceResolvers = {
         const existingService = await prisma.service.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingService) {
@@ -222,17 +222,17 @@ const serviceResolvers = {
           data: updateData,
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: true,
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Service updated via GraphQL', {
           serviceId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return service;
@@ -253,8 +253,8 @@ const serviceResolvers = {
         const existingService = await prisma.service.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingService) {
@@ -262,19 +262,21 @@ const serviceResolvers = {
         }
 
         await prisma.service.delete({
-          where: { id }
+          where: { id },
         });
 
         logger.info('Service deleted via GraphQL', {
           serviceId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return true;
       } catch (error) {
         if (error.code === 'P2003') {
-          throw new UserInputError('Cannot delete service: it has dependent records (roles, endpoints, etc.)');
+          throw new UserInputError(
+            'Cannot delete service: it has dependent records (roles, endpoints, etc.)'
+          );
         }
         logger.error('GraphQL service deletion error', { error: error.message, serviceId: id });
         return false;
@@ -288,11 +290,11 @@ const serviceResolvers = {
         const service = await prisma.service.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
+            organizationId: currentUser.organizationId,
           },
           include: {
-            connection: true
-          }
+            connection: true,
+          },
         });
 
         if (!service) throw new UserInputError('Service not found');
@@ -302,7 +304,7 @@ const serviceResolvers = {
           host: service.host,
           port: service.port,
           database: service.database,
-          username: service.username
+          username: service.username,
         };
 
         // Decrypt password if exists
@@ -312,7 +314,7 @@ const serviceResolvers = {
           } catch (decryptError) {
             return {
               success: false,
-              error: 'Failed to decrypt service password'
+              error: 'Failed to decrypt service password',
             };
           }
         }
@@ -323,27 +325,29 @@ const serviceResolvers = {
             ...connectionConfig,
             host: service.connection.host,
             port: service.connection.port,
-            username: service.connection.username
+            username: service.connection.username,
           };
 
           if (service.connection.passwordEncrypted) {
             try {
-              connectionConfig.password = decryptDatabasePassword(service.connection.passwordEncrypted);
+              connectionConfig.password = decryptDatabasePassword(
+                service.connection.passwordEncrypted
+              );
             } catch (decryptError) {
               return {
                 success: false,
-                error: 'Failed to decrypt connection password'
+                error: 'Failed to decrypt connection password',
               };
             }
           }
         }
 
         const result = await databaseService.testConnection(connectionConfig);
-        
+
         logger.info('Service connection tested via GraphQL', {
           serviceId: id,
           userId: currentUser.userId,
-          success: result.success
+          success: result.success,
         });
 
         return {
@@ -363,38 +367,54 @@ const serviceResolvers = {
 
   Service: {
     // Resolver for createdBy field - ensures user info is populated
-    createdBy: async (service) => {
+    createdBy: async service => {
       if (service.creator) return service.creator;
-      
+
       if (!service.createdBy) return null;
-      
+
       return await prisma.user.findUnique({
         where: { id: service.createdBy },
-        select: { id: true, email: true, firstName: true, lastName: true }
+        select: { id: true, email: true, firstName: true, lastName: true },
       });
     },
 
-    // Resolver for connection field - ensures connection info is populated  
-    connection: async (service) => {
+    // Resolver for connection field - ensures connection info is populated
+    connection: async service => {
       if (service.connection) return service.connection;
-      
+
       if (!service.connectionId) return null;
-      
+
       return await prisma.databaseConnection.findUnique({
-        where: { id: service.connectionId }
+        where: { id: service.connectionId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          host: true,
+          port: true,
+          username: true,
+          passwordEncrypted: true,
+          sslEnabled: true,
+          databases: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
     },
 
     // Resolver for effectiveHost field - returns the actual host being used
-    effectiveHost: async (service) => {
+    effectiveHost: async service => {
       // If service uses a connection, return connection's host
       if (service.connectionId) {
-        const connection = service.connection || await prisma.databaseConnection.findUnique({
-          where: { id: service.connectionId }
-        });
+        const connection =
+          service.connection ||
+          (await prisma.databaseConnection.findUnique({
+            where: { id: service.connectionId },
+          }));
         return connection?.host || service.host;
       }
-      
+
       // Otherwise return service's own host
       return service.host;
     },

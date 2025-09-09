@@ -3,27 +3,27 @@ echo ===== Nectar API Development Environment =====
 
 echo Checking for processes on development ports...
 :: Find and kill process on port 3000
-FOR /F "tokens=5" %%P IN ('netstat -ano ^| findstr :3000 ^| findstr LISTENING') DO (
-    echo Killing process with PID %%P on port 3000
-    taskkill /F /PID %%P >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3000.*LISTENING"') do (
+    echo Killing process %%a on port 3000
+    taskkill /PID %%a /F >nul 2>&1
 )
 
 :: Find and kill process on port 3001
-FOR /F "tokens=5" %%P IN ('netstat -ano ^| findstr :3001 ^| findstr LISTENING') DO (
-    echo Killing process with PID %%P on port 3001
-    taskkill /F /PID %%P >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3001.*LISTENING"') do (
+    echo Killing process %%a on port 3001
+    taskkill /PID %%a /F >nul 2>&1
 )
 
 :: Find and kill process on port 3002
-FOR /F "tokens=5" %%P IN ('netstat -ano ^| findstr :3002 ^| findstr LISTENING') DO (
-    echo Killing process with PID %%P on port 3002
-    taskkill /F /PID %%P >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3002.*LISTENING"') do (
+    echo Killing process %%a on port 3002
+    taskkill /PID %%a /F >nul 2>&1
 )
 
 :: Find and kill process on port 3003
-FOR /F "tokens=5" %%P IN ('netstat -ano ^| findstr :3003 ^| findstr LISTENING') DO (
-    echo Killing process with PID %%P on port 3003
-    taskkill /F /PID %%P >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3003.*LISTENING"') do (
+    echo Killing process %%a on port 3003
+    taskkill /PID %%a /F >nul 2>&1
 )
 
 echo Creating environment files...

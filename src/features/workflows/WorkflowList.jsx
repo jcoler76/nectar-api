@@ -1,6 +1,6 @@
+import { Tooltip } from '@mui/material';
 import { Copy, Edit, HelpCircle, Info, Plus, Trash2, Workflow } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Tooltip } from '@mui/material';
 
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -51,10 +51,12 @@ const WorkflowList = () => {
         sortable: true,
         width: '30%',
         cell: ({ row }) => (
-          <Tooltip title={`Click to edit workflow: ${row.name}. This will open the workflow designer where you can modify nodes, connections, and automation logic.`}>
+          <Tooltip
+            title={`Click to edit workflow: ${row.name}. This will open the workflow designer where you can modify nodes, connections, and automation logic.`}
+          >
             <div
               className="font-medium cursor-pointer hover:text-primary"
-              onClick={() => handleEdit(row._id)}
+              onClick={() => handleEdit(row.id)}
             >
               {row.name}
             </div>
@@ -62,7 +64,7 @@ const WorkflowList = () => {
         ),
       },
       {
-        accessorKey: 'active',
+        accessorKey: 'isActive',
         header: (
           <div className="flex items-center gap-1">
             Status
@@ -73,9 +75,15 @@ const WorkflowList = () => {
         ),
         width: '15%',
         cell: ({ row }) => (
-          <Tooltip title={row.active ? 'Workflow is active and will execute when triggered by events or schedules' : 'Workflow is inactive and paused. It will not run until activated again.'}>
-            <Badge variant={row.active ? 'active' : 'inactive'} className="text-xs cursor-help">
-              {row.active ? 'Active' : 'Inactive'}
+          <Tooltip
+            title={
+              row.isActive
+                ? 'Workflow is active and will execute when triggered by events or schedules'
+                : 'Workflow is inactive and paused. It will not run until activated again.'
+            }
+          >
+            <Badge variant={row.isActive ? 'active' : 'inactive'} className="text-xs cursor-help">
+              {row.isActive ? 'Active' : 'Inactive'}
             </Badge>
           </Tooltip>
         ),
@@ -92,8 +100,12 @@ const WorkflowList = () => {
         ),
         width: '15%',
         cell: ({ row }) => (
-          <Tooltip title={`This workflow contains ${row.nodes?.length || 0} nodes. ${row.nodes?.length === 0 ? 'Empty workflows need nodes to function properly.' : 'Each node performs a specific action or decision in the automation process.'}`}>
-            <span className="text-sm text-muted-foreground cursor-help">{row.nodes?.length || 0}</span>
+          <Tooltip
+            title={`This workflow contains ${row.nodes?.length || 0} nodes. ${row.nodes?.length === 0 ? 'Empty workflows need nodes to function properly.' : 'Each node performs a specific action or decision in the automation process.'}`}
+          >
+            <span className="text-sm text-muted-foreground cursor-help">
+              {row.nodes?.length || 0}
+            </span>
           </Tooltip>
         ),
       },
@@ -109,8 +121,12 @@ const WorkflowList = () => {
         ),
         width: '25%',
         cell: ({ row }) => (
-          <Tooltip title={`Workflow last modified: ${formatDate.full(row.updatedAt)}. This includes any changes to nodes, connections, settings, or activation status.`}>
-            <span className="text-sm text-muted-foreground cursor-help">{formatDate.full(row.updatedAt)}</span>
+          <Tooltip
+            title={`Workflow last modified: ${formatDate.full(row.updatedAt)}. This includes any changes to nodes, connections, settings, or activation status.`}
+          >
+            <span className="text-sm text-muted-foreground cursor-help">
+              {formatDate.full(row.updatedAt)}
+            </span>
           </Tooltip>
         ),
       },
@@ -123,31 +139,34 @@ const WorkflowList = () => {
           {
             label: 'Edit Workflow',
             icon: Edit,
-            tooltip: 'Open the workflow designer to modify nodes, connections, triggers, and automation logic. You can add, remove, or reconfigure workflow steps.',
-            onClick: workflow => handleEdit(workflow._id),
+            tooltip:
+              'Open the workflow designer to modify nodes, connections, triggers, and automation logic. You can add, remove, or reconfigure workflow steps.',
+            onClick: workflow => handleEdit(workflow.id),
           },
           {
             label: 'Duplicate Workflow',
             icon: Copy,
-            tooltip: 'Create an exact copy of this workflow with all nodes and connections. The copy will be inactive by default and can be modified independently.',
+            tooltip:
+              'Create an exact copy of this workflow with all nodes and connections. The copy will be inactive by default and can be modified independently.',
             onClick: workflow => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`duplicate-${workflow._id}`]) {
+              if (operationInProgress[`duplicate-${workflow.id}`]) {
                 return;
               }
-              handleDuplicate(workflow._id);
+              handleDuplicate(workflow.id);
             },
           },
           {
             label: 'Delete Workflow',
             icon: Trash2,
-            tooltip: 'Permanently remove this workflow and all its nodes, connections, and execution history. This action cannot be undone and will stop all future executions.',
+            tooltip:
+              'Permanently remove this workflow and all its nodes, connections, and execution history. This action cannot be undone and will stop all future executions.',
             onClick: workflow => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`delete-${workflow._id}`]) {
+              if (operationInProgress[`delete-${workflow.id}`]) {
                 return;
               }
-              openConfirm(workflow._id, {
+              openConfirm(workflow.id, {
                 title: 'Delete Workflow',
                 message:
                   'Are you sure you want to delete this workflow? This action cannot be undone.',
