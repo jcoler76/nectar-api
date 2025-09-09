@@ -1,37 +1,52 @@
 /**
  * Comprehensive Input Validation Utility
- * Prevents MongoDB injection, XSS, and other input-based attacks
+ * Prevents SQL injection, XSS, and other input-based attacks
  */
 
-const mongoose = require('mongoose');
 const validator = require('validator');
 
 class InputValidator {
   /**
-   * Validate MongoDB ObjectId
+   * Validate UUID (used in PostgreSQL)
    * @param {string} id - The ID to validate
-   * @returns {boolean} - True if valid ObjectId
+   * @returns {boolean} - True if valid UUID
    */
-  static isValidObjectId(id) {
+  static isValidUUID(id) {
     if (!id || typeof id !== 'string') {
       return false;
     }
 
-    // Check if it's a valid MongoDB ObjectId format
-    return mongoose.Types.ObjectId.isValid(id) && /^[0-9a-fA-F]{24}$/.test(id);
+    // Check if it's a valid UUID format (v4)
+    return validator.isUUID(id);
   }
 
   /**
-   * Validate and sanitize ObjectId parameter
+   * Validate and sanitize UUID parameter
    * @param {string} id - The ID to validate
    * @param {string} paramName - Name of the parameter for error messages
-   * @returns {string} - Valid ObjectId or throws error
+   * @returns {string} - Valid UUID or throws error
    */
-  static validateObjectId(id, paramName = 'id') {
-    if (!this.isValidObjectId(id)) {
+  static validateUUID(id, paramName = 'id') {
+    if (!this.isValidUUID(id)) {
       throw new Error(`Invalid ${paramName} format`);
     }
     return id;
+  }
+
+  /**
+   * Legacy alias for backwards compatibility
+   * @deprecated Use validateUUID instead
+   */
+  static isValidObjectId(id) {
+    return this.isValidUUID(id);
+  }
+
+  /**
+   * Legacy alias for backwards compatibility
+   * @deprecated Use validateUUID instead
+   */
+  static validateObjectId(id, paramName = 'id') {
+    return this.validateUUID(id, paramName);
   }
 
   /**
@@ -95,8 +110,8 @@ class InputValidator {
       throw new Error(`${fieldName} contains invalid HTML content`);
     }
 
-    // Check for potential MongoDB injection
-    if (this.containsMongoInjection(sanitized)) {
+    // Check for potential SQL injection
+    if (this.containsSQLInjection(sanitized)) {
       throw new Error(`${fieldName} contains invalid characters`);
     }
 
@@ -276,46 +291,39 @@ class InputValidator {
   }
 
   /**
-   * Check if string contains potential MongoDB injection
+   * Check if string contains potential SQL injection
    * @param {string} str - String to check
    * @returns {boolean} - True if potentially malicious
    */
-  static containsMongoInjection(str) {
-    // Check for MongoDB operators and JavaScript
-    const mongoPatterns = [
-      /\$where/i,
-      /\$regex/i,
-      /\$ne/i,
-      /\$gt/i,
-      /\$lt/i,
-      /\$in/i,
-      /\$nin/i,
-      /\$or/i,
-      /\$and/i,
-      /\$not/i,
-      /\$nor/i,
-      /\$exists/i,
-      /\$type/i,
-      /\$mod/i,
-      /\$all/i,
-      /\$size/i,
-      /\$elemMatch/i,
-      /function\s*\(/i,
-      /javascript:/i,
-      /eval\s*\(/i,
-      /setTimeout/i,
-      /setInterval/i,
+  static containsSQLInjection(str) {
+    // Check for SQL injection patterns
+    const sqlPatterns = [
+      /(union|select|insert|delete|drop|create|alter|exec|execute|sp_|xp_)/i,
+      /(\b(and|or)\b\s*\d+\s*=\s*\d+)/i,
+      /(\b(and|or)\b\s*['"])/i,
+      /(script|javascript|vbscript|onload|onerror)/i,
+      /(<|%3C)(script|iframe|object|embed)/i,
+      /('|(\\'))|(;|(%3B))/i,
+      /((-|(%2D)){2})|(\+|(%2B))/i,
     ];
 
-    return mongoPatterns.some(pattern => pattern.test(str));
+    return sqlPatterns.some(pattern => pattern.test(str));
   }
 
   /**
-   * Sanitize object for MongoDB queries
+   * Legacy alias for backwards compatibility
+   * @deprecated Use containsSQLInjection instead
+   */
+  static containsMongoInjection(str) {
+    return this.containsSQLInjection(str);
+  }
+
+  /**
+   * Sanitize object for SQL queries
    * @param {object} obj - Object to sanitize
    * @returns {object} - Sanitized object
    */
-  static sanitizeMongoQuery(obj) {
+  static sanitizeSQLQuery(obj) {
     if (!obj || typeof obj !== 'object') {
       return {};
     }
@@ -323,19 +331,19 @@ class InputValidator {
     const sanitized = {};
 
     for (const [key, value] of Object.entries(obj)) {
-      // Skip MongoDB operators
-      if (key.startsWith('$')) {
-        continue;
-      }
-
-      // Validate key
-      if (typeof key !== 'string' || key.length > 100) {
+      // Validate key - must be alphanumeric with underscores only
+      if (
+        !key ||
+        typeof key !== 'string' ||
+        key.length > 100 ||
+        !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)
+      ) {
         continue;
       }
 
       // Sanitize value based on type
       if (typeof value === 'string') {
-        if (!this.containsMongoInjection(value)) {
+        if (!this.containsSQLInjection(value)) {
           sanitized[key] = value;
         }
       } else if (typeof value === 'number' || typeof value === 'boolean') {
@@ -347,6 +355,14 @@ class InputValidator {
     }
 
     return sanitized;
+  }
+
+  /**
+   * Legacy alias for backwards compatibility
+   * @deprecated Use sanitizeSQLQuery instead
+   */
+  static sanitizeMongoQuery(obj) {
+    return this.sanitizeSQLQuery(obj);
   }
 
   /**

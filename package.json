@@ -16,6 +16,8 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.5",
+    "@stripe/react-stripe-js": "^2.4.0",
+    "@stripe/stripe-js": "^2.4.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -48,6 +50,7 @@
     "react-ace": "^14.0.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.60.0",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^6.11.1",
     "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.6.1",
@@ -62,9 +65,7 @@
     "vm-browserify": "^1.1.2",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5",
-    "zustand": "^5.0.5",
-    "@stripe/stripe-js": "^2.4.0",
-    "@stripe/react-stripe-js": "^2.4.0"
+    "zustand": "^5.0.5"
   },
   "scripts": {
     "start": "react-app-rewired start",
@@ -104,8 +105,7 @@
     "security:review": "echo '🔒 Security review integration configured - manual review required for critical changes'",
     "runtime:remind": "echo '⚠️  REMINDER: If you modified React components or workflow panels, verify runtime functionality with npm start' && echo 'See CLAUDE.md Runtime Testing Requirements for details'",
     "quality:fix": "npm run lint:fix && npm run format",
-    "prepare": "husky"
-    ,
+    "prepare": "husky",
     "prisma:generate": "npx prisma generate --schema prisma/schema.prisma",
     "prisma:push": "npx prisma db push --schema prisma/schema.prisma",
     "prisma:studio": "npx prisma studio --schema prisma/schema.prisma"
@@ -178,5 +178,3 @@
     ]
   }
 }
-
-

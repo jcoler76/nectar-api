@@ -56,11 +56,7 @@ const mountRoutes = app => {
 
   // Marketing billing (public): Stripe checkout + webhook
   // No auth or CSRF; webhook uses signature verification
-  app.use(
-    '/api/checkout',
-    (req, res, next) => next(),
-    require('./marketingBilling')
-  );
+  app.use('/api/checkout', (req, res, next) => next(), require('./marketingBilling'));
 
   // Public routes (no auth required) - apply stricter rate limiting
   // Temporarily using Prisma-based auth routes
@@ -71,8 +67,12 @@ const mountRoutes = app => {
 
   // JWT protected routes (require login) with CSRF protection
   app.use('/api/users', authMiddleware, csrfProtection(csrfOptions), require('./users'));
-  // Temporarily disabled until auth is working
-  // app.use('/api/organizations', authMiddleware, csrfProtection(csrfOptions), require('./organizations'));
+  app.use(
+    '/api/organizations',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./organizations')
+  );
   app.use('/api/roles', authMiddleware, csrfProtection(csrfOptions), require('./roles'));
   app.use(
     '/api/applications',
@@ -114,7 +114,7 @@ const mountRoutes = app => {
   //   csrfProtection(csrfOptions),
   //   require('./endpoints')
   // );
-  // Reports route - Updated for Prisma  
+  // Reports route - Updated for Prisma
   app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
   app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
   // Temporarily disabled during MongoDB to Prisma migration - documentation route
@@ -177,6 +177,20 @@ const mountRoutes = app => {
     authMiddleware,
     csrfProtection(csrfOptions),
     require('./notifications')
+  );
+
+  // User invitation system (with conditional auth for public endpoints)
+  app.use(
+    '/api/invitations',
+    (req, res, next) => {
+      // Public endpoints for invitation validation and acceptance
+      if (req.path.match(/^\/validate\//) || req.path === '/accept') {
+        return next();
+      }
+      // All other endpoints require authentication
+      return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+    },
+    require('./invitations')
   );
 
   // Freemium limits and usage tracking

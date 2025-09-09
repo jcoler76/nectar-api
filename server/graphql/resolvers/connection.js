@@ -30,17 +30,17 @@ const connectionResolvers = {
       const connection = await prisma.databaseConnection.findFirst({
         where: {
           id,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           organization: true,
           services: {
-            select: { id: true, name: true, database: true }
-          }
-        }
+            select: { id: true, name: true, database: true },
+          },
+        },
       });
 
       if (!connection) {
@@ -66,7 +66,7 @@ const connectionResolvers = {
 
       // Build where clause for filters
       const where = {
-        organizationId: currentUser.organizationId
+        organizationId: currentUser.organizationId,
       };
 
       if (filters.isActive !== undefined) where.isActive = filters.isActive;
@@ -75,12 +75,12 @@ const connectionResolvers = {
         where.host = { contains: filters.host, mode: 'insensitive' };
       }
       if (filters.createdBy) where.createdBy = filters.createdBy;
-      
+
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
           { host: { contains: filters.search, mode: 'insensitive' } },
-          { username: { contains: filters.search, mode: 'insensitive' } }
+          { username: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -95,15 +95,15 @@ const connectionResolvers = {
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           services: {
-            select: { id: true, name: true, database: true }
+            select: { id: true, name: true, database: true },
           },
           _count: {
-            select: { services: true }
-          }
-        }
+            select: { services: true },
+          },
+        },
       });
 
       return {
@@ -140,10 +140,13 @@ const connectionResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        const { name, type, host, port, username, password, database, sslEnabled, ...otherData } = input;
+        const { name, type, host, port, username, password, database, sslEnabled, isActive } =
+          input;
 
         if (!name || !type || !host || !port || !username || !password) {
-          throw new UserInputError('Missing required fields: name, type, host, port, username, password');
+          throw new UserInputError(
+            'Missing required fields: name, type, host, port, username, password'
+          );
         }
 
         // Test connection first
@@ -154,7 +157,7 @@ const connectionResolvers = {
           username,
           password,
           database,
-          sslEnabled
+          sslEnabled,
         };
 
         const testResult = await DatabaseService.testConnection(connectionConfig);
@@ -165,7 +168,7 @@ const connectionResolvers = {
 
         // Encrypt password and create connection
         const passwordEncrypted = encryptDatabasePassword(password);
-        
+
         const connection = await prisma.databaseConnection.create({
           data: {
             name,
@@ -176,16 +179,16 @@ const connectionResolvers = {
             database,
             passwordEncrypted,
             sslEnabled: sslEnabled || false,
+            isActive: isActive !== undefined ? isActive : true,
             organizationId: currentUser.organizationId,
             createdBy: currentUser.userId,
-            ...otherData,
           },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         // Try to fetch and save the database list
@@ -193,7 +196,7 @@ const connectionResolvers = {
           const dbs = await getDatabaseList(connection);
           await prisma.databaseConnection.update({
             where: { id: connection.id },
-            data: { databases: dbs }
+            data: { databases: dbs },
           });
         } catch (dbError) {
           logger.error(
@@ -204,7 +207,7 @@ const connectionResolvers = {
         logger.info('Database connection created via GraphQL', {
           connectionId: connection.id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return connection;
@@ -225,26 +228,38 @@ const connectionResolvers = {
         const existingConnection = await prisma.databaseConnection.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingConnection) {
           throw new UserInputError('Connection not found');
         }
 
-        const { password, ...updateData } = input;
+        const { password, name, type, host, port, username, database, sslEnabled, isActive } =
+          input;
+
+        // Build updateData with only valid Prisma fields
+        const updateData = {};
+        if (name !== undefined) updateData.name = name;
+        if (type !== undefined) updateData.type = type;
+        if (host !== undefined) updateData.host = host;
+        if (port !== undefined) updateData.port = port;
+        if (username !== undefined) updateData.username = username;
+        if (database !== undefined) updateData.database = database;
+        if (sslEnabled !== undefined) updateData.sslEnabled = sslEnabled;
+        if (isActive !== undefined) updateData.isActive = isActive;
 
         // If password or connection details are being updated, test the connection first
-        if (password || updateData.host || updateData.port || updateData.username || updateData.type) {
+        if (password || host || port || username || type) {
           const connectionConfig = {
-            type: updateData.type || existingConnection.type,
-            host: updateData.host || existingConnection.host,
-            port: updateData.port || existingConnection.port,
-            username: updateData.username || existingConnection.username,
-            database: updateData.database || existingConnection.database,
-            sslEnabled: updateData.sslEnabled !== undefined ? updateData.sslEnabled : existingConnection.sslEnabled,
-            password: password || existingConnection.passwordEncrypted
+            type: type || existingConnection.type,
+            host: host || existingConnection.host,
+            port: port || existingConnection.port,
+            username: username || existingConnection.username,
+            database: database || existingConnection.database,
+            sslEnabled: sslEnabled !== undefined ? sslEnabled : existingConnection.sslEnabled,
+            password: password || existingConnection.passwordEncrypted,
           };
 
           const testResult = await DatabaseService.testConnection(connectionConfig);
@@ -253,8 +268,10 @@ const connectionResolvers = {
             throw new UserInputError(`Connection test failed: ${testResult.error}`);
           }
 
-          // Encrypt the new password
-          updateData.passwordEncrypted = encryptDatabasePassword(password);
+          // Encrypt the new password if provided
+          if (password) {
+            updateData.passwordEncrypted = encryptDatabasePassword(password);
+          }
         }
 
         const connection = await prisma.databaseConnection.update({
@@ -262,16 +279,16 @@ const connectionResolvers = {
           data: updateData,
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Database connection updated via GraphQL', {
           connectionId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return connection;
@@ -292,8 +309,8 @@ const connectionResolvers = {
         const existingConnection = await prisma.databaseConnection.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingConnection) {
@@ -303,9 +320,9 @@ const connectionResolvers = {
         // Check if any services depend on this connection
         const dependentServices = await prisma.service.findMany({
           where: { connectionId: id },
-          select: { id: true, name: true }
+          select: { id: true, name: true },
         });
-        
+
         if (dependentServices.length > 0) {
           throw new UserInputError(
             `Cannot delete connection. ${dependentServices.length} service(s) depend on it: ${dependentServices.map(s => s.name).join(', ')}`
@@ -317,7 +334,7 @@ const connectionResolvers = {
         logger.info('Database connection deleted via GraphQL', {
           connectionId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return true;
@@ -325,7 +342,10 @@ const connectionResolvers = {
         if (error.code === 'P2003') {
           throw new UserInputError('Cannot delete connection: it has dependent records');
         }
-        logger.error('GraphQL connection deletion error', { error: error.message, connectionId: id });
+        logger.error('GraphQL connection deletion error', {
+          error: error.message,
+          connectionId: id,
+        });
         return false;
       }
     },
@@ -338,8 +358,8 @@ const connectionResolvers = {
         const connection = await prisma.databaseConnection.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!connection) {
@@ -354,15 +374,15 @@ const connectionResolvers = {
           username: connection.username,
           database: connection.database,
           sslEnabled: connection.sslEnabled,
-          password: connection.passwordEncrypted
+          password: connection.passwordEncrypted,
         };
 
         const result = await DatabaseService.testStoredConnection(connection);
-        
+
         logger.info('Database connection tested via GraphQL', {
           connectionId: id,
           userId: currentUser.userId,
-          success: result.success
+          success: result.success,
         });
 
         return {
@@ -384,11 +404,11 @@ const connectionResolvers = {
 
       try {
         const result = await DatabaseService.testConnection(input);
-        
+
         logger.info('Temporary database connection tested via GraphQL', {
           userId: currentUser.userId,
           success: result.success,
-          type: input.type
+          type: input.type,
         });
 
         // If connection successful and it supports database listing, get databases
@@ -397,11 +417,14 @@ const connectionResolvers = {
           try {
             const connectionForDatabases = {
               ...input,
-              passwordEncrypted: input.password  // For getDatabaseList compatibility
+              passwordEncrypted: input.password, // For getDatabaseList compatibility
             };
             databases = await getDatabaseList(connectionForDatabases);
           } catch (dbError) {
-            logger.warn('Could not fetch database list during temp connection test:', dbError.message);
+            logger.warn(
+              'Could not fetch database list during temp connection test:',
+              dbError.message
+            );
           }
         }
 
@@ -409,7 +432,7 @@ const connectionResolvers = {
           success: result.success || false,
           message: result.message,
           error: result.error,
-          databases
+          databases,
         };
       } catch (error) {
         logger.error('GraphQL temporary connection test error', { error: error.message, input });
@@ -428,8 +451,8 @@ const connectionResolvers = {
         const connection = await prisma.databaseConnection.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!connection) {
@@ -438,26 +461,26 @@ const connectionResolvers = {
 
         // Fetch database list
         const databases = await getDatabaseList(connection);
-        
+
         // Update the connection with the new database list
         const updatedConnection = await prisma.databaseConnection.update({
           where: { id },
           data: { databases },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             organization: true,
             services: {
-              select: { id: true, name: true, database: true }
-            }
-          }
+              select: { id: true, name: true, database: true },
+            },
+          },
         });
 
         logger.info('Database list refreshed via GraphQL', {
           connectionId: id,
           userId: currentUser.userId,
-          databaseCount: databases.length
+          databaseCount: databases.length,
         });
 
         return updatedConnection;
@@ -475,8 +498,8 @@ const connectionResolvers = {
         const connection = await prisma.databaseConnection.findFirst({
           where: {
             id: connectionId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!connection) {
@@ -490,34 +513,34 @@ const connectionResolvers = {
           username: connection.username,
           password: connection.passwordEncrypted,
           database: connection.database,
-          sslEnabled: connection.sslEnabled
+          sslEnabled: connection.sslEnabled,
         };
 
         const columns = await DatabaseService.getTableColumns(connectionConfig, database, table);
-        
+
         logger.info('Table columns retrieved via GraphQL', {
           connectionId,
           database,
           table,
           userId: currentUser.userId,
-          columnCount: columns.length
+          columnCount: columns.length,
         });
 
         return {
           success: true,
-          columns
+          columns,
         };
       } catch (error) {
-        logger.error('GraphQL get table columns error', { 
-          error: error.message, 
-          connectionId, 
-          database, 
-          table 
+        logger.error('GraphQL get table columns error', {
+          error: error.message,
+          connectionId,
+          database,
+          table,
         });
-        
+
         return {
           success: false,
-          error: error.message
+          error: error.message,
         };
       }
     },
@@ -525,14 +548,14 @@ const connectionResolvers = {
 
   Connection: {
     // Resolver for createdBy field - ensures user info is populated
-    createdBy: async (connection) => {
+    createdBy: async connection => {
       if (connection.creator) return connection.creator;
-      
+
       if (!connection.createdBy) return null;
-      
+
       return await prisma.user.findUnique({
         where: { id: connection.createdBy },
-        select: { id: true, email: true, firstName: true, lastName: true }
+        select: { id: true, email: true, firstName: true, lastName: true },
       });
     },
 
@@ -544,13 +567,19 @@ const connectionResolvers = {
     },
 
     // Resolver for services using this connection
-    services: async (connection) => {
+    services: async connection => {
       if (connection.services) return connection.services;
-      
+
       return await prisma.service.findMany({
         where: { connectionId: connection.id },
-        select: { id: true, name: true, database: true }
+        select: { id: true, name: true, database: true },
       });
+    },
+
+    // Resolver for databases - returns stored database list or empty array
+    databases: async connection => {
+      // Return the stored databases list from the JSON field, or empty array if null
+      return connection.databases || [];
     },
   },
 };

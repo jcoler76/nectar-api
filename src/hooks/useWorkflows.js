@@ -37,7 +37,7 @@ export const useWorkflows = () => {
         showNotification('Workflow created successfully!', 'success');
         await fetchWorkflows();
         // Redirect to the new builder page for the created workflow
-        navigate(`/workflows/edit/${newWorkflow._id}`);
+        navigate(`/workflows/edit/${newWorkflow.id}`);
         return { success: true, workflow: newWorkflow };
       } catch (err) {
         showNotification(err.message || 'Failed to create workflow.', 'error');
@@ -50,7 +50,7 @@ export const useWorkflows = () => {
   const handleDuplicate = createProtectedHandler('duplicate', async (id, e) => {
     e?.stopPropagation();
     try {
-      const workflowToDuplicate = workflows.find(w => w._id === id);
+      const workflowToDuplicate = workflows.find(w => w.id === id);
       if (!workflowToDuplicate) {
         showNotification('Workflow not found.', 'error');
         return { success: false };
@@ -76,7 +76,7 @@ export const useWorkflows = () => {
     try {
       await deleteWorkflow(id);
       showNotification('Workflow deleted successfully!', 'success');
-      setWorkflows(prev => prev.filter(w => w._id !== id));
+      setWorkflows(prev => prev.filter(w => w.id !== id));
       return { success: true };
     } catch (err) {
       showNotification(err.message || 'Failed to delete workflow.', 'error');

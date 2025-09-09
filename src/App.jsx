@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import ApplicationForm from './components/applications/ApplicationForm';
 import ApplicationList from './components/applications/ApplicationList';
+import AcceptInvitation from './components/auth/AcceptInvitation';
 import Login from './components/auth/Login';
 import SetupAccount from './components/auth/SetupAccount';
 import LazyRoute from './components/common/LazyRoute';
@@ -49,6 +50,7 @@ const ActivityLogsReport = lazy(() => import('./components/reports/ActivityLogsR
 const AdminSettings = lazy(() => import('./components/settings/AdminSettings'));
 const UserSettings = lazy(() => import('./components/settings/UserSettings'));
 const BillingPage = lazy(() => import('./components/settings/BillingPage'));
+const TeamManagement = lazy(() => import('./components/settings/TeamManagement'));
 
 const ProtectedLayout = ({ children }) => {
   return <ModernLayout>{children}</ModernLayout>;
@@ -87,7 +89,7 @@ function App() {
             <Routes>
               {/* Marketing Site Routes - Public */}
               {MarketingRoutes}
-              
+
               <Route
                 path="/"
                 element={
@@ -105,6 +107,7 @@ function App() {
               />
 
               <Route path="/setup-account" element={<SetupAccount />} />
+              <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
               <Route
                 path="/dashboard"
@@ -282,6 +285,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <LazyRoute component={BillingPage} routeName="Billing" />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/team/:organizationId"
+                element={
+                  <ProtectedRoute>
+                    <LazyRoute component={TeamManagement} routeName="Team Management" />
                   </ProtectedRoute>
                 }
               />

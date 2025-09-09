@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('../prisma/generated/client');
 const prisma = new PrismaClient();
-const { authenticateToken } = require('../middleware/authFactory');
+const AuthFactory = require('../middleware/authFactory');
+const authenticateToken = AuthFactory.createJWTMiddleware();
 const InputValidator = require('../utils/inputValidation');
 const { logger } = require('../utils/logger');
 const { errorResponses } = require('../utils/errorHandler');
 const crypto = require('crypto');
 
 // Helper function to generate a URL-safe slug from name
-const generateSlug = (name) => {
+const generateSlug = name => {
   return name
     .toLowerCase()
     .trim()
@@ -19,27 +20,28 @@ const generateSlug = (name) => {
 };
 
 // Helper function to generate unique slug
-const generateUniqueSlug = async (name) => {
+const generateUniqueSlug = async name => {
   let baseSlug = generateSlug(name);
   let slug = baseSlug;
   let counter = 1;
-  
+
   while (await prisma.organization.findUnique({ where: { slug } })) {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
-  
+
   return slug;
 };
 
 // Validation middleware
 const validateOrganizationId = InputValidator.createValidationMiddleware({
   params: {
-    id: value => InputValidator.validateString(value, {
-      required: true,
-      minLength: 1,
-      fieldName: 'organization ID',
-    }),
+    id: value =>
+      InputValidator.validateString(value, {
+        required: true,
+        minLength: 1,
+        fieldName: 'organization ID',
+      }),
   },
 });
 
@@ -120,7 +122,7 @@ router.post('/', authenticateToken, validateOrganizationCreation, async (req, re
       const existingOrg = await prisma.organization.findUnique({
         where: { domain },
       });
-      
+
       if (existingOrg) {
         return res.status(400).json({
           error: { code: 'BAD_REQUEST', message: 'Domain already exists' },
@@ -132,7 +134,7 @@ router.post('/', authenticateToken, validateOrganizationCreation, async (req, re
     const slug = await generateUniqueSlug(name);
 
     // Create organization with transaction to ensure atomicity
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       // Create organization
       const organization = await tx.organization.create({
         data: {
@@ -235,7 +237,7 @@ router.post('/', authenticateToken, validateOrganizationCreation, async (req, re
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    
+
     // Get organizations where user is a member
     const memberships = await prisma.membership.findMany({
       where: { userId },
@@ -388,107 +390,113 @@ router.get('/:id', authenticateToken, validateOrganizationId, async (req, res) =
 });
 
 // PUT /api/organizations/:id - Update organization
-router.put('/:id', authenticateToken, validateOrganizationId, validateOrganizationUpdate, async (req, res) => {
-  try {
-    const organizationId = req.params.id;
-    const userId = req.user.userId;
-    const { name, domain, website, logo } = req.body;
+router.put(
+  '/:id',
+  authenticateToken,
+  validateOrganizationId,
+  validateOrganizationUpdate,
+  async (req, res) => {
+    try {
+      const organizationId = req.params.id;
+      const userId = req.user.userId;
+      const { name, domain, website, logo } = req.body;
 
-    // Check if user has admin access to this organization
-    const membership = await prisma.membership.findUnique({
-      where: {
-        userId_organizationId: {
-          userId,
-          organizationId,
+      // Check if user has admin access to this organization
+      const membership = await prisma.membership.findUnique({
+        where: {
+          userId_organizationId: {
+            userId,
+            organizationId,
+          },
         },
-      },
-    });
-
-    if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
-      return res.status(403).json({
-        error: { code: 'FORBIDDEN', message: 'Admin access required' },
       });
-    }
 
-    // Check if organization exists
-    const existingOrg = await prisma.organization.findUnique({
-      where: { id: organizationId },
-    });
-
-    if (!existingOrg) {
-      return res.status(404).json({
-        error: { code: 'NOT_FOUND', message: 'Organization not found' },
-      });
-    }
-
-    // Validate domain uniqueness if being changed
-    if (domain && domain !== existingOrg.domain) {
-      const domainExists = await prisma.organization.findUnique({
-        where: { domain },
-      });
-      
-      if (domainExists) {
-        return res.status(400).json({
-          error: { code: 'BAD_REQUEST', message: 'Domain already exists' },
+      if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+        return res.status(403).json({
+          error: { code: 'FORBIDDEN', message: 'Admin access required' },
         });
       }
-    }
 
-    // Build update data
-    const updateData = { updatedAt: new Date() };
-    if (name !== undefined) {
-      updateData.name = name;
-      updateData.slug = await generateUniqueSlug(name);
-    }
-    if (domain !== undefined) updateData.domain = domain;
-    if (website !== undefined) updateData.website = website;
-    if (logo !== undefined) updateData.logo = logo;
+      // Check if organization exists
+      const existingOrg = await prisma.organization.findUnique({
+        where: { id: organizationId },
+      });
 
-    // Update organization
-    const updatedOrganization = await prisma.organization.update({
-      where: { id: organizationId },
-      data: updateData,
-      include: {
-        subscription: {
-          select: {
-            plan: true,
-            status: true,
-            trialEndsAt: true,
-            maxDatabaseConnections: true,
-            maxApiCallsPerMonth: true,
-            maxUsersPerOrg: true,
-            maxWorkflows: true,
+      if (!existingOrg) {
+        return res.status(404).json({
+          error: { code: 'NOT_FOUND', message: 'Organization not found' },
+        });
+      }
+
+      // Validate domain uniqueness if being changed
+      if (domain && domain !== existingOrg.domain) {
+        const domainExists = await prisma.organization.findUnique({
+          where: { domain },
+        });
+
+        if (domainExists) {
+          return res.status(400).json({
+            error: { code: 'BAD_REQUEST', message: 'Domain already exists' },
+          });
+        }
+      }
+
+      // Build update data
+      const updateData = { updatedAt: new Date() };
+      if (name !== undefined) {
+        updateData.name = name;
+        updateData.slug = await generateUniqueSlug(name);
+      }
+      if (domain !== undefined) updateData.domain = domain;
+      if (website !== undefined) updateData.website = website;
+      if (logo !== undefined) updateData.logo = logo;
+
+      // Update organization
+      const updatedOrganization = await prisma.organization.update({
+        where: { id: organizationId },
+        data: updateData,
+        include: {
+          subscription: {
+            select: {
+              plan: true,
+              status: true,
+              trialEndsAt: true,
+              maxDatabaseConnections: true,
+              maxApiCallsPerMonth: true,
+              maxUsersPerOrg: true,
+              maxWorkflows: true,
+            },
+          },
+          _count: {
+            select: {
+              databaseConnections: true,
+              workflows: true,
+              apiKeys: true,
+              memberships: true,
+            },
           },
         },
-        _count: {
-          select: {
-            databaseConnections: true,
-            workflows: true,
-            apiKeys: true,
-            memberships: true,
-          },
-        },
-      },
-    });
+      });
 
-    logger.info('Organization updated successfully', {
-      organizationId,
-      updatedFields: Object.keys(updateData),
-      updatedByUserId: userId,
-      ip: req.ip,
-    });
+      logger.info('Organization updated successfully', {
+        organizationId,
+        updatedFields: Object.keys(updateData),
+        updatedByUserId: userId,
+        ip: req.ip,
+      });
 
-    res.json(updatedOrganization);
-  } catch (error) {
-    logger.error('Error updating organization:', {
-      error: error.message,
-      organizationId: req.params.id,
-      userId: req.user?.userId,
-      ip: req.ip,
-    });
-    errorResponses.serverError(res, error);
+      res.json(updatedOrganization);
+    } catch (error) {
+      logger.error('Error updating organization:', {
+        error: error.message,
+        organizationId: req.params.id,
+        userId: req.user?.userId,
+        ip: req.ip,
+      });
+      errorResponses.serverError(res, error);
+    }
   }
-});
+);
 
 // DELETE /api/organizations/:id - Delete organization
 router.delete('/:id', authenticateToken, validateOrganizationId, async (req, res) => {
@@ -654,5 +662,224 @@ router.get('/:id/usage', authenticateToken, validateOrganizationId, async (req, 
     errorResponses.serverError(res, error);
   }
 });
+
+// DELETE /api/organizations/:id/members/:memberId - Remove team member
+router.delete(
+  '/:id/members/:memberId',
+  authenticateToken,
+  validateOrganizationId,
+  async (req, res) => {
+    try {
+      const { id: organizationId, memberId } = req.params;
+      const userId = req.user.userId;
+
+      // Check if user has admin permissions
+      const userMembership = await prisma.membership.findUnique({
+        where: {
+          userId_organizationId: {
+            userId,
+            organizationId,
+          },
+        },
+      });
+
+      if (!userMembership || !['OWNER', 'ADMIN'].includes(userMembership.role)) {
+        return res.status(403).json({
+          error: { code: 'FORBIDDEN', message: 'You must be an owner or admin to remove members' },
+        });
+      }
+
+      // Get the member to be removed
+      const memberToRemove = await prisma.membership.findUnique({
+        where: { id: memberId },
+        include: { user: true },
+      });
+
+      if (!memberToRemove || memberToRemove.organizationId !== organizationId) {
+        return res.status(404).json({
+          error: { code: 'NOT_FOUND', message: 'Member not found' },
+        });
+      }
+
+      // Cannot remove owner
+      if (memberToRemove.role === 'OWNER') {
+        return res.status(400).json({
+          error: { code: 'BAD_REQUEST', message: 'Cannot remove organization owner' },
+        });
+      }
+
+      // Admin cannot remove another admin unless they are owner
+      if (memberToRemove.role === 'ADMIN' && userMembership.role !== 'OWNER') {
+        return res.status(403).json({
+          error: { code: 'FORBIDDEN', message: 'Only owners can remove admins' },
+        });
+      }
+
+      // Remove the membership
+      await prisma.membership.delete({
+        where: { id: memberId },
+      });
+
+      // Create audit log
+      await prisma.auditLog.create({
+        data: {
+          action: 'MEMBER_REMOVED',
+          entityType: 'membership',
+          entityId: memberId,
+          organizationId,
+          userId,
+          metadata: {
+            removedUserId: memberToRemove.userId,
+            removedUserEmail: memberToRemove.user.email,
+            removedUserRole: memberToRemove.role,
+          },
+        },
+      });
+
+      logger.info('Member removed from organization', {
+        organizationId,
+        removedBy: userId,
+        removedMember: memberToRemove.userId,
+      });
+
+      res.json({ message: 'Member removed successfully' });
+    } catch (error) {
+      logger.error('Error removing organization member:', {
+        error: error.message,
+        organizationId: req.params.id,
+        memberId: req.params.memberId,
+        userId: req.user?.userId,
+      });
+      errorResponses.serverError(res, error);
+    }
+  }
+);
+
+// PATCH /api/organizations/:id/members/:memberId - Update member role
+router.patch(
+  '/:id/members/:memberId',
+  authenticateToken,
+  validateOrganizationId,
+  async (req, res) => {
+    try {
+      const { id: organizationId, memberId } = req.params;
+      const { role } = req.body;
+      const userId = req.user.userId;
+
+      // Validate role
+      if (!['ADMIN', 'MEMBER', 'VIEWER'].includes(role)) {
+        return res.status(400).json({
+          error: { code: 'BAD_REQUEST', message: 'Invalid role' },
+        });
+      }
+
+      // Check if user has admin permissions
+      const userMembership = await prisma.membership.findUnique({
+        where: {
+          userId_organizationId: {
+            userId,
+            organizationId,
+          },
+        },
+      });
+
+      if (!userMembership || !['OWNER', 'ADMIN'].includes(userMembership.role)) {
+        return res.status(403).json({
+          error: { code: 'FORBIDDEN', message: 'You must be an owner or admin to change roles' },
+        });
+      }
+
+      // Get the member to be updated
+      const memberToUpdate = await prisma.membership.findUnique({
+        where: { id: memberId },
+        include: { user: true },
+      });
+
+      if (!memberToUpdate || memberToUpdate.organizationId !== organizationId) {
+        return res.status(404).json({
+          error: { code: 'NOT_FOUND', message: 'Member not found' },
+        });
+      }
+
+      // Cannot change owner role
+      if (memberToUpdate.role === 'OWNER') {
+        return res.status(400).json({
+          error: { code: 'BAD_REQUEST', message: 'Cannot change owner role' },
+        });
+      }
+
+      // Admin cannot promote to admin or change admin roles unless they are owner
+      if (
+        userMembership.role !== 'OWNER' &&
+        (role === 'ADMIN' || memberToUpdate.role === 'ADMIN')
+      ) {
+        return res.status(403).json({
+          error: { code: 'FORBIDDEN', message: 'Only owners can manage admin roles' },
+        });
+      }
+
+      const oldRole = memberToUpdate.role;
+
+      // Update the membership
+      const updatedMembership = await prisma.membership.update({
+        where: { id: memberId },
+        data: { role },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      });
+
+      // Create audit log
+      await prisma.auditLog.create({
+        data: {
+          action: 'MEMBER_ROLE_CHANGED',
+          entityType: 'membership',
+          entityId: memberId,
+          organizationId,
+          userId,
+          metadata: {
+            targetUserId: memberToUpdate.userId,
+            targetUserEmail: memberToUpdate.user.email,
+            oldRole,
+            newRole: role,
+          },
+        },
+      });
+
+      logger.info('Member role updated', {
+        organizationId,
+        updatedBy: userId,
+        member: memberToUpdate.userId,
+        oldRole,
+        newRole: role,
+      });
+
+      res.json({
+        message: 'Role updated successfully',
+        membership: {
+          id: updatedMembership.id,
+          userId: updatedMembership.userId,
+          role: updatedMembership.role,
+          user: updatedMembership.user,
+        },
+      });
+    } catch (error) {
+      logger.error('Error updating member role:', {
+        error: error.message,
+        organizationId: req.params.id,
+        memberId: req.params.memberId,
+        userId: req.user?.userId,
+      });
+      errorResponses.serverError(res, error);
+    }
+  }
+);
 
 module.exports = router;

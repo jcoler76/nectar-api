@@ -141,7 +141,7 @@ const APPLICATION_QUERIES = {
         updatedAt
       }
     }
-  `
+  `,
 };
 
 // Service queries and mutations
@@ -153,10 +153,13 @@ const SERVICE_QUERIES = {
           node {
             id
             name
+            label
+            description
             host
             port
             database
             username
+            objects
             isActive
             createdAt
             updatedAt
@@ -205,8 +208,12 @@ const SERVICE_QUERIES = {
         connection {
           id
           name
+          type
           host
           port
+          username
+          passwordEncrypted
+          sslEnabled
         }
         effectiveHost
       }
@@ -267,7 +274,7 @@ const SERVICE_QUERIES = {
         error
       }
     }
-  `
+  `,
 };
 
 // User queries and mutations
@@ -385,10 +392,10 @@ const USER_QUERIES = {
     mutation DeleteUser($id: ID!) {
       deleteUser(id: $id)
     }
-  `
+  `,
 };
 
-// Role queries and mutations  
+// Role queries and mutations
 const ROLE_QUERIES = {
   GET_ALL: `
     query GetRoles($filters: RoleFilters, $pagination: PaginationInput) {
@@ -487,7 +494,7 @@ const ROLE_QUERIES = {
     mutation DeleteRole($id: ID!) {
       deleteRole(id: $id)
     }
-  `
+  `,
 };
 
 // Connection queries and mutations
@@ -607,7 +614,7 @@ const CONNECTION_QUERIES = {
         error
       }
     }
-  `
+  `,
 };
 
 const NOTIFICATION_QUERIES = {
@@ -721,7 +728,7 @@ const NOTIFICATION_QUERIES = {
         count
       }
     }
-  `
+  `,
 };
 
 module.exports = {
@@ -730,5 +737,5 @@ module.exports = {
   USER_QUERIES,
   ROLE_QUERIES,
   CONNECTION_QUERIES,
-  NOTIFICATION_QUERIES
+  NOTIFICATION_QUERIES,
 };

@@ -11,6 +11,7 @@ const { getMessageQueue } = require('./messageQueue');
 const { refreshAllConnections } = require('./connectionRefreshService');
 const { logger } = require('../utils/logger');
 const PostgresBackupService = require('./postgresBackupService');
+const invitationService = require('./invitationService');
 
 const scheduledTasks = new Map();
 const hubSpotPollingIntervals = new Map(); // workflowId -> { handle, intervalMs }
@@ -810,6 +811,24 @@ const initializeScheduler = async () => {
     );
     logger.info('📅 Daily connection database refresh scheduled for midnight EST (5:00 AM UTC)');
 
+    // Schedule daily cleanup of expired invitations at 2 AM UTC
+    cron.schedule(
+      '0 2 * * *',
+      async () => {
+        try {
+          logger.info('🧹 Starting daily cleanup of expired invitations');
+          const count = await invitationService.cleanupExpiredInvitations();
+          logger.info(`✅ Cleaned up ${count} expired invitations`);
+        } catch (error) {
+          logger.error('❌ Error in invitation cleanup:', error);
+        }
+      },
+      {
+        timezone: 'UTC',
+      }
+    );
+    logger.info('📅 Daily invitation cleanup scheduled for 2 AM UTC');
+
     // Initialize PostgreSQL backup service
     backupService = new PostgresBackupService();
     await backupService.initialize();
@@ -822,10 +841,10 @@ const initializeScheduler = async () => {
         backupSchedule,
         async () => {
           try {
-            logger.info('🔄 Starting scheduled MongoDB backup');
+            logger.info('🔄 Starting scheduled PostgreSQL backup');
             await backupService.createBackup();
           } catch (error) {
-            logger.error('❌ Scheduled MongoDB backup failed:', error);
+            logger.error('❌ Scheduled PostgreSQL backup failed:', error);
           }
         },
         {
@@ -833,7 +852,7 @@ const initializeScheduler = async () => {
         }
       );
 
-      logger.info('📅 MongoDB backup scheduled', {
+      logger.info('📅 PostgreSQL backup scheduled', {
         schedule: backupSchedule,
         retentionDays: backupService.getRetentionDays(),
       });
@@ -856,7 +875,7 @@ const initializeScheduler = async () => {
 
       logger.info('📅 Weekly backup cleanup scheduled for Sundays at 3 AM UTC');
     } else {
-      logger.info('ℹ️ MongoDB backup is disabled (DB_BACKUP_ENABLED=false)');
+      logger.info('ℹ️ PostgreSQL backup is disabled (DB_BACKUP_ENABLED=false)');
     }
   } catch (error) {
     logger.error('❌ Failed to initialize scheduler:', error);

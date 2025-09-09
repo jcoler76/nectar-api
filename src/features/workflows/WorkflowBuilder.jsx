@@ -115,7 +115,7 @@ const WorkflowBuilder = () => {
 
   const onSave = useCallback(async () => {
     try {
-      const workflowData = { name: workflow.name, active: workflow.active, nodes, edges };
+      const workflowData = { name: workflow.name, isActive: workflow.isActive, nodes, edges };
       await saveWorkflow(id, workflowData);
       showNotification('Workflow saved successfully!', 'success');
     } catch (err) {
@@ -470,8 +470,8 @@ const WorkflowBuilder = () => {
       <WorkflowBuilderTopNav
         workflowName={workflow.name}
         onRename={handleRenameWorkflow}
-        isActive={workflow.active}
-        onToggleActive={event => setWorkflow(prev => ({ ...prev, active: event.target.checked }))}
+        isActive={workflow.isActive}
+        onToggleActive={event => setWorkflow(prev => ({ ...prev, isActive: event.target.checked }))}
         onSave={onSave}
         onAddNode={handleAddNodeClick}
         onExecute={handleTestExecutionWrapper}

@@ -1,6 +1,6 @@
+import { Tooltip } from '@mui/material';
 import { AlertCircle, Edit, HelpCircle, Info, Play, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { memo, useEffect, useMemo } from 'react';
-import { Tooltip } from '@mui/material';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnectionOperations } from '../../hooks/useConnectionOperations';
@@ -87,7 +87,13 @@ const ConnectionList = () => {
         ),
         width: '30%',
         cell: ({ row }) => (
-          <Tooltip title={row.failoverHost ? `Primary: ${row.host}\nFailover: ${row.failoverHost}` : `Server: ${row.host}`}>
+          <Tooltip
+            title={
+              row.failoverHost
+                ? `Primary: ${row.host}\nFailover: ${row.failoverHost}`
+                : `Server: ${row.host}`
+            }
+          >
             <div className="cursor-help">
               <div className="font-medium">{row.host}</div>
               {row.failoverHost && (
@@ -112,7 +118,13 @@ const ConnectionList = () => {
           const isActive = row.isActive;
           const variant = isActive ? 'active' : 'secondary';
           return (
-            <Tooltip title={isActive ? 'Connection is active and available for services' : 'Connection is inactive and cannot be used'}>
+            <Tooltip
+              title={
+                isActive
+                  ? 'Connection is active and available for services'
+                  : 'Connection is inactive and cannot be used'
+              }
+            >
               <Badge variant={variant} className="text-xs cursor-help">
                 {isActive ? 'Active' : 'Inactive'}
               </Badge>
@@ -130,18 +142,19 @@ const ConnectionList = () => {
             label: 'Test Connection',
             icon: Play,
             tooltip: 'Verify connectivity to the database server and validate credentials',
-            onClick: connection => handleTest(connection._id),
+            onClick: connection => handleTest(connection.id),
           },
           {
             label: 'Refresh Databases',
             icon: RefreshCw,
-            tooltip: 'Update the list of available databases on this server (required before creating services)',
+            tooltip:
+              'Update the list of available databases on this server (required before creating services)',
             onClick: connection => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`refresh-${connection._id}`]) {
+              if (operationInProgress[`refresh-${connection.id}`]) {
                 return;
               }
-              handleRefreshDatabases(connection._id);
+              handleRefreshDatabases(connection.id);
             },
           },
           {
@@ -154,9 +167,10 @@ const ConnectionList = () => {
           {
             label: 'Delete Connection',
             icon: Trash2,
-            tooltip: 'Permanently remove this connection - this will break any services that depend on it',
+            tooltip:
+              'Permanently remove this connection - this will break any services that depend on it',
             onClick: connection =>
-              openConfirm(connection._id, {
+              openConfirm(connection.id, {
                 title: 'Delete Connection',
                 message:
                   'Are you sure you want to delete this connection? This action cannot be undone.',

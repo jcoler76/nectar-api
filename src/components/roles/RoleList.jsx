@@ -1,6 +1,6 @@
+import { Tooltip } from '@mui/material';
 import { AlertCircle, Download, Edit, HelpCircle, Info, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Tooltip } from '@mui/material';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useCsvExport } from '../../hooks/useCsvExport';
@@ -70,8 +70,15 @@ const RoleList = () => {
         ),
         width: '40%',
         cell: ({ row }) => (
-          <Tooltip title={row.description || 'No description provided - consider adding one to document the role\'s purpose and permissions'}>
-            <div className={`text-muted-foreground cursor-help truncate ${!row.description ? 'italic text-gray-400' : ''}`}>
+          <Tooltip
+            title={
+              row.description ||
+              "No description provided - consider adding one to document the role's purpose and permissions"
+            }
+          >
+            <div
+              className={`text-muted-foreground cursor-help truncate ${!row.description ? 'italic text-gray-400' : ''}`}
+            >
               {row.description || 'No description'}
             </div>
           </Tooltip>
@@ -90,13 +97,19 @@ const RoleList = () => {
         type: 'switch',
         width: '20%',
         cell: ({ row, value }) => (
-          <Tooltip title={value ? 'Role is active and can be assigned to users' : 'Role is inactive and cannot be assigned to new users'}>
+          <Tooltip
+            title={
+              value
+                ? 'Role is active and can be assigned to users'
+                : 'Role is inactive and cannot be assigned to new users'
+            }
+          >
             <div className="flex items-center gap-2">
               <Switch
                 checked={value || false}
                 onCheckedChange={() => {
                   // Prevent multiple rapid clicks
-                  if (operationInProgress[`toggle-${row._id}`]) {
+                  if (operationInProgress[`toggle-${row.id}`]) {
                     return;
                   }
                   handleToggleActive(row);
@@ -126,13 +139,14 @@ const RoleList = () => {
           {
             label: 'Delete Role',
             icon: Trash2,
-            tooltip: 'Permanently remove this role - users with this role will lose associated permissions',
+            tooltip:
+              'Permanently remove this role - users with this role will lose associated permissions',
             onClick: role => {
               // Prevent multiple rapid clicks
-              if (operationInProgress[`delete-${role._id}`]) {
+              if (operationInProgress[`delete-${role.id}`]) {
                 return;
               }
-              openConfirm(role._id, {
+              openConfirm(role.id, {
                 title: 'Delete Role',
                 message: 'Are you sure you want to delete this role? This action cannot be undone.',
               });

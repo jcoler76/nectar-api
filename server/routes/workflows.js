@@ -246,10 +246,10 @@ router.get('/scheduler/status', async (req, res) => {
     const activeWorkflows = await prisma.workflow.findMany({
       where: {
         isActive: true,
-        organizationId: req.user.organizationId
+        organizationId: req.user.organizationId,
         // TODO: Add JSON filter for trigger:schedule nodes when needed
       },
-      select: { id: true, name: true, definition: true }
+      select: { id: true, name: true, definition: true },
     });
 
     const detailedStatus = {
@@ -257,11 +257,11 @@ router.get('/scheduler/status', async (req, res) => {
       activeScheduledWorkflows: activeWorkflows.map(workflow => {
         const scheduleNode = workflow.nodes.find(n => n.data.nodeType === 'trigger:schedule');
         return {
-          id: workflow._id,
+          id: workflow.id,
           name: workflow.name,
           cronPattern: scheduleNode?.data?.pattern || 'No pattern found',
           isScheduled: status.scheduledWorkflows.some(
-            sw => sw.workflowId === workflow._id.toString()
+            sw => sw.workflowId === workflow.id.toString()
           ),
         };
       }),
@@ -282,8 +282,8 @@ router.post('/:id/schedule/test', async (req, res) => {
     const workflow = await prisma.workflow.findFirst({
       where: {
         id: req.params.id,
-        organizationId: req.user.organizationId
-      }
+        organizationId: req.user.organizationId,
+      },
     });
     if (!workflow) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Workflow not found' } });
@@ -294,7 +294,7 @@ router.post('/:id/schedule/test', async (req, res) => {
 
     res.json({
       message: `Scheduler test completed for workflow: ${workflow.name}`,
-      workflowId: workflow._id,
+      workflowId: workflow.id,
       status: 'scheduled',
     });
   } catch (error) {

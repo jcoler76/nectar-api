@@ -32,7 +32,7 @@ const validationRules = {
       body('roles').optional().isArray().withMessage('Roles must be an array'),
     ],
     update: [
-      param('id').isMongoId().withMessage('Invalid user ID format'),
+      param('id').isUUID().withMessage('Invalid user ID format'),
       body('email')
         .optional()
         .isEmail()
@@ -44,7 +44,7 @@ const validationRules = {
       body('roles').optional().isArray().withMessage('Roles must be an array'),
       body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
     ],
-    getById: [param('id').isMongoId().withMessage('Invalid user ID format')],
+    getById: [param('id').isUUID().withMessage('Invalid user ID format')],
   },
 
   // Authentication validation rules
@@ -107,10 +107,10 @@ const validationRules = {
         .isLength({ max: 500 })
         .withMessage('Description must be less than 500 characters'),
       body('apiKey').optional().isString().withMessage('API key must be a string').trim(),
-      body('defaultRole').isMongoId().withMessage('Default role must be a valid ID'),
+      body('defaultRole').isUUID().withMessage('Default role must be a valid ID'),
     ],
     update: [
-      param('id').isMongoId().withMessage('Invalid application ID format'),
+      param('id').isUUID().withMessage('Invalid application ID format'),
       body('name')
         .optional()
         .isString()
@@ -129,7 +129,7 @@ const validationRules = {
         .trim()
         .isLength({ max: 500 })
         .withMessage('Description must be less than 500 characters'),
-      body('defaultRole').optional().isMongoId().withMessage('Default role must be a valid ID'),
+      body('defaultRole').optional().isUUID().withMessage('Default role must be a valid ID'),
       body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
     ],
   },
@@ -154,7 +154,7 @@ const validationRules = {
         .trim()
         .isLength({ max: 500 })
         .withMessage('Description must be less than 500 characters'),
-      body('serviceId').isMongoId().withMessage('Service ID must be valid'),
+      body('serviceId').isUUID().withMessage('Service ID must be valid'),
       body('permissions')
         .isArray()
         .withMessage('Permissions must be an array')
@@ -168,7 +168,7 @@ const validationRules = {
       body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
     ],
     update: [
-      param('id').isMongoId().withMessage('Invalid role ID format'),
+      param('id').isUUID().withMessage('Invalid role ID format'),
       body('name')
         .optional()
         .isString()
@@ -187,7 +187,7 @@ const validationRules = {
         .trim()
         .isLength({ max: 500 })
         .withMessage('Description must be less than 500 characters'),
-      body('serviceId').optional().isMongoId().withMessage('Service ID must be valid'),
+      body('serviceId').optional().isUUID().withMessage('Service ID must be valid'),
       body('permissions').optional().isArray().withMessage('Permissions must be an array'),
       body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
     ],
@@ -228,7 +228,7 @@ const validationRules = {
         .withMessage('Database name must be between 1 and 100 characters')
         .matches(/^[a-zA-Z0-9_\-]+$/)
         .withMessage('Database name can only contain letters, numbers, hyphens, and underscores'),
-      body('connectionId').isMongoId().withMessage('Connection ID must be valid'),
+      body('connectionId').isUUID().withMessage('Connection ID must be valid'),
       // Explicitly reject fields that don't belong to service creation
       body('host')
         .not()
@@ -256,7 +256,7 @@ const validationRules = {
         ),
     ],
     update: [
-      param('id').isMongoId().withMessage('Invalid service ID format'),
+      param('id').isUUID().withMessage('Invalid service ID format'),
       body('name')
         .optional()
         .isString()
@@ -320,7 +320,7 @@ const validationRules = {
   },
 
   // Common validation for MongoDB ObjectIDs
-  mongoId: [param('id').isMongoId().withMessage('Invalid ID format')],
+  mongoId: [param('id').isUUID().withMessage('Invalid ID format')],
 
   // Common validation for pagination and search
   search: [
@@ -384,19 +384,13 @@ const validationRules = {
         .withMessage('Password must be a string')
         .notEmpty()
         .withMessage('Password is required'),
-      body('isActive')
-        .optional()
-        .isBoolean()
-        .withMessage('isActive must be a boolean'),
+      body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
       body('failoverHost')
         .optional()
         .isString()
         .withMessage('Failover host must be a string')
         .trim(),
-      body('databases')
-        .optional()
-        .isArray()
-        .withMessage('Databases must be an array'),
+      body('databases').optional().isArray().withMessage('Databases must be an array'),
     ],
     update: [
       body('name')
@@ -410,38 +404,21 @@ const validationRules = {
         .withMessage(
           'Connection name can only contain letters, numbers, spaces, hyphens, and underscores'
         ),
-      body('host')
-        .optional()
-        .isString()
-        .withMessage('Host must be a string')
-        .trim(),
+      body('host').optional().isString().withMessage('Host must be a string').trim(),
       body('port')
         .optional()
         .isInt({ min: 1, max: 65535 })
         .withMessage('Port must be a valid port number (1-65535)')
         .toInt(),
-      body('username')
-        .optional()
-        .isString()
-        .withMessage('Username must be a string')
-        .trim(),
-      body('password')
-        .optional()
-        .isString()
-        .withMessage('Password must be a string'),
-      body('isActive')
-        .optional()
-        .isBoolean()
-        .withMessage('isActive must be a boolean'),
+      body('username').optional().isString().withMessage('Username must be a string').trim(),
+      body('password').optional().isString().withMessage('Password must be a string'),
+      body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
       body('failoverHost')
         .optional()
         .isString()
         .withMessage('Failover host must be a string')
         .trim(),
-      body('databases')
-        .optional()
-        .isArray()
-        .withMessage('Databases must be an array'),
+      body('databases').optional().isArray().withMessage('Databases must be an array'),
     ],
   },
 };

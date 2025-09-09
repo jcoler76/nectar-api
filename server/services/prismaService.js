@@ -1,5 +1,5 @@
 // Use the shared Prisma client to ensure identical table mappings
-const { PrismaClient } = require('../../prisma/generated/client');
+const { PrismaClient } = require('../prisma/generated/client');
 
 // Create a singleton Prisma client instance
 class PrismaService {

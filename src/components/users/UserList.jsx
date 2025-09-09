@@ -1,3 +1,4 @@
+import { Tooltip } from '@mui/material';
 import {
   AlertCircle,
   CheckCircle,
@@ -12,7 +13,6 @@ import {
   UserX,
 } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Tooltip } from '@mui/material';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useCsvExport } from '../../hooks/useCsvExport';
@@ -69,9 +69,19 @@ const UserList = () => {
         sortable: true,
         width: '20%',
         cell: ({ row }) => (
-          <Tooltip title={row.firstName && row.lastName ? `Full name: ${row.firstName} ${row.lastName}` : row.name ? `Username: ${row.name}` : 'No name information available'}>
+          <Tooltip
+            title={
+              row.firstName && row.lastName
+                ? `Full name: ${row.firstName} ${row.lastName}`
+                : row.name
+                  ? `Username: ${row.name}`
+                  : 'No name information available'
+            }
+          >
             <div className="font-medium cursor-help">
-              {row.firstName && row.lastName ? `${row.firstName} ${row.lastName}` : row.name || 'N/A'}
+              {row.firstName && row.lastName
+                ? `${row.firstName} ${row.lastName}`
+                : row.name || 'N/A'}
             </div>
           </Tooltip>
         ),
@@ -89,7 +99,9 @@ const UserList = () => {
         sortable: true,
         width: '25%',
         cell: ({ row }) => (
-          <Tooltip title={`Login email: ${row.email}. Used for authentication and system notifications.`}>
+          <Tooltip
+            title={`Login email: ${row.email}. Used for authentication and system notifications.`}
+          >
             <div className="text-muted-foreground cursor-help">{row.email}</div>
           </Tooltip>
         ),
@@ -137,7 +149,13 @@ const UserList = () => {
         type: 'switch',
         width: '15%',
         cell: ({ row, value }) => (
-          <Tooltip title={value ? 'User account is active and can log in to access the system' : 'User account is inactive and login is blocked. Toggle to reactivate the account.'}>
+          <Tooltip
+            title={
+              value
+                ? 'User account is active and can log in to access the system'
+                : 'User account is inactive and login is blocked. Toggle to reactivate the account.'
+            }
+          >
             <div className="flex items-center gap-2">
               <Switch
                 checked={value}
@@ -181,7 +199,13 @@ const UserList = () => {
         sortable: true,
         width: '15%',
         cell: ({ row }) => (
-          <Tooltip title={row.lastLogin ? `Last logged in: ${formatTimestampEST(row.lastLogin, 'MM/DD/YYYY')}. This shows recent user activity.` : 'This user has never logged in. They may need to activate their account or reset their password.'}>
+          <Tooltip
+            title={
+              row.lastLogin
+                ? `Last logged in: ${formatTimestampEST(row.lastLogin, 'MM/DD/YYYY')}. This shows recent user activity.`
+                : 'This user has never logged in. They may need to activate their account or reset their password.'
+            }
+          >
             <div className="text-sm text-muted-foreground cursor-help">
               {row.lastLogin ? formatTimestampEST(row.lastLogin, 'MM/DD/YYYY') : 'Never'}
             </div>
@@ -197,13 +221,15 @@ const UserList = () => {
           {
             label: 'Edit User',
             icon: Edit,
-            tooltip: 'Modify user information, permissions, and account settings. You can update names, email, admin status, and other profile details.',
+            tooltip:
+              'Modify user information, permissions, and account settings. You can update names, email, admin status, and other profile details.',
             onClick: handleEdit,
           },
           {
             label: 'Delete User',
             icon: Trash2,
-            tooltip: 'Permanently remove this user account from the system. All user data, permissions, and login access will be deleted and cannot be recovered.',
+            tooltip:
+              'Permanently remove this user account from the system. All user data, permissions, and login access will be deleted and cannot be recovered.',
             onClick: user => {
               // Prevent multiple rapid clicks
               if (operationInProgress[`delete-${user._id}`]) {

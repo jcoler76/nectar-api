@@ -1,5 +1,5 @@
-import { Eye, EyeOff, HelpCircle, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
 import { Tooltip } from '@mui/material';
+import { Eye, EyeOff, HelpCircle, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
 import { useState } from 'react';
 
 import { inviteUser, updateUser } from '../../services/userService';
@@ -263,7 +263,13 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
                   Reset
                 </Button>
               </Tooltip>
-              <Tooltip title={user ? 'Save all changes to this user account. Any password change will take effect immediately.' : 'Create the new user account and send an invitation email with setup instructions.'}>
+              <Tooltip
+                title={
+                  user
+                    ? 'Save all changes to this user account. Any password change will take effect immediately.'
+                    : 'Create the new user account and send an invitation email with setup instructions.'
+                }
+              >
                 <Button
                   type="submit"
                   variant="gradient"

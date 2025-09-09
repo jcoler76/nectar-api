@@ -22,7 +22,7 @@ const ApplicationForm = ({ application, onSubmitted, onCancel }) => {
     name: application?.name || '',
     description: application?.description || '',
     apiKey: application?.apiKey || '',
-    defaultRole: application?.defaultRole?._id || '',
+    defaultRole: application?.defaultRole?.id || '',
     isActive: application?.isActive ?? true,
   });
   const [roles, setRoles] = useState([]);
@@ -62,7 +62,7 @@ const ApplicationForm = ({ application, onSubmitted, onCancel }) => {
       }
 
       if (application) {
-        await updateApplication(application._id, submitData);
+        await updateApplication(application.id, submitData);
       } else {
         await createApplication(submitData);
       }
@@ -152,7 +152,7 @@ const ApplicationForm = ({ application, onSubmitted, onCancel }) => {
           onChange={handleChange}
         >
           {roles.map(role => (
-            <MenuItem key={role._id} value={role._id}>
+            <MenuItem key={role.id} value={role.id}>
               {role.name}
             </MenuItem>
           ))}

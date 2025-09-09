@@ -1,6 +1,6 @@
+import { Tooltip } from '@mui/material';
 import { Database, HelpCircle, Loader2, Lock, Play, User, Server } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Tooltip } from '@mui/material';
 
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
@@ -12,34 +12,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 
 // Database type configurations
 const DATABASE_TYPES = [
-  { 
-    value: 'MSSQL', 
-    label: 'Microsoft SQL Server', 
-    defaultPort: 1433, 
+  {
+    value: 'MSSQL',
+    label: 'Microsoft SQL Server',
+    defaultPort: 1433,
     icon: '🗄️',
-    description: 'Microsoft SQL Server database'
+    description: 'Microsoft SQL Server database',
   },
-  { 
-    value: 'POSTGRESQL', 
-    label: 'PostgreSQL', 
-    defaultPort: 5432, 
+  {
+    value: 'POSTGRESQL',
+    label: 'PostgreSQL',
+    defaultPort: 5432,
     icon: '🐘',
-    description: 'PostgreSQL open-source relational database'
+    description: 'PostgreSQL open-source relational database',
   },
-  { 
-    value: 'MYSQL', 
-    label: 'MySQL', 
-    defaultPort: 3306, 
+  {
+    value: 'MYSQL',
+    label: 'MySQL',
+    defaultPort: 3306,
     icon: '🐬',
-    description: 'MySQL/MariaDB relational database'
+    description: 'MySQL/MariaDB relational database',
   },
-  { 
-    value: 'MONGODB', 
-    label: 'MongoDB', 
-    defaultPort: 27017, 
+  {
+    value: 'MONGODB',
+    label: 'MongoDB',
+    defaultPort: 27017,
     icon: '🍃',
-    description: 'MongoDB NoSQL document database'
-  }
+    description: 'MongoDB NoSQL document database',
+  },
 ];
 
 const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection }) => {
@@ -93,16 +93,16 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'port' ? parseInt(value, 10) : value),
+      [name]: type === 'checkbox' ? checked : name === 'port' ? parseInt(value, 10) : value,
     }));
   };
 
-  const handleDatabaseTypeChange = (value) => {
+  const handleDatabaseTypeChange = value => {
     const dbType = DATABASE_TYPES.find(type => type.value === value);
     setFormData(prev => ({
       ...prev,
       type: value,
-      port: dbType?.defaultPort || 1433
+      port: dbType?.defaultPort || 1433,
     }));
   };
 
@@ -196,7 +196,7 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {DATABASE_TYPES.map((dbType) => (
+                {DATABASE_TYPES.map(dbType => (
                   <SelectItem key={dbType.value} value={dbType.value}>
                     <div className="flex items-center gap-2">
                       <span>{dbType.icon}</span>
@@ -267,34 +267,34 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
                 value={formData.database}
                 onChange={handleChange}
                 placeholder={
-                  formData.type === 'POSTGRESQL' ? 'postgres (default)' : 
-                  formData.type === 'MYSQL' ? 'Database name' : 
-                  formData.type === 'MONGODB' ? 'admin (default)' :
-                  'Database name'
+                  formData.type === 'POSTGRESQL'
+                    ? 'postgres (default)'
+                    : formData.type === 'MYSQL'
+                      ? 'Database name'
+                      : formData.type === 'MONGODB'
+                        ? 'admin (default)'
+                        : 'Database name'
                 }
                 className="pl-10"
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {formData.type === 'POSTGRESQL' 
+              {formData.type === 'POSTGRESQL'
                 ? 'Optional - defaults to "postgres" if not specified'
                 : formData.type === 'MYSQL'
-                ? 'Optional - specify target database name'
-                : formData.type === 'MONGODB'
-                ? 'Optional - defaults to "admin" for authentication'
-                : 'Optional - specify target database name'
-              }
+                  ? 'Optional - specify target database name'
+                  : formData.type === 'MONGODB'
+                    ? 'Optional - defaults to "admin" for authentication'
+                    : 'Optional - specify target database name'}
             </p>
           </div>
 
           {/* SSL Enabled */}
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="sslEnabled"
               checked={formData.sslEnabled}
-              onCheckedChange={(checked) => 
-                setFormData(prev => ({ ...prev, sslEnabled: checked }))
-              }
+              onCheckedChange={checked => setFormData(prev => ({ ...prev, sslEnabled: checked }))}
             />
             <Label htmlFor="sslEnabled" className="text-sm font-normal">
               Enable SSL/TLS Connection
@@ -339,7 +339,9 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
                 value={formData.username}
                 onChange={handleChange}
                 required={formData.type !== 'MONGODB'}
-                placeholder={formData.type === 'MONGODB' ? 'Optional for authentication' : 'Database username'}
+                placeholder={
+                  formData.type === 'MONGODB' ? 'Optional for authentication' : 'Database username'
+                }
                 className="pl-10"
               />
             </div>
@@ -365,9 +367,11 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
                 onChange={handleChange}
                 required={!connection && formData.type !== 'MONGODB'}
                 placeholder={
-                  connection ? 'Leave blank to keep current password' : 
-                  formData.type === 'MONGODB' ? 'Optional for authentication' : 
-                  'Database password'
+                  connection
+                    ? 'Leave blank to keep current password'
+                    : formData.type === 'MONGODB'
+                      ? 'Optional for authentication'
+                      : 'Database password'
                 }
                 className="pl-10"
               />

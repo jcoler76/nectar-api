@@ -32,7 +32,7 @@ export const useRoles = () => {
   const handleDelete = createProtectedHandler('delete', async roleId => {
     try {
       await deleteRole(roleId);
-      setRoles(prev => prev.filter(role => role._id !== roleId));
+      setRoles(prev => prev.filter(role => role.id !== roleId));
       showNotification('Role deleted successfully', 'success');
       return { success: true };
     } catch (err) {
@@ -49,7 +49,7 @@ export const useRoles = () => {
           ...role,
           isActive: !role.isActive,
         };
-        await updateRole(role._id, updatedRole);
+        await updateRole(role.id, updatedRole);
         await fetchRoles();
         return { success: true };
       } catch (err) {
@@ -57,12 +57,12 @@ export const useRoles = () => {
         return { success: false, error: err };
       }
     },
-    role => role._id
+    role => role.id
   );
 
   const handleEdit = useCallback(
     role => {
-      navigate(`/roles/edit/${role._id}`);
+      navigate(`/roles/edit/${role.id}`);
     },
     [navigate]
   );
