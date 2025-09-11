@@ -4,7 +4,7 @@ import { clearAllAuthData } from '../utils/authMigration';
 import SecureSessionStorage from '../utils/secureStorage';
 
 // Use empty string for relative URL in production
-const API_URL = process.env.REACT_APP_API_URL || '';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001').trim();
 
 const secureStorage = new SecureSessionStorage();
 
@@ -54,71 +54,87 @@ const getCurrentToken = () => {
 };
 
 // Add request interceptor to include auth token and CSRF token
-api.interceptors.request.use(async config => {
-  try {
-    // Add auth token
-    const token = getCurrentToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+api.interceptors.request.use(
+  async config => {
+    try {
+      // Ensure config.url is defined
+      if (!config.url) {
+        console.error('Request URL is undefined');
+        return config;
+      }
 
-    // Add CSRF token for state-changing requests
-    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method.toUpperCase())) {
-      // Skip CSRF for excluded paths and patterns
-      const excludedPaths = [
-        '/api/auth',
-        '/api/v1',
-        '/api/v2',
-        '/api/webhooks',
-        '/api/forms',
-        '/api/email',
-        '/api/files',
-      ];
-      const excludedPatterns = [
-        /\/refresh-schema$/,
-        /\/databases\/refresh$/,
-        /\/refresh-databases$/,
-        /\/test$/,
-      ];
+      // Add auth token
+      const token = getCurrentToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
 
-      const pathExcluded = excludedPaths.some(path => config.url.startsWith(path));
-      const patternExcluded = excludedPatterns.some(pattern => pattern.test(config.url));
-      const needsCSRF = !pathExcluded && !patternExcluded;
+      // Skip CSRF for auth endpoints entirely
+      if (config.url.startsWith('/api/auth')) {
+        return config;
+      }
 
-      if (needsCSRF && token) {
-        // Always get a fresh CSRF token for state-changing requests to avoid stale tokens
-        try {
-          // Use a separate axios instance to avoid interceptor recursion
-          const csrfResponse = await axios
-            .create({
-              baseURL: API_URL,
-              withCredentials: true,
-            })
-            .get('/api/csrf-token', {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 3000, // Add timeout to prevent hanging
-            });
-          csrfToken = csrfResponse.data.csrfToken;
+      // Add CSRF token for state-changing requests
+      if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method.toUpperCase())) {
+        // Skip CSRF for excluded paths and patterns
+        const excludedPaths = [
+          '/api/auth',
+          '/api/v1',
+          '/api/v2',
+          '/api/webhooks',
+          '/api/forms',
+          '/api/email',
+          '/api/files',
+        ];
+        const excludedPatterns = [
+          /\/refresh-schema$/,
+          /\/databases\/refresh$/,
+          /\/refresh-databases$/,
+          /\/test$/,
+        ];
 
-          if (csrfToken) {
-            config.headers['x-csrf-token'] = csrfToken;
-            // Debug log in development (removed console.log per ESLint rules)
-          }
-        } catch (err) {
-          // Don't fail the main request if CSRF token fetch fails
-          console.warn('Could not get CSRF token, proceeding without it:', err.message);
-          // Try to use existing token if we have one
-          if (csrfToken) {
-            config.headers['x-csrf-token'] = csrfToken;
+        const pathExcluded = excludedPaths.some(path => config.url.startsWith(path));
+        const patternExcluded = excludedPatterns.some(pattern => pattern.test(config.url));
+        const needsCSRF = !pathExcluded && !patternExcluded;
+
+        if (needsCSRF && token) {
+          // Always get a fresh CSRF token for state-changing requests to avoid stale tokens
+          try {
+            // Use a separate axios instance to avoid interceptor recursion
+            const csrfResponse = await axios
+              .create({
+                baseURL: API_URL.trim(),
+                withCredentials: true,
+              })
+              .get('/api/csrf-token', {
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 3000, // Add timeout to prevent hanging
+              });
+            csrfToken = csrfResponse.data.csrfToken;
+
+            if (csrfToken) {
+              config.headers['x-csrf-token'] = csrfToken;
+            }
+          } catch (err) {
+            // Don't fail the main request if CSRF token fetch fails
+            console.warn('Could not get CSRF token, proceeding without it:', err.message);
+            // Try to use existing token if we have one
+            if (csrfToken) {
+              config.headers['x-csrf-token'] = csrfToken;
+            }
           }
         }
       }
+    } catch (error) {
+      console.error('Error in request interceptor:', error);
     }
-  } catch (error) {
-    console.error('Error in request interceptor:', error);
+    return config;
+  },
+  error => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 // Store original console.error to restore later if needed
 const originalConsoleError = console.error;
