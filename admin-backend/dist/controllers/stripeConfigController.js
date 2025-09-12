@@ -55,7 +55,7 @@ class StripeConfigController {
             });
             // Log admin action
             await auditService_1.AdminAuditLogger.log({
-                adminId: req.admin.id,
+                userId: req.admin.id,
                 action: 'update_stripe_config',
                 resource: config.id,
                 resourceType: 'stripe_config',
@@ -101,7 +101,7 @@ class StripeConfigController {
             const account = await stripe.accounts.retrieve();
             // Log test action
             await auditService_1.AdminAuditLogger.log({
-                adminId: req.admin.id,
+                userId: req.admin.id,
                 action: 'test_stripe_connection',
                 resource: 'stripe_api',
                 resourceType: 'external_service',

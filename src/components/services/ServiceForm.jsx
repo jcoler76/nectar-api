@@ -1,20 +1,15 @@
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from '@mui/material';
+import { Tooltip } from '@mui/material';
+import { HelpCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getConnectionDatabases, getConnections } from '../../services/connectionService';
-import { createService, updateService } from '../../services/serviceService';
+import { createService, updateService, refreshServiceSchema } from '../../services/serviceService';
+import { Alert, AlertDescription } from '../ui/alert';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Textarea } from '../ui/textarea';
 
 const ServiceForm = ({ service, onServiceSubmitted, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -37,7 +32,9 @@ const ServiceForm = ({ service, onServiceSubmitted, onCancel }) => {
       setLoadingConnections(true);
       try {
         const fetchedConnections = await getConnections();
-        setConnections(fetchedConnections);
+        // Filter to only show active connections for service creation
+        const activeConnections = fetchedConnections.filter(connection => connection.isActive);
+        setConnections(activeConnections);
         setError(''); // Clear any previous errors
       } catch (err) {
         console.error('Error fetching connections:', err);
@@ -52,6 +49,27 @@ const ServiceForm = ({ service, onServiceSubmitted, onCancel }) => {
     };
     fetchConnections();
   }, []);
+
+  // Load databases for existing service when editing
+  useEffect(() => {
+    const loadDatabasesForExistingService = async () => {
+      // Only run for existing services that have a connectionId
+      if (service && formData.connectionId) {
+        setLoadingDatabases(true);
+        try {
+          const databaseList = await getConnectionDatabases(formData.connectionId);
+          setDatabases(databaseList);
+        } catch (err) {
+          console.error('Error fetching databases for existing service:', err);
+          setError('Failed to load databases for this connection.');
+        } finally {
+          setLoadingDatabases(false);
+        }
+      }
+    };
+
+    loadDatabasesForExistingService();
+  }, [service, formData.connectionId]);
 
   const handleConnectionChange = async connectionId => {
     setFormData(prev => ({
@@ -92,11 +110,28 @@ const ServiceForm = ({ service, onServiceSubmitted, onCancel }) => {
     setSuccess('');
     try {
       if (service) {
-        await updateService(service._id, formData);
+        await updateService(service.id, formData);
+        onServiceSubmitted();
       } else {
-        await createService(formData);
+        // Create the service first
+        const createdService = await createService(formData);
+
+        // Automatically refresh schema for the newly created service
+        try {
+          setSuccess('Service created successfully. Refreshing schema...');
+          const schemaResult = await refreshServiceSchema(createdService.id);
+          setSuccess(
+            `Service created and schema refreshed: ${schemaResult.objectCount.total} objects found (${schemaResult.objectCount.tables} tables, ${schemaResult.objectCount.views} views, ${schemaResult.objectCount.procedures} procedures)`
+          );
+        } catch (schemaError) {
+          console.warn('Schema refresh failed after service creation:', schemaError);
+          setSuccess(
+            'Service created successfully, but schema refresh failed. You can manually refresh the schema later.'
+          );
+        }
+
+        onServiceSubmitted();
       }
-      onServiceSubmitted();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -105,105 +140,142 @@ const ServiceForm = ({ service, onServiceSubmitted, onCancel }) => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <DialogContent
-        sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', pt: '1rem !important' }}
-      >
-        {error && <Alert severity="error">{error}</Alert>}
-        {success && <Alert severity="success">{success}</Alert>}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {success && (
+        <Alert>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
-        <TextField
-          label="Service Name"
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="name">Service Name *</Label>
+          <Tooltip title="Unique identifier for this service. Used in API endpoints and must contain only letters, numbers, and underscores. Cannot be changed after creation.">
+            <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+          </Tooltip>
+        </div>
+        <Input
+          id="name"
           name="name"
-          fullWidth
           required
           value={formData.name}
           onChange={handleChange}
+          placeholder="e.g., customer_db, inventory_service"
         />
+      </div>
 
-        <TextField
-          label="Label"
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="label">Label</Label>
+          <Tooltip title="Optional human-readable display name for better organization. This appears in the UI to help identify the service more easily.">
+            <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+          </Tooltip>
+        </div>
+        <Input
+          id="label"
           name="label"
-          fullWidth
           value={formData.label}
           onChange={handleChange}
+          placeholder="e.g., Customer Database, Inventory Management"
         />
+      </div>
 
-        <TextField
-          label="Description"
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="description">Description</Label>
+          <Tooltip title="Detailed explanation of what this service does and what data it provides. This helps team members understand the service purpose and usage.">
+            <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+          </Tooltip>
+        </div>
+        <Textarea
+          id="description"
           name="description"
-          fullWidth
-          multiline
           rows={3}
           value={formData.description}
           onChange={handleChange}
+          placeholder="e.g., Provides access to customer data including profiles, orders, and preferences"
         />
+      </div>
 
-        <FormControl fullWidth required>
-          <InputLabel id="connection-select-label">Connection</InputLabel>
-          <Select
-            labelId="connection-select-label"
-            id="connection-select"
-            value={formData.connectionId}
-            label="Connection"
-            onChange={e => handleConnectionChange(e.target.value)}
-            disabled={loadingConnections}
-          >
-            {loadingConnections ? (
-              <MenuItem value="">
-                <em>Loading connections...</em>
-              </MenuItem>
-            ) : (
-              connections.map(c => (
-                <MenuItem key={c._id} value={c._id}>
-                  {c.name} ({c.host})
-                </MenuItem>
-              ))
-            )}
-          </Select>
-        </FormControl>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="connection">Connection *</Label>
+          <Tooltip title="Select the database connection this service will use. The connection defines the server, credentials, and connection settings.">
+            <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+          </Tooltip>
+        </div>
+        <Select
+          value={formData.connectionId}
+          onValueChange={handleConnectionChange}
+          disabled={loadingConnections}
+        >
+          <SelectTrigger id="connection">
+            <SelectValue
+              placeholder={loadingConnections ? 'Loading connections...' : 'Select a connection'}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {connections.map(c => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name} ({c.host})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        <FormControl fullWidth required disabled={!formData.connectionId || loadingDatabases}>
-          <InputLabel id="database-select-label">Database</InputLabel>
-          <Select
-            labelId="database-select-label"
-            id="database-select"
-            value={formData.database}
-            label="Database"
-            name="database"
-            onChange={handleChange}
-          >
-            {loadingDatabases ? (
-              <MenuItem value="">
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={20} />
-                  <em>Loading databases...</em>
-                </Box>
-              </MenuItem>
-            ) : (
-              databases.map(db => (
-                <MenuItem key={db} value={db}>
-                  {db}
-                </MenuItem>
-              ))
-            )}
-          </Select>
-        </FormControl>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onCancel} disabled={saving}>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="database">Database *</Label>
+          <Tooltip title="Select the specific database from the chosen connection. The service will provide access to this database's tables, views, and procedures.">
+            <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+          </Tooltip>
+        </div>
+        <Select
+          value={formData.database}
+          onValueChange={value => setFormData(prev => ({ ...prev, database: value }))}
+          disabled={!formData.connectionId || loadingDatabases}
+        >
+          <SelectTrigger id="database">
+            <SelectValue
+              placeholder={loadingDatabases ? 'Loading databases...' : 'Select a database'}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {databases.map(db => (
+              <SelectItem key={db} value={db}>
+                {db}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={saving}
+          className="w-full sm:w-auto"
+        >
           Cancel
         </Button>
         <Button
           type="submit"
-          variant="contained"
-          disabled={saving || !formData.connectionId || !formData.database}
-          startIcon={saving && <CircularProgress size={20} />}
+          disabled={saving || !formData.connectionId || !formData.database || !formData.name}
+          className="w-full sm:w-auto"
         >
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {saving ? 'Saving...' : 'Save Service'}
         </Button>
-      </DialogActions>
-    </Box>
+      </div>
+    </form>
   );
 };
 

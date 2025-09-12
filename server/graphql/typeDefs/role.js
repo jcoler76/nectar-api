@@ -70,6 +70,7 @@ const roleTypeDefs = gql`
     description: String
     serviceId: ID!
     permissions: [PermissionInput!]!
+    isActive: Boolean = true
   }
 
   input UpdateRoleInput {

@@ -159,6 +159,7 @@ const SERVICE_QUERIES = {
             port
             database
             username
+            connectionId
             objects
             isActive
             createdAt

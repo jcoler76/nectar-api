@@ -40,11 +40,11 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     let usedDreamFactoryHeader = false;
 
     // Check for Nectar Studio key (case-insensitive)
-    apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectar-api-key');
+    apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectarstudio-api-key');
 
     // Check for DreamFactory API key (case-insensitive) if Mirabel key not found
     if (!apiKey) {
-      apiKey = getHeaderCaseInsensitive(req.headers, 'x-dreamfactory-api-key');
+      apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectarstudio-string-api-key');
       if (apiKey) {
         usedDreamFactoryHeader = true;
       }
@@ -102,8 +102,8 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     }
 
     // Extract permissions for processing
-    const permissions = Array.isArray(application.defaultRole.permissions) 
-      ? application.defaultRole.permissions 
+    const permissions = Array.isArray(application.defaultRole.permissions)
+      ? application.defaultRole.permissions
       : [];
 
     logger.info('Role and permissions check', {

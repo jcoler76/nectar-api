@@ -1,11 +1,11 @@
 import {
   UserIcon,
-  MagnifyingGlassIcon,
   EyeIcon,
   PencilIcon,
   UserPlusIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
+import { graphqlRequest } from '../../services/graphql'
 import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -20,93 +20,98 @@ interface UserMetrics {
 
 interface User {
   id: string
-  name: string
+  firstName: string
+  lastName: string
+  fullName: string
   email: string
-  company?: string
-  plan: string
-  status: 'Active' | 'Inactive' | 'Suspended'
-  joinDate: string
+  isActive: boolean
+  isAdmin: boolean
+  createdAt: string
   lastLogin?: string
-  mrr: number
+  roles: Array<{ id: string; name: string }>
+  organization?: { name: string }
 }
 
 export default function UserManagement() {
   const [metrics, setMetrics] = useState<UserMetrics | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const data = await graphqlRequest<{
+        users: {
+          pageInfo: { totalCount: number }
+          edges: { node: {
+            id: string; email: string; firstName: string; lastName: string;
+            fullName: string; isActive: boolean; isAdmin: boolean; createdAt: string; lastLogin?: string;
+            roles: { id: string; name: string }[];
+            memberships: { role: string; joinedAt: string; organization: { id: string; name: string } }[]
+          } }[]
+        }
+      }>(
+        `query Users($limit: Int!, $offset: Int!) {
+          users(pagination: { limit: $limit, offset: $offset, sortBy: "createdAt", sortOrder: DESC }) {
+            pageInfo { totalCount }
+            edges {
+              node {
+                id email firstName lastName fullName isActive isAdmin createdAt lastLogin
+                roles { id name }
+                memberships { role joinedAt organization { id name } }
+              }
+            }
+          }
+        }`,
+        { limit: 200, offset: 0 }
+      )
+      const mapped: User[] = data.users.edges.map(({ node }) => ({
+        id: node.id,
+        email: node.email,
+        firstName: node.firstName,
+        lastName: node.lastName,
+        fullName: node.fullName,
+        isActive: node.isActive,
+        isAdmin: node.isAdmin,
+        createdAt: node.createdAt,
+        lastLogin: node.lastLogin,
+        roles: node.roles || [],
+        organization: node.memberships?.[0]?.organization ? { name: node.memberships[0].organization.name } : undefined,
+      }))
+      setUsers(mapped)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch users'
+      console.error('Error fetching users:', err)
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setMetrics({
-        totalUsers: 1247,
-        activeUsers: 892,
-        newUsersToday: 23,
-        churnedUsers: 8
-      })
-      
-      setUsers([
-        {
-          id: '1',
-          name: 'Alice Johnson',
-          email: 'alice@techcorp.com',
-          company: 'TechCorp Inc',
-          plan: 'Enterprise',
-          status: 'Active',
-          joinDate: '2024-01-15',
-          lastLogin: '2024-09-07',
-          mrr: 299
-        },
-        {
-          id: '2',
-          name: 'Bob Smith',
-          email: 'bob@startupxyz.com',
-          company: 'StartupXYZ',
-          plan: 'Pro',
-          status: 'Active',
-          joinDate: '2024-02-20',
-          lastLogin: '2024-09-06',
-          mrr: 99
-        },
-        {
-          id: '3',
-          name: 'Carol Davis',
-          email: 'carol@megacorp.com',
-          company: 'MegaCorp Ltd',
-          plan: 'Enterprise+',
-          status: 'Inactive',
-          joinDate: '2023-12-10',
-          lastLogin: '2024-08-15',
-          mrr: 0
-        },
-        {
-          id: '4',
-          name: 'David Wilson',
-          email: 'david@freelance.com',
-          plan: 'Basic',
-          status: 'Active',
-          joinDate: '2024-03-05',
-          lastLogin: '2024-09-08',
-          mrr: 29
-        },
-        {
-          id: '5',
-          name: 'Emma Brown',
-          email: 'emma@agency.com',
-          company: 'Creative Agency',
-          plan: 'Pro',
-          status: 'Suspended',
-          joinDate: '2024-01-28',
-          lastLogin: '2024-07-20',
-          mrr: 0
-        }
-      ])
-      
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    fetchUsers()
   }, [])
+
+  useEffect(() => {
+    if (users.length > 0) {
+      const activeUsers = users.filter((user: User) => user.isActive).length;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const newUsersToday = users.filter((user: User) => 
+        new Date(user.createdAt) >= today
+      ).length;
+      
+      setMetrics({
+        totalUsers: users.length,
+        activeUsers,
+        newUsersToday,
+        churnedUsers: users.length - activeUsers
+      });
+    }
+  }, [users]);
 
   const userColumns = [
     {
@@ -115,60 +120,63 @@ export default function UserManagement() {
       sortable: true,
       cell: ({ row }: { row: User }) => (
         <div>
-          <div className="font-medium">{row.name}</div>
+          <div className="font-medium">{row.fullName}</div>
           <div className="text-sm text-gray-500">{row.email}</div>
-          {row.company && (
-            <div className="text-xs text-gray-400">{row.company}</div>
+          {row.organization && (
+            <div className="text-xs text-gray-400">{row.organization.name}</div>
           )}
         </div>
       )
     },
     {
-      accessorKey: 'plan',
-      header: 'Plan',
-      sortable: true,
-      cell: ({ value }: { value: string }) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Enterprise' || value === 'Enterprise+' 
-            ? 'bg-purple-100 text-purple-800' 
-            : value === 'Pro' 
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {value}
-        </span>
+      accessorKey: 'roles',
+      header: 'Roles',
+      sortable: false,
+      cell: ({ row }: { row: User }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.isAdmin && (
+            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+              Admin
+            </span>
+          )}
+          {row.roles.map((role) => (
+            <span key={role.id} className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+              {role.name}
+            </span>
+          ))}
+        </div>
       )
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'isActive',
       header: 'Status',
       sortable: true,
-      cell: ({ value }: { value: string }) => (
+      cell: ({ row }: { row: User }) => (
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Active' 
+          row.isActive 
             ? 'bg-green-100 text-green-800' 
-            : value === 'Inactive'
-            ? 'bg-yellow-100 text-yellow-800'
             : 'bg-red-100 text-red-800'
         }`}>
-          {value}
+          {row.isActive ? 'Active' : 'Inactive'}
         </span>
       )
     },
     {
-      accessorKey: 'mrr',
-      header: 'MRR',
+      accessorKey: 'lastLogin',
+      header: 'Last Login',
       sortable: true,
-      cell: ({ value }: { value: number }) => (
-        <span className="font-medium">${value}</span>
+      cell: ({ row }: { row: User }) => (
+        <span className="text-sm">
+          {row.lastLogin ? new Date(row.lastLogin).toLocaleDateString() : 'Never'}
+        </span>
       )
     },
     {
-      accessorKey: 'joinDate',
+      accessorKey: 'createdAt',
       header: 'Joined',
       sortable: true,
-      cell: ({ value }: { value: string }) => (
-        new Date(value).toLocaleDateString()
+      cell: ({ row }: { row: User }) => (
+        new Date(row.createdAt).toLocaleDateString()
       )
     },
     {
@@ -181,8 +189,9 @@ export default function UserManagement() {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
-              console.log('View user:', row.id)
+              handleViewUser(row.id)
             }}
+            title="View user details"
           >
             <EyeIcon className="h-4 w-4" />
           </Button>
@@ -191,15 +200,79 @@ export default function UserManagement() {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
-              console.log('Edit user:', row.id)
+              handleEditUser(row.id)
             }}
+            title="Edit user"
           >
-            <PencilIcon className="h-4 w-4" />
+          <PencilIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async (e) => {
+              e.stopPropagation()
+              const ok = confirm('Permanently delete this user?')
+              if (!ok) return
+              try {
+                await graphqlRequest<{ deleteUser: boolean }>(
+                  `mutation DeleteUser($id: ID!) { deleteUser(id: $id) }`,
+                  { id: row.id }
+                )
+                await fetchUsers()
+              } catch (e) {
+                console.error('Delete user failed', e)
+                alert('Failed to delete user')
+              }
+            }}
+            title="Delete user"
+          >
+            Delete
           </Button>
         </div>
       )
     }
   ]
+
+  const handleViewUser = (userId: string) => {
+    const user = users.find((u: User) => u.id === userId);
+    if (user) {
+      alert(`Viewing user: ${user.fullName}\nEmail: ${user.email}\nStatus: ${user.isActive ? 'Active' : 'Inactive'}\nAdmin: ${user.isAdmin ? 'Yes' : 'No'}\nJoined: ${new Date(user.createdAt).toLocaleDateString()}`);
+    }
+  };
+
+  const handleEditUser = async (userId: string) => {
+    const user = users.find((u: User) => u.id === userId)
+    if (!user) return
+    const toggle = confirm(`Current status: ${user.isActive ? 'Active' : 'Inactive'}\n\nOK to toggle active status`)
+    if (!toggle) return
+    try {
+      await graphqlRequest<{ updateUser: { id: string } }>(
+        `mutation UpdateUser($id: ID!, $input: UpdateUserInput!) { updateUser(id: $id, input: $input) { id } }`,
+        { id: userId, input: { isActive: !user.isActive } }
+      )
+      await fetchUsers()
+    } catch (e) {
+      console.error('Update user failed', e)
+      alert('Failed to update user')
+    }
+  }
+
+  const handleAddUser = async () => {
+    const email = window.prompt('Email:')
+    if (!email) return
+    const firstName = window.prompt('First name:') || ''
+    const lastName = window.prompt('Last name:') || ''
+    try {
+      await graphqlRequest<{ createUser: { id: string } }>(
+        `mutation CreateUser($input: CreateUserInput!) { createUser(input: $input) { id } }`,
+        { input: { email, firstName, lastName, isActive: true } }
+      )
+      await fetchUsers()
+    } catch (e) {
+      console.error('Create user failed', e)
+      alert('Failed to create user')
+    }
+  }
 
   if (loading) {
     return (
@@ -214,8 +287,39 @@ export default function UserManagement() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          <p className="font-medium">Error loading users</p>
+          <p className="text-sm mt-1">{error}</p>
+          <button 
+            onClick={fetchUsers}
+            className="mt-2 bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or email" />
+        <select
+          className="border rounded px-3 py-2"
+          value={status}
+          onChange={e => setStatus(e.target.value as 'all' | 'active' | 'inactive')}
+        >
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <Button onClick={() => { setPage(1); void fetchUsers() }}>Apply</Button>
+      </div>
       {/* User Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
@@ -253,7 +357,7 @@ export default function UserManagement() {
               User Management ({users.length} users)
             </CardTitle>
             <Button 
-              onClick={() => console.log('Add new user')}
+              onClick={handleAddUser}
               className="flex items-center gap-2"
             >
               <UserPlusIcon className="h-4 w-4" />
@@ -266,9 +370,19 @@ export default function UserManagement() {
             data={users}
             columns={userColumns}
             searchable={true}
-            pageSize={10}
-            onRowClick={(user) => console.log('User clicked:', user)}
+            pageSize={pageSize}
+            onRowClick={(user) => handleViewUser(user.id)}
           />
+          <div className="flex items-center justify-between p-3">
+            <div className="text-sm text-gray-600">Page {page} / {Math.max(1, Math.ceil(totalCount / pageSize))}</div>
+            <div className="flex items-center gap-2">
+              <select className="border rounded px-2 py-1" value={pageSize} onChange={e => { setPageSize(parseInt(e.target.value)); setPage(1) }}>
+                {[10, 20, 50].map(n => <option key={n} value={n}>{n}/page</option>)}
+              </select>
+              <Button variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
+              <Button variant="outline" onClick={() => setPage(p => p + 1)} disabled={page * pageSize >= totalCount}>Next</Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

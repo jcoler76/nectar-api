@@ -22,8 +22,16 @@ export const PermissionProvider = ({ children }) => {
       return;
     }
 
-    // Simple organization role-based permissions
-    switch (user.role) {
+    // Normalize role value and provide robust fallbacks
+    const normalizedRole = (user.role || '').toString().toUpperCase().trim();
+
+    if (!normalizedRole && user.isAdmin) {
+      // If we at least know the user is an org owner/admin, grant owner perms
+      setPermissions(ORG_OWNER_PERMISSIONS);
+      return;
+    }
+
+    switch (normalizedRole) {
       case 'OWNER':
         setPermissions(ORG_OWNER_PERMISSIONS);
         break;
@@ -37,7 +45,8 @@ export const PermissionProvider = ({ children }) => {
         setPermissions(ORG_VIEWER_PERMISSIONS);
         break;
       default:
-        setPermissions(DEFAULT_PERMISSIONS);
+        // Unknown role string: default to safe viewer access so core nav appears
+        setPermissions(ORG_VIEWER_PERMISSIONS);
     }
   }, [user]);
 

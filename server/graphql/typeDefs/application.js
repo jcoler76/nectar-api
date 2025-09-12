@@ -6,9 +6,14 @@ const applicationTypeDefs = gql`
     name: String!
     description: String
     apiKey: String!
+    apiKeyEncrypted: String
+    apiKeyPrefix: String
+    apiKeyHint: String
     defaultRole: Role!
+    organization: Organization
     isActive: Boolean!
     createdBy: User!
+    creator: User!
     createdAt: Date!
     updatedAt: Date!
   }

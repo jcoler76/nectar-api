@@ -1,17 +1,19 @@
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import ApplicationForm from './components/applications/ApplicationForm';
 import ApplicationList from './components/applications/ApplicationList';
 import AcceptInvitation from './components/auth/AcceptInvitation';
 import Login from './components/auth/Login';
 import SetupAccount from './components/auth/SetupAccount';
+import TermsGate from './components/auth/TermsGate';
 import LazyRoute from './components/common/LazyRoute';
 import RateLimitErrorBoundary from './components/common/RateLimitErrorBoundary';
 import EndpointList from './components/endpoints/EndpointList';
 import ModernLayout from './components/layout/ModernLayout';
+import ChatWidget from './components/marketing/ChatWidget';
 import CreateRole from './components/roles/CreateRole';
 import RoleEdit from './components/roles/RoleEdit';
 import RoleList from './components/roles/RoleList';
@@ -51,9 +53,14 @@ const AdminSettings = lazy(() => import('./components/settings/AdminSettings'));
 const UserSettings = lazy(() => import('./components/settings/UserSettings'));
 const BillingPage = lazy(() => import('./components/settings/BillingPage'));
 const TeamManagement = lazy(() => import('./components/settings/TeamManagement'));
+const TermsManagement = lazy(() => import('./components/settings/TermsManagement'));
 
 const ProtectedLayout = ({ children }) => {
-  return <ModernLayout>{children}</ModernLayout>;
+  return (
+    <TermsGate>
+      <ModernLayout>{children}</ModernLayout>
+    </TermsGate>
+  );
 };
 
 const ProtectedRoute = ({ children, requiredPermission }) => {
@@ -77,6 +84,7 @@ const ProtectedRoute = ({ children, requiredPermission }) => {
 function App() {
   const { user } = useAuth();
   const isAuthenticated = !!user;
+  const location = useLocation();
 
   // Enable session timeout management
   useSessionTimeout();
@@ -86,6 +94,15 @@ function App() {
       <BreadcrumbProvider>
         <SelectionProvider>
           <NotificationProvider>
+            {/* Marketing chat widget on public marketing pages */}
+            {[
+              '/home',
+              '/pricing',
+              '/free-signup',
+              '/checkout',
+              '/checkout/success',
+              '/contact',
+            ].some(p => location.pathname.startsWith(p)) && <ChatWidget />}
             <Routes>
               {/* Marketing Site Routes - Public */}
               {MarketingRoutes}
@@ -301,6 +318,14 @@ function App() {
                 element={
                   <ProtectedRoute requiredPermission="isAdmin">
                     <LazyRoute component={AdminSettings} routeName="Admin Settings" />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/terms"
+                element={
+                  <ProtectedRoute requiredPermission="isAdmin">
+                    <LazyRoute component={TermsManagement} routeName="Terms Management" />
                   </ProtectedRoute>
                 }
               />

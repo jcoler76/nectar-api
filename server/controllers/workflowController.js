@@ -13,19 +13,17 @@ const { logger } = require('../middleware/logger');
 exports.getWorkflows = async (req, res) => {
   try {
     // Admin users can see all workflows, others only see their own
-    const whereClause = req.user.isAdmin 
-      ? {} 
-      : { organizationId: req.user.organizationId };
-    
+    const whereClause = req.user.isAdmin ? {} : { organizationId: req.user.organizationId };
+
     const workflows = await prisma.workflow.findMany({
       where: whereClause,
       orderBy: { updatedAt: 'desc' },
       include: {
         executions: {
           take: 5,
-          orderBy: { startedAt: 'desc' }
-        }
-      }
+          orderBy: { startedAt: 'desc' },
+        },
+      },
     });
     res.json(workflows);
   } catch (error) {
@@ -38,32 +36,30 @@ exports.getWorkflows = async (req, res) => {
 exports.getWorkflowById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Admin users can access any workflow, others only their own organization
-    const whereClause = req.user.isAdmin 
-      ? { id } 
-      : { id, organizationId: req.user.organizationId };
-    
+    const whereClause = req.user.isAdmin ? { id } : { id, organizationId: req.user.organizationId };
+
     const workflow = await prisma.workflow.findUnique({
       where: { id },
       include: {
         executions: {
           orderBy: { startedAt: 'desc' },
-          take: 10
+          take: 10,
         },
-        organization: true
-      }
+        organization: true,
+      },
     });
-    
+
     if (!workflow) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-    
+
     // Check organization access for non-admin users
     if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    
+
     res.json(workflow);
   } catch (error) {
     logger.error('Failed to retrieve workflow:', { error: error.message });
@@ -74,22 +70,34 @@ exports.getWorkflowById = async (req, res) => {
 // Create a new workflow
 exports.createWorkflow = async (req, res) => {
   try {
-    const { name, description, definition, trigger } = req.body;
-    
+    const { name, description, definition, trigger, nodes, edges } = req.body;
+
+    // Convert MongoDB-style structure to PostgreSQL format
+    const workflowDefinition = definition ?? {
+      nodes: nodes || [],
+      edges: edges || [],
+      version: '1.0',
+    };
+
+    const workflowTrigger = trigger ?? {
+      type: 'manual',
+      config: {},
+    };
+
     const newWorkflow = await prisma.workflow.create({
       data: {
         name,
-        description,
-        definition,
-        trigger,
-        organizationId: req.user.organizationId
+        description: description || null,
+        definition: workflowDefinition,
+        trigger: workflowTrigger,
+        organizationId: req.user.organizationId,
       },
       include: {
         executions: true,
-        organization: true
-      }
+        organization: true,
+      },
     });
-    
+
     res.status(201).json(newWorkflow);
   } catch (error) {
     logger.error('Failed to create workflow:', { error: error.message });
@@ -105,21 +113,21 @@ exports.updateWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, definition, trigger, isActive } = req.body;
-    
+
     // Check if workflow exists and user has access
     const existing = await prisma.workflow.findUnique({
       where: { id },
-      include: { organization: true }
+      include: { organization: true },
     });
-    
+
     if (!existing) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-    
+
     if (!req.user.isAdmin && existing.organizationId !== req.user.organizationId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    
+
     const updatedWorkflow = await prisma.workflow.update({
       where: { id },
       data: {
@@ -127,22 +135,22 @@ exports.updateWorkflow = async (req, res) => {
         description,
         definition,
         trigger,
-        isActive
+        isActive,
       },
       include: {
         executions: {
           orderBy: { startedAt: 'desc' },
-          take: 5
-        }
-      }
+          take: 5,
+        },
+      },
     });
-    
+
     // Handle workflow scheduling based on definition
     if (updatedWorkflow.isActive && updatedWorkflow.definition?.nodes) {
       const hasSchedulerTrigger = updatedWorkflow.definition.nodes.some(
         n => n.data?.nodeType === 'trigger:schedule'
       );
-      
+
       if (hasSchedulerTrigger) {
         logger.info(`Scheduling workflow after update: ${updatedWorkflow.name}`);
         await scheduleWorkflow(updatedWorkflow);
@@ -151,7 +159,7 @@ exports.updateWorkflow = async (req, res) => {
         unscheduleWorkflow(updatedWorkflow.id);
       }
     }
-    
+
     res.json(updatedWorkflow);
   } catch (error) {
     logger.error('Failed to update workflow:', { error: error.message });
@@ -167,7 +175,7 @@ exports.deleteWorkflow = async (req, res) => {
     // Check if workflow exists and user has access
     const workflow = await prisma.workflow.findUnique({
       where: { id },
-      include: { organization: true }
+      include: { organization: true },
     });
 
     if (!workflow) {
@@ -183,9 +191,9 @@ exports.deleteWorkflow = async (req, res) => {
 
     // Delete the workflow (cascades to executions)
     await prisma.workflow.delete({
-      where: { id }
+      where: { id },
     });
-    
+
     res.status(204).send();
   } catch (error) {
     logger.error('Failed to delete workflow:', { error: error.message });
@@ -197,42 +205,42 @@ exports.deleteWorkflow = async (req, res) => {
 exports.testWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const workflow = await prisma.workflow.findUnique({
       where: { id },
-      include: { organization: true }
+      include: { organization: true },
     });
-    
+
     if (!workflow) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-    
+
     if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    
+
     // Create execution record
     const execution = await prisma.workflowExecution.create({
       data: {
         workflowId: id,
         status: 'RUNNING',
-        logs: { trigger: 'test', data: req.body.triggerData || {} }
-      }
+        logs: { trigger: 'test', data: req.body.triggerData || {} },
+      },
     });
-    
+
     const runSteps = await executeWorkflow(workflow, req.body.triggerData || {});
     const resultsObject = Object.fromEntries(runSteps);
-    
+
     // Update execution with results
     await prisma.workflowExecution.update({
       where: { id: execution.id },
       data: {
         status: 'COMPLETED',
         completedAt: new Date(),
-        logs: { ...execution.logs, results: resultsObject }
-      }
+        logs: { ...execution.logs, results: resultsObject },
+      },
     });
-    
+
     res.status(200).json(resultsObject);
   } catch (error) {
     logger.error('Workflow test execution failed:', { error: error.message });
@@ -244,17 +252,17 @@ exports.testWorkflow = async (req, res) => {
 exports.getWorkflowRuns = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Ensure the user owns the workflow they are trying to access runs for
     const workflow = await prisma.workflow.findUnique({
       where: { id },
-      include: { organization: true }
+      include: { organization: true },
     });
-    
+
     if (!workflow) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-    
+
     if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -262,9 +270,9 @@ exports.getWorkflowRuns = async (req, res) => {
     const executions = await prisma.workflowExecution.findMany({
       where: { workflowId: id },
       orderBy: { startedAt: 'desc' },
-      take: 50
+      take: 50,
     });
-    
+
     res.status(200).json(executions);
   } catch (error) {
     logger.error(`Failed to fetch runs for workflow ${req.params.id}:`, { error: error.message });

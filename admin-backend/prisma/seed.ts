@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { AdminAuthService } from '../src/services/adminAuth'
+import * as crypto from 'crypto'
 
 const prisma = new PrismaClient()
 
@@ -15,10 +16,11 @@ async function main() {
       return
     }
 
-    // Create super admin user
+    // Create super admin user with secure password from environment
+    const adminPassword = process.env.ADMIN_SEED_PASSWORD || crypto.randomBytes(32).toString('hex')
     const superAdmin = await AdminAuthService.createAdmin({
       email: 'admin.nectarstudio.ai',
-      password: 'AdminPassword123!',
+      password: adminPassword,
       firstName: 'Super',
       lastName: 'Admin',
       role: 'SUPER_ADMIN',
@@ -26,10 +28,11 @@ async function main() {
 
     console.log('✅ Created super admin:', superAdmin.email)
 
-    // Create regular admin user
+    // Create regular admin user with secure password
+    const supportPassword = process.env.SUPPORT_SEED_PASSWORD || crypto.randomBytes(32).toString('hex')
     const regularAdmin = await AdminAuthService.createAdmin({
       email: 'support@nectar.com',
-      password: 'SupportPassword123!',
+      password: supportPassword,
       firstName: 'Support',
       lastName: 'Team',
       role: 'ADMIN',
@@ -37,10 +40,11 @@ async function main() {
 
     console.log('✅ Created admin user:', regularAdmin.email)
 
-    // Create viewer user
+    // Create viewer user with secure password
+    const viewerPassword = process.env.VIEWER_SEED_PASSWORD || crypto.randomBytes(32).toString('hex')
     const viewerUser = await AdminAuthService.createAdmin({
       email: 'viewer@nectar.com',
-      password: 'ViewerPassword123!',
+      password: viewerPassword,
       firstName: 'Read Only',
       lastName: 'User',
       role: 'VIEWER',
@@ -101,11 +105,16 @@ async function main() {
     console.log('✅ Created welcome announcement')
 
     console.log('\n🎉 Seeding completed successfully!')
-    console.log('\n📋 Default admin accounts created:')
-    console.log('   Super Admin: admin.nectarstudio.ai / AdminPassword123!')
-    console.log('   Admin: support@nectar.com / SupportPassword123!')
-    console.log('   Viewer: viewer@nectar.com / ViewerPassword123!')
-    console.log('\n⚠️  Please change these default passwords in production!')
+    console.log('\n📋 Admin accounts created:')
+    console.log('   Super Admin: admin.nectarstudio.ai')
+    console.log('   Admin: support@nectar.com')
+    console.log('   Viewer: viewer@nectar.com')
+    if (!process.env.ADMIN_SEED_PASSWORD) {
+      console.log('\n⚠️  IMPORTANT: Random passwords were generated. Set ADMIN_SEED_PASSWORD, SUPPORT_SEED_PASSWORD, and VIEWER_SEED_PASSWORD environment variables for consistent passwords.')
+      console.log('   Generated admin password:', adminPassword)
+      console.log('   Generated support password:', supportPassword)
+      console.log('   Generated viewer password:', viewerPassword)
+    }
 
   } catch (error) {
     console.error('❌ Error seeding database:', error)

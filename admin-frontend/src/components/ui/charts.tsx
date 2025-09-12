@@ -49,7 +49,7 @@ const ChartWrapper = ({ title, description, children, className = '' }: ChartWra
 )
 
 interface LineChartComponentProps {
-  data: any[]
+  data: Record<string, unknown>[]
   dataKey: string
   xAxisKey: string
   title?: string
@@ -101,7 +101,7 @@ export const LineChartComponent = ({
 )
 
 interface BarChartComponentProps {
-  data: any[]
+  data: Record<string, unknown>[]
   dataKey: string
   xAxisKey: string
   title?: string
@@ -147,7 +147,7 @@ export const BarChartComponent = ({
 )
 
 interface AreaChartComponentProps {
-  data: any[]
+  data: Record<string, unknown>[]
   dataKey: string
   xAxisKey: string
   title?: string
@@ -205,7 +205,7 @@ export const AreaChartComponent = ({
 )
 
 interface PieChartComponentProps {
-  data: any[]
+  data: Record<string, unknown>[]
   dataKey: string
   nameKey: string
   title?: string
@@ -249,7 +249,7 @@ export const PieChartComponent = ({
 )
 
 interface DonutChartComponentProps {
-  data: any[]
+  data: Record<string, unknown>[]
   dataKey: string
   nameKey: string
   title?: string

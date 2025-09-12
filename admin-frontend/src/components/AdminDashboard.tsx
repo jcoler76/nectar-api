@@ -7,7 +7,10 @@ import {
     Users
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { graphqlRequest } from '../services/graphql'
 import AdminLayout from './layout/AdminLayout'
+import LeadList from './crm/LeadList'
+import ConversationView from './crm/ConversationView'
 import RevenueDashboard from './analytics/RevenueDashboard'
 import UserAnalytics from './analytics/UserAnalytics'
 import ChurnAnalysis from './analytics/ChurnAnalysis'
@@ -35,18 +38,30 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [currentPage, setCurrentPage] = useState('/dashboard')
 
   useEffect(() => {
-    // Simulate loading dashboard data
-    const timer = setTimeout(() => {
-      setStats({
-        totalUsers: 1247,
-        activeUsers: 892,
-        totalSubscriptions: 634,
-        monthlyRevenue: 45230
-      })
-      setLoading(false)
-    }, 1500)
-
-    return () => clearTimeout(timer)
+    let mounted = true
+    const load = async () => {
+      try {
+        const data = await graphqlRequest<{ adminMetrics: { totalUsers: number; activeUsers: number; totalSubscriptions: number; monthlyRevenue: number } }>(
+          `query AdminMetrics { adminMetrics { totalUsers activeUsers totalSubscriptions monthlyRevenue } }`
+        )
+        if (!mounted) return
+        setStats({
+          totalUsers: data.adminMetrics.totalUsers,
+          activeUsers: data.adminMetrics.activeUsers,
+          totalSubscriptions: data.adminMetrics.totalSubscriptions,
+          monthlyRevenue: data.adminMetrics.monthlyRevenue,
+        })
+      } catch (e) {
+        console.error('Failed to load admin metrics', e)
+        setStats({ totalUsers: 0, activeUsers: 0, totalSubscriptions: 0, monthlyRevenue: 0 })
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => {
+      mounted = false
+    }
   }, [])
 
   const handleNavigation = (url: string) => {
@@ -56,7 +71,14 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     console.log('Navigating to:', url)
   }
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color = "blue" }: any) => (
+  type StatCardProps = {
+    icon: React.ComponentType<{ className?: string }>
+    title: string
+    value?: string | number | null
+    subtitle?: string
+    color?: string
+  }
+  const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue' }: StatCardProps) => (
     <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
       <div className="flex items-center">
         <div className={`p-3 rounded-lg bg-${color}-100`}>
@@ -102,6 +124,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case '/billing/transactions': return 'Transactions'
       case '/billing/stripe': return 'Stripe Configuration'
       case '/system': return 'System'
+      case '/crm/leads': return 'Leads'
+      case '/crm/conversations': return 'Conversations'
       case '/system/config': return 'System Configuration'
       case '/system/audit': return 'Audit Logs'
       case '/system/announcements': return 'Announcements'
@@ -231,6 +255,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         {currentPage === '/users/organizations' && <OrganizationManagement />}
         {currentPage === '/users/subscriptions' && <SubscriptionManagement />}
         
+        {/* CRM Pages */}
+        {currentPage === '/crm/leads' && <LeadList />}
+        {currentPage === '/crm/conversations' && <ConversationView />}
+
         {/* Billing Pages */}
         {currentPage === '/billing/overview' && <BillingDashboard />}
         {currentPage === '/billing/transactions' && <TransactionReport />}

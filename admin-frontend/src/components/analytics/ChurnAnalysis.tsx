@@ -11,6 +11,7 @@ import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { LineChartComponent, BarChartComponent, DonutChartComponent } from '../ui/charts'
+import { graphqlRequest } from '../../services/graphql'
 
 interface ChurnMetrics {
   monthlyChurnRate: number
@@ -63,84 +64,27 @@ export default function ChurnAnalysis() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMetrics({
-        monthlyChurnRate: 4.2,
-        revenueChurn: 8350,
-        churnedUsers: 23,
-        atRiskUsers: 47,
-        averageLifetimeValue: 2840,
-        churnCost: 134200
-      })
-
-      setChurnTrends([
-        { month: '2024-01', churnRate: 3.8, churnedUsers: 18, revenueImpact: 6200 },
-        { month: '2024-02', churnRate: 4.1, churnedUsers: 21, revenueImpact: 7800 },
-        { month: '2024-03', churnRate: 3.5, churnedUsers: 17, revenueImpact: 5900 },
-        { month: '2024-04', churnRate: 4.8, churnedUsers: 25, revenueImpact: 9400 },
-        { month: '2024-05', churnRate: 4.2, churnedUsers: 23, revenueImpact: 8350 },
-        { month: '2024-06', churnRate: 3.9, churnedUsers: 22, revenueImpact: 7650 }
-      ])
-
-      setChurnByPlan([
-        { plan: 'Basic', churnRate: 6.2, users: 8, revenue: 232 },
-        { plan: 'Pro', churnRate: 3.8, users: 9, revenue: 891 },
-        { plan: 'Enterprise', churnRate: 2.1, users: 4, revenue: 1196 },
-        { plan: 'Enterprise+', churnRate: 1.5, users: 2, revenue: 1800 }
-      ])
-
-      setAtRiskUsers([
-        {
-          id: '1',
-          name: 'Sarah Wilson',
-          email: 'sarah@techstartup.com',
-          company: 'TechStartup Inc',
-          plan: 'Pro',
-          riskScore: 89,
-          lastLogin: '2024-08-15',
-          mrr: 99,
-          joinDate: '2023-06-10',
-          actions: 'Contact'
-        },
-        {
-          id: '2',
-          name: 'Michael Chen',
-          email: 'michael@designco.com',
-          company: 'DesignCo',
-          plan: 'Basic',
-          riskScore: 85,
-          lastLogin: '2024-08-20',
-          mrr: 29,
-          joinDate: '2024-01-15',
-          actions: 'Offer Discount'
-        },
-        {
-          id: '3',
-          name: 'Jennifer Davis',
-          email: 'jen@megacorp.com',
-          company: 'MegaCorp Ltd',
-          plan: 'Enterprise',
-          riskScore: 78,
-          lastLogin: '2024-09-01',
-          mrr: 299,
-          joinDate: '2023-03-20',
-          actions: 'Schedule Call'
-        }
-      ])
-
-      setChurnReasons([
-        { reason: 'Price/Cost concerns', count: 12, percentage: 34.3 },
-        { reason: 'Feature limitations', count: 8, percentage: 22.9 },
-        { reason: 'Poor user experience', count: 5, percentage: 14.3 },
-        { reason: 'Competitor switch', count: 4, percentage: 11.4 },
-        { reason: 'No longer needed', count: 3, percentage: 8.6 },
-        { reason: 'Technical issues', count: 3, percentage: 8.6 }
-      ])
-
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    let mounted = true
+    const load = async () => {
+      try {
+        const subs = await graphqlRequest<{ subscriptionMetrics: { totalSubscriptions: number; cancelledSubscriptions: number } }>(`query { subscriptionMetrics { totalSubscriptions cancelledSubscriptions } }`)
+        if (!mounted) return
+        const total = subs.subscriptionMetrics.totalSubscriptions || 1
+        const cancelled = subs.subscriptionMetrics.cancelledSubscriptions || 0
+        const monthlyChurnRate = Math.round((cancelled / total) * 1000) / 10
+        setMetrics({ monthlyChurnRate, revenueChurn: 0, churnedUsers: cancelled, atRiskUsers: 0, averageLifetimeValue: 0, churnCost: 0 })
+        setChurnTrends([])
+        setChurnByPlan([])
+        setAtRiskUsers([])
+        setChurnReasons([])
+      } catch (e) {
+        console.error('Failed to load churn analytics', e)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => clearTimeout((mounted = false as unknown as number))
   }, [])
 
   const atRiskColumns = [
@@ -272,25 +216,6 @@ export default function ChurnAnalysis() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-yellow-100">
-                <ExclamationTriangleIcon className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4 flex-1">
-                <p className="text-sm font-medium text-gray-600">At-Risk Users</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {metrics?.atRiskUsers}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Financial Impact Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
               <div className="p-3 rounded-lg bg-red-100">
                 <CurrencyDollarIcon className="h-6 w-6 text-red-600" />
               </div>
@@ -303,7 +228,10 @@ export default function ChurnAnalysis() {
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Financial Impact Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
@@ -339,7 +267,6 @@ export default function ChurnAnalysis() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Churn Rate Trend */}
         <LineChartComponent
           data={churnTrends}
           dataKey="churnRate"
@@ -349,7 +276,6 @@ export default function ChurnAnalysis() {
           color="hsl(0, 70%, 50%)"
         />
 
-        {/* Churn by Plan */}
         <BarChartComponent
           data={churnByPlan}
           dataKey="churnRate"
@@ -362,7 +288,6 @@ export default function ChurnAnalysis() {
 
       {/* Second Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Impact */}
         <BarChartComponent
           data={churnTrends}
           dataKey="revenueImpact"
@@ -372,7 +297,6 @@ export default function ChurnAnalysis() {
           color="hsl(340, 70%, 50%)"
         />
 
-        {/* Churn Reasons */}
         <DonutChartComponent
           data={churnReasons}
           dataKey="count"
@@ -409,3 +333,4 @@ export default function ChurnAnalysis() {
     </div>
   )
 }
+

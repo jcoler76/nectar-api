@@ -67,7 +67,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon --signal SIGTERM --delay 1.0 --legacy-watch server.js",
     "test": "jest",
     "lint": "echo 'Linting backend files...' && exit 0",
     "db:init": "node scripts/dbInit.js",

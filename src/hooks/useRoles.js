@@ -45,11 +45,11 @@ export const useRoles = () => {
     'toggle',
     async role => {
       try {
-        const updatedRole = {
-          ...role,
+        // Only send the isActive field to avoid permission data conflicts
+        const updateData = {
           isActive: !role.isActive,
         };
-        await updateRole(role.id, updatedRole);
+        await updateRole(role.id, updateData);
         await fetchRoles();
         return { success: true };
       } catch (err) {

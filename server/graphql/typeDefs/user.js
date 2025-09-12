@@ -10,9 +10,16 @@ const userTypeDefs = gql`
     isAdmin: Boolean!
     isActive: Boolean!
     roles: [Role!]!
+    memberships: [UserMembership!]!
     lastLogin: Date
     createdAt: Date!
     updatedAt: Date!
+  }
+
+  type UserMembership {
+    organization: Organization!
+    role: String!
+    joinedAt: Date!
   }
 
   type UserConnection {

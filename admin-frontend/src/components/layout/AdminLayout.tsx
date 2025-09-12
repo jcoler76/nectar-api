@@ -44,6 +44,8 @@ export default function AdminLayout({
           onSidebarToggle={handleSidebarToggle}
           currentPage={currentPage}
           breadcrumbs={breadcrumbs}
+          onLogout={onLogout}
+          onNavigate={onNavigate}
         />
 
         {/* Page content */}

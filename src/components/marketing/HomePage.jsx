@@ -108,14 +108,15 @@ const HomePage = () => {
       <section className="px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Automate Your
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Business Workflows
+              Automate, Integrate, Elevate
             </span>
+            <span className="block">Your Business Operations</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-4xl mx-auto leading-relaxed">
-            Transform your business operations with intelligent automation, powerful analytics, and
-            seamless integrations. Built for modern teams who demand efficiency.
+            Automate repetitive tasks, integrate all your tools seamlessly, and elevate your team's
+            performance to new heights. The all-in-one platform that transforms how modern
+            businesses operate.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
@@ -261,19 +262,20 @@ const HomePage = () => {
                   <Workflow className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                <span className="text-xl font-bold text-blue-600">.ai</span>
-              </div>
+                  <span className="text-xl font-bold text-gray-900">NectarStudio</span>
+                  <span className="text-xl font-bold text-blue-600">.ai</span>
+                </div>
               </div>
               <p className="text-gray-600">
-                The modern workflow automation platform built for growing businesses.
+                Automate, integrate, elevate - the modern platform that transforms how businesses
+                operate and grow.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -281,7 +283,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -289,7 +291,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -297,7 +299,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -310,7 +312,7 @@ const HomePage = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -318,7 +320,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -326,7 +328,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -334,7 +336,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -347,7 +349,7 @@ const HomePage = () => {
               <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -355,7 +357,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -363,7 +365,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >
@@ -371,7 +373,7 @@ const HomePage = () => {
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {}}
                     className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
                   >

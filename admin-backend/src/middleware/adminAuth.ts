@@ -41,7 +41,7 @@ export const authenticateAdmin = async (
       return
     }
 
-    const admin = await AdminAuthService.getAdminById(decoded.adminId)
+    const admin = await AdminAuthService.getAdminById(decoded.userId)
     
     if (!admin) {
       res.status(401).json({ 
@@ -54,7 +54,7 @@ export const authenticateAdmin = async (
     req.admin = admin
     next()
   } catch (error) {
-    console.error('Authentication error:', error)
+    // Log error internally without exposing details
     res.status(401).json({ 
       error: 'Authentication failed',
       code: 'AUTH_ERROR'
@@ -122,7 +122,7 @@ export const auditAction = (action: string, resourceType?: string) => {
   return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     // Log the action
     await AdminAuditLogger.log({
-      adminId: req.admin?.id,
+      userId: req.admin?.id,
       action,
       resource: req.params.id || req.body?.id,
       resourceType,

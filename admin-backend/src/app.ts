@@ -1,23 +1,29 @@
+// Load environment variables FIRST before any other imports that might use them
+import dotenv from 'dotenv'
+dotenv.config()
+
 import compression from 'compression'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import express, { Application, Request, Response } from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import { createServer } from 'http'
+import { apiRateLimiter } from '@/middleware/rateLimiter'
 
 // Import routes
 import authRoutes from '@/routes/auth'
-import analyticsRoutes from '@/routes/analytics'
-import stripeConfigRoutes from '@/routes/stripeConfig'
-import billingRoutes from '@/routes/billing'
-import webhookRoutes from '@/routes/webhooks'
-import marketingBillingRoutes from '@/routes/marketingBilling'
-
-// Load environment variables
-dotenv.config()
+import usersRoutes from '@/routes/users'
+// Disabled Stripe-related routes until schema alignment
+// import analyticsRoutes from '@/routes/analytics'
+// import stripeConfigRoutes from '@/routes/stripeConfig'
+// import billingRoutes from '@/routes/billing'
+// import webhookRoutes from '@/routes/webhooks'
+// import marketingBillingRoutes from '@/routes/marketingBilling'
+// import crmRoutes from '@/routes/crm'
 
 const app: Application = express()
-const PORT = process.env.PORT || 4001
+const PORT = Number(process.env.PORT || process.env.ADMIN_PORT || 4001)
+let httpServer: any
 
 // Security middleware
 app.use(helmet({
@@ -36,17 +42,26 @@ app.use(helmet({
   },
 }))
 
-// CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-  'http://localhost:3002',
-  'https://admin.nectarstudio.ai'
-]
+// CORS configuration - strict for production
+const isDevelopment = process.env.NODE_ENV === 'development'
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || (
+  isDevelopment 
+    ? ['http://localhost:3002', 'http://localhost:3000']
+    : ['https://admin.nectarstudio.ai']
+)
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true)
+    // In production, reject requests with no origin
+    if (!origin && !isDevelopment) {
+      return callback(new Error('Origin header required'))
+    }
     
+    // Allow no-origin requests only in development (for testing tools)
+    if (!origin && isDevelopment) {
+      return callback(null, true)
+    }
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
@@ -56,6 +71,7 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  maxAge: 86400 // Cache preflight requests for 24 hours
 }))
 
 // Body parsing middleware
@@ -66,13 +82,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(compression())
 
 // Logging middleware
-const logFormat = process.env.NODE_ENV === 'production' 
-  ? 'combined' 
+const logFormat = process.env.NODE_ENV === 'production'
+  ? 'combined'
   : 'dev'
 app.use(morgan(logFormat))
 
 // Trust proxy (important for getting real IP addresses)
 app.set('trust proxy', 1)
+
+// Apply general API rate limiting to all routes
+app.use(apiRateLimiter)
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -86,11 +105,14 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API routes
 app.use('/api/auth', authRoutes)
-app.use('/api/analytics', analyticsRoutes)
-app.use('/api/stripe', stripeConfigRoutes)
-app.use('/api/billing', billingRoutes)
-app.use('/api/webhooks', webhookRoutes)
-app.use('/api/marketing', marketingBillingRoutes)
+app.use('/api/users', usersRoutes)
+// Disabled Stripe-related routes until schema alignment
+// app.use('/api/analytics', analyticsRoutes)
+// app.use('/api/stripe', stripeConfigRoutes)
+// app.use('/api/billing', billingRoutes)
+// app.use('/api/webhooks', webhookRoutes)
+// app.use('/api/marketing', marketingBillingRoutes)
+// app.use('/api/crm', crmRoutes)
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -103,10 +125,10 @@ app.use((req: Request, res: Response) => {
 
 // Global error handler
 app.use((error: Error, req: Request, res: Response, next: any) => {
-  console.error('Global error handler:', error)
-  
+  // Log error internally without exposing sensitive details
+
   // CORS error
-  if (error.message === 'Not allowed by CORS') {
+  if ((error as any).message === 'Not allowed by CORS') {
     return res.status(403).json({
       error: 'CORS policy violation',
       code: 'CORS_ERROR',
@@ -114,7 +136,7 @@ app.use((error: Error, req: Request, res: Response, next: any) => {
   }
 
   // JSON parsing error
-  if (error instanceof SyntaxError && 'body' in error) {
+  if (error instanceof SyntaxError && 'body' in (error as any)) {
     return res.status(400).json({
       error: 'Invalid JSON payload',
       code: 'INVALID_JSON',
@@ -123,24 +145,72 @@ app.use((error: Error, req: Request, res: Response, next: any) => {
 
   // Default error response
   res.status(500).json({
-    error: process.env.NODE_ENV === 'production' 
-      ? 'Internal server error' 
-      : error.message,
+    error: process.env.NODE_ENV === 'production'
+      ? 'Internal server error'
+      : (error as any).message,
     code: 'INTERNAL_ERROR',
   })
 })
 
+// Prepare HTTP server with resilient EADDRINUSE retry
+let __bindAttempts = 0
+const __maxRetries = parseInt(process.env.PORT_BIND_RETRIES || '40', 10)
+const __retryDelayMs = parseInt(process.env.PORT_BIND_RETRY_DELAY_MS || '250', 10)
+
+const logListening = () => {
+  console.log(`dYs? Admin Portal Backend running on port ${PORT}`)
+  console.log(`dY"S Environment: ${process.env.NODE_ENV || 'development'}`)
+  console.log(`dY"' CORS origins: ${allowedOrigins.join(', ')}`)
+}
+
+const setupServer = () => {
+  httpServer = createServer(app)
+  httpServer.on('error', (err: any) => {
+    if (err && (err.code === 'EADDRINUSE' || err.errno === -4091)) {
+      if (__bindAttempts < __maxRetries) {
+        const waitMs = __retryDelayMs
+        console.warn(`Port ${PORT} in use (attempt ${__bindAttempts}/${__maxRetries}); retrying in ${waitMs}ms...`)
+        setTimeout(() => {
+          try { try { (httpServer as any).close() } catch {}; setupServer(); attemptListen() } catch (retryErr) {
+            console.error('Error during listen retry:', retryErr)
+          }
+        }, waitMs)
+        return
+      }
+      console.error(`Failed to bind port ${PORT} after ${__bindAttempts} attempts. Exiting.`)
+      process.exit(1)
+    }
+    console.error('HTTP server error:', err)
+    process.exit(1)
+  })
+}
+
+const attemptListen = () => {
+  __bindAttempts += 1
+  try {
+    httpServer.listen(PORT, () => { logListening() })
+  } catch (err: any) {
+    if (err && (err.code === 'EADDRINUSE' || err.errno === -4091)) {
+      if (__bindAttempts < __maxRetries) {
+        const waitMs = __retryDelayMs
+        console.warn(`Port ${PORT} in use (attempt ${__bindAttempts}/${__maxRetries}); retrying in ${waitMs}ms...`)
+        setTimeout(() => { try { try { (httpServer as any).close() } catch {}; setupServer(); attemptListen() } catch {} }, waitMs)
+        return
+      }
+      console.error(`Failed to bind port ${PORT} after ${__bindAttempts} attempts. Exiting.`)
+      process.exit(1)
+    }
+    throw err
+  }
+}
 // Start server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Admin Portal Backend running on port ${PORT}`)
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
-  console.log(`🔒 CORS origins: ${allowedOrigins.join(', ')}`)
-})
+setupServer()
+attemptListen()
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully')
-  server.close(() => {
+  httpServer.close(() => {
     console.log('Process terminated')
     process.exit(0)
   })
@@ -148,10 +218,12 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully')
-  server.close(() => {
+  httpServer.close(() => {
     console.log('Process terminated')
     process.exit(0)
   })
 })
 
 export default app
+
+

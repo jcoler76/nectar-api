@@ -35,6 +35,7 @@
     "elkjs": "^0.10.0",
     "express-session": "^1.18.1",
     "file-saver": "^2.0.5",
+    "geoip-lite": "^1.4.10",
     "graphql-fields": "^2.0.3",
     "https-browserify": "^1.0.0",
     "ipaddr.js": "^2.2.0",

@@ -366,6 +366,11 @@ const serviceResolvers = {
   },
 
   Service: {
+    // Resolver for connectionId field - ensures connectionId is returned
+    connectionId: async service => {
+      return service.connectionId;
+    },
+
     // Resolver for createdBy field - ensures user info is populated
     createdBy: async service => {
       if (service.creator) return service.creator;

@@ -3,14 +3,11 @@
 const envOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map(o => o.trim())
-  .filter(Boolean)
+  .filter(Boolean);
 
-const defaultOrigins = [
-  'http://localhost:3000',
-  'http://localhost:8000',
-]
+const defaultOrigins = ['http://localhost:3000', 'http://localhost:8000'];
 
-const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins
+const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins;
 
 // In Codespaces, allow any *.app.github.dev origin
 const corsOptions = {
@@ -32,7 +29,7 @@ const corsOptions = {
     callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-nectar-api-key', 'x-csrf-token'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-nectarstudio-api-key', 'x-csrf-token'],
   exposedHeaders: ['X-Total-Count'],
   credentials: true,
   maxAge: 600, // 10 minutes

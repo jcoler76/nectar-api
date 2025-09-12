@@ -18,12 +18,12 @@ require('dotenv').config();
  */
 async function authenticateUser(username, password) {
   // Get API key from environment variables
-  const apiKey = process.env.MIRABEL_API_KEY || process.env.REACT_APP_API_KEY;
+  const apiKey = process.env.NECTARSTUDIO_API_KEY || process.env.REACT_APP_API_KEY;
 
   if (!apiKey) {
     return Promise.reject(
       new Error(
-        'API key not found in environment variables. Please set MIRABEL_API_KEY in .env file.'
+        'API key not found in environment variables. Please set NECTARSTUDIO_API_KEY in .env file.'
       )
     );
   }
@@ -54,8 +54,8 @@ async function authenticateUser(username, password) {
     path: `${apiUrl.pathname}${apiUrl.search}`,
     method: 'GET',
     headers: {
-      'x-mirabel-api-key': apiKey,
-      'x-dreamfactory-api-key': apiKey,
+      'x-nectarstudio-api-key': apiKey,
+      'x-nectarstudio-string-api-key': apiKey,
     },
   };
 

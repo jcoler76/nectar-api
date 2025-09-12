@@ -10,8 +10,8 @@ $ErrorActionPreference = 'Stop'
 Write-Host "Comparing REST vs GraphQL for issuesetID=$IssueSetID" -ForegroundColor Cyan
 
 $headers = @{
-  'x-dreamfactory-api-key' = $ApiKey
-  'x-nectar-api-key' = $ApiKey
+  'x-nectarstudio-string-api-key' = $ApiKey
+  'x-nectarstudio-api-key' = $ApiKey
   'Accept' = 'application/json'
 }
 

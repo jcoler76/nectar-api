@@ -23,6 +23,10 @@ const endpointTypeDefs = require('./typeDefs/endpoint');
 const productionJobJacketTypes = require('./typeDefs/productionJobJacketTypes');
 const flexibleQueryTypeDefs = require('./typeDefs/flexibleQueryTypes');
 const dynamicProcedureTypeDefs = require('./typeDefs/dynamicProcedure');
+const organizationTypeDefs = require('./typeDefs/organization');
+const subscriptionTypeDefs = require('./typeDefs/subscription');
+const billingTypeDefs = require('./typeDefs/billing');
+const adminAnalyticsTypeDefs = require('./typeDefs/adminAnalytics');
 
 // Import all resolvers
 const userResolvers = require('./resolvers/user');
@@ -35,6 +39,10 @@ const endpointResolvers = require('./resolvers/endpoint');
 const productionJobJacketResolvers = require('./resolvers/productionJobJacketResolvers');
 const flexibleQueryResolvers = require('./resolvers/flexibleQueryResolvers');
 const dynamicProcedureResolvers = require('./resolvers/dynamicProcedure');
+const organizationResolvers = require('./resolvers/organization');
+const subscriptionResolvers = require('./resolvers/subscription');
+const billingResolvers = require('./resolvers/billing');
+const adminAnalyticsResolvers = require('./resolvers/adminAnalytics');
 
 // Manually merge type definitions
 const typeDefs = [
@@ -49,6 +57,10 @@ const typeDefs = [
   productionJobJacketTypes,
   flexibleQueryTypeDefs,
   dynamicProcedureTypeDefs,
+  organizationTypeDefs,
+  subscriptionTypeDefs,
+  billingTypeDefs,
+  adminAnalyticsTypeDefs,
 ];
 
 // Manually merge resolvers
@@ -72,7 +84,11 @@ const resolvers = _.merge(
   endpointResolvers,
   productionJobJacketResolvers,
   flexibleQueryResolvers,
-  dynamicProcedureResolvers
+  dynamicProcedureResolvers,
+  organizationResolvers,
+  subscriptionResolvers,
+  billingResolvers,
+  adminAnalyticsResolvers
 );
 
 // Create executable schema for subscriptions

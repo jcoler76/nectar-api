@@ -20,7 +20,7 @@ export interface AdminUser {
     createdAt: Date;
 }
 export interface JWTPayload {
-    adminId: string;
+    userId: string;
     email: string;
     role: string;
     type: 'platform_admin';

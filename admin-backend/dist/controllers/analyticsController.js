@@ -19,7 +19,7 @@ class AnalyticsController {
             const dashboard = await analyticsService_1.AnalyticsService.getRevenueDashboard(period);
             // Log admin action
             await auditService_1.AdminAuditLogger.log({
-                adminId: req.admin.id,
+                userId: req.admin.id,
                 action: 'view_revenue_dashboard',
                 resource: 'analytics',
                 resourceType: 'dashboard',
@@ -104,7 +104,7 @@ class AnalyticsController {
             const summary = await analyticsService_1.AnalyticsService.generateExecutiveSummary();
             // Log admin action for executive summary access
             await auditService_1.AdminAuditLogger.log({
-                adminId: req.admin.id,
+                userId: req.admin.id,
                 action: 'view_executive_summary',
                 resource: 'analytics',
                 resourceType: 'report',

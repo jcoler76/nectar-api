@@ -7,10 +7,10 @@ import {
   ClockIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
-import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { LineChartComponent, BarChartComponent, DonutChartComponent } from '../ui/charts'
+import { graphqlRequest } from '../../services/graphql'
 
 interface BillingMetrics {
   dailyRevenue: number
@@ -61,81 +61,58 @@ export default function BillingDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMetrics({
-        dailyRevenue: 1847,
-        monthlyRevenue: 45230,
-        yearlyRevenue: 542760,
-        paymentSuccessRate: 96.8,
-        failedPayments: 12,
-        totalRefunds: 3450,
-        averageTransactionValue: 127.50,
-        pendingPayments: 8
-      })
+    let mounted = true
+    const load = async () => {
+      try {
+        const now = new Date()
+        const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        const [metricsRes, eventsRes] = await Promise.all([
+          graphqlRequest<{ billingMetrics: { dailyRevenue: number; monthlyRevenue: number; yearlyRevenue: number; totalEvents: number } }>(`query { billingMetrics { dailyRevenue monthlyRevenue yearlyRevenue totalEvents } }`),
+          graphqlRequest<{ billingEvents: { edges: { node: { createdAt: string; amount: number } }[] } }>(
+            `query Events($since: Date) { billingEvents(pagination: { limit: 1000, offset: 0 }, since: $since) { edges { node { createdAt amount } } } }`,
+            { since: since.toISOString() }
+          ),
+        ])
 
-      setRevenueData([
-        { date: '2024-09-01', revenue: 1520, transactions: 45 },
-        { date: '2024-09-02', revenue: 1780, transactions: 52 },
-        { date: '2024-09-03', revenue: 1420, transactions: 38 },
-        { date: '2024-09-04', revenue: 1650, transactions: 47 },
-        { date: '2024-09-05', revenue: 1890, transactions: 56 },
-        { date: '2024-09-06', revenue: 1730, transactions: 49 },
-        { date: '2024-09-07', revenue: 1847, transactions: 51 }
-      ])
+        if (!mounted) return
 
-      setPaymentMethods([
-        { method: 'Credit Card', count: 456, revenue: 35420 },
-        { method: 'Bank Transfer', count: 123, revenue: 12800 },
-        { method: 'PayPal', count: 89, revenue: 8900 },
-        { method: 'Digital Wallet', count: 67, revenue: 6700 },
-        { method: 'Other', count: 34, revenue: 2310 }
-      ])
+        const m = metricsRes.billingMetrics
+        setMetrics({
+          dailyRevenue: m.dailyRevenue,
+          monthlyRevenue: m.monthlyRevenue,
+          yearlyRevenue: m.yearlyRevenue,
+          paymentSuccessRate: 0,
+          failedPayments: 0,
+          totalRefunds: 0,
+          averageTransactionValue: 0,
+          pendingPayments: 0,
+        })
 
-      setFailedPayments([
-        {
-          id: '1',
-          customerName: 'Sarah Johnson',
-          customerEmail: 'sarah@company.com',
-          amount: 299,
-          reason: 'Insufficient funds',
-          attemptDate: '2024-09-06',
-          nextRetry: '2024-09-09',
-          status: 'Retrying'
-        },
-        {
-          id: '2',
-          customerName: 'Mike Chen',
-          customerEmail: 'mike@startup.com',
-          amount: 99,
-          reason: 'Card expired',
-          attemptDate: '2024-09-05',
-          nextRetry: '2024-09-08',
-          status: 'Failed'
-        },
-        {
-          id: '3',
-          customerName: 'Lisa Brown',
-          customerEmail: 'lisa@agency.com',
-          amount: 199,
-          reason: 'Card declined',
-          attemptDate: '2024-09-07',
-          nextRetry: '2024-09-10',
-          status: 'Retrying'
+        // Bucket events by date
+        const byDate: Record<string, { revenue: number; transactions: number }> = {}
+        eventsRes.billingEvents.edges.forEach(({ node }) => {
+          const d = new Date(node.createdAt).toISOString().slice(0, 10)
+          byDate[d] = byDate[d] || { revenue: 0, transactions: 0 }
+          byDate[d].revenue += Number(node.amount || 0)
+          byDate[d].transactions += 1
+        })
+        const days: string[] = []
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+          days.push(d)
         }
-      ])
-
-      setGeoRevenue([
-        { country: 'United States', revenue: 28450, transactions: 345 },
-        { country: 'United Kingdom', revenue: 8920, transactions: 89 },
-        { country: 'Canada', revenue: 5670, transactions: 67 },
-        { country: 'Australia', revenue: 4230, transactions: 45 },
-        { country: 'Germany', revenue: 3890, transactions: 42 }
-      ])
-
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+        setRevenueData(days.map(d => ({ date: d, revenue: byDate[d]?.revenue || 0, transactions: byDate[d]?.transactions || 0 })))
+        setPaymentMethods([])
+        setFailedPayments([])
+        setGeoRevenue([])
+      } catch (e) {
+        console.error('Failed to load billing dashboard', e)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => { mounted = false }
   }, [])
 
   const failedPaymentColumns = [
@@ -425,3 +402,4 @@ export default function BillingDashboard() {
     </div>
   )
 }
+

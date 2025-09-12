@@ -3,6 +3,7 @@ const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-
 const { logger } = require('../../utils/logger');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { encryptApiKey, decryptApiKey, generateApiKey } = require('../../utils/encryption');
 
 const prisma = new PrismaClient();
 
@@ -19,19 +20,19 @@ const applicationResolvers = {
       const application = await prisma.application.findFirst({
         where: {
           id,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           defaultRole: {
             include: {
-              service: true
-            }
+              service: true,
+            },
           },
-          organization: true
-        }
+          organization: true,
+        },
       });
 
       if (!application) {
@@ -57,7 +58,7 @@ const applicationResolvers = {
 
       // Build where clause for filters
       const where = {
-        organizationId: currentUser.organizationId
+        organizationId: currentUser.organizationId,
       };
 
       if (filters.isActive !== undefined) where.isActive = filters.isActive;
@@ -65,11 +66,11 @@ const applicationResolvers = {
         where.name = { contains: filters.name, mode: 'insensitive' };
       }
       if (filters.createdBy) where.createdBy = filters.createdBy;
-      
+
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } }
+          { description: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -84,16 +85,17 @@ const applicationResolvers = {
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           defaultRole: {
             include: {
               service: {
-                select: { id: true, name: true, database: true }
-              }
-            }
-          }
-        }
+                select: { id: true, name: true, database: true },
+              },
+            },
+          },
+          organization: true,
+        },
       });
 
       return {
@@ -131,8 +133,8 @@ const applicationResolvers = {
         const defaultRole = await prisma.role.findFirst({
           where: {
             id: defaultRoleId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!defaultRole) {
@@ -140,38 +142,49 @@ const applicationResolvers = {
         }
 
         // Generate API key
-        const apiKey = crypto.randomBytes(32).toString('hex');
+        const apiKey = await generateApiKey();
+        const apiKeyHash = await bcrypt.hash(apiKey, 10);
+        const apiKeyEncrypted = encryptApiKey(apiKey);
+        const apiKeyPrefix = apiKey.substring(0, 8);
+        const apiKeyHint = '•'.repeat(56) + apiKey.substring(apiKey.length - 4);
 
         const application = await prisma.application.create({
           data: {
             name,
             description,
             defaultRoleId,
-            apiKey,
+            apiKeyHash,
+            apiKeyEncrypted,
+            apiKeyPrefix,
+            apiKeyHint,
             isActive: isActive !== undefined ? isActive : true,
             organizationId: currentUser.organizationId,
             createdBy: currentUser.userId,
           },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             defaultRole: {
               include: {
-                service: true
-              }
+                service: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Application created via GraphQL', {
           applicationId: application.id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
-        return application;
+        // Return with the plain API key for initial display
+        return {
+          ...application,
+          apiKey: apiKey, // Include plain API key only on creation
+        };
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Application name already exists in your organization');
@@ -189,8 +202,8 @@ const applicationResolvers = {
         const existingApplication = await prisma.application.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingApplication) {
@@ -204,8 +217,8 @@ const applicationResolvers = {
           const defaultRole = await prisma.role.findFirst({
             where: {
               id: defaultRoleId,
-              organizationId: currentUser.organizationId
-            }
+              organizationId: currentUser.organizationId,
+            },
           });
 
           if (!defaultRole) {
@@ -220,21 +233,21 @@ const applicationResolvers = {
           data: updateData,
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             defaultRole: {
               include: {
-                service: true
-              }
+                service: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Application updated via GraphQL', {
           applicationId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return application;
@@ -242,7 +255,10 @@ const applicationResolvers = {
         if (error.code === 'P2002') {
           throw new UserInputError('Application name already exists in your organization');
         }
-        logger.error('GraphQL application update error', { error: error.message, applicationId: id });
+        logger.error('GraphQL application update error', {
+          error: error.message,
+          applicationId: id,
+        });
         throw new Error('Failed to update application');
       }
     },
@@ -255,8 +271,8 @@ const applicationResolvers = {
         const existingApplication = await prisma.application.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingApplication) {
@@ -264,13 +280,13 @@ const applicationResolvers = {
         }
 
         await prisma.application.delete({
-          where: { id }
+          where: { id },
         });
 
         logger.info('Application deleted via GraphQL', {
           applicationId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return true;
@@ -278,7 +294,10 @@ const applicationResolvers = {
         if (error.code === 'P2003') {
           throw new UserInputError('Cannot delete application: it has dependent records');
         }
-        logger.error('GraphQL application deletion error', { error: error.message, applicationId: id });
+        logger.error('GraphQL application deletion error', {
+          error: error.message,
+          applicationId: id,
+        });
         return false;
       }
     },
@@ -291,8 +310,8 @@ const applicationResolvers = {
         const existingApplication = await prisma.application.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingApplication) {
@@ -300,63 +319,124 @@ const applicationResolvers = {
         }
 
         // Generate new API key
-        const newApiKey = crypto.randomBytes(32).toString('hex');
+        const newApiKey = await generateApiKey();
+        const apiKeyHash = await bcrypt.hash(newApiKey, 10);
+        const apiKeyEncrypted = encryptApiKey(newApiKey);
+        const apiKeyPrefix = newApiKey.substring(0, 8);
+        const apiKeyHint = '•'.repeat(56) + newApiKey.substring(newApiKey.length - 4);
 
         const application = await prisma.application.update({
           where: { id },
-          data: { apiKey: newApiKey },
+          data: {
+            apiKeyHash,
+            apiKeyEncrypted,
+            apiKeyPrefix,
+            apiKeyHint,
+          },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             defaultRole: {
               include: {
-                service: true
-              }
+                service: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Application API key regenerated via GraphQL', {
           applicationId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
-        return application;
+        // Return with the new plain API key for display
+        return {
+          ...application,
+          apiKey: newApiKey, // Include plain API key only on regeneration
+        };
       } catch (error) {
-        logger.error('GraphQL application API key regeneration error', { error: error.message, applicationId: id });
+        logger.error('GraphQL application API key regeneration error', {
+          error: error.message,
+          applicationId: id,
+        });
         throw new Error('Failed to regenerate API key');
       }
     },
   },
 
   Application: {
+    // Resolver for apiKey field - returns plain key if just created/regenerated, otherwise returns hint
+    apiKey: async application => {
+      // If the plain API key was included (on creation or regeneration), return it
+      if (application.apiKey) return application.apiKey;
+
+      // Otherwise return the masked hint
+      return application.apiKeyHint || '•'.repeat(60);
+    },
+
     // Resolver for createdBy field - ensures user info is populated
-    createdBy: async (application) => {
+    createdBy: async application => {
       if (application.creator) return application.creator;
-      
+
       if (!application.createdBy) return null;
-      
+
       return await prisma.user.findUnique({
         where: { id: application.createdBy },
-        select: { id: true, email: true, firstName: true, lastName: true }
+        select: { id: true, email: true, firstName: true, lastName: true },
       });
     },
 
     // Resolver for defaultRole field - ensures role info is populated
-    defaultRole: async (application) => {
+    defaultRole: async application => {
       if (application.defaultRole) return application.defaultRole;
-      
+
       if (!application.defaultRoleId) return null;
-      
+
       return await prisma.role.findUnique({
         where: { id: application.defaultRoleId },
         include: {
-          service: true
-        }
+          service: true,
+        },
       });
+    },
+
+    // Resolver for organization field - ensures organization info is populated
+    organization: async application => {
+      if (application.organization) return application.organization;
+
+      if (!application.organizationId) {
+        // Log data integrity issue - applications should always have an organizationId
+        logger.warn('Application missing organizationId - data integrity issue', {
+          applicationId: application.id,
+          applicationName: application.name,
+        });
+        return null;
+      }
+
+      try {
+        const org = await prisma.organization.findUnique({
+          where: { id: application.organizationId },
+        });
+
+        if (!org) {
+          logger.warn('Application references non-existent organization', {
+            applicationId: application.id,
+            organizationId: application.organizationId,
+          });
+        }
+
+        return org;
+      } catch (error) {
+        logger.error('Error fetching organization for application', {
+          applicationId: application.id,
+          organizationId: application.organizationId,
+          error: error.message,
+        });
+        return null;
+      }
     },
   },
 };

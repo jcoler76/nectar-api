@@ -10,10 +10,11 @@ const { decryptDatabasePassword } = require('../utils/encryption');
 const { logger } = require('../utils/logger');
 const SQLSafetyValidator = require('../utils/sqlSafetyValidator');
 const { asyncHandler, errorResponses } = require('../utils/errorHandler');
+const { v4: uuidv4 } = require('uuid');
 
 // Middleware to validate developer API key
 const devApiKeyAuth = async (req, res, next) => {
-  const apiKey = req.header('x-mirabel-developer-key');
+  const apiKey = req.header('x-nectarstudio-developer-key');
   if (!apiKey) {
     return res.status(401).json({
       error: { code: 'UNAUTHORIZED', message: 'Unauthorized: Missing developer API key' },
@@ -32,8 +33,8 @@ const devApiKeyAuth = async (req, res, next) => {
     }
 
     // TODO: Implement proper Prisma query for endpoint lookup
-    const endpoint = await prisma.endpoint.findFirst({ 
-      where: { name: endpointName, apiKey: apiKey } 
+    const endpoint = await prisma.endpoint.findFirst({
+      where: { name: endpointName, apiKey: apiKey },
     });
     if (!endpoint) {
       return res.status(403).json({
@@ -67,10 +68,10 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
   let pool;
   try {
     // TODO: Implement proper Prisma query for connection lookup
-    const connection = await prisma.connection.findFirst({
+    const connection = await prisma.databaseConnection.findFirst({
       where: {
-        databases: { has: databaseName }
-      }
+        databases: { array_contains: databaseName },
+      },
     });
 
     if (!connection) {
@@ -79,7 +80,16 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
       });
     }
 
-    const decryptedPassword = decryptDatabasePassword(connection.password);
+    console.log('DEBUG: Connection found:', {
+      id: connection.id,
+      name: connection.name,
+      host: connection.host,
+      databases: connection.databases,
+      passwordEncrypted: connection.passwordEncrypted,
+      passwordLength: connection.passwordEncrypted?.length,
+      hasColon: connection.passwordEncrypted?.includes(':'),
+    });
+    const decryptedPassword = decryptDatabasePassword(connection.passwordEncrypted);
 
     const config = {
       user: connection.username,
@@ -96,6 +106,9 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
 
     pool = await sql.connect(config);
     const request = pool.request();
+
+    // Track execution start time for logging
+    const executionStart = new Date();
 
     // Validate and add parameters to the request if they exist
     if (parameters && typeof parameters === 'object') {
@@ -167,6 +180,40 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
         database: databaseName,
         procedure: req.endpoint.name,
       });
+    }
+
+    // Log API activity for the API Usage Report
+    try {
+      await prisma.apiActivityLog.create({
+        data: {
+          requestId: uuidv4(),
+          timestamp: new Date(),
+          method: 'POST',
+          url: req.originalUrl || '/api/developer/execute',
+          endpoint: `developer/${req.endpoint.name}`,
+          statusCode: 200,
+          responseTime: new Date() - executionStart,
+          userAgent: req.headers['user-agent'] || 'Unknown',
+          ipAddress: req.ip || req.connection.remoteAddress,
+          category: 'developer_endpoint',
+          endpointType: 'public',
+          importance: 'high',
+          metadata: {
+            endpointName: req.endpoint.name,
+            databaseName: databaseName,
+            environment: environment,
+            recordCount: result.recordset.length,
+            parameters: Object.keys(parameters || {}),
+          },
+          organizationId: req.endpoint.organizationId,
+          userId: null, // Developer API doesn't have user context
+          endpointId: req.endpoint.id,
+        },
+      });
+      logger.info('API activity logged for developer endpoint execution');
+    } catch (logError) {
+      logger.warn('Failed to log API activity:', logError.message);
+      // Continue even if logging fails
     }
 
     res.json(response);

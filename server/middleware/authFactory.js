@@ -40,14 +40,14 @@ class AuthFactory {
               message: 'User not found or inactive',
             });
           }
-          
+
           // Update last login time
           try {
             await prismaService.updateUserLastLogin(decoded.userId);
           } catch (error) {
             logger.warn('Failed to update last login time:', error);
           }
-          
+
           req.user = {
             ...user,
             userId: user.id, // Add userId for compatibility with existing code
@@ -78,7 +78,7 @@ class AuthFactory {
 
   static createAPIKeyMiddleware(options = {}) {
     const {
-      keyHeader = 'x-nectar-api-key',
+      keyHeader = 'x-nectarstudio-api-key',
       requirePermissions = true,
       allowedRoles = [],
     } = options;
@@ -145,7 +145,7 @@ class AuthFactory {
   static createDeveloperKeyMiddleware() {
     return async (req, res, next) => {
       try {
-        const developerKey = req.headers['x-mirabel-developer-key'];
+        const developerKey = req.headers['x-nectarstudio-developer-key'];
 
         if (!developerKey || developerKey !== process.env.MCP_DEVELOPER_KEY) {
           return res.status(401).json({

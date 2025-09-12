@@ -10,7 +10,7 @@ import {
   DocumentTextIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -52,7 +52,7 @@ export default function StripeConfiguration() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
-  const [loadingWebhooks, setLoadingWebhooks] = useState(false)
+  // const [loadingWebhooks, setLoadingWebhooks] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   
@@ -68,11 +68,7 @@ export default function StripeConfiguration() {
   const [showWebhookSecret, setShowWebhookSecret] = useState(false)
   const [showPublishableKey, setShowPublishableKey] = useState(false)
 
-  useEffect(() => {
-    loadConfiguration()
-  }, [])
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setError(null)
       const token = localStorage.getItem('admin_token')
@@ -92,20 +88,40 @@ export default function StripeConfiguration() {
             taxRateId: data.data.taxRateId || ''
           })
           
-          // If we have a configuration, try to test the connection
           if (data.data.publishableKey) {
-            testConnection()
+            void testConnection()
           }
         }
       }
-    } catch (err: any) {
-      setError(`Failed to load configuration: ${err.message}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Failed to load configuration: ${msg}`)
     } finally {
       setLoading(false)
     }
-  }
+  }, [testConnection])
 
-  const testConnection = async () => {
+  useEffect(() => {
+    void loadConfiguration()
+  }, [loadConfiguration])
+
+  const loadWebhookEndpoints = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('http://localhost:3003/api/stripe/webhook-endpoints', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setWebhooks(data.data || [])
+      }
+    } catch (err: unknown) {
+      console.error('Failed to load webhook endpoints:', err)
+    }
+  }, [])
+
+  const testConnection = useCallback(async () => {
     try {
       setTesting(true)
       setError(null)
@@ -119,37 +135,19 @@ export default function StripeConfiguration() {
       
       if (response.ok) {
         setAccount(data.data)
-        loadWebhookEndpoints()
+        void loadWebhookEndpoints()
       } else {
         setError(`Connection test failed: ${data.message}`)
         setAccount(null)
       }
-    } catch (err: any) {
-      setError(`Connection test failed: ${err.message}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Connection test failed: ${msg}`)
       setAccount(null)
     } finally {
       setTesting(false)
     }
-  }
-
-  const loadWebhookEndpoints = async () => {
-    try {
-      setLoadingWebhooks(true)
-      const token = localStorage.getItem('admin_token')
-      const response = await fetch('http://localhost:3003/api/stripe/webhook-endpoints', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setWebhooks(data.data || [])
-      }
-    } catch (err: any) {
-      console.error('Failed to load webhook endpoints:', err)
-    } finally {
-      setLoadingWebhooks(false)
-    }
-  }
+  }, [loadWebhookEndpoints])
 
   const saveConfiguration = async () => {
     try {
@@ -177,8 +175,9 @@ export default function StripeConfiguration() {
       } else {
         setError(`Failed to save configuration: ${data.error || data.message}`)
       }
-    } catch (err: any) {
-      setError(`Failed to save configuration: ${err.message}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Failed to save configuration: ${msg}`)
     } finally {
       setSaving(false)
     }

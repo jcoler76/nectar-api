@@ -25,7 +25,7 @@ const authenticateAdmin = async (req, res, next) => {
             });
             return;
         }
-        const admin = await adminAuth_1.AdminAuthService.getAdminById(decoded.adminId);
+        const admin = await adminAuth_1.AdminAuthService.getAdminById(decoded.userId);
         if (!admin) {
             res.status(401).json({
                 error: 'Admin user not found or inactive',
@@ -97,7 +97,7 @@ const auditAction = (action, resourceType) => {
     return async (req, res, next) => {
         // Log the action
         await auditService_1.AdminAuditLogger.log({
-            adminId: req.admin?.id,
+            userId: req.admin?.id,
             action,
             resource: req.params.id || req.body?.id,
             resourceType,

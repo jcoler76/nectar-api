@@ -165,9 +165,11 @@ const ApiSequencePanel = ({ data = {}, onDataChange }) => {
     const fetchConnections = async () => {
       try {
         const fetchedConnections = await getConnections();
-        setConnections(fetchedConnections);
+        // Filter to only show active connections for workflow configuration
+        const activeConnections = fetchedConnections.filter(connection => connection.isActive);
+        setConnections(activeConnections);
         if (connectionId) {
-          const currentConnection = fetchedConnections.find(c => c._id === connectionId);
+          const currentConnection = activeConnections.find(c => c._id === connectionId);
           setSelectedConnection(currentConnection);
         }
       } catch (error) {

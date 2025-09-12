@@ -93,9 +93,10 @@ const connectionTypeDefs = gql`
     host: String!
     port: Int!
     username: String!
-    password: String!
+    password: String
     database: String
     sslEnabled: Boolean = false
+    connectionId: ID # For testing existing connection without re-entering password
   }
 
   input ConnectionFilters {

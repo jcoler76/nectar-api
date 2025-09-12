@@ -7,7 +7,7 @@ const router = express.Router();
 // const Application = require('../models/Application');
 // const ApiActivityLog = require('../models/ApiActivityLog');
 
-const { PrismaClient } = require('../../prisma/generated/client');
+const { PrismaClient } = require('../prisma/generated/client');
 const prisma = new PrismaClient();
 const { logger } = require('../utils/logger');
 const { toEasternTimeStart, createEasternTimeGrouping } = require('../utils/dateUtils');
@@ -88,7 +88,7 @@ router.get('/metrics', async (req, res) => {
       calls: Number(row.calls),
       failures: Number(row.failures),
       totalRecords: Number(row.totalRecords),
-      totalDataSize: Number(row.totalDataSize)
+      totalDataSize: Number(row.totalDataSize),
     }));
 
     // Format activity data for the chart (using Eastern Time)

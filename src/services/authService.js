@@ -14,7 +14,7 @@ export const loginUser = async (email, password) => {
     // Store user and token securely
     if (response.data && (response.data.token || response.data.accessToken)) {
       const token = response.data.accessToken || response.data.token;
-      
+
       // Decode JWT to extract user info including isAdmin flag
       let decodedToken = null;
       try {
@@ -38,6 +38,12 @@ export const loginUser = async (email, password) => {
       };
 
       secureStorage.setItem(userData);
+
+      // Return the enriched response with JWT-decoded fields
+      return {
+        ...response.data,
+        user: userData,
+      };
     }
 
     return response.data;
@@ -94,7 +100,7 @@ export const getCurrentUser = () => {
     try {
       const payload = userData.token.split('.')[1];
       const decodedToken = JSON.parse(atob(payload));
-      
+
       // Update userData with missing JWT payload info
       userData = {
         ...userData,
@@ -104,7 +110,7 @@ export const getCurrentUser = () => {
         organizationSlug: userData.organizationSlug || decodedToken?.organizationSlug,
         role: userData.role || decodedToken?.role,
       };
-      
+
       // Update stored data with the new info
       secureStorage.setItem(userData);
     } catch (error) {
@@ -175,7 +181,7 @@ export const verify2FA = async (email, token, trustDevice = false) => {
     if (response.data.accessToken) {
       // Upon successful 2FA verification, the user object and token are returned.
       const accessToken = response.data.accessToken;
-      
+
       // Decode JWT to extract user info including isAdmin flag
       let decodedToken = null;
       try {
@@ -219,7 +225,7 @@ export const verify2FASetup = async (email, token) => {
     if (response.data.accessToken) {
       // Upon successful 2FA setup verification, store user data securely
       const accessToken = response.data.accessToken;
-      
+
       // Decode JWT to extract user info including isAdmin flag
       let decodedToken = null;
       try {

@@ -9,31 +9,31 @@ const roleResolvers = {
   // Type resolvers
   Role: {
     // Resolver for service field - ensures service info is populated
-    service: async (role) => {
+    service: async role => {
       if (role.service) return role.service;
-      
+
       if (!role.serviceId) return null;
-      
+
       return await prisma.service.findUnique({
         where: { id: role.serviceId },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
-          connection: true
-        }
+          connection: true,
+        },
       });
     },
 
     // Resolver for creator field - ensures user info is populated
-    creator: async (role) => {
+    creator: async role => {
       if (role.creator) return role.creator;
-      
+
       if (!role.createdBy) return null;
-      
+
       return await prisma.user.findUnique({
         where: { id: role.createdBy },
-        select: { id: true, email: true, firstName: true, lastName: true }
+        select: { id: true, email: true, firstName: true, lastName: true },
       });
     },
 
@@ -43,10 +43,10 @@ const roleResolvers = {
         where: { defaultRoleId: role.id },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
-          organization: true
-        }
+          organization: true,
+        },
       });
     },
 
@@ -64,17 +64,17 @@ const roleResolvers = {
 
   Permission: {
     // Resolver for service field in permissions
-    service: async (permission) => {
+    service: async permission => {
       if (!permission.serviceId) return null;
-      
+
       return await prisma.service.findUnique({
         where: { id: permission.serviceId },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
-          connection: true
-        }
+          connection: true,
+        },
       });
     },
   },
@@ -92,22 +92,22 @@ const roleResolvers = {
       const role = await prisma.role.findFirst({
         where: {
           id,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           service: {
             include: {
               creator: {
-                select: { id: true, email: true, firstName: true, lastName: true }
+                select: { id: true, email: true, firstName: true, lastName: true },
               },
-              connection: true
-            }
+              connection: true,
+            },
           },
-          organization: true
-        }
+          organization: true,
+        },
       });
 
       if (!role) {
@@ -138,7 +138,7 @@ const roleResolvers = {
 
       // Build where clause for filters
       const where = {
-        organizationId: currentUser.organizationId
+        organizationId: currentUser.organizationId,
       };
 
       if (filters.name) {
@@ -156,11 +156,11 @@ const roleResolvers = {
         // Non-admin users can only see their own roles
         where.createdBy = currentUser.userId;
       }
-      
+
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } }
+          { description: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -175,17 +175,17 @@ const roleResolvers = {
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
           organization: {
-            select: { id: true, name: true }
+            select: { id: true, name: true },
           },
           service: {
-            select: { id: true, name: true, database: true }
+            select: { id: true, name: true, database: true },
           },
           _count: {
-            select: { 
-              applications: true
-            }
-          }
-        }
+            select: {
+              applications: true,
+            },
+          },
+        },
       });
 
       return {
@@ -197,8 +197,7 @@ const roleResolvers = {
           hasNextPage: offset + limit < totalCount,
           hasPreviousPage: offset > 0,
           totalCount,
-          startCursor:
-            roles.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
+          startCursor: roles.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
           endCursor:
             roles.length > 0
               ? Buffer.from((offset + roles.length - 1).toString()).toString('base64')
@@ -215,11 +214,11 @@ const roleResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const where = { 
+      const where = {
         serviceId,
-        organizationId: currentUser.organizationId 
+        organizationId: currentUser.organizationId,
       };
-      
+
       if (!currentUser.isAdmin) {
         where.createdBy = currentUser.userId;
       }
@@ -229,12 +228,12 @@ const roleResolvers = {
         orderBy: { name: 'asc' },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           service: {
-            select: { id: true, name: true, database: true }
-          }
-        }
+            select: { id: true, name: true, database: true },
+          },
+        },
       });
     },
 
@@ -257,18 +256,18 @@ const roleResolvers = {
         where: { id: targetUserId },
         include: {
           roles: {
-            where: { 
+            where: {
               isActive: true,
-              organizationId: currentUser.organizationId 
+              organizationId: currentUser.organizationId,
             },
             include: {
               service: {
-                select: { id: true, name: true, database: true }
-              }
+                select: { id: true, name: true, database: true },
+              },
             },
-            orderBy: { name: 'asc' }
-          }
-        }
+            orderBy: { name: 'asc' },
+          },
+        },
       });
 
       return user?.roles || [];
@@ -287,18 +286,18 @@ const roleResolvers = {
         where: { id: currentUser.userId },
         include: {
           roles: {
-            where: { 
+            where: {
               isActive: true,
-              organizationId: currentUser.organizationId 
+              organizationId: currentUser.organizationId,
             },
             include: {
               service: {
-                select: { id: true, name: true, database: true }
-              }
+                select: { id: true, name: true, database: true },
+              },
             },
-            orderBy: { name: 'asc' }
-          }
-        }
+            orderBy: { name: 'asc' },
+          },
+        },
       });
 
       return user?.roles || [];
@@ -317,8 +316,8 @@ const roleResolvers = {
         const service = await prisma.service.findFirst({
           where: {
             id: serviceId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!service) {
@@ -335,24 +334,24 @@ const roleResolvers = {
           },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Role created via GraphQL', {
           roleId: role.id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
@@ -373,8 +372,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -393,8 +392,8 @@ const roleResolvers = {
           const service = await prisma.service.findFirst({
             where: {
               id: serviceId,
-              organizationId: currentUser.organizationId
-            }
+              organizationId: currentUser.organizationId,
+            },
           });
 
           if (!service) {
@@ -409,24 +408,24 @@ const roleResolvers = {
           data: updateData,
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Role updated via GraphQL', {
           roleId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
@@ -447,8 +446,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -462,36 +461,24 @@ const roleResolvers = {
 
         // Check if role is being used by applications
         const applicationsUsingRole = await prisma.application.count({
-          where: { defaultRoleId: id }
+          where: { defaultRoleId: id },
         });
-        
+
         if (applicationsUsingRole > 0) {
           throw new UserInputError(
             `Cannot delete role. It is being used by ${applicationsUsingRole} application(s).`
           );
         }
 
-        // Check if role is assigned to users
-        const usersWithRole = await prisma.user.count({
-          where: {
-            roles: {
-              some: { id }
-            }
-          }
-        });
-
-        if (usersWithRole > 0) {
-          throw new UserInputError(
-            `Cannot delete role. It is assigned to ${usersWithRole} user(s).`
-          );
-        }
+        // Note: In this schema, roles are not directly assigned to users.
+        // They are used as defaultRole in applications, which is checked above.
 
         await prisma.role.delete({ where: { id } });
 
         logger.info('Role deleted via GraphQL', {
           roleId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return true;
@@ -512,8 +499,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -530,24 +517,24 @@ const roleResolvers = {
           data: { isActive: true },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Role activated via GraphQL', {
           roleId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
@@ -565,8 +552,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -583,24 +570,24 @@ const roleResolvers = {
           data: { isActive: false },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Role deactivated via GraphQL', {
           roleId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
@@ -618,8 +605,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id: roleId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -634,8 +621,7 @@ const roleResolvers = {
         // Check if permission already exists
         const existingPermissions = existingRole.permissions || [];
         const existingPermission = existingPermissions.find(
-          (p) =>
-            p.serviceId === permission.serviceId && p.objectName === permission.objectName
+          p => p.serviceId === permission.serviceId && p.objectName === permission.objectName
         );
 
         if (existingPermission) {
@@ -646,8 +632,8 @@ const roleResolvers = {
         const service = await prisma.service.findFirst({
           where: {
             id: permission.serviceId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!service) {
@@ -662,25 +648,25 @@ const roleResolvers = {
           data: { permissions: updatedPermissions },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Permission added to role via GraphQL', {
           roleId,
           permission,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
@@ -698,8 +684,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id: roleId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -714,7 +700,7 @@ const roleResolvers = {
         // Remove the permission
         const existingPermissions = existingRole.permissions || [];
         const updatedPermissions = existingPermissions.filter(
-          (p) => !(p.serviceId === serviceId && p.objectName === objectName)
+          p => !(p.serviceId === serviceId && p.objectName === objectName)
         );
 
         const role = await prisma.role.update({
@@ -722,18 +708,18 @@ const roleResolvers = {
           data: { permissions: updatedPermissions },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Permission removed from role via GraphQL', {
@@ -741,12 +727,17 @@ const roleResolvers = {
           serviceId,
           objectName,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
       } catch (error) {
-        logger.error('GraphQL remove permission error', { error: error.message, roleId, serviceId, objectName });
+        logger.error('GraphQL remove permission error', {
+          error: error.message,
+          roleId,
+          serviceId,
+          objectName,
+        });
         throw new Error('Failed to remove permission');
       }
     },
@@ -759,8 +750,8 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id: roleId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingRole) {
@@ -775,8 +766,7 @@ const roleResolvers = {
         // Find and update the permission
         const existingPermissions = existingRole.permissions || [];
         const existingPermissionIndex = existingPermissions.findIndex(
-          (p) =>
-            p.serviceId === permission.serviceId && p.objectName === permission.objectName
+          p => p.serviceId === permission.serviceId && p.objectName === permission.objectName
         );
 
         if (existingPermissionIndex === -1) {
@@ -787,8 +777,8 @@ const roleResolvers = {
         const service = await prisma.service.findFirst({
           where: {
             id: permission.serviceId,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!service) {
@@ -807,30 +797,34 @@ const roleResolvers = {
           data: { permissions: updatedPermissions },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Permission updated in role via GraphQL', {
           roleId,
           permission,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;
       } catch (error) {
-        logger.error('GraphQL update permission error', { error: error.message, roleId, permission });
+        logger.error('GraphQL update permission error', {
+          error: error.message,
+          roleId,
+          permission,
+        });
         throw new Error('Failed to update permission');
       }
     },
@@ -843,15 +837,15 @@ const roleResolvers = {
         const role = await prisma.role.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
+            organizationId: currentUser.organizationId,
           },
           include: {
             service: {
               include: {
-                connection: true
-              }
-            }
-          }
+                connection: true,
+              },
+            },
+          },
         });
 
         if (!role) {
@@ -893,12 +887,14 @@ const roleResolvers = {
           roleId: id,
           userId: currentUser.userId,
           success: allAccessible,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return {
           success: allAccessible,
-          message: allAccessible ? 'All permissions are accessible' : 'Some permissions have issues',
+          message: allAccessible
+            ? 'All permissions are accessible'
+            : 'Some permissions have issues',
           permissions: permissionTests,
         };
       } catch (error) {
@@ -915,15 +911,15 @@ const roleResolvers = {
         const existingRole = await prisma.role.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
+            organizationId: currentUser.organizationId,
           },
           include: {
             service: {
               include: {
-                connection: true
-              }
-            }
-          }
+                connection: true,
+              },
+            },
+          },
         });
 
         if (!existingRole) {
@@ -941,7 +937,10 @@ const roleResolvers = {
         // Refresh schemas for all permissions
         for (const permission of permissions) {
           try {
-            const schema = await fetchSchemaFromDatabase(existingRole.service, permission.objectName);
+            const schema = await fetchSchemaFromDatabase(
+              existingRole.service,
+              permission.objectName
+            );
             updatedPermissions.push({
               ...permission,
               schema: {
@@ -966,24 +965,24 @@ const roleResolvers = {
           data: { permissions: updatedPermissions },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             service: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
+                  select: { id: true, email: true, firstName: true, lastName: true },
                 },
-                connection: true
-              }
+                connection: true,
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Role schemas refreshed via GraphQL', {
           roleId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return role;

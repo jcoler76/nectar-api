@@ -15,7 +15,7 @@ const {
   executeGraphQLMutation,
   executeGraphQLQuery,
   createGraphQLContext,
-  handleGraphQLError
+  handleGraphQLError,
 } = require('../utils/routeHelpers');
 const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
@@ -59,58 +59,58 @@ router.get('/:id', createGetHandler(APPLICATION_QUERIES.GET_BY_ID, 'application'
 
 // Create new application using GraphQL
 router.post('/', validate(validationRules.application.create), async (req, res) => {
-  const { name, description, defaultRoleId, isActive } = req.body;
+  const { name, description, defaultRole, isActive } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     APPLICATION_QUERIES.CREATE,
-    { 
+    {
       input: {
         name,
-        description, 
-        defaultRoleId,
-        isActive
-      }
+        description,
+        defaultRoleId: defaultRole, // Map frontend field name to GraphQL field name
+        isActive,
+      },
     },
     context,
     'create application'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   // Cache the API key for admin access
   if (req.user?.isAdmin && result.createApplication?.apiKey) {
     cacheApiKey(result.createApplication.id, result.createApplication.apiKey, req.user.userId);
   }
-  
+
   res.status(201).json(result.createApplication);
 });
 
 // Update application using GraphQL
 router.put('/:id', validate(validationRules.application.update), async (req, res) => {
   const { id } = req.params;
-  const { name, description, defaultRoleId, isActive } = req.body;
+  const { name, description, defaultRole, isActive } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     APPLICATION_QUERIES.UPDATE,
-    { 
+    {
       id,
       input: {
         name,
         description,
-        defaultRoleId,
-        isActive
-      }
+        defaultRoleId: defaultRole, // Map frontend field name to GraphQL field name
+        isActive,
+      },
     },
     context,
     'update application'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.updateApplication);
 });
 
@@ -121,7 +121,7 @@ router.delete('/:id', createDeleteHandler(APPLICATION_QUERIES.DELETE, 'deleteApp
 router.post('/:id/regenerate-key', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     APPLICATION_QUERIES.REGENERATE_API_KEY,
@@ -129,53 +129,125 @@ router.post('/:id/regenerate-key', async (req, res) => {
     context,
     'regenerate API key'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   // Cache the new API key for admin access
   if (req.user?.isAdmin && result.regenerateApiKey?.apiKey) {
     cacheApiKey(id, result.regenerateApiKey.apiKey, req.user.userId);
   }
-  
+
   res.json({
     success: true,
     message: 'API key regenerated successfully',
-    application: result.regenerateApiKey
+    application: result.regenerateApiKey,
   });
 });
 
 // Get API key from cache (admin only)
 router.get('/:id/api-key', async (req, res) => {
   const { id } = req.params;
-  
+
   if (!req.user?.isAdmin) {
     return res.status(403).json({
       success: false,
-      message: 'Admin access required to view API keys'
+      message: 'Admin access required to view API keys',
     });
   }
-  
+
   const cached = getCachedApiKey(id);
   if (!cached) {
     return res.status(404).json({
       success: false,
-      message: 'API key not found in cache or expired'
+      message: 'API key not found in cache or expired',
     });
   }
-  
+
   res.json({
     success: true,
     apiKey: cached.key,
     cachedAt: cached.cachedAt,
-    cachedBy: cached.cachedBy
+    cachedBy: cached.cachedBy,
   });
+});
+
+// Reveal API key (admin only) - decrypts the stored key
+router.get('/:id/reveal-key', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+
+  if (!req.user?.isAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required to reveal API keys',
+      requiresRegeneration: true,
+    });
+  }
+
+  try {
+    // Custom query to get encrypted API key
+    const REVEAL_KEY_QUERY = `
+      query GetApplicationForReveal($id: ID!) {
+        application(id: $id) {
+          id
+          name
+          apiKeyEncrypted
+        }
+      }
+    `;
+
+    const result = await executeGraphQLQuery(
+      res,
+      REVEAL_KEY_QUERY,
+      { id },
+      context,
+      'reveal API key'
+    );
+
+    if (!result) return; // Error already handled
+
+    const application = result.application;
+
+    // Try to decrypt the API key
+    const { decryptApiKey } = require('../utils/encryption');
+    try {
+      const decryptedKey = decryptApiKey(application.apiKeyEncrypted);
+
+      res.json({
+        success: true,
+        apiKey: decryptedKey,
+        applicationName: application.name,
+        lastRevealed: {
+          at: new Date().toISOString(),
+          by: req.user.email,
+        },
+      });
+
+      // Cache the revealed key for future access
+      cacheApiKey(id, decryptedKey, req.user.userId);
+    } catch (decryptError) {
+      // If decryption fails, the key needs to be regenerated
+      logger.error('Failed to decrypt API key', {
+        applicationId: id,
+        error: decryptError.message,
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: 'Unable to decrypt API key. Please regenerate the key.',
+        requiresRegeneration: true,
+      });
+    }
+  } catch (error) {
+    handleGraphQLError(res, error, 'reveal API key');
+  }
 });
 
 // Health check endpoint
 router.get('/:id/health', async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
-  
+
   try {
     const result = await executeGraphQLQuery(
       res,
@@ -184,22 +256,24 @@ router.get('/:id/health', async (req, res) => {
       context,
       'application health check'
     );
-    
+
     if (!result) return; // Error already handled
-    
+
     const application = result.application;
     const isHealthy = application && application.isActive;
-    
+
     res.json({
       id: application.id,
       name: application.name,
       isActive: application.isActive,
       isHealthy,
       lastChecked: new Date().toISOString(),
-      defaultRole: application.defaultRole ? {
-        id: application.defaultRole.id,
-        name: application.defaultRole.name
-      } : null
+      defaultRole: application.defaultRole
+        ? {
+            id: application.defaultRole.id,
+            name: application.defaultRole.name,
+          }
+        : null,
     });
   } catch (error) {
     handleGraphQLError(res, error, 'application health check');
@@ -210,47 +284,47 @@ router.get('/:id/health', async (req, res) => {
 router.post('/batch', async (req, res) => {
   const { operation, ids, data } = req.body;
   const context = createGraphQLContext(req);
-  
+
   if (!['activate', 'deactivate', 'delete'].includes(operation)) {
     return res.status(400).json({
       success: false,
-      message: 'Invalid batch operation. Allowed: activate, deactivate, delete'
+      message: 'Invalid batch operation. Allowed: activate, deactivate, delete',
     });
   }
-  
+
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({
       success: false,
-      message: 'IDs array is required for batch operations'
+      message: 'IDs array is required for batch operations',
     });
   }
-  
+
   const results = [];
   const errors = [];
-  
+
   for (const id of ids) {
     try {
       let result;
-      
+
       switch (operation) {
         case 'activate':
         case 'deactivate':
           result = await executeGraphQLMutation(
             null, // Don't send response yet
             APPLICATION_QUERIES.UPDATE,
-            { 
+            {
               id,
-              input: { isActive: operation === 'activate' }
+              input: { isActive: operation === 'activate' },
             },
             context,
             `batch ${operation}`
           );
           results.push({ id, success: true, data: result?.updateApplication });
           break;
-          
+
         case 'delete':
           result = await executeGraphQLMutation(
-            null, // Don't send response yet  
+            null, // Don't send response yet
             APPLICATION_QUERIES.DELETE,
             { id },
             context,
@@ -263,7 +337,7 @@ router.post('/batch', async (req, res) => {
       errors.push({ id, error: error.message });
     }
   }
-  
+
   res.json({
     success: errors.length === 0,
     operation,
@@ -271,7 +345,7 @@ router.post('/batch', async (req, res) => {
     successful: results.filter(r => r.success).length,
     failed: errors.length,
     results,
-    errors
+    errors,
   });
 });
 

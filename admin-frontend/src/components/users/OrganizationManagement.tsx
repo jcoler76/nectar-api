@@ -2,165 +2,66 @@ import {
   BuildingOfficeIcon,
   UsersIcon,
   CurrencyDollarIcon,
-  ChartBarIcon,
   EyeIcon,
   PencilIcon,
   PlusIcon,
-  UserPlusIcon
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
-import { useState, useEffect } from 'react'
 import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import Modal from '../ui/modal'
 import { DonutChartComponent, BarChartComponent } from '../ui/charts'
-
-interface OrganizationMetrics {
-  totalOrganizations: number
-  activeOrganizations: number
-  newOrganizations: number
-  averageMembersPerOrg: number
-  totalMembers: number
-  totalOrgRevenue: number
-}
-
-interface Organization {
-  id: string
-  name: string
-  domain: string
-  memberCount: number
-  planType: string
-  status: 'Active' | 'Inactive' | 'Trial'
-  mrr: number
-  createdDate: string
-  lastActivity: string
-  healthScore: number
-  contactName: string
-  contactEmail: string
-}
-
-interface OrgByPlan {
-  plan: string
-  count: number
-  revenue: number
-}
-
-interface OrgSizeDistribution {
-  size: string
-  count: number
-}
+import { useOrganizations } from '../../hooks/useOrganizations'
+import { graphqlRequest } from '../../services/graphql'
+import type { Organization } from '../../types/organization'
 
 export default function OrganizationManagement() {
-  const [metrics, setMetrics] = useState<OrganizationMetrics | null>(null)
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [orgByPlan, setOrgByPlan] = useState<OrgByPlan[]>([])
-  const [orgSizeData, setOrgSizeData] = useState<OrgSizeDistribution[]>([])
-  const [loading, setLoading] = useState(true)
+  const {
+    organizations,
+    metrics,
+    orgByPlan,
+    orgSizeData,
+    loading,
+    error,
+    refreshData,
+    createOrganization,
+    updateOrganization,
+    deleteOrganization,
+    addMember,
+    removeMember,
+    updateMemberRole
+  } = useOrganizations()
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMetrics({
-        totalOrganizations: 147,
-        activeOrganizations: 132,
-        newOrganizations: 8,
-        averageMembersPerOrg: 12,
-        totalMembers: 1764,
-        totalOrgRevenue: 65400
-      })
+  // Modal/UI state
+  const [showCreate, setShowCreate] = useState(false)
+  const [showEdit, setShowEdit] = useState<Organization | null>(null)
+  const [showMembers, setShowMembers] = useState<Organization | null>(null)
+  const [createForm, setCreateForm] = useState({ name: '', domain: '', website: '' })
+  const [editForm, setEditForm] = useState({ name: '', domain: '', website: '' })
+  const [members, setMembers] = useState<{ user: { id: string; email: string; firstName: string; lastName: string }, role: string, joinedAt: string }[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [memberSearch, setMemberSearch] = useState('')
+  const [memberResults, setMemberResults] = useState<{ id: string; email: string; fullName: string }[]>([])
 
-      setOrganizations([
-        {
-          id: '1',
-          name: 'TechCorp Inc',
-          domain: 'techcorp.com',
-          memberCount: 45,
-          planType: 'Enterprise',
-          status: 'Active',
-          mrr: 2500,
-          createdDate: '2023-08-15',
-          lastActivity: '2024-09-07',
-          healthScore: 92,
-          contactName: 'Alice Johnson',
-          contactEmail: 'alice@techcorp.com'
-        },
-        {
-          id: '2',
-          name: 'StartupXYZ',
-          domain: 'startupxyz.com',
-          memberCount: 12,
-          planType: 'Pro',
-          status: 'Active',
-          mrr: 1200,
-          createdDate: '2024-02-20',
-          lastActivity: '2024-09-06',
-          healthScore: 88,
-          contactName: 'Bob Smith',
-          contactEmail: 'bob@startupxyz.com'
-        },
-        {
-          id: '3',
-          name: 'MegaCorp Ltd',
-          domain: 'megacorp.com',
-          memberCount: 78,
-          planType: 'Enterprise+',
-          status: 'Active',
-          mrr: 4800,
-          createdDate: '2023-05-10',
-          lastActivity: '2024-09-08',
-          healthScore: 95,
-          contactName: 'Carol Davis',
-          contactEmail: 'carol@megacorp.com'
-        },
-        {
-          id: '4',
-          name: 'Creative Agency',
-          domain: 'creativeagency.com',
-          memberCount: 8,
-          planType: 'Pro',
-          status: 'Trial',
-          mrr: 0,
-          createdDate: '2024-08-25',
-          lastActivity: '2024-09-01',
-          healthScore: 65,
-          contactName: 'David Wilson',
-          contactEmail: 'david@creativeagency.com'
-        },
-        {
-          id: '5',
-          name: 'InnovateLabs',
-          domain: 'innovatelabs.io',
-          memberCount: 23,
-          planType: 'Enterprise',
-          status: 'Inactive',
-          mrr: 0,
-          createdDate: '2023-11-12',
-          lastActivity: '2024-07-15',
-          healthScore: 34,
-          contactName: 'Emma Brown',
-          contactEmail: 'emma@innovatelabs.io'
-        }
-      ])
-
-      setOrgByPlan([
-        { plan: 'Basic', count: 42, revenue: 1260 },
-        { plan: 'Pro', count: 58, revenue: 17400 },
-        { plan: 'Enterprise', count: 35, revenue: 31500 },
-        { plan: 'Enterprise+', count: 12, revenue: 15240 }
-      ])
-
-      setOrgSizeData([
-        { size: '1-5 members', count: 45 },
-        { size: '6-15 members', count: 38 },
-        { size: '16-30 members', count: 32 },
-        { size: '31-50 members', count: 21 },
-        { size: '50+ members', count: 11 }
-      ])
-
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
+  const openMembers = async (org: Organization) => {
+    setShowMembers(org)
+    setMembersLoading(true)
+    try {
+      const data = await graphqlRequest<{ organization: { memberships: { role: string; joinedAt: string; user: { id: string; email: string; firstName: string; lastName: string } }[] } }>(
+        `query OrgMembers($id: ID!) { organization(id: $id) { memberships { role joinedAt user { id email firstName lastName } } } }`,
+        { id: org.id }
+      )
+      setMembers(data.organization?.memberships || [])
+    } catch (e) {
+      console.error('Failed to load members', e)
+      setMembers([])
+    } finally {
+      setMembersLoading(false)
+    }
+  }
 
   const organizationColumns = [
     {
@@ -170,84 +71,90 @@ export default function OrganizationManagement() {
       cell: ({ row }: { row: Organization }) => (
         <div>
           <div className="font-medium">{row.name}</div>
-          <div className="text-sm text-gray-500">{row.domain}</div>
+          <div className="text-sm text-gray-500">{row.domain || 'No domain'}</div>
           <div className="text-xs text-gray-400">
-            Contact: {row.contactName}
+            Created: {new Date(row.createdAt).toLocaleDateString()}
           </div>
         </div>
       )
     },
     {
-      accessorKey: 'memberCount',
+      accessorKey: '_count.memberships',
       header: 'Members',
       sortable: true,
-      cell: ({ value }: { value: number }) => (
+      cell: ({ row }: { row: Organization }) => (
         <div className="flex items-center gap-1">
           <UsersIcon className="h-4 w-4 text-gray-400" />
-          <span className="font-medium">{value}</span>
+          <span className="font-medium">{row._count?.memberships || 0}</span>
         </div>
       )
     },
     {
-      accessorKey: 'planType',
+      accessorKey: 'subscription.plan',
       header: 'Plan',
       sortable: true,
-      cell: ({ value }: { value: string }) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Enterprise' || value === 'Enterprise+' 
-            ? 'bg-purple-100 text-purple-800' 
-            : value === 'Pro' 
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {value}
-        </span>
-      )
+      cell: ({ row }: { row: Organization }) => {
+        const plan = row.subscription?.plan || 'FREE'
+        return (
+          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+            plan === 'ENTERPRISE' 
+              ? 'bg-purple-100 text-purple-800' 
+              : plan === 'BUSINESS'
+              ? 'bg-blue-100 text-blue-800'
+              : plan === 'PROFESSIONAL'
+              ? 'bg-green-100 text-green-800'
+              : plan === 'STARTER'
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-gray-100 text-gray-800'
+          }`}>
+            {plan}
+          </span>
+        )
+      }
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'subscription.status',
       header: 'Status',
       sortable: true,
-      cell: ({ value }: { value: string }) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Active' 
-            ? 'bg-green-100 text-green-800' 
-            : value === 'Trial'
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {value}
-        </span>
+      cell: ({ row }: { row: Organization }) => {
+        const status = row.subscription?.status || 'UNKNOWN'
+        return (
+          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+            status === 'ACTIVE' 
+              ? 'bg-green-100 text-green-800' 
+              : status === 'TRIALING'
+              ? 'bg-blue-100 text-blue-800'
+              : status === 'PAST_DUE'
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {status}
+          </span>
+        )
+      }
+    },
+    {
+      accessorKey: '_count.databaseConnections',
+      header: 'Connections',
+      sortable: true,
+      cell: ({ row }: { row: Organization }) => (
+        <span className="font-medium">{row._count?.databaseConnections || 0}</span>
       )
     },
     {
-      accessorKey: 'healthScore',
-      header: 'Health Score',
+      accessorKey: '_count.workflows',
+      header: 'Workflows',
       sortable: true,
-      cell: ({ value }: { value: number }) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value >= 80 ? 'bg-green-100 text-green-800' :
-          value >= 60 ? 'bg-yellow-100 text-yellow-800' :
-          'bg-red-100 text-red-800'
-        }`}>
-          {value}%
-        </span>
+      cell: ({ row }: { row: Organization }) => (
+        <span className="font-medium">{row._count?.workflows || 0}</span>
       )
     },
     {
-      accessorKey: 'mrr',
-      header: 'MRR',
+      accessorKey: 'updatedAt',
+      header: 'Last Updated',
       sortable: true,
-      cell: ({ value }: { value: number }) => (
-        <span className="font-medium">${value.toLocaleString()}</span>
-      )
-    },
-    {
-      accessorKey: 'lastActivity',
-      header: 'Last Activity',
-      sortable: true,
-      cell: ({ value }: { value: string }) => (
-        new Date(value).toLocaleDateString()
+      cell: ({ row }: { row: Organization }) => (
+        new Date(row.updatedAt).toLocaleDateString()
       )
     },
     {
@@ -268,27 +175,85 @@ export default function OrganizationManagement() {
           <Button
             size="sm"
             variant="outline"
-            onClick={(e) => {
-              e.stopPropagation()
-              console.log('Edit organization:', row.id)
-            }}
+            onClick={(e) => { e.stopPropagation(); setEditForm({ name: row.name, domain: row.domain || '', website: row.website || '' }); setShowEdit(row) }}
           >
             <PencilIcon className="h-4 w-4" />
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation()
-              console.log('Add member to:', row.id)
+              if (!confirm(`Delete organization ${row.name}?`)) return
+              try {
+                await deleteOrganization(row.id)
+              } catch (err) {
+                console.error('Delete organization failed', err)
+                alert('Failed to delete')
+              }
             }}
           >
-            <UserPlusIcon className="h-4 w-4" />
+            Delete
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => { e.stopPropagation(); void openMembers(row) }}
+          >
+            Members
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation()
+              ;(async () => {
+                const search = window.prompt('Enter user email or name to remove:')
+                if (!search) return
+                try {
+                  const data = await graphqlRequest<{ users: { edges: { node: { id: string; email: string; fullName: string } }[] } }>(
+                    `query SearchUsers($q: String!) { users(filters: { search: $q }, pagination: { limit: 10, offset: 0 }) { edges { node { id email fullName } } } }`,
+                    { q: search }
+                  )
+                  const choices = data.users.edges
+                  if (!choices.length) {
+                    alert('No users found')
+                    return
+                  }
+                  const selected = choices[0].node
+                  await removeMember(row.id, selected.id)
+                } catch (err) {
+                  console.error('Remove member failed', err)
+                  alert('Failed to remove member')
+                }
+              })()
+            }}
+          >
+            Remove Member
           </Button>
         </div>
       )
     }
   ]
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center text-center">
+              <div>
+                <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Organizations</h3>
+                <p className="text-sm text-gray-500 mb-4">{error}</p>
+                <Button onClick={refreshData}>Try Again</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -310,6 +275,166 @@ export default function OrganizationManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Create Organization Modal */}
+      <Modal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        title="Add Organization"
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (!createForm.name.trim()) return
+              try {
+                await createOrganization({ name: createForm.name.trim(), domain: createForm.domain || undefined, website: createForm.website || undefined })
+                setShowCreate(false)
+              } catch (e) {
+                console.error('Create org failed', e)
+                alert('Failed to create organization')
+              }
+            }}>Create</Button>
+          </>
+        )}
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-gray-600">Name</label>
+            <Input value={createForm.name} onChange={e => setCreateForm({ ...createForm, name: e.target.value })} placeholder="Organization name" />
+          </div>
+          <div>
+            <label className="text-sm text-gray-600">Domain</label>
+            <Input value={createForm.domain} onChange={e => setCreateForm({ ...createForm, domain: e.target.value })} placeholder="example.com" />
+          </div>
+          <div>
+            <label className="text-sm text-gray-600">Website</label>
+            <Input value={createForm.website} onChange={e => setCreateForm({ ...createForm, website: e.target.value })} placeholder="https://example.com" />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Organization Modal */}
+      <Modal
+        open={!!showEdit}
+        onClose={() => setShowEdit(null)}
+        title="Edit Organization"
+        footer={(
+          <>
+            <Button variant="outline" onClick={() => setShowEdit(null)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (!showEdit) return
+              try {
+                await updateOrganization(showEdit.id, { name: editForm.name, domain: editForm.domain || undefined, website: editForm.website || undefined })
+                setShowEdit(null)
+              } catch (e) {
+                console.error('Update org failed', e)
+                alert('Failed to update organization')
+              }
+            }}>Save</Button>
+          </>
+        )}
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-gray-600">Name</label>
+            <Input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-gray-600">Domain</label>
+            <Input value={editForm.domain} onChange={e => setEditForm({ ...editForm, domain: e.target.value })} />
+          </div>
+          <div>
+            <label className="text-sm text-gray-600">Website</label>
+            <Input value={editForm.website} onChange={e => setEditForm({ ...editForm, website: e.target.value })} />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Members Modal */}
+      <Modal
+        open={!!showMembers}
+        onClose={() => setShowMembers(null)}
+        title={`Members${showMembers ? ` - ${showMembers.name}` : ''}`}
+        size="lg"
+        footer={<Button variant="outline" onClick={() => setShowMembers(null)}>Close</Button>}
+      >
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input placeholder="Search users by name or email" value={memberSearch} onChange={e => setMemberSearch(e.target.value)} />
+            <Button onClick={async () => {
+              if (!memberSearch.trim()) return
+              const data = await graphqlRequest<{ users: { edges: { node: { id: string; email: string; fullName: string } }[] } }>(
+                `query SearchUsers($q: String!) { users(filters: { search: $q }, pagination: { limit: 10, offset: 0 }) { edges { node { id email fullName } } } }`,
+                { q: memberSearch.trim() }
+              )
+              setMemberResults(data.users.edges.map(e => e.node))
+            }}>Search</Button>
+          </div>
+          {memberResults.length > 0 && (
+            <div className="border rounded divide-y">
+              {memberResults.map(u => (
+                <div key={u.id} className="flex items-center justify-between px-3 py-2">
+                  <div>
+                    <div className="font-medium">{u.fullName}</div>
+                    <div className="text-xs text-gray-500">{u.email}</div>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <select id={`add-role-${u.id}`} className="border rounded px-2 py-1">
+                      <option>MEMBER</option>
+                      <option>ADMIN</option>
+                      <option>OWNER</option>
+                    </select>
+                    <Button onClick={async () => {
+                      if (!showMembers) return
+                      const role = (document.getElementById(`add-role-${u.id}`) as HTMLSelectElement)?.value || 'MEMBER'
+                      await addMember(showMembers.id, u.id, role)
+                      setMemberResults([])
+                      setMemberSearch('')
+                      await openMembers(showMembers)
+                    }}>Add</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="overflow-x-auto border rounded">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left">
+                  <th className="px-3 py-2">Name</th>
+                  <th className="px-3 py-2">Email</th>
+                  <th className="px-3 py-2">Role</th>
+                  <th className="px-3 py-2">Joined</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map(m => (
+                  <tr key={m.user.id} className="border-t">
+                    <td className="px-3 py-2">{m.user.firstName} {m.user.lastName}</td>
+                    <td className="px-3 py-2">{m.user.email}</td>
+                    <td className="px-3 py-2">
+                      <select
+                        className="border rounded px-2 py-1"
+                        value={m.role}
+                        onChange={async (e) => { if (showMembers) { await updateMemberRole(showMembers.id, m.user.id, e.target.value); await openMembers(showMembers) } }}
+                      >
+                        {['OWNER','ADMIN','MEMBER'].map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">{new Date(m.joinedAt).toLocaleDateString()}</td>
+                    <td className="px-3 py-2">
+                      <Button variant="outline" onClick={async () => { if (showMembers) { await removeMember(showMembers.id, m.user.id); await openMembers(showMembers) } }}>Remove</Button>
+                    </td>
+                  </tr>
+                ))}
+                {(!members || members.length === 0) && (
+                  <tr><td className="px-3 py-4 text-gray-500" colSpan={5}>{membersLoading ? 'Loading...' : 'No members'}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </Modal>
       {/* Organization Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
@@ -402,13 +527,24 @@ export default function OrganizationManagement() {
               <BuildingOfficeIcon className="h-5 w-5" />
               Organization Management ({organizations.length} organizations)
             </CardTitle>
-            <Button 
-              onClick={() => console.log('Add new organization')}
-              className="flex items-center gap-2"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Add Organization
-            </Button>
+          <Button 
+            onClick={async () => {
+              const name = window.prompt('Organization name:')
+              if (!name) return
+              const domain = window.prompt('Domain (optional):') || undefined
+              const website = window.prompt('Website (optional):') || undefined
+              try {
+                await createOrganization({ name, domain, website })
+              } catch (e) {
+                console.error('Create organization failed', e)
+                alert('Failed to create organization')
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Organization
+          </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">

@@ -156,15 +156,17 @@ const validationRules = {
         .withMessage('Description must be less than 500 characters'),
       body('serviceId').isUUID().withMessage('Service ID must be valid'),
       body('permissions')
-        .isArray()
-        .withMessage('Permissions must be an array')
+        .isArray({ min: 1 })
+        .withMessage('Permissions must be an array with at least one permission')
         .custom(permissions => {
           if (!Array.isArray(permissions)) return false;
-          return permissions.every(
-            perm => perm.serviceId && perm.objectName && typeof perm.actions === 'object'
-          );
+          return permissions.every(perm => {
+            return (
+              perm.serviceId && perm.objectName && perm.actions && typeof perm.actions === 'object'
+            );
+          });
         })
-        .withMessage('Invalid permissions format'),
+        .withMessage('Each permission must have serviceId, objectName, and actions'),
       body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
     ],
     update: [

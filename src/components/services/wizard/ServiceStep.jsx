@@ -35,7 +35,9 @@ const ServiceStep = ({ data, onDataChange, onNext, setError }) => {
       setLoadingConnections(true);
       try {
         const fetchedConnections = await getConnections();
-        setConnections(fetchedConnections);
+        // Filter to only show active connections for service creation
+        const activeConnections = fetchedConnections.filter(connection => connection.isActive);
+        setConnections(activeConnections);
         setError('');
       } catch (err) {
         console.error('Error fetching connections:', err);
