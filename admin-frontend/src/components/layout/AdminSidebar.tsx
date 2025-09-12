@@ -33,12 +33,21 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['analytics']))
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = useMemo(() => ([
     {
       title: 'Dashboard',
       icon: BarChart3,
       url: '/dashboard',
       active: currentPage === '/dashboard'
+    },
+    {
+      title: 'CRM',
+      icon: Users,
+      url: '/crm',
+      children: [
+        { title: 'Leads', icon: Users, url: '/crm/leads' },
+        { title: 'Conversations', icon: Database, url: '/crm/conversations' }
+      ]
     },
     {
       title: 'Analytics',
@@ -80,7 +89,7 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
         { title: 'Announcements', icon: Database, url: '/system/announcements' }
       ]
     }
-  ]
+  ]), [currentPage])
 
   const filteredMenuItems = useMemo(() => {
     if (!searchTerm) return menuItems

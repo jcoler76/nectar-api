@@ -26,10 +26,10 @@ export declare class AdminAuthService {
     /**
      * Change admin password
      */
-    static changePassword(adminId: string, newPassword: string): Promise<boolean>;
+    static changePassword(userId: string, newPassword: string): Promise<boolean>;
     /**
      * Deactivate admin user
      */
-    static deactivateAdmin(adminId: string): Promise<boolean>;
+    static deactivateAdmin(userId: string): Promise<boolean>;
 }
 //# sourceMappingURL=adminAuth.d.ts.map

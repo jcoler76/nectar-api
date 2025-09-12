@@ -1,8 +1,6 @@
 import {
   CreditCardIcon,
   CalendarDaysIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
   XMarkIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -10,11 +8,11 @@ import {
   PencilIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
-import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { DonutChartComponent, BarChartComponent } from '../ui/charts'
+import { graphqlRequest } from '../../services/graphql'
 
 interface SubscriptionMetrics {
   totalSubscriptions: number
@@ -59,102 +57,71 @@ export default function SubscriptionManagement() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMetrics({
-        totalSubscriptions: 634,
-        activeSubscriptions: 587,
-        trialSubscriptions: 23,
-        cancelledSubscriptions: 24,
-        upcomingRenewals: 156,
-        averageSubscriptionValue: 127.50
-      })
+    let mounted = true
+    const load = async () => {
+      try {
+        const [metricsRes, subsRes] = await Promise.all([
+          graphqlRequest<{ subscriptionMetrics: {
+            totalSubscriptions: number
+            activeSubscriptions: number
+            trialSubscriptions: number
+            cancelledSubscriptions: number
+            upcomingRenewals: number
+            averageSubscriptionValue: number
+            totalMonthlyRevenue: number
+          }}>(`query { subscriptionMetrics { totalSubscriptions activeSubscriptions trialSubscriptions cancelledSubscriptions upcomingRenewals averageSubscriptionValue totalMonthlyRevenue } }`),
+          graphqlRequest<{ subscriptions: { edges: { node: { id: string; plan: string; status: string; monthlyRevenue?: number; createdAt: string; currentPeriodEnd: string; organization?: { name?: string; billingEmail?: string } } }[] } }>(
+            `query Subs($limit: Int!, $offset: Int!) { subscriptions(pagination: { limit: $limit, offset: $offset, sortBy: "createdAt", sortOrder: DESC }) { edges { node { id plan status monthlyRevenue createdAt currentPeriodEnd organization { name billingEmail } } } } }`,
+            { limit: 200, offset: 0 }
+          ),
+        ])
 
-      setSubscriptions([
-        {
-          id: '1',
-          customerName: 'Alice Johnson',
-          customerEmail: 'alice@techcorp.com',
-          planType: 'Enterprise',
-          status: 'Active',
-          mrr: 299,
-          startDate: '2024-01-15',
-          nextBilling: '2024-10-15',
-          paymentMethod: 'Visa •••• 4242',
-          lastPayment: '2024-09-15',
-          billingCycle: 'Monthly'
-        },
-        {
-          id: '2',
-          customerName: 'Bob Smith',
-          customerEmail: 'bob@startupxyz.com',
-          planType: 'Pro',
-          status: 'Active',
-          mrr: 99,
-          startDate: '2024-02-20',
-          nextBilling: '2024-10-20',
-          paymentMethod: 'Mastercard •••• 5555',
-          lastPayment: '2024-09-20',
-          billingCycle: 'Monthly'
-        },
-        {
-          id: '3',
-          customerName: 'Carol Davis',
-          customerEmail: 'carol@megacorp.com',
-          planType: 'Enterprise+',
-          status: 'Active',
-          mrr: 599,
-          startDate: '2023-12-10',
-          nextBilling: '2024-12-10',
-          paymentMethod: 'Visa •••• 1234',
-          lastPayment: '2023-12-10',
-          billingCycle: 'Yearly'
-        },
-        {
-          id: '4',
-          customerName: 'David Wilson',
-          customerEmail: 'david@freelance.com',
-          planType: 'Basic',
-          status: 'Trial',
-          mrr: 0,
-          startDate: '2024-08-25',
-          nextBilling: '2024-09-25',
-          paymentMethod: 'No payment method',
-          lastPayment: 'N/A',
-          billingCycle: 'Monthly'
-        },
-        {
-          id: '5',
-          customerName: 'Emma Brown',
-          customerEmail: 'emma@agency.com',
-          planType: 'Pro',
-          status: 'Past Due',
-          mrr: 99,
-          startDate: '2024-01-28',
-          nextBilling: '2024-09-28',
-          paymentMethod: 'Visa •••• 9876',
-          lastPayment: '2024-08-28',
-          billingCycle: 'Monthly'
-        }
-      ])
+        if (!mounted) return
 
-      setSubsByPlan([
-        { plan: 'Basic', count: 187, revenue: 5610 },
-        { plan: 'Pro', count: 234, revenue: 23166 },
-        { plan: 'Enterprise', count: 156, revenue: 46668 },
-        { plan: 'Enterprise+', count: 57, revenue: 34143 }
-      ])
+        setMetrics({
+          totalSubscriptions: metricsRes.subscriptionMetrics.totalSubscriptions,
+          activeSubscriptions: metricsRes.subscriptionMetrics.activeSubscriptions,
+          trialSubscriptions: metricsRes.subscriptionMetrics.trialSubscriptions,
+          cancelledSubscriptions: metricsRes.subscriptionMetrics.cancelledSubscriptions,
+          upcomingRenewals: metricsRes.subscriptionMetrics.upcomingRenewals,
+          averageSubscriptionValue: metricsRes.subscriptionMetrics.averageSubscriptionValue,
+        })
 
-      setSubsStatus([
-        { status: 'Active', count: 587, percentage: 92.6 },
-        { status: 'Trial', count: 23, percentage: 3.6 },
-        { status: 'Past Due', count: 15, percentage: 2.4 },
-        { status: 'Cancelled', count: 9, percentage: 1.4 }
-      ])
+        const mapped = subsRes.subscriptions.edges.map(({ node }) => ({
+          id: node.id,
+          customerName: node.organization?.name || 'Unknown',
+          customerEmail: node.organization?.billingEmail || '',
+          planType: node.plan,
+          status: node.status,
+          mrr: Number(node.monthlyRevenue || 0),
+          startDate: node.createdAt,
+          nextBilling: node.currentPeriodEnd,
+          paymentMethod: '',
+          lastPayment: '',
+          billingCycle: 'Monthly' as const,
+        }))
+        setSubscriptions(mapped)
 
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+        // Simple by-plan/status breakdown from subscriptions list
+        const byPlan: Record<string, { count: number; revenue: number }> = {}
+        const byStatus: Record<string, number> = {}
+        mapped.forEach(s => {
+          byPlan[s.planType] = byPlan[s.planType] || { count: 0, revenue: 0 }
+          byPlan[s.planType].count++
+          byPlan[s.planType].revenue += s.mrr
+          byStatus[s.status] = (byStatus[s.status] || 0) + 1
+        })
+        setSubsByPlan(Object.entries(byPlan).map(([plan, v]) => ({ plan, count: v.count, revenue: v.revenue })))
+        const total = mapped.length || 1
+        setSubsStatus(Object.entries(byStatus).map(([status, count]) => ({ status, count, percentage: Math.round((count / total) * 1000) / 10 })))
+      } catch (e) {
+        console.error('Failed to load subscriptions', e)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => { mounted = false }
   }, [])
 
   const subscriptionColumns = [
@@ -175,9 +142,9 @@ export default function SubscriptionManagement() {
       sortable: true,
       cell: ({ value }: { value: string }) => (
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Enterprise' || value === 'Enterprise+' 
-            ? 'bg-purple-100 text-purple-800' 
-            : value === 'Pro' 
+          value === 'Enterprise' || value === 'Enterprise+'
+            ? 'bg-purple-100 text-purple-800'
+            : value === 'Pro'
             ? 'bg-blue-100 text-blue-800'
             : 'bg-gray-100 text-gray-800'
         }`}>
@@ -191,8 +158,8 @@ export default function SubscriptionManagement() {
       sortable: true,
       cell: ({ value }: { value: string }) => (
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Active' 
-            ? 'bg-green-100 text-green-800' 
+          value === 'Active'
+            ? 'bg-green-100 text-green-800'
             : value === 'Trial'
             ? 'bg-blue-100 text-blue-800'
             : value === 'Past Due'
@@ -230,13 +197,6 @@ export default function SubscriptionManagement() {
       )
     },
     {
-      accessorKey: 'paymentMethod',
-      header: 'Payment Method',
-      cell: ({ value }: { value: string }) => (
-        <span className="text-sm text-gray-600">{value}</span>
-      )
-    },
-    {
       accessorKey: 'actions',
       header: 'Actions',
       cell: ({ row }: { row: Subscription }) => (
@@ -261,18 +221,6 @@ export default function SubscriptionManagement() {
           >
             <PencilIcon className="h-4 w-4" />
           </Button>
-          {row.status === 'Active' && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation()
-                console.log('Upgrade subscription:', row.id)
-              }}
-            >
-              <ArrowUpIcon className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       )
     }
@@ -404,42 +352,31 @@ export default function SubscriptionManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BarChartComponent
           data={subsByPlan}
-          dataKey="revenue"
+          dataKey="count"
           xAxisKey="plan"
-          title="Revenue by Plan"
-          description="Monthly recurring revenue by subscription plan"
-          color="hsl(280, 70%, 50%)"
+          title="Subscriptions by Plan"
+          description="Count and revenue by plan"
+          color="hsl(220, 70%, 50%)"
         />
 
         <DonutChartComponent
           data={subsStatus}
           dataKey="count"
           nameKey="status"
-          title="Subscription Status Distribution"
-          description="Current status of all subscriptions"
-          colors={['hsl(120, 70%, 50%)', 'hsl(220, 70%, 50%)', 'hsl(0, 70%, 50%)', 'hsl(40, 70%, 50%)']}
+          title="Subscription Status"
+          description="Status distribution"
+          colors={['hsl(160, 70%, 50%)', 'hsl(220, 70%, 50%)', 'hsl(340, 70%, 50%)', 'hsl(30, 70%, 50%)']}
         />
       </div>
 
-      {/* Subscriptions Table */}
+      {/* Table */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CreditCardIcon className="h-5 w-5" />
-              Subscription Management ({subscriptions.length} subscriptions)
+              Subscriptions ({subscriptions.length})
             </CardTitle>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                onClick={() => console.log('Export subscriptions')}
-              >
-                Export
-              </Button>
-              <Button onClick={() => console.log('Bulk actions')}>
-                Bulk Actions
-              </Button>
-            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -448,7 +385,7 @@ export default function SubscriptionManagement() {
             columns={subscriptionColumns}
             searchable={true}
             pageSize={10}
-            onRowClick={(subscription) => console.log('Subscription clicked:', subscription)}
+            onRowClick={(sub) => console.log('Subscription clicked:', sub)}
           />
         </CardContent>
       </Card>

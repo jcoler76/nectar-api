@@ -18,6 +18,33 @@ const { createServer } = require('http');
 /**
  * Initialize and start the server
  */
+let httpServer = null;
+let subscriptionServer = null;
+const PORT = process.env.PORT || 3001;
+
+const shutdown = (code = 0) => {
+  try {
+    githubIssuePoller.stop();
+  } catch {}
+  try {
+    if (subscriptionServer && typeof subscriptionServer.close === 'function') {
+      subscriptionServer.close();
+    }
+  } catch {}
+  try {
+    if (httpServer && typeof httpServer.close === 'function') {
+      httpServer.close(() => {
+        console.log('HTTP server closed');
+        process.exit(code);
+      });
+      // Fallback in case close hangs
+      setTimeout(() => process.exit(code), 5000).unref?.();
+      return;
+    }
+  } catch {}
+  process.exit(code);
+};
+
 const startServer = async () => {
   try {
     // Initialize core services (temporarily using Prisma only)
@@ -53,11 +80,9 @@ const startServer = async () => {
     addProductionMiddleware(app);
 
     // Create HTTP server for WebSocket support
-    const PORT = process.env.PORT || 3001;
-    const httpServer = createServer(app);
-
+    httpServer = createServer(app);
     // Initialize WebSocket subscriptions if GraphQL is enabled
-    let subscriptionServer = null;
+    subscriptionServer = null;
     if (graphqlEnabled) {
       try {
         subscriptionServer = initializeSubscriptions(httpServer);
@@ -77,36 +102,41 @@ const startServer = async () => {
     // Graceful shutdown
     process.on('SIGTERM', () => {
       console.log('Received SIGTERM, shutting down gracefully...');
-      githubIssuePoller.stop();
-      if (subscriptionServer && typeof subscriptionServer.close === 'function') {
-        subscriptionServer.close();
-      }
-      httpServer.close(() => {
-        console.log('HTTP server closed');
-        process.exit(0);
-      });
+      shutdown(0);
     });
 
     process.on('SIGINT', () => {
       console.log('Received SIGINT, shutting down gracefully...');
-      githubIssuePoller.stop();
-      if (subscriptionServer && typeof subscriptionServer.close === 'function') {
-        subscriptionServer.close();
-      }
-      httpServer.close(() => {
-        console.log('HTTP server closed');
-        process.exit(0);
-      });
+      shutdown(0);
     });
 
+    // Support nodemon restarts to avoid EADDRINUSE race
+    try {
+      process.once('SIGUSR2', () => {
+        console.log('Received SIGUSR2 (nodemon restart), shutting down gracefully...');
+        shutdown(0);
+      });
+    } catch {}
+
     // Start the server
+    // Using resilient bind retry
     httpServer.listen(PORT, () => {
-      logger.info(`🚀 Server running on port ${PORT}`);
-      logger.info(`📡 GraphQL endpoint: http://localhost:${PORT}/graphql`);
-      logger.info(`🔗 GraphQL Playground: http://localhost:${PORT}/playground`);
-      logger.info(`📡 Subscriptions endpoint: ws://localhost:${PORT}/graphql-subscriptions`);
+      logger.info(`dYs? Server running on port ${PORT}`);
+      logger.info(`dY"� GraphQL endpoint: http://localhost:${PORT}/graphql`);
+      logger.info(`dY"- GraphQL Playground: http://localhost:${PORT}/playground`);
+      logger.info(`dY"� Subscriptions endpoint: ws://localhost:${PORT}/graphql-subscriptions`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
     });
+    // Keep original direct listen disabled below for reference
+    if (false) {
+      httpServer.listen(PORT, () => {
+        logger.info(`🚀 Server running on port ${PORT}`);
+        logger.info(`📡 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+        logger.info(`🔗 GraphQL Playground: http://localhost:${PORT}/playground`);
+        logger.info(`📡 Subscriptions endpoint: ws://localhost:${PORT}/graphql-subscriptions`);
+        logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      });
+    }
 
     // Initialize scheduler after everything is set up (optional)
     if (process.env.DISABLE_SCHEDULER === 'true') {

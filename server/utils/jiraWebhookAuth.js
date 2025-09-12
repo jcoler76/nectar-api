@@ -47,13 +47,13 @@ const verifyJiraWebhookSignature = req => {
 };
 
 /**
- * Check if MIRABEL_API_KEY is configured
+ * Check if NECTARSTUDIO_API_KEY is configured
  * @throws {Error} - If API key is not configured
  */
 const requireApiKey = () => {
-  const apiKey = process.env.MIRABEL_API_KEY;
+  const apiKey = process.env.NECTARSTUDIO_API_KEY;
   if (!apiKey) {
-    throw new Error('MIRABEL_API_KEY environment variable is required');
+    throw new Error('NECTARSTUDIO_API_KEY environment variable is required');
   }
   return apiKey;
 };

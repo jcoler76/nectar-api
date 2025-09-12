@@ -14,16 +14,22 @@ const PricingPage = () => {
       return;
     }
 
-    const useStripe = process.env.REACT_APP_USE_STRIPE_CHECKOUT === 'true'
+    if (planId === 'enterprise') {
+      // Enterprise is contact-only
+      window.location.href = 'mailto:sales@nectarstudio.ai?subject=Enterprise%20Plan%20Inquiry';
+      return;
+    }
+
+    const useStripe = process.env.REACT_APP_USE_STRIPE_CHECKOUT === 'true';
     if (!useStripe) {
       navigate(`/checkout?plan=${planId}&billing=${billingCycle}`);
       return;
     }
 
     const priceMap = {
+      // Keep plan IDs stable; map to Stripe prices for self-serve plans only
       starter: process.env.REACT_APP_STRIPE_PRICE_ID_STARTER,
       professional: process.env.REACT_APP_STRIPE_PRICE_ID_PROFESSIONAL,
-      enterprise: process.env.REACT_APP_STRIPE_PRICE_ID_ENTERPRISE,
     };
 
     const priceId = priceMap[planId];
@@ -35,7 +41,7 @@ const PricingPage = () => {
 
     try {
       // Get an invisible CAPTCHA token if configured (non-intrusive)
-      const captchaToken = await getCaptchaToken('checkout')
+      const captchaToken = await getCaptchaToken('checkout');
       const res = await fetch('/api/checkout/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,62 +64,58 @@ const PricingPage = () => {
       id: 'free',
       name: 'Free',
       icon: <Zap className="w-8 h-8" />,
-      description: 'Perfect for individuals and small projects',
+      description: 'Great for trying NectarStudio.ai on a small project',
       monthlyPrice: 0,
       yearlyPrice: 0,
       features: [
-        '1 database connection',
-        '1 service endpoint',
-        '1 user role',
-        'Up to 5 workflow components',
-        '500 API calls/month',
-        'Community support at NectarStudio.ai',
-        'Basic AI templates',
+        '1 datasource',
+        '50k API calls/month',
+        'NL→API generator (limited)',
+        'BYO LLM key (optional)',
+        'OpenAPI docs & basic hooks',
+        'Community support',
       ],
-      limitations: ['Limited features for learning'],
+      limitations: ['Learning tier with limited capacity'],
       popular: false,
       color: 'green',
     },
     {
       id: 'starter',
-      name: 'Starter',
+      name: 'Team',
       icon: <Zap className="w-8 h-8" />,
-      description: 'Perfect for small teams getting started',
-      monthlyPrice: 29,
-      yearlyPrice: 290,
+      description: 'For small teams launching production APIs',
+      monthlyPrice: 99,
+      yearlyPrice: 990,
       features: [
         'Up to 5 team members',
-        'Basic workflow automation',
-        '100 API calls/month',
+        '3 datasources',
+        '1M API calls/month',
+        'API keys, quotas, audit logs',
+        'OpenAPI developer portal',
+        'Pre/post request hooks',
         'Email support',
-        'Basic analytics',
-        '5 integrations',
-        'Standard templates',
       ],
-      limitations: ['Limited to 10 workflows', 'Basic reporting only'],
+      limitations: ['No SSO/SAML', 'No on‑prem'],
       popular: false,
       color: 'blue',
     },
     {
       id: 'professional',
-      name: 'Professional',
+      name: 'Business',
       icon: <Crown className="w-8 h-8" />,
-      description: 'For growing teams that need more power',
-      monthlyPrice: 79,
-      yearlyPrice: 790,
+      description: 'For growing teams with governance needs',
+      monthlyPrice: 399,
+      yearlyPrice: 3990,
       features: [
         'Up to 25 team members',
-        'Advanced workflow automation',
-        '1,000 API calls/month',
+        '10 datasources',
+        '5M API calls/month',
+        'Advanced RBAC/ABAC & masking',
+        'Staging environments',
+        'Workflow Copilot',
         'Priority support',
-        'Advanced analytics & insights',
-        'Unlimited integrations',
-        'Custom templates',
-        'Role-based permissions',
-        'Webhook support',
-        'SLA monitoring',
       ],
-      limitations: [],
+      limitations: ['SSO/SAML & on‑prem in Enterprise'],
       popular: true,
       color: 'purple',
     },
@@ -121,22 +123,17 @@ const PricingPage = () => {
       id: 'enterprise',
       name: 'Enterprise',
       icon: <Building2 className="w-8 h-8" />,
-      description: 'For large organizations with complex needs',
-      monthlyPrice: 199,
-      yearlyPrice: 1990,
+      description: 'Custom pricing with advanced security and deployment options',
+      monthlyPrice: null,
+      yearlyPrice: null,
       features: [
-        'Unlimited team members',
-        'Enterprise workflow automation',
-        'Unlimited API calls',
-        'Dedicated support manager',
-        'Custom analytics & reporting',
-        'White-label options',
-        'Custom integrations',
-        'Advanced security features',
-        'SSO & SAML support',
-        'Audit logs & compliance',
-        'Custom SLA',
-        'On-premise deployment option',
+        'Unlimited team members (fair use)',
+        'Unlimited datasources (fair use)',
+        'SSO/SAML/SCIM',
+        'On‑prem & private LLMs',
+        'VPC peering & SOC 2 addendum',
+        'HA SLAs & dedicated support',
+        'Migration assistance (DreamFactory → Nectar)',
       ],
       limitations: [],
       popular: false,
@@ -145,6 +142,8 @@ const PricingPage = () => {
   ];
 
   const getPrice = plan => {
+    if (plan.id === 'enterprise' || plan.monthlyPrice == null || plan.yearlyPrice == null)
+      return null;
     return billingCycle === 'monthly' ? plan.monthlyPrice : Math.floor(plan.yearlyPrice / 12);
   };
 
@@ -268,19 +267,32 @@ const PricingPage = () => {
                   <p className="text-gray-600 mb-6">{plan.description}</p>
 
                   <div className="mb-6">
-                    <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold text-gray-900">${getPrice(plan)}</span>
-                      <span className="text-gray-600">
-                        /{billingCycle === 'monthly' ? 'mo' : 'mo'}
-                      </span>
-                    </div>
-                    {billingCycle === 'yearly' && (
-                      <div className="text-sm text-green-600 font-medium mt-2">
-                        Save {getSavings(plan)}% annually
-                      </div>
-                    )}
-                    {billingCycle === 'monthly' && (
-                      <div className="text-sm text-gray-500 mt-2">Billed monthly</div>
+                    {plan.id !== 'enterprise' ? (
+                      <>
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className="text-5xl font-bold text-gray-900">
+                            ${getPrice(plan)}
+                          </span>
+                          <span className="text-gray-600">
+                            /{billingCycle === 'monthly' ? 'mo' : 'mo'}
+                          </span>
+                        </div>
+                        {billingCycle === 'yearly' && (
+                          <div className="text-sm text-green-600 font-medium mt-2">
+                            Save {getSavings(plan)}% annually
+                          </div>
+                        )}
+                        {billingCycle === 'monthly' && (
+                          <div className="text-sm text-gray-500 mt-2">Billed monthly</div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className="text-4xl font-bold text-gray-900">Contact Us</span>
+                        </div>
+                        <div className="text-sm text-gray-500 mt-2">Custom annual pricing</div>
+                      </>
                     )}
                   </div>
 
@@ -292,13 +304,17 @@ const PricingPage = () => {
                         : `bg-${plan.color}-600 hover:bg-${plan.color}-700 text-white`
                     }`}
                   >
-                    Start Free Trial
+                    {plan.id === 'enterprise' ? 'Contact Sales' : 'Start Free Trial'}
                   </button>
-                  <p className="text-xs text-gray-500 mt-3">
-                    14-day free trial, then $
-                    {billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}/
-                    {billingCycle === 'monthly' ? 'month' : 'year'}
-                  </p>
+                  {plan.id !== 'enterprise' ? (
+                    <p className="text-xs text-gray-500 mt-3">
+                      14-day free trial, then $
+                      {billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}/
+                      {billingCycle === 'monthly' ? 'month' : 'year'}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-3">Tailored pricing and SLAs</p>
+                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -316,6 +332,39 @@ const PricingPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Add-ons */}
+          <div className="mt-16">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Add-ons</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Usage Overage</h3>
+                  <p className="text-gray-600 text-sm">
+                    $3–$5 per additional 1M API calls per month.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Extra Datasources</h3>
+                  <p className="text-gray-600 text-sm">
+                    Team: $10/mo each · Business: $25/mo each.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Managed LLM Usage</h3>
+                  <p className="text-gray-600 text-sm">
+                    Optional pass‑through billing + 15% fee, or use your own key for no surcharge.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">MSSQL Migration Package</h3>
+                  <p className="text-gray-600 text-sm">
+                    One‑time fixed fee; included with Enterprise onboarding.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* FAQ Section */}
@@ -338,6 +387,27 @@ const PricingPage = () => {
                     We accept all major credit cards (Visa, Mastercard, American Express) and bank
                     transfers for Enterprise plans. All payments are processed securely through
                     Stripe.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Do you support BYO LLM keys?</h3>
+                  <p className="text-gray-600">
+                    Yes. Bring your own OpenAI/Anthropic/Azure keys for no surcharge. If you prefer
+                    managed LLM billing, we pass through costs with a small fee.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">How do overages work?</h3>
+                  <p className="text-gray-600">
+                    If you exceed your included API calls, additional usage is billed in blocks
+                    (e.g., $3–$5 per extra 1M calls). You can set alerts and caps in settings.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-2">Is on‑prem supported?</h3>
+                  <p className="text-gray-600">
+                    Yes, Enterprise supports on‑prem deployment, private LLMs, and VPC peering.
+                    Contact sales to discuss requirements and timelines.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -366,7 +436,10 @@ const PricingPage = () => {
             <p className="text-xl text-blue-100 mb-6">
               Our Enterprise plan can be customized to fit your specific requirements.
             </p>
-            <button className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:scale-105">
+            <button
+              onClick={() => navigate('/contact')}
+              className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:scale-105"
+            >
               Contact Sales
             </button>
           </div>

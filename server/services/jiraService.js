@@ -234,7 +234,7 @@ class JiraService {
         method: 'GET',
         url: 'http://localhost:3001/api/v2/icoler/_proc/api_UpdateInvoiceReptoMatchContract',
         headers: {
-          'x-nectar-api-key': apiKey,
+          'x-nectarstudio-api-key': apiKey,
           Accept: 'application/json',
         },
         timeout: 30000,

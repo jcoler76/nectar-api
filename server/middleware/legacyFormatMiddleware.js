@@ -2,7 +2,7 @@ const { logger } = require('./logger');
 
 /**
  * Middleware to convert API responses to legacy string format for backwards compatibility
- * with DreamFactory clients. Detects legacy clients by the presence of x-dreamfactory-api-key header.
+ * with DreamFactory clients. Detects legacy clients by the presence of x-nectarstudio-string-api-key header.
  */
 const legacyFormatMiddleware = (req, res, next) => {
   // Check if this is a legacy client using the flag set by consolidatedAuthMiddleware

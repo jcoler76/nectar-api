@@ -4,7 +4,13 @@ import { prisma } from '@/utils/database'
 import { CreateAdminData, AdminUser, JWTPayload } from '@/types/auth'
 
 export class AdminAuthService {
-  private static readonly JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'fallback-secret'
+  private static readonly JWT_SECRET = (() => {
+    const secret = process.env.ADMIN_JWT_SECRET
+    if (!secret || secret.length < 32) {
+      throw new Error('ADMIN_JWT_SECRET must be set and at least 32 characters long for security')
+    }
+    return secret
+  })()
   private static readonly JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '8h'
   private static readonly BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12')
 
@@ -14,17 +20,23 @@ export class AdminAuthService {
   static async createAdmin(data: CreateAdminData): Promise<AdminUser> {
     const passwordHash = await bcrypt.hash(data.password, this.BCRYPT_ROUNDS)
     
-    const admin = await prisma.platformAdmin.create({
+    const admin = await prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: data.role || 'ADMIN',
+        isSuperAdmin: true,
+        isActive: true,
+        emailVerified: true
       },
     })
 
-    const { passwordHash: _, ...adminUser } = admin
+    const { passwordHash: _, ...userFields } = admin
+    const adminUser = {
+      ...userFields,
+      role: 'ADMIN' as const
+    }
     return adminUser as AdminUser
   }
 
@@ -32,22 +44,38 @@ export class AdminAuthService {
    * Validate admin credentials and return user if valid
    */
   static async validateAdmin(email: string, password: string): Promise<AdminUser | null> {
-    // Use findFirst because we're filtering by a non-unique field (isActive)
-    const admin = await prisma.platformAdmin.findFirst({
-      where: { email, isActive: true },
+    // Use regular users table and check if user is admin
+    const user = await prisma.user.findFirst({
+      where: { email, isActive: true, isSuperAdmin: true },
     })
-
-    if (!admin || !await bcrypt.compare(password, admin.passwordHash)) {
+    if (!user) {
       return null
     }
 
+    // Verify password - critical security check
+    if (!user.passwordHash || !await bcrypt.compare(password, user.passwordHash)) {
+      return null
+    }
+    
     // Update last login timestamp
-    await prisma.platformAdmin.update({
-      where: { id: admin.id },
+    await prisma.user.update({
+      where: { id: user.id },
       data: { lastLoginAt: new Date() },
     })
 
-    const { passwordHash: _, ...adminUser } = admin
+    // Transform user to AdminUser format
+    const adminUser = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: 'ADMIN', // Since we checked isSuperAdmin: true
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
+
     return adminUser as AdminUser
   }
 
@@ -56,7 +84,7 @@ export class AdminAuthService {
    */
   static generateToken(admin: AdminUser): string {
     const payload: JWTPayload = {
-      adminId: admin.id,
+      userId: admin.id,
       email: admin.email,
       role: admin.role,
       type: 'platform_admin',
@@ -88,28 +116,40 @@ export class AdminAuthService {
    * Get admin user by ID
    */
   static async getAdminById(id: string): Promise<AdminUser | null> {
-    // Use findFirst because we're filtering by a non-unique field (isActive)
-    const admin = await prisma.platformAdmin.findFirst({
-      where: { id, isActive: true },
+    // Use regular users table and check if user is admin
+    const user = await prisma.user.findFirst({
+      where: { id, isActive: true, isSuperAdmin: true },
     })
 
-    if (!admin) {
+    if (!user) {
       return null
     }
 
-    const { passwordHash: _, ...adminUser } = admin
+    // Transform user to AdminUser format
+    const adminUser = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: 'ADMIN', // Since we checked isSuperAdmin: true
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
+
     return adminUser as AdminUser
   }
 
   /**
    * Change admin password
    */
-  static async changePassword(adminId: string, newPassword: string): Promise<boolean> {
+  static async changePassword(userId: string, newPassword: string): Promise<boolean> {
     try {
       const passwordHash = await bcrypt.hash(newPassword, this.BCRYPT_ROUNDS)
       
-      await prisma.platformAdmin.update({
-        where: { id: adminId },
+      await prisma.user.update({
+        where: { id: userId },
         data: { passwordHash },
       })
 
@@ -122,10 +162,10 @@ export class AdminAuthService {
   /**
    * Deactivate admin user
    */
-  static async deactivateAdmin(adminId: string): Promise<boolean> {
+  static async deactivateAdmin(userId: string): Promise<boolean> {
     try {
-      await prisma.platformAdmin.update({
-        where: { id: adminId },
+      await prisma.user.update({
+        where: { id: userId },
         data: { isActive: false },
       })
 

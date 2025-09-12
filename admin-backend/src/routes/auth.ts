@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { AuthController } from '@/controllers/authController'
 import { authenticateAdmin, auditAction } from '@/middleware/adminAuth'
+import { authRateLimiter, passwordChangeRateLimiter } from '@/middleware/rateLimiter'
 
 const router = Router()
 
@@ -11,6 +12,7 @@ const router = Router()
  */
 router.post(
   '/login',
+  authRateLimiter,
   AuthController.loginValidation,
   AuthController.login
 )
@@ -46,6 +48,7 @@ router.get(
 router.put(
   '/password',
   authenticateAdmin,
+  passwordChangeRateLimiter,
   AuthController.changePasswordValidation,
   auditAction('change_password'),
   AuthController.changePassword

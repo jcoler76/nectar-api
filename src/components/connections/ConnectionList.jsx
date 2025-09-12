@@ -1,6 +1,6 @@
 import { Tooltip } from '@mui/material';
 import { AlertCircle, Edit, HelpCircle, Info, Play, Plus, RefreshCw, Trash2 } from 'lucide-react';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnectionOperations } from '../../hooks/useConnectionOperations';
@@ -11,10 +11,18 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { DataTable } from '../ui/data-table';
+import { Switch } from '../ui/switch';
 
 import ConnectionForm from './ConnectionForm';
 
 const ConnectionList = () => {
+  const [dependencyConfirm, setDependencyConfirm] = useState({
+    open: false,
+    connection: null,
+    message: '',
+    dependentServices: [],
+  });
+
   const {
     connections,
     loading,
@@ -24,6 +32,7 @@ const ConnectionList = () => {
     handleSave,
     handleDelete,
     handleTest,
+    handleToggleActive,
     handleRefreshDatabases,
     handleTestDetails,
   } = useConnectionOperations();
@@ -108,29 +117,51 @@ const ConnectionList = () => {
         header: (
           <div className="flex items-center gap-1">
             Status
-            <Tooltip title="Connection availability status. Active connections can be used for services, Inactive connections are disabled.">
+            <Tooltip title="Toggle connection availability - Active connections can be used for services, Inactive connections are disabled.">
               <HelpCircle className="h-3 w-3 text-gray-500 cursor-help" />
             </Tooltip>
           </div>
         ),
+        type: 'switch',
         width: '15%',
-        cell: ({ row }) => {
-          const isActive = row.isActive;
-          const variant = isActive ? 'active' : 'secondary';
-          return (
-            <Tooltip
-              title={
-                isActive
-                  ? 'Connection is active and available for services'
-                  : 'Connection is inactive and cannot be used'
-              }
-            >
-              <Badge variant={variant} className="text-xs cursor-help">
-                {isActive ? 'Active' : 'Inactive'}
+        cell: ({ row, value }) => (
+          <Tooltip
+            title={
+              value
+                ? 'Connection is active and available for services'
+                : 'Connection is inactive and cannot be used'
+            }
+          >
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={value || false}
+                onCheckedChange={async () => {
+                  // Prevent multiple rapid clicks
+                  if (operationInProgress[`toggle-${row.id}`]) {
+                    return;
+                  }
+
+                  const result = await handleToggleActive(row);
+
+                  // Handle dependency confirmation
+                  if (result && result.requiresConfirmation) {
+                    setDependencyConfirm({
+                      open: true,
+                      connection: row,
+                      message: result.message,
+                      dependentServices: result.dependentServices,
+                    });
+                  }
+                }}
+                aria-label={`Toggle status for ${row.name}`}
+                className="data-[state=checked]:bg-ocean-500 data-[state=unchecked]:bg-gray-200"
+              />
+              <Badge variant={value ? 'active' : 'inactive'} className="text-xs">
+                {value ? 'Active' : 'Inactive'}
               </Badge>
-            </Tooltip>
-          );
-        },
+            </div>
+          </Tooltip>
+        ),
       },
       {
         accessorKey: 'actions',
@@ -180,7 +211,14 @@ const ConnectionList = () => {
         ],
       },
     ],
-    [handleTest, handleRefreshDatabases, handleEdit, openConfirm, operationInProgress]
+    [
+      handleTest,
+      handleToggleActive,
+      handleRefreshDatabases,
+      handleEdit,
+      openConfirm,
+      operationInProgress,
+    ]
   );
 
   if (loading) return <LoadingSpinner />;
@@ -267,6 +305,32 @@ const ConnectionList = () => {
           loading={loading}
         />
       )}
+
+      {/* Dependency Confirmation Dialog */}
+      <ConfirmDialog
+        open={dependencyConfirm.open}
+        title="Deactivate Connection with Dependencies"
+        message={dependencyConfirm.message}
+        onConfirm={async () => {
+          if (dependencyConfirm.connection) {
+            await handleToggleActive(dependencyConfirm.connection, true); // Skip confirmation
+          }
+          setDependencyConfirm({
+            open: false,
+            connection: null,
+            message: '',
+            dependentServices: [],
+          });
+        }}
+        onCancel={() => {
+          setDependencyConfirm({
+            open: false,
+            connection: null,
+            message: '',
+            dependentServices: [],
+          });
+        }}
+      />
 
       <ConfirmDialog
         open={confirmState.open}

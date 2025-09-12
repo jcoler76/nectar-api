@@ -1,0 +1,306 @@
+=3003 : The term '=3003' is not recognized as the name of a cmdlet, function, script file, or 
+operable program. Check the spelling of the name, or if a path was included, verify that the path 
+is correct and try again.
+At line:2 char:1
++ =3003
++ ~~~~~
+    + CategoryInfo          : ObjectNotFound: (=3003:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+= : The term '=' is not recognized as the name of a cmdlet, function, script file, or operable 
+program. Check the spelling of the name, or if a path was included, verify that the path is correct 
+and try again.
+At line:3 char:1
++ =
++ ~
+    + CategoryInfo          : ObjectNotFound: (=:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+node:internal/modules/cjs/loader:1368
+  throw err;
+  ^
+
+Error: Cannot find module './app.ts'
+Require stack:
+- C:\Users\jcoler\nectar-api\admin-backend\src\imaginaryUncacheableRequireResolveScript
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1365:15)
+    at Function.resolve (node:internal/modules/helpers:145:19)
+    at requireResolveNonCached (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\dist\bin.js:549:16)
+    at getProjectSearchDir (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\dist\bin.js:519:40)
+    at phase3 (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\dist\bin.js:267:27)
+    at bootstrap (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\dist\bin.js:47:30)
+    at main (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\dist\bin.js:33:12)
+    at Object.<anonymous> (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\dist\bin.js:579:5)
+    at Module._compile (node:internal/modules/cjs/loader:1688:14)
+    at Object..js (node:internal/modules/cjs/loader:1820:10) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\jcoler\\nectar-api\\admin-backend\\src\\imaginaryUncacheableRequireResolveScript'
+  ]
+}
+
+Node.js v22.18.0
+Port 3001 in use (attempt 1/40); retrying in 250ms...
+Port 3001 in use (attempt 2/40); retrying in 250ms...
+Port 3001 in use (attempt 3/40); retrying in 250ms...
+Port 3001 in use (attempt 4/40); retrying in 250ms...
+Port 3001 in use (attempt 5/40); retrying in 250ms...
+Port 3001 in use (attempt 6/40); retrying in 250ms...
+Port 3001 in use (attempt 7/40); retrying in 250ms...
+Port 3001 in use (attempt 8/40); retrying in 250ms...
+Port 3001 in use (attempt 9/40); retrying in 250ms...
+(node:29092) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 listening listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+Port 3001 in use (attempt 10/40); retrying in 250ms...
+Port 3001 in use (attempt 11/40); retrying in 250ms...
+Port 3001 in use (attempt 12/40); retrying in 250ms...
+Port 3001 in use (attempt 13/40); retrying in 250ms...
+Port 3001 in use (attempt 14/40); retrying in 250ms...
+Port 3001 in use (attempt 15/40); retrying in 250ms...
+Port 3001 in use (attempt 16/40); retrying in 250ms...
+Port 3001 in use (attempt 17/40); retrying in 250ms...
+Port 3001 in use (attempt 18/40); retrying in 250ms...
+Port 3001 in use (attempt 19/40); retrying in 250ms...
+Port 3001 in use (attempt 20/40); retrying in 250ms...
+Port 3001 in use (attempt 21/40); retrying in 250ms...
+Port 3001 in use (attempt 22/40); retrying in 250ms...
+Port 3001 in use (attempt 23/40); retrying in 250ms...
+Port 3001 in use (attempt 24/40); retrying in 250ms...
+Port 3001 in use (attempt 25/40); retrying in 250ms...
+Port 3001 in use (attempt 26/40); retrying in 250ms...
+Port 3001 in use (attempt 27/40); retrying in 250ms...
+Port 3001 in use (attempt 28/40); retrying in 250ms...
+Port 3001 in use (attempt 29/40); retrying in 250ms...
+Port 3001 in use (attempt 30/40); retrying in 250ms...
+Port 3001 in use (attempt 31/40); retrying in 250ms...
+Port 3001 in use (attempt 32/40); retrying in 250ms...
+Port 3001 in use (attempt 33/40); retrying in 250ms...
+Port 3001 in use (attempt 34/40); retrying in 250ms...
+Port 3001 in use (attempt 35/40); retrying in 250ms...
+Port 3001 in use (attempt 36/40); retrying in 250ms...
+Port 3001 in use (attempt 37/40); retrying in 250ms...
+Port 3001 in use (attempt 38/40); retrying in 250ms...
+Port 3001 in use (attempt 39/40); retrying in 250ms...
+Failed to bind port 3001 after 40 attempts. Exiting.
+C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: ⨯ Unable to compile TypeScript:
+src/app.ts(146,26): error TS1005: ':' expected.
+src/app.ts(146,33): error TS1005: ',' expected.
+src/app.ts(146,41): error TS1005: ',' expected.
+src/app.ts(146,49): error TS1005: ',' expected.
+src/app.ts(146,52): error TS1005: ',' expected.
+src/app.ts(147,17): error TS1005: ',' expected.
+src/app.ts(147,34): error TS1002: Unterminated string literal.
+src/app.ts(148,3): error TS1005: ',' expected.
+src/app.ts(148,17): error TS1005: ',' expected.
+src/app.ts(148,35): error TS1002: Unterminated string literal.
+src/app.ts(149,1): error TS1005: ',' expected.
+src/app.ts(157,45): error TS1109: Expression expected.
+src/app.ts(157,46): error TS1005: ')' expected.
+src/app.ts(157,62): error TS1005: ';' expected.
+src/app.ts(157,65): error TS1109: Expression expected.
+src/app.ts(165,28): error TS1005: ',' expected.
+src/app.ts(165,31): error TS1005: ',' expected.
+src/app.ts(165,36): error TS1005: ',' expected.
+src/app.ts(165,42): error TS1005: ',' expected.
+src/app.ts(165,49): error TS1005: ',' expected.
+src/app.ts(165,67): error TS1003: Identifier expected.
+src/app.ts(167,5): error TS1128: Declaration or statement expected.
+src/app.ts(170,3): error TS1128: Declaration or statement expected.
+src/app.ts(170,4): error TS1128: Declaration or statement expected.
+src/app.ts(171,1): error TS1128: Declaration or statement expected.
+src/app.ts(181,45): error TS1109: Expression expected.
+src/app.ts(181,46): error TS1005: ')' expected.
+src/app.ts(181,62): error TS1005: ';' expected.
+src/app.ts(181,65): error TS1128: Declaration or statement expected.
+src/app.ts(185,28): error TS1005: ',' expected.
+src/app.ts(185,31): error TS1005: ',' expected.
+src/app.ts(185,36): error TS1005: ',' expected.
+src/app.ts(185,42): error TS1005: ',' expected.
+src/app.ts(185,49): error TS1005: ',' expected.
+src/app.ts(185,67): error TS1003: Identifier expected.
+
+    at createTSError (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:863:19)
+    at C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1379:34
+    at Object.compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1458:13)
+    at Module.m._compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at node:internal/modules/cjs/loader:1820:10
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1423:32)
+    at Function._load (node:internal/modules/cjs/loader:1246:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  diagnosticCodes: [
+    1005, 1005, 1005, 1005, 1005,
+    1005, 1002, 1005, 1005, 1002,
+    1005, 1109, 1005, 1005, 1109,
+    1005, 1005, 1005, 1005, 1005,
+    1003, 1128, 1128, 1128, 1128,
+    1109, 1005, 1005, 1128, 1005,
+    1005, 1005, 1005, 1005, 1003
+  ]
+}
+C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: ⨯ Unable to compile TypeScript:
+src/app.ts(146,26): error TS1005: ':' expected.
+src/app.ts(146,33): error TS1005: ',' expected.
+src/app.ts(146,41): error TS1005: ',' expected.
+src/app.ts(146,49): error TS1005: ',' expected.
+src/app.ts(146,52): error TS1005: ',' expected.
+src/app.ts(147,17): error TS1005: ',' expected.
+src/app.ts(147,34): error TS1002: Unterminated string literal.
+src/app.ts(148,3): error TS1005: ',' expected.
+src/app.ts(148,17): error TS1005: ',' expected.
+src/app.ts(148,35): error TS1002: Unterminated string literal.
+src/app.ts(149,1): error TS1005: ',' expected.
+src/app.ts(157,45): error TS1109: Expression expected.
+src/app.ts(157,46): error TS1005: ')' expected.
+src/app.ts(157,62): error TS1005: ';' expected.
+src/app.ts(157,65): error TS1109: Expression expected.
+src/app.ts(165,28): error TS1005: ',' expected.
+src/app.ts(165,31): error TS1005: ',' expected.
+src/app.ts(165,36): error TS1005: ',' expected.
+src/app.ts(165,42): error TS1005: ',' expected.
+src/app.ts(165,49): error TS1005: ',' expected.
+src/app.ts(165,67): error TS1003: Identifier expected.
+src/app.ts(167,5): error TS1128: Declaration or statement expected.
+src/app.ts(170,3): error TS1128: Declaration or statement expected.
+src/app.ts(170,4): error TS1128: Declaration or statement expected.
+src/app.ts(171,1): error TS1128: Declaration or statement expected.
+src/app.ts(181,45): error TS1109: Expression expected.
+src/app.ts(181,46): error TS1005: ')' expected.
+src/app.ts(181,62): error TS1005: ';' expected.
+src/app.ts(181,65): error TS1128: Declaration or statement expected.
+src/app.ts(185,28): error TS1005: ',' expected.
+src/app.ts(185,31): error TS1005: ',' expected.
+src/app.ts(185,36): error TS1005: ',' expected.
+src/app.ts(185,42): error TS1005: ',' expected.
+src/app.ts(185,49): error TS1005: ',' expected.
+src/app.ts(185,67): error TS1003: Identifier expected.
+
+    at createTSError (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:863:19)
+    at C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1379:34
+    at Object.compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1458:13)
+    at Module.m._compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at node:internal/modules/cjs/loader:1820:10
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1423:32)
+    at Function._load (node:internal/modules/cjs/loader:1246:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  diagnosticCodes: [
+    1005, 1005, 1005, 1005, 1005,
+    1005, 1002, 1005, 1005, 1002,
+    1005, 1109, 1005, 1005, 1109,
+    1005, 1005, 1005, 1005, 1005,
+    1003, 1128, 1128, 1128, 1128,
+    1109, 1005, 1005, 1128, 1005,
+    1005, 1005, 1005, 1005, 1003
+  ]
+}
+C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: ⨯ Unable to compile TypeScript:
+src/app.ts(157,45): error TS1109: Expression expected.
+src/app.ts(157,46): error TS1005: ')' expected.
+src/app.ts(157,62): error TS1005: ';' expected.
+src/app.ts(157,65): error TS1109: Expression expected.
+src/app.ts(165,28): error TS1005: ',' expected.
+src/app.ts(165,31): error TS1005: ',' expected.
+src/app.ts(165,36): error TS1005: ',' expected.
+src/app.ts(165,42): error TS1005: ',' expected.
+src/app.ts(165,49): error TS1005: ',' expected.
+src/app.ts(165,67): error TS1003: Identifier expected.
+src/app.ts(167,5): error TS1128: Declaration or statement expected.
+src/app.ts(170,3): error TS1128: Declaration or statement expected.
+src/app.ts(170,4): error TS1128: Declaration or statement expected.
+src/app.ts(171,1): error TS1128: Declaration or statement expected.
+src/app.ts(181,45): error TS1109: Expression expected.
+src/app.ts(181,46): error TS1005: ')' expected.
+src/app.ts(181,62): error TS1005: ';' expected.
+src/app.ts(181,65): error TS1128: Declaration or statement expected.
+src/app.ts(185,28): error TS1005: ',' expected.
+src/app.ts(185,31): error TS1005: ',' expected.
+src/app.ts(185,36): error TS1005: ',' expected.
+src/app.ts(185,42): error TS1005: ',' expected.
+src/app.ts(185,49): error TS1005: ',' expected.
+src/app.ts(185,67): error TS1003: Identifier expected.
+
+    at createTSError (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:859:12)
+    at reportTSError (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:863:19)
+    at C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1379:34
+    at Object.compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1458:13)
+    at Module.m._compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1617:30)
+    at node:internal/modules/cjs/loader:1820:10
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1423:32)
+    at Function._load (node:internal/modules/cjs/loader:1246:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {
+  diagnosticCodes: [
+    1109, 1005, 1005, 1109,
+    1005, 1005, 1005, 1005,
+    1005, 1003, 1128, 1128,
+    1128, 1128, 1109, 1005,
+    1005, 1128, 1005, 1005,
+    1005, 1005, 1005, 1003
+  ]
+}
+C:\Users\jcoler\nectar-api\admin-backend\src\app.ts:152
+  httpServer = createServer(app)
+            ^
+ReferenceError: httpServer is not defined
+    at setupServer (C:\Users\jcoler\nectar-api\admin-backend\src\app.ts:152:13)
+    at Object.<anonymous> (C:\Users\jcoler\nectar-api\admin-backend\src\app.ts:192:1)
+    at Module._compile (node:internal/modules/cjs/loader:1688:14)
+    at Module.m._compile (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1618:23)
+    at node:internal/modules/cjs/loader:1820:10
+    at Object.require.extensions.<computed> [as .ts] (C:\Users\jcoler\nectar-api\admin-backend\node_modules\ts-node\src\index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1423:32)
+    at Function._load (node:internal/modules/cjs/loader:1246:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+Port 3001 in use (attempt 1/40); retrying in 250ms...
+Port 3001 in use (attempt 2/40); retrying in 250ms...
+Port 3001 in use (attempt 3/40); retrying in 250ms...
+Port 3001 in use (attempt 4/40); retrying in 250ms...
+Port 3001 in use (attempt 5/40); retrying in 250ms...
+Port 3001 in use (attempt 6/40); retrying in 250ms...
+Port 3001 in use (attempt 7/40); retrying in 250ms...
+Port 3001 in use (attempt 8/40); retrying in 250ms...
+Port 3001 in use (attempt 9/40); retrying in 250ms...
+Port 3001 in use (attempt 10/40); retrying in 250ms...
+Port 3001 in use (attempt 11/40); retrying in 250ms...
+Port 3001 in use (attempt 12/40); retrying in 250ms...
+Port 3001 in use (attempt 13/40); retrying in 250ms...
+Port 3001 in use (attempt 14/40); retrying in 250ms...
+Port 3001 in use (attempt 15/40); retrying in 250ms...
+Port 3001 in use (attempt 16/40); retrying in 250ms...
+Port 3001 in use (attempt 17/40); retrying in 250ms...
+Port 3001 in use (attempt 18/40); retrying in 250ms...
+Port 3001 in use (attempt 19/40); retrying in 250ms...
+Port 3001 in use (attempt 20/40); retrying in 250ms...
+Port 3001 in use (attempt 21/40); retrying in 250ms...
+Port 3001 in use (attempt 22/40); retrying in 250ms...
+Port 3001 in use (attempt 23/40); retrying in 250ms...
+Port 3001 in use (attempt 24/40); retrying in 250ms...
+Port 3001 in use (attempt 25/40); retrying in 250ms...
+Port 3001 in use (attempt 26/40); retrying in 250ms...
+Port 3001 in use (attempt 27/40); retrying in 250ms...
+Port 3001 in use (attempt 28/40); retrying in 250ms...
+Port 3001 in use (attempt 29/40); retrying in 250ms...
+Port 3001 in use (attempt 30/40); retrying in 250ms...
+Port 3001 in use (attempt 31/40); retrying in 250ms...
+Port 3001 in use (attempt 32/40); retrying in 250ms...
+Port 3001 in use (attempt 33/40); retrying in 250ms...
+Port 3001 in use (attempt 34/40); retrying in 250ms...
+Port 3001 in use (attempt 35/40); retrying in 250ms...
+Port 3001 in use (attempt 36/40); retrying in 250ms...
+Port 3001 in use (attempt 37/40); retrying in 250ms...
+Port 3001 in use (attempt 38/40); retrying in 250ms...
+Port 3001 in use (attempt 39/40); retrying in 250ms...
+Failed to bind port 3001 after 40 attempts. Exiting.

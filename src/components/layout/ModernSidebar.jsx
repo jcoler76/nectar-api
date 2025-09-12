@@ -148,7 +148,7 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
       title: 'Workflows',
       url: '/workflows',
       icon: GitBranch,
-      permission: 'canManageServices',
+      permission: 'canManageWorkflows',
       badge: null,
     },
     {
@@ -158,14 +158,14 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
       permission: 'canViewDashboard',
       badge: null,
     },
-    { title: 'Users', url: '/users', icon: Users, permission: 'canManageUsers', badge: null },
+    { title: 'Users', url: '/users', icon: Users, permission: 'canManageOrgUsers', badge: null },
   ];
 
   const settingsItem = {
     title: user?.name || user?.email || 'Settings',
-    url: permissions.isAdmin ? '/admin-settings' : '/user-settings',
+    url: user?.isAdmin ? '/admin-settings' : '/user-settings',
     icon: Settings,
-    permission: 'canAccessSettings',
+    permission: 'canManageOrgSettings',
   };
 
   // Auto-expand parent items when child routes are active

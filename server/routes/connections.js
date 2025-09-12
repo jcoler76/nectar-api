@@ -146,7 +146,7 @@ router.post('/:id/test', async (req, res) => {
 
 // Test connection without saving (for connection setup)
 router.post('/test', async (req, res) => {
-  const { type, host, port, username, password, database, sslEnabled } = req.body;
+  const { type, host, port, username, password, database, sslEnabled, connectionId } = req.body;
   const context = createGraphQLContext(req);
 
   const TEST_CONNECTION_TEMP = `
@@ -172,6 +172,7 @@ router.post('/test', async (req, res) => {
         password,
         database,
         sslEnabled: sslEnabled || false,
+        connectionId,
       },
     },
     context,

@@ -27,7 +27,8 @@ function App() {
     setLoading(true)
     
     try {
-      const response = await fetch('http://localhost:3003/api/auth/login', {
+      const apiUrl = import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001'
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,8 +46,9 @@ function App() {
       localStorage.setItem('admin_token', data.token)
       setIsAuthenticated(true)
       
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed. Please check your credentials.'
+      setError(msg)
     } finally {
       setLoading(false)
     }

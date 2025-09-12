@@ -1,5 +1,5 @@
 export interface AuditLogData {
-    adminId?: string;
+    userId?: string;
     action: string;
     resource?: string;
     resourceType?: string;
@@ -15,32 +15,32 @@ export declare class AdminAuditLogger {
     /**
      * Get recent audit logs with pagination
      */
-    static getRecentLogs(limit?: number, offset?: number): Promise<any>;
+    static getRecentLogs(limit?: number, offset?: number): Promise<never[]>;
     /**
      * Get audit logs for specific admin
      */
-    static getAdminLogs(adminId: string, limit?: number, offset?: number): Promise<any>;
+    static getAdminLogs(userId: string, limit?: number, offset?: number): Promise<never[]>;
     /**
      * Get audit logs for specific action
      */
-    static getActionLogs(action: string, limit?: number, offset?: number): Promise<any>;
+    static getActionLogs(action: string, limit?: number, offset?: number): Promise<never[]>;
     /**
      * Search audit logs
      */
     static searchLogs(filters: {
-        adminId?: string;
+        userId?: string;
         action?: string;
         resourceType?: string;
         startDate?: Date;
         endDate?: Date;
-    }, limit?: number, offset?: number): Promise<any>;
+    }, limit?: number, offset?: number): Promise<never[]>;
     /**
      * Get audit log statistics
      */
     static getLogStats(startDate?: Date, endDate?: Date): Promise<{
-        totalLogs: any;
-        topActions: any;
-        topAdmins: any;
+        totalLogs: number;
+        topActions: never[];
+        topAdmins: never[];
     }>;
 }
 //# sourceMappingURL=auditService.d.ts.map

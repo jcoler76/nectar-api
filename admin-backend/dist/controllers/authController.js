@@ -40,7 +40,7 @@ class AuthController {
             const token = adminAuth_1.AdminAuthService.generateToken(admin);
             // Log successful login
             await auditService_1.AdminAuditLogger.log({
-                adminId: admin.id,
+                userId: admin.id,
                 action: 'login',
                 details: { loginMethod: 'password' },
                 ipAddress: req.ip || 'unknown',
@@ -74,7 +74,7 @@ class AuthController {
         try {
             if (req.admin) {
                 await auditService_1.AdminAuditLogger.log({
-                    adminId: req.admin.id,
+                    userId: req.admin.id,
                     action: 'logout',
                     ipAddress: req.ip || 'unknown',
                     userAgent: req.get('User-Agent'),
@@ -155,7 +155,7 @@ class AuthController {
             const isValidCurrentPassword = await adminAuth_1.AdminAuthService.validateAdmin(admin.email, currentPassword);
             if (!isValidCurrentPassword) {
                 await auditService_1.AdminAuditLogger.log({
-                    adminId: admin.id,
+                    userId: admin.id,
                     action: 'failed_password_change',
                     details: { reason: 'invalid_current_password' },
                     ipAddress: req.ip || 'unknown',
@@ -178,7 +178,7 @@ class AuthController {
             }
             // Log password change
             await auditService_1.AdminAuditLogger.log({
-                adminId: admin.id,
+                userId: admin.id,
                 action: 'password_changed',
                 ipAddress: req.ip || 'unknown',
                 userAgent: req.get('User-Agent'),

@@ -403,7 +403,25 @@ const connectionResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        const result = await DatabaseService.testConnection(input);
+        let connectionConfig = { ...input };
+
+        // If connectionId is provided but no password, use existing connection's password
+        if (input.connectionId && !input.password) {
+          const existingConnection = await prisma.databaseConnection.findFirst({
+            where: {
+              id: input.connectionId,
+              organizationId: currentUser.organizationId,
+            },
+          });
+
+          if (existingConnection) {
+            connectionConfig.password = existingConnection.passwordEncrypted;
+          } else {
+            throw new UserInputError('Connection not found');
+          }
+        }
+
+        const result = await DatabaseService.testConnection(connectionConfig);
 
         logger.info('Temporary database connection tested via GraphQL', {
           userId: currentUser.userId,
@@ -416,8 +434,8 @@ const connectionResolvers = {
         if (result.success) {
           try {
             const connectionForDatabases = {
-              ...input,
-              passwordEncrypted: input.password, // For getDatabaseList compatibility
+              ...connectionConfig,
+              passwordEncrypted: connectionConfig.password, // For getDatabaseList compatibility
             };
             databases = await getDatabaseList(connectionForDatabases);
           } catch (dbError) {

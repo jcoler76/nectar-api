@@ -21,6 +21,9 @@ const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
 const validationRules = require('../middleware/validationRules');
 const { checkFreemiumLimits } = require('../middleware/freemiumLimits');
+const { PrismaClient } = require('../prisma/generated/client');
+
+const prisma = new PrismaClient();
 
 // Get all roles using GraphQL
 router.get('/', createListHandler(ROLE_QUERIES.GET_ALL, 'roles'));
@@ -34,28 +37,47 @@ router.post(
   checkFreemiumLimits('roles'),
   validate(validationRules.role.create),
   async (req, res) => {
-    const { name, description, serviceId, permissions, isActive } = req.body;
-    const context = createGraphQLContext(req);
+    try {
+      const { name, description, serviceId, permissions, isActive } = req.body;
+      const context = createGraphQLContext(req);
 
-    const result = await executeGraphQLMutation(
-      res,
-      ROLE_QUERIES.CREATE,
-      {
-        input: {
-          name,
-          description,
-          serviceId,
-          permissions: permissions || [],
-          isActive,
+      logger.info('Creating role', {
+        name,
+        serviceId,
+        permissions: permissions || [],
+        isActive,
+        user: req.user
+          ? {
+              userId: req.user.userId,
+              organizationId: req.user.organizationId,
+              email: req.user.email,
+            }
+          : 'NO USER',
+      });
+
+      const result = await executeGraphQLMutation(
+        res,
+        ROLE_QUERIES.CREATE,
+        {
+          input: {
+            name,
+            description,
+            serviceId,
+            permissions: permissions || [],
+            isActive,
+          },
         },
-      },
-      context,
-      'create role'
-    );
+        context,
+        'create role'
+      );
 
-    if (!result) return; // Error already handled
+      if (!result) return; // Error already handled
 
-    res.status(201).json(result.createRole);
+      res.status(201).json(result.createRole);
+    } catch (error) {
+      logger.error('Role creation route error', { error: error.message, stack: error.stack });
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
   }
 );
 
@@ -258,7 +280,8 @@ router.get('/service/:serviceId/schema', async (req, res) => {
       'get service schema'
     );
 
-    logger.info('GraphQL query result:', { result });
+    // Don't log the full result as it may have non-standard prototype
+    logger.info('GraphQL query result received');
 
     if (!result) {
       logger.error('GraphQL query returned null result');
@@ -266,7 +289,11 @@ router.get('/service/:serviceId/schema', async (req, res) => {
     }
 
     const service = result.service;
-    logger.info('Service from GraphQL:', { service });
+    logger.info('Service from GraphQL:', {
+      serviceId: service?.id,
+      serviceName: service?.name,
+      hasObjects: !!service?.objects,
+    });
 
     if (!service) {
       logger.info('Service not found for schema request');
@@ -277,30 +304,176 @@ router.get('/service/:serviceId/schema', async (req, res) => {
     }
 
     // Parse the objects JSON and transform to expected schema format
-    const objects = service.objects || [];
+    let objects = service.objects || [];
+
+    // Ensure objects is always an array
+    if (!Array.isArray(objects)) {
+      if (typeof objects === 'string') {
+        try {
+          objects = JSON.parse(objects);
+        } catch (e) {
+          logger.error('Failed to parse objects JSON:', { error: e.message, objects });
+          objects = [];
+        }
+      } else {
+        objects = [];
+      }
+    }
+
+    // If no objects are found, try to refresh the schema
+    if (!objects || objects.length === 0) {
+      logger.info(`No objects found for service ${serviceId}, attempting to refresh schema`);
+
+      try {
+        // Get the service with connection details from Prisma directly
+        const serviceWithConnection = await prisma.service.findFirst({
+          where: {
+            id: serviceId,
+            organizationId: context.user.organizationId,
+          },
+          include: {
+            connection: true,
+          },
+        });
+
+        if (!serviceWithConnection?.connection) {
+          logger.info(`Service ${serviceId} has no connection, skipping schema refresh`);
+        } else {
+          // Use the DatabaseService to get database objects
+          const DatabaseService = require('../services/database/DatabaseService');
+          const { decryptDatabasePassword } = require('../utils/encryption');
+
+          const decryptedPassword = decryptDatabasePassword(
+            serviceWithConnection.connection.passwordEncrypted
+          );
+
+          const connectionConfig = {
+            host: serviceWithConnection.connection.host,
+            port: serviceWithConnection.connection.port,
+            user: serviceWithConnection.connection.username,
+            password: decryptedPassword,
+            database: serviceWithConnection.database,
+            sslEnabled: serviceWithConnection.connection.sslEnabled,
+          };
+
+          const fetchedObjects = await DatabaseService.getDatabaseObjects(connectionConfig);
+
+          // Transform the objects and update the service
+          const transformedObjects = fetchedObjects.map(obj => ({
+            name: obj.name,
+            schema: obj.schema_name || 'dbo',
+            type: obj.type_desc,
+            path: `/${obj.type_desc === 'USER_TABLE' ? 'table' : obj.type_desc === 'VIEW' ? 'view' : 'proc'}/${obj.name}`,
+          }));
+
+          // Update the service with the fetched objects
+          await prisma.service.update({
+            where: { id: serviceId },
+            data: { objects: transformedObjects },
+          });
+
+          objects = transformedObjects;
+          logger.info(
+            `Schema refreshed successfully for service ${serviceId}, found ${objects.length} objects`
+          );
+        }
+      } catch (refreshError) {
+        logger.error('Failed to refresh schema:', {
+          serviceId,
+          error: refreshError.message,
+          stack: refreshError.stack,
+        });
+      }
+    }
+
     logger.info(`Found ${objects.length} objects for service ${serviceId}`, {
       objects: objects.slice(0, 3),
     });
 
+    console.log(
+      'DEBUG: objects type:',
+      typeof objects,
+      'isArray:',
+      Array.isArray(objects),
+      'length:',
+      objects?.length
+    );
+
+    // Log first few objects to debug filtering
+    logger.info('DEBUG: Sample objects for filtering:', {
+      sampleObjects: objects.slice(0, 5),
+      firstObject: objects[0] ? Object.keys(objects[0]) : 'no objects',
+    });
+
+    // Final check to ensure objects is an array before filtering
+    if (!Array.isArray(objects)) {
+      logger.error('Objects is not an array after processing:', { objects, type: typeof objects });
+      objects = [];
+    }
+
+    // Count different types for debugging
+    const typeDescCounts = {};
+    objects.forEach(obj => {
+      const typeDesc = obj.type_desc;
+      typeDescCounts[typeDesc] = (typeDescCounts[typeDesc] || 0) + 1;
+    });
+
+    logger.info('Object type distribution:', typeDescCounts);
+
+    // Fixed filtering based on actual SQL Server type values
+    // SQL Server types: 'U' = tables, 'V' = views, 'P'/'PC' = procedures
+    const tableObjects = objects.filter(obj => {
+      return (
+        obj.type_desc === 'USER_TABLE' ||
+        obj.type?.trim() === 'U' ||
+        obj.object_category === 'TABLE' ||
+        obj.path?.startsWith('/table/')
+      );
+    });
+
+    const viewObjects = objects.filter(obj => {
+      return (
+        obj.type_desc === 'VIEW' ||
+        obj.type?.trim() === 'V' ||
+        obj.object_category === 'VIEW' ||
+        obj.path?.startsWith('/view/')
+      );
+    });
+
+    const procedureObjects = objects.filter(obj => {
+      return (
+        obj.type_desc === 'SQL_STORED_PROCEDURE' ||
+        obj.type?.trim() === 'P' ||
+        obj.type?.trim() === 'PC' ||
+        obj.object_category === 'PROCEDURE' ||
+        obj.path?.startsWith('/proc/')
+      );
+    });
+
+    logger.info('DEBUG: Filtering results:', {
+      totalObjects: objects.length,
+      tablesFound: tableObjects.length,
+      viewsFound: viewObjects.length,
+      proceduresFound: procedureObjects.length,
+      sampleProcedure: procedureObjects[0] || 'none found',
+    });
+
     const schema = {
-      tables: objects
-        .filter(obj => obj.path && obj.path.startsWith('/table/'))
-        .map(t => ({
-          name: t.path.split('/').pop(),
-          path: t.path,
-        })),
-      views: objects
-        .filter(obj => obj.path && obj.path.startsWith('/view/'))
-        .map(v => ({
-          name: v.path.split('/').pop(),
-          path: v.path,
-        })),
-      procedures: objects
-        .filter(obj => obj.path && obj.path.startsWith('/proc/'))
-        .map(p => ({
-          name: p.path.split('/').pop(),
-          path: p.path,
-        })),
+      tables: tableObjects.map(t => ({
+        name: t.name || t.path?.split('/').pop(),
+        path: t.path || `/table/${t.name}`,
+        schema: t.schema || t.schema_name || 'dbo',
+      })),
+      views: viewObjects.map(v => ({
+        name: v.name || v.path?.split('/').pop(),
+        path: v.path || `/view/${v.name}`,
+        schema: v.schema || v.schema_name || 'dbo',
+      })),
+      procedures: procedureObjects.map(p => ({
+        name: p.name || p.path?.split('/').pop(),
+        path: p.path || `/proc/${p.name}`,
+        schema: p.schema || p.schema_name || 'dbo',
+      })),
     };
 
     logger.info('Schema object counts:', {

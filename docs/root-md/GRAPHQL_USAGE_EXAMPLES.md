@@ -15,7 +15,7 @@ Your Nectar API now supports dynamic GraphQL queries that can call any stored pr
 ## 📋 GraphQL Endpoint
 
 **URL**: `https://mirabelconnect.mirabeltechnologies.com/graphql`  
-**Authentication**: Same `x-nectar-api-key` header as REST API  
+**Authentication**: Same `x-nectarstudio-api-key` header as REST API  
 
 ## 💡 Usage Examples
 
@@ -49,7 +49,7 @@ query GetIssues($serviceName: String!, $procedureName: String!, $params: JSON!) 
 **PowerShell Example:**
 ```powershell
 $headers = @{
-    'x-nectar-api-key' = '5ca2f94e4ee15c0f12742b62a7ac734e5062a177796d655b589ed3d2f5472b7e'
+    'x-nectarstudio-api-key' = '5ca2f94e4ee15c0f12742b62a7ac734e5062a177796d655b589ed3d2f5472b7e'
     'Content-Type' = 'application/json'
 }
 

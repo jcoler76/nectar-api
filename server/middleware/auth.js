@@ -21,6 +21,11 @@ const authMiddleware = async (req, res, next) => {
     const decoded = await validateToken(token);
 
     req.user = decoded;
+    // Backward-compat mapping for legacy code expecting id/orgId
+    if (!req.user.id && req.user.userId) req.user.id = req.user.userId;
+    if (!req.user.organizationId && (req.user.orgId || req.user.organization_id)) {
+      req.user.organizationId = req.user.orgId || req.user.organization_id;
+    }
     logger.debug('Authentication successful', {
       userId: decoded.userId,
       email: decoded.email,
@@ -86,7 +91,7 @@ const adminOnly = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId || req.user._id },
-      select: { isAdmin: true }
+      select: { isAdmin: true },
     });
 
     if (!user || !user.isAdmin) {

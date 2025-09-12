@@ -15,13 +15,17 @@ interface TopBarProps {
   onSidebarToggle: () => void
   currentPage?: string
   breadcrumbs?: Array<{ title: string; url?: string }>
+  onLogout?: () => void
+  onNavigate?: (url: string) => void
 }
 
 export default function AdminTopBar({ 
   sidebarCollapsed, 
   onSidebarToggle, 
   currentPage = 'Dashboard',
-  breadcrumbs = []
+  breadcrumbs = [],
+  onLogout,
+  onNavigate
 }: TopBarProps) {
   const [darkMode, setDarkMode] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -195,14 +199,29 @@ export default function AdminTopBar({
               {/* User dropdown */}
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
+                  <button 
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      onNavigate?.('/admin/profile')
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
                     Profile Settings
                   </button>
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
+                  <button 
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      onNavigate?.('/admin/account')
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
                     Account
                   </button>
                   <hr className="my-1" />
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
+                  <button 
+                    onClick={onLogout}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
                     Sign Out
                   </button>
                 </div>

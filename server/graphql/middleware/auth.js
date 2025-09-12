@@ -15,17 +15,15 @@ const getUser = async req => {
   if (!token) return null;
 
   try {
-    // Use enhanced token validation with blacklist checking
+    // First try standard user token validation (audience: nectar-users)
     const decoded = await validateToken(token);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: { 
+      include: {
         memberships: {
-          include: {
-            organization: true
-          }
-        }
-      }
+          include: { organization: true },
+        },
+      },
     });
 
     if (!user || !user.isActive) return null;
@@ -34,12 +32,61 @@ const getUser = async req => {
       userId: user.id,
       email: user.email,
       isAdmin: user.isAdmin,
-      roles: user.memberships || [], // Mapped from organization memberships
+      roles: user.memberships || [],
       user: user,
     };
-  } catch (error) {
-    console.error('GraphQL Auth Error:', error);
-    return null;
+  } catch (primaryError) {
+    // If standard validation fails, attempt to validate as platform admin
+    try {
+      const adminSecret = process.env.ADMIN_JWT_SECRET;
+      if (!adminSecret) {
+        throw new Error('ADMIN_JWT_SECRET not configured');
+      }
+
+      const adminDecoded = jwt.verify(token, adminSecret);
+      // Only accept platform admin tokens
+      if (adminDecoded?.type !== 'platform_admin' || !adminDecoded.userId) {
+        throw new Error('Not a platform admin token');
+      }
+
+      // Look up the admin user to confirm status/flags
+      const adminUser = await prisma.user.findUnique({
+        where: { id: adminDecoded.userId },
+        select: {
+          id: true,
+          email: true,
+          isActive: true,
+          isSuperAdmin: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      if (!adminUser || !adminUser.isActive || !adminUser.isSuperAdmin) {
+        throw new Error('Admin user not active or not super admin');
+      }
+
+      // Return a minimal admin context. Note: no organization scoping.
+      return {
+        userId: adminUser.id,
+        email: adminUser.email,
+        isAdmin: true,
+        roles: [],
+        user: {
+          id: adminUser.id,
+          email: adminUser.email,
+          isAdmin: true,
+          firstName: adminUser.firstName,
+          lastName: adminUser.lastName,
+        },
+      };
+    } catch (adminError) {
+      console.error('GraphQL Auth Error (both user and admin tokens failed):', {
+        primary: primaryError?.message,
+        admin: adminError?.message,
+      });
+      return null;
+    }
   }
 };
 

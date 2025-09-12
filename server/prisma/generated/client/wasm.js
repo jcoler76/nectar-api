@@ -125,6 +125,8 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   website: 'website',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  requiresTermsAcceptance: 'requiresTermsAcceptance',
+  lastTermsPromptedAt: 'lastTermsPromptedAt',
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -416,6 +418,29 @@ exports.Prisma.DatabaseObjectScalarFieldEnum = {
   serviceId: 'serviceId',
 };
 
+exports.Prisma.TermsAndConditionsScalarFieldEnum = {
+  id: 'id',
+  version: 'version',
+  content: 'content',
+  summary: 'summary',
+  effectiveDate: 'effectiveDate',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.TermsAcceptanceScalarFieldEnum = {
+  id: 'id',
+  acceptedAt: 'acceptedAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  geolocation: 'geolocation',
+  acceptanceMethod: 'acceptanceMethod',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  termsId: 'termsId',
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc',
@@ -517,6 +542,12 @@ exports.NotificationPriority = exports.$Enums.NotificationPriority = {
   LOW: 'LOW',
 };
 
+exports.AcceptanceMethod = exports.$Enums.AcceptanceMethod = {
+  CLICK: 'CLICK',
+  SCROLL: 'SCROLL',
+  SIGNATURE: 'SIGNATURE',
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
@@ -538,6 +569,8 @@ exports.Prisma.ModelName = {
   Notification: 'Notification',
   ApiActivityLog: 'ApiActivityLog',
   DatabaseObject: 'DatabaseObject',
+  TermsAndConditions: 'TermsAndConditions',
+  TermsAcceptance: 'TermsAcceptance',
 };
 
 /**

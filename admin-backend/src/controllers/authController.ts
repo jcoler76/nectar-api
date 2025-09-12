@@ -46,7 +46,7 @@ export class AuthController {
 
       // Log successful login
       await AdminAuditLogger.log({
-        adminId: admin.id,
+        userId: admin.id,
         action: 'login',
         details: { loginMethod: 'password' },
         ipAddress: req.ip || 'unknown',
@@ -66,7 +66,7 @@ export class AuthController {
         },
       })
     } catch (error) {
-      console.error('Login error:', error)
+      // Log error internally without exposing details
       res.status(500).json({ 
         error: 'Internal server error',
         code: 'INTERNAL_ERROR'
@@ -81,7 +81,7 @@ export class AuthController {
     try {
       if (req.admin) {
         await AdminAuditLogger.log({
-          adminId: req.admin.id,
+          userId: req.admin.id,
           action: 'logout',
           ipAddress: req.ip || 'unknown',
           userAgent: req.get('User-Agent'),
@@ -93,7 +93,7 @@ export class AuthController {
         message: 'Logged out successfully' 
       })
     } catch (error) {
-      console.error('Logout error:', error)
+      // Log error internally without exposing details
       res.status(500).json({ 
         error: 'Internal server error',
         code: 'INTERNAL_ERROR'
@@ -130,7 +130,7 @@ export class AuthController {
         },
       })
     } catch (error) {
-      console.error('Profile error:', error)
+      // Log error internally without exposing details
       res.status(500).json({ 
         error: 'Internal server error',
         code: 'INTERNAL_ERROR'
@@ -172,7 +172,7 @@ export class AuthController {
 
       if (!isValidCurrentPassword) {
         await AdminAuditLogger.log({
-          adminId: admin.id,
+          userId: admin.id,
           action: 'failed_password_change',
           details: { reason: 'invalid_current_password' },
           ipAddress: req.ip || 'unknown',
@@ -199,7 +199,7 @@ export class AuthController {
 
       // Log password change
       await AdminAuditLogger.log({
-        adminId: admin.id,
+        userId: admin.id,
         action: 'password_changed',
         ipAddress: req.ip || 'unknown',
         userAgent: req.get('User-Agent'),
@@ -210,7 +210,7 @@ export class AuthController {
         message: 'Password changed successfully',
       })
     } catch (error) {
-      console.error('Change password error:', error)
+      // Log error internally without exposing details
       res.status(500).json({ 
         error: 'Internal server error',
         code: 'INTERNAL_ERROR'

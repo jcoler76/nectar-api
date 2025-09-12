@@ -403,7 +403,7 @@ async function executeStoredProc(spConfig, issue) {
     method: 'GET',
     url,
     headers: {
-      'x-nectar-api-key': apiKey,
+      'x-nectarstudio-api-key': apiKey,
       Accept: 'application/json',
     },
     params: spConfig.parameters || {},

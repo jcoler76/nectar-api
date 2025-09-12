@@ -25,7 +25,7 @@ import { DataTable } from '../ui/data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
-import ServiceFormShadcn from './ServiceFormShadcn';
+import ServiceForm from './ServiceForm';
 
 const ServiceList = () => {
   const {
@@ -350,7 +350,7 @@ const ServiceList = () => {
                 : 'Create a new service configuration'}
             </DialogDescription>
           </DialogHeader>
-          <ServiceFormShadcn
+          <ServiceForm
             service={editService}
             onServiceSubmitted={() => {
               handleClose();

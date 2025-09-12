@@ -276,7 +276,7 @@ cat > server/config/corsOptions.js << 'EOF'
 const corsOptions = {
   origin: ['https://nectarconnect.nectartechnologies.com', 'http://localhost:3000', 'http://localhost:8000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-nectar-api-key'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-nectarstudio-api-key'],
   exposedHeaders: ['X-Total-Count'],
   credentials: true,
   maxAge: 600 // 10 minutes

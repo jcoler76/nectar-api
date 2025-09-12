@@ -1,12 +1,12 @@
 import {
   ArrowUpIcon,
   ArrowDownIcon,
-  CurrencyDollarIcon,
   UsersIcon,
   ChartBarIcon,
   ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
+import { graphqlRequest } from '../../services/graphql'
 import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -36,49 +36,41 @@ export default function RevenueDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setMetrics({
-        mrr: 45230,
-        arr: 542760,
-        mrrGrowth: 12.5,
-        newRevenue: 8540,
-        expansionRevenue: 3120,
-        churnedRevenue: -2100,
-        arpu: 127.50
-      })
-      
-      setTopCustomers([
-        {
-          id: '1',
-          name: 'Alice Johnson',
-          company: 'TechCorp Inc',
-          mrr: 2500,
-          plan: 'Enterprise',
-          status: 'Active'
-        },
-        {
-          id: '2',
-          name: 'Bob Smith',
-          company: 'StartupXYZ',
-          mrr: 1200,
-          plan: 'Pro',
-          status: 'Active'
-        },
-        {
-          id: '3',
-          name: 'Carol Davis',
-          company: 'MegaCorp Ltd',
-          mrr: 3200,
-          plan: 'Enterprise+',
-          status: 'Active'
-        }
-      ])
-      
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+    let mounted = true
+    const load = async () => {
+      try {
+        const [admin, subs, top] = await Promise.all([
+          graphqlRequest<{ adminMetrics: { monthlyRevenue: number } }>(`query { adminMetrics { monthlyRevenue } }`),
+          graphqlRequest<{ subscriptionMetrics: { averageSubscriptionValue: number } }>(`query { subscriptionMetrics { averageSubscriptionValue } }`),
+          graphqlRequest<{ topOrganizationsByMRR: { id: string; name: string; plan: string; status: string; mrr: number }[] }>(
+            `query Top($limit: Int!) { topOrganizationsByMRR(limit: $limit) { id name plan status mrr } }`,
+            { limit: 10 }
+          ),
+        ])
+        if (!mounted) return
+        const mrr = admin.adminMetrics.monthlyRevenue
+        setMetrics({
+          mrr,
+          arr: mrr * 12,
+          mrrGrowth: 0,
+          newRevenue: mrr,
+          expansionRevenue: 0,
+          churnedRevenue: 0,
+          arpu: subs.subscriptionMetrics.averageSubscriptionValue || 0,
+        })
+        setTopCustomers(
+          top.topOrganizationsByMRR.map(o => ({ id: o.id, name: o.name, company: o.name, mrr: o.mrr, plan: o.plan, status: o.status }))
+        )
+      } catch (e) {
+        console.error('Failed to load revenue dashboard', e)
+        setMetrics({ mrr: 0, arr: 0, mrrGrowth: 0, newRevenue: 0, expansionRevenue: 0, churnedRevenue: 0, arpu: 0 })
+        setTopCustomers([])
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => { mounted = false }
   }, [])
 
   const customerColumns = [

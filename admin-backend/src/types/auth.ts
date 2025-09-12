@@ -23,7 +23,7 @@ export interface AdminUser {
 }
 
 export interface JWTPayload {
-  adminId: string
+  userId: string
   email: string
   role: string
   type: 'platform_admin'

@@ -1,0 +1,697 @@
+// Prisma Schema for Nectar API - Multi-Tenant SaaS Platform
+// Core business data using PostgreSQL
+// Version: 2.0.0
+// Updated: 2024-09-06
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// CORE ENTITIES - Multi-Tenant Architecture
+// ==========================================
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  domain    String?  @unique // Custom domain support
+  logo      String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  memberships         Membership[]
+  subscription        Subscription?
+  databaseConnections DatabaseConnection[]
+  apiKeys             ApiKey[]
+  usageMetrics        UsageMetric[]
+  workflows           Workflow[]
+  invitations         Invitation[]
+  auditLogs           AuditLog[]
+  webhooks            Webhook[]
+
+  // New relations for migrated models
+  services        Service[]        @relation("ServiceOrganization")
+  applications    Application[]    @relation("ApplicationOrganization")
+  roles           Role[]           @relation("RoleOrganization")
+  notifications   Notification[]   @relation("NotificationOrganization")
+  apiActivityLogs ApiActivityLog[] @relation("ApiActivityOrganization")
+  databaseObjects DatabaseObject[] @relation("DatabaseObjectOrganization")
+  endpoints       Endpoint[]
+
+  // Terms and Conditions relations
+  termsAcceptances        TermsAcceptance[]
+  requiresTermsAcceptance Boolean           @default(true)
+  lastTermsPromptedAt     DateTime?
+
+  @@index([slug])
+  @@index([createdAt])
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String?
+  firstName        String
+  lastName         String
+  avatarUrl        String?
+  isActive         Boolean   @default(true)
+  emailVerified    Boolean   @default(false)
+  emailVerifiedAt  DateTime?
+  lastLoginAt      DateTime?
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  phoneNumber      String?
+  phoneCarrier     String?
+  isSuperAdmin     Boolean   @default(false) // Platform-level superadmin access
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  memberships     Membership[]
+  invitationsSent Invitation[] @relation("InvitedBy")
+  auditLogs       AuditLog[]
+  apiKeysCreated  ApiKey[]
+
+  // New relations for migrated models
+  servicesCreated            Service[]            @relation("ServiceCreator")
+  applicationsCreated        Application[]        @relation("ApplicationCreator")
+  rolesCreated               Role[]               @relation("RoleCreator")
+  notifications              Notification[]       @relation("NotificationUser")
+  apiActivityLogs            ApiActivityLog[]     @relation("ApiActivityUser")
+  endpointsCreated           Endpoint[]
+  databaseConnectionsCreated DatabaseConnection[]
+  workflowsCreated           Workflow[]
+
+  // Terms and Conditions relations
+  termsAcceptances TermsAcceptance[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Membership {
+  id       String     @id @default(uuid())
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  // Relations
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model Invitation {
+  id         String     @id @default(uuid())
+  email      String
+  role       MemberRole @default(MEMBER)
+  token      String     @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedById    String
+  invitedBy      User         @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  @@index([email])
+  @@index([token])
+  @@index([organizationId])
+}
+
+// ==========================================
+// SUBSCRIPTION & BILLING
+// ==========================================
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  plan                 SubscriptionPlan   @default(FREE)
+  status               SubscriptionStatus @default(TRIALING)
+  trialEndsAt          DateTime?
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  canceledAt           DateTime?
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Limits based on plan
+  maxDatabaseConnections Int @default(1)
+  maxApiCallsPerMonth    Int @default(10000)
+  maxUsersPerOrg         Int @default(1)
+  maxWorkflows           Int @default(5)
+
+  // Relations
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoices       Invoice[]
+
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model Invoice {
+  id                    String        @id @default(uuid())
+  invoiceNumber         String        @unique
+  amount                Float
+  currency              String        @default("USD")
+  status                InvoiceStatus @default(PENDING)
+  dueDate               DateTime
+  paidAt                DateTime?
+  stripeInvoiceId       String?       @unique
+  stripePaymentIntentId String?
+  hostedInvoiceUrl      String?
+  createdAt             DateTime      @default(now())
+
+  // Relations
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ==========================================
+// DATABASE CONNECTIONS & API MANAGEMENT
+// ==========================================
+
+model DatabaseConnection {
+  id                String       @id @default(uuid())
+  name              String
+  type              DatabaseType
+  host              String
+  port              Int
+  database          String
+  username          String
+  passwordEncrypted String // Encrypted password
+  sslEnabled        Boolean      @default(false)
+  isActive          Boolean      @default(true)
+  lastTestedAt      DateTime?
+  lastTestResult    Boolean?
+  databases         Json? // Available databases on this server
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Audit fields
+  createdBy String? // Made optional for existing records
+  creator   User?   @relation(fields: [createdBy], references: [id])
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  endpoints      Endpoint[]
+  services       Service[] // Services using this connection
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([type])
+}
+
+model Endpoint {
+  id                 String     @id @default(uuid())
+  path               String
+  method             HttpMethod
+  name               String     @unique // Make name unique for simple endpoint resolver
+  description        String?
+  query              String // SQL/NoSQL query
+  queryParams        Json? // Expected query parameters
+  bodySchema         Json? // Request body schema
+  responseSchema     Json? // Response schema
+  apiKey             String     @unique // Simple API key for accessing this endpoint
+  isActive           Boolean    @default(true)
+  rateLimitPerMinute Int        @default(60)
+  requiresAuth       Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  // Multi-tenancy
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Audit fields  
+  createdBy String
+  creator   User   @relation(fields: [createdBy], references: [id])
+
+  // Relations
+  connectionId String?
+  connection   DatabaseConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  usageLogs    ApiActivityLog[]
+
+  @@unique([connectionId, path, method])
+  @@index([connectionId])
+  @@index([path])
+  @@index([organizationId])
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  name        String
+  keyHash     String    @unique // Hashed API key
+  keyPrefix   String // First 8 chars for identification
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  permissions String[] // Array of permission strings
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User          @relation(fields: [createdById], references: [id])
+  usageMetrics   UsageMetric[]
+
+  @@index([keyPrefix])
+  @@index([organizationId])
+}
+
+// ==========================================
+// USAGE TRACKING & METRICS
+// ==========================================
+
+model UsageMetric {
+  id             String   @id @default(uuid())
+  endpoint       String
+  method         String
+  statusCode     Int
+  responseTimeMs Int
+  timestamp      DateTime @default(now())
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  apiKeyId       String?
+  apiKey         ApiKey?      @relation(fields: [apiKeyId], references: [id])
+
+  @@index([organizationId, timestamp])
+  @@index([apiKeyId])
+  @@index([timestamp])
+}
+
+// ==========================================
+// WORKFLOWS & AUTOMATION
+// ==========================================
+
+model Workflow {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  definition  Json // Workflow JSON definition
+  isActive    Boolean   @default(true)
+  trigger     Json // Trigger configuration
+  lastRunAt   DateTime?
+  runCount    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Audit fields
+  createdBy String? // Made optional for existing records
+  creator   User?   @relation(fields: [createdBy], references: [id])
+
+  // Relations
+  organizationId String
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  executions     WorkflowExecution[]
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+model WorkflowExecution {
+  id          String          @id @default(uuid())
+  status      ExecutionStatus
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  error       String?
+  logs        Json?
+
+  // Relations
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+// ==========================================
+// WEBHOOKS & INTEGRATIONS
+// ==========================================
+
+model Webhook {
+  id              String    @id @default(uuid())
+  url             String
+  events          String[] // Array of event types
+  secret          String // For signature verification
+  isActive        Boolean   @default(true)
+  lastTriggeredAt DateTime?
+  failureCount    Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+// ==========================================
+// AUDIT & COMPLIANCE
+// ==========================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, timestamp])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([timestamp])
+}
+
+// ==========================================
+// SERVICES & APPLICATIONS
+// ==========================================
+
+model Service {
+  id                String   @id @default(uuid())
+  name              String
+  label             String?
+  description       String?
+  host              String?
+  port              Int?
+  database          String
+  username          String?
+  passwordEncrypted String? // Encrypted password
+  isActive          Boolean  @default(true)
+  failoverHost      String?
+  objects           Json? // Array of database objects
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organizationId  String
+  organization    Organization        @relation("ServiceOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       String
+  creator         User                @relation("ServiceCreator", fields: [createdBy], references: [id])
+  connectionId    String?
+  connection      DatabaseConnection? @relation(fields: [connectionId], references: [id])
+  roles           Role[]
+  databaseObjects DatabaseObject[]    @relation("DatabaseObjectService")
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model Application {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  apiKeyHash      String // Hashed API key for fast lookup
+  apiKeyEncrypted String // Encrypted API key for recovery
+  apiKeyPrefix    String // First few chars for identification
+  apiKeyHint      String // Last few chars for identification
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation("ApplicationOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      String
+  creator        User         @relation("ApplicationCreator", fields: [createdBy], references: [id])
+  defaultRoleId  String
+  defaultRole    Role         @relation("ApplicationDefaultRole", fields: [defaultRoleId], references: [id])
+
+  @@unique([organizationId, name])
+  @@unique([apiKeyHash])
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  permissions Json // Array of permission objects
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization  @relation("RoleOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  serviceId      String
+  service        Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdBy      String
+  creator        User          @relation("RoleCreator", fields: [createdBy], references: [id])
+  applications   Application[] @relation("ApplicationDefaultRole")
+
+  @@unique([organizationId, serviceId, name])
+  @@index([organizationId])
+  @@index([serviceId])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+// ==========================================
+// NOTIFICATIONS & ACTIVITY TRACKING
+// ==========================================
+
+model Notification {
+  id        String               @id @default(uuid())
+  type      NotificationType
+  priority  NotificationPriority @default(MEDIUM)
+  title     String
+  message   String
+  isRead    Boolean              @default(false)
+  readAt    DateTime?
+  metadata  Json?
+  createdAt DateTime             @default(now())
+
+  // Relations
+  organizationId String
+  organization   Organization @relation("NotificationOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model ApiActivityLog {
+  id           String     @id @default(uuid())
+  requestId    String     @unique
+  timestamp    DateTime   @default(now())
+  method       HttpMethod
+  url          String
+  endpoint     String?
+  statusCode   Int
+  responseTime Int? // milliseconds
+  userAgent    String?
+  ipAddress    String?
+  category     String? // api, workflow, etc.
+  endpointType String? // client, public, etc.
+  importance   String? // critical, high, medium, low
+  error        String?
+  metadata     Json?
+
+  // Relations
+  organizationId String
+  organization   Organization @relation("ApiActivityOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?        @relation("ApiActivityUser", fields: [userId], references: [id])
+  endpointId     String?
+  endpointUsage  Endpoint?    @relation(fields: [endpointId], references: [id])
+
+  @@index([organizationId, timestamp])
+  @@index([userId])
+  @@index([timestamp])
+  @@index([endpoint])
+  @@index([statusCode])
+}
+
+model DatabaseObject {
+  id        String   @id @default(uuid())
+  name      String
+  schema    String?
+  type      String // table, view, procedure, function, etc.
+  path      String?
+  metadata  Json? // Additional schema information
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation("DatabaseObjectOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  serviceId      String?
+  service        Service?     @relation("DatabaseObjectService", fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, serviceId, schema, name])
+  @@index([organizationId])
+  @@index([serviceId])
+  @@index([type])
+}
+
+// ==========================================
+// TERMS AND CONDITIONS MODELS
+// ==========================================
+
+model TermsAndConditions {
+  id            String   @id @default(uuid())
+  version       String // e.g., "1.0.0", "2.0.0"
+  content       String   @db.Text // Full T&C text content
+  summary       String?  @db.Text // Optional summary of changes
+  effectiveDate DateTime
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  acceptances TermsAcceptance[]
+
+  @@unique([version])
+  @@index([isActive, effectiveDate])
+}
+
+model TermsAcceptance {
+  id               String           @id @default(uuid())
+  acceptedAt       DateTime         @default(now())
+  ipAddress        String // User's IP address
+  userAgent        String? // Browser/device info
+  geolocation      Json? // Optional: country, region, city
+  acceptanceMethod AcceptanceMethod @default(CLICK)
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  termsId String
+  terms   TermsAndConditions @relation(fields: [termsId], references: [id])
+
+  @@unique([organizationId, userId, termsId])
+  @@index([organizationId, acceptedAt])
+  @@index([userId])
+  @@index([termsId])
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+}
+
+enum DatabaseType {
+  POSTGRESQL
+  MYSQL
+  MARIADB
+  MSSQL
+  MONGODB
+  REDIS
+  SUPABASE
+  SNOWFLAKE
+  BIGQUERY
+  DYNAMODB
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+enum NotificationType {
+  SYSTEM
+  WORKFLOW
+  SECURITY
+  USER_MESSAGE
+}
+
+enum NotificationPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AcceptanceMethod {
+  CLICK
+  SCROLL
+  SIGNATURE
+}

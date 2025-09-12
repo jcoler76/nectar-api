@@ -210,6 +210,19 @@ router.post('/:id/refresh-schema', async (req, res) => {
           connectionId: service.connection.id,
           error: decryptError.message,
         });
+
+        // Provide helpful error message for encryption key mismatch
+        if (decryptError.message.includes('bad decrypt')) {
+          return res.status(422).json({
+            success: false,
+            message:
+              'Connection password cannot be decrypted. This may occur if the encryption key has changed. Please update the connection with the correct password.',
+            errorCode: 'DECRYPTION_FAILED',
+            connectionId: service.connection.id,
+            suggestedAction: 'UPDATE_CONNECTION_PASSWORD',
+          });
+        }
+
         return res.status(500).json({
           success: false,
           message: 'Failed to decrypt connection password',

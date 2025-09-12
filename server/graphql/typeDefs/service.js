@@ -14,6 +14,7 @@ const serviceTypeDefs = gql`
     isActive: Boolean!
     createdBy: User
     failoverHost: String
+    connectionId: ID
     connection: Connection
     objects: JSON
     createdAt: Date!

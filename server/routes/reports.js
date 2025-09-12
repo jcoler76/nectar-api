@@ -58,15 +58,15 @@ router.get('/api-usage', async (req, res) => {
     if (service) {
       where.endpointUsage = {
         service: {
-          id: service
-        }
+          id: service,
+        },
       };
     }
 
     if (component) {
       where.endpoint = {
         contains: component,
-        mode: 'insensitive'
+        mode: 'insensitive',
       };
     }
 
@@ -75,22 +75,16 @@ router.get('/api-usage', async (req, res) => {
       where,
       include: {
         user: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         organization: {
-          select: { id: true, name: true }
+          select: { id: true, name: true },
         },
-        endpointUsage: {
-          include: {
-            service: {
-              select: { id: true, name: true, database: true }
-            }
-          }
-        }
+        endpointUsage: true,
       },
       orderBy: {
-        timestamp: 'desc'
-      }
+        timestamp: 'desc',
+      },
     });
 
     let usageData = [];
@@ -98,7 +92,7 @@ router.get('/api-usage', async (req, res) => {
     if (showDetails === 'true') {
       // Detailed view - return individual records
       usageData = apiLogs.map(log => ({
-        serviceName: log.endpointUsage?.service?.name || 'Unknown Service',
+        serviceName: log.endpointUsage?.name || log.endpoint || 'Unknown Service',
         roleName: 'N/A', // Role info not directly available in current schema
         applicationName: 'N/A', // Application info not directly available
         component: log.endpoint || 'Unknown Component',
@@ -109,18 +103,18 @@ router.get('/api-usage', async (req, res) => {
         url: log.url,
         statusCode: log.statusCode,
         responseTime: log.responseTime,
-        userEmail: log.user?.email || 'Unknown User'
+        userEmail: log.user?.email || 'Unknown User',
       }));
     } else {
       // Summary view - group and count
       const groupedData = {};
-      
+
       apiLogs.forEach(log => {
         const serviceName = log.endpointUsage?.service?.name || 'Unknown Service';
         const component = log.endpoint || 'Unknown Component';
         const method = log.method;
         const key = `${serviceName}|${component}|${method}`;
-        
+
         if (!groupedData[key]) {
           groupedData[key] = {
             serviceName,
@@ -128,7 +122,7 @@ router.get('/api-usage', async (req, res) => {
             roleName: 'N/A',
             applicationName: 'N/A',
             method,
-            count: 0
+            count: 0,
           };
         }
         groupedData[key].count++;
@@ -149,11 +143,11 @@ router.get('/api-usage', async (req, res) => {
     res.json(usageData);
   } catch (error) {
     logger.error('Error fetching API usage:', { error: error.message });
-    res.status(500).json({ 
-      error: { 
-        code: 'SERVER_ERROR', 
-        message: 'Failed to fetch API usage data' 
-      } 
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to fetch API usage data',
+      },
     });
   }
 });
@@ -166,7 +160,7 @@ router.get('/components', async (req, res) => {
     // Since the component field doesn't exist in the current Prisma schema,
     // we'll return distinct endpoints instead as a reasonable substitute
     const where = {};
-    
+
     // Add filters based on relationships if provided
     if (service || role || application) {
       // For now, return empty array until proper component tracking is implemented
@@ -178,17 +172,17 @@ router.get('/components', async (req, res) => {
     // Get distinct endpoints from ApiActivityLog as a substitute for components
     const components = await prisma.apiActivityLog.findMany({
       select: {
-        endpoint: true
+        endpoint: true,
       },
       distinct: ['endpoint'],
       where: {
         endpoint: {
-          not: null
-        }
+          not: null,
+        },
       },
       orderBy: {
-        endpoint: 'asc'
-      }
+        endpoint: 'asc',
+      },
     });
 
     // Extract just the endpoint values
@@ -196,11 +190,11 @@ router.get('/components', async (req, res) => {
     res.json(componentList);
   } catch (error) {
     logger.error('Error fetching components:', { error: error.message });
-    res.status(500).json({ 
-      error: { 
-        code: 'SERVER_ERROR', 
-        message: 'Failed to fetch components' 
-      } 
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to fetch components',
+      },
     });
   }
 });
@@ -237,9 +231,9 @@ router.get('/workflow-executions', async (req, res) => {
     if (status && status !== 'all') {
       // Map status values to Prisma enum if needed
       const statusMap = {
-        'succeeded': 'COMPLETED',
-        'failed': 'FAILED', 
-        'running': 'RUNNING'
+        succeeded: 'COMPLETED',
+        failed: 'FAILED',
+        running: 'RUNNING',
       };
       where.status = statusMap[status] || status.toUpperCase();
     }
@@ -252,20 +246,21 @@ router.get('/workflow-executions', async (req, res) => {
           select: {
             id: true,
             name: true,
-          }
-        }
+          },
+        },
       },
       orderBy: {
-        startedAt: 'desc'
+        startedAt: 'desc',
       },
-      take: 1000 // Limit results for performance
+      take: 1000, // Limit results for performance
     });
 
     // Transform data to match expected format
     const results = executions.map(execution => {
-      const duration = execution.completedAt && execution.startedAt 
-        ? execution.completedAt.getTime() - execution.startedAt.getTime()
-        : null;
+      const duration =
+        execution.completedAt && execution.startedAt
+          ? execution.completedAt.getTime() - execution.startedAt.getTime()
+          : null;
 
       const baseResult = {
         _id: execution.id, // Keep _id for frontend compatibility
@@ -289,11 +284,11 @@ router.get('/workflow-executions', async (req, res) => {
     res.json(results);
   } catch (error) {
     logger.error('Error fetching workflow execution report:', { error: error.message });
-    res.status(500).json({ 
-      error: { 
-        code: 'SERVER_ERROR', 
-        message: 'Failed to fetch workflow execution data' 
-      } 
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to fetch workflow execution data',
+      },
     });
   }
 });

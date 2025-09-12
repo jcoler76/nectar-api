@@ -25,7 +25,7 @@ import { DataTable } from '../ui/data-table';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
-import ApplicationFormShadcn from './ApplicationFormShadcn';
+import ApplicationForm from './ApplicationForm';
 
 const ApplicationList = () => {
   const {
@@ -466,7 +466,7 @@ const ApplicationList = () => {
 
       <Dialog open={openForm} onOpenChange={open => !open && handleClose()}>
         <DialogContent className="sm:max-w-md">
-          <ApplicationFormShadcn
+          <ApplicationForm
             application={editApplication}
             onSubmitted={() => {
               handleClose();

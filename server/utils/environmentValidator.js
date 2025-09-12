@@ -243,54 +243,70 @@ class EnvironmentValidator {
   }
 
   static createDefaultValidator() {
-    return new EnvironmentValidator()
-      .require('NODE_ENV')
-      .oneOf('NODE_ENV', ['development', 'staging', 'production'])
+    return (
+      new EnvironmentValidator()
+        .require('NODE_ENV')
+        .oneOf('NODE_ENV', ['development', 'staging', 'production'])
 
-      .require('MONGODB_URI')
-      .isURL('MONGODB_URI', ['mongodb', 'mongodb+srv'])
+        // PostgreSQL datasource for Prisma (accept typical Prisma URLs without strict parsing)
+        .require('DATABASE_URL')
+        .addRule(
+          'DATABASE_URL',
+          'isPrismaPostgresUrl',
+          value => {
+            if (!value) return false;
+            // Normalize by trimming whitespace and removing surrounding quotes
+            const normalized = String(value)
+              .trim()
+              .replace(/^['"](.+)['"]$/, '$1');
+            // Allow postgres:// or postgresql://, with arbitrary credentials/query params that may not be URL-escaped
+            return /^(postgres(ql)?:)\/\//i.test(normalized);
+          },
+          'must start with postgres:// or postgresql://'
+        )
 
-      .require('JWT_SECRET')
-      .minLength('JWT_SECRET', 32)
-      .isSecureSecret('JWT_SECRET')
+        .require('JWT_SECRET')
+        .minLength('JWT_SECRET', 32)
+        .isSecureSecret('JWT_SECRET')
 
-      .require('ENCRYPTION_KEY')
-      .minLength('ENCRYPTION_KEY', 32)
-      .isSecureSecret('ENCRYPTION_KEY')
+        .require('ENCRYPTION_KEY')
+        .minLength('ENCRYPTION_KEY', 32)
+        .isSecureSecret('ENCRYPTION_KEY')
 
-      .optional('JWT_ISSUER', { default: 'nectar-api' })
-      .optional('JWT_AUDIENCE', { default: 'mirabel-users' })
-      .optional('JWT_EXPIRES_IN', { default: '4h' })
-      .optional('JWT_REFRESH_EXPIRES_IN', { default: '7d' })
+        .optional('JWT_ISSUER', { default: 'nectar-api' })
+        .optional('JWT_AUDIENCE', { default: 'mirabel-users' })
+        .optional('JWT_EXPIRES_IN', { default: '4h' })
+        .optional('JWT_REFRESH_EXPIRES_IN', { default: '7d' })
 
-      .optional('REDIS_HOST', { default: 'localhost' })
-      .optional('REDIS_PORT', { default: '6379' })
-      .isNumber('REDIS_PORT', 1, 65535)
+        .optional('REDIS_HOST', { default: 'localhost' })
+        .optional('REDIS_PORT', { default: '6379' })
+        .isNumber('REDIS_PORT', 1, 65535)
 
-      .optional('CORS_ORIGIN')
+        .optional('CORS_ORIGIN')
 
-      .optional('RATE_LIMIT_WINDOW_MS', { default: '900000' })
-      .isNumber('RATE_LIMIT_WINDOW_MS', 1000)
+        .optional('RATE_LIMIT_WINDOW_MS', { default: '900000' })
+        .isNumber('RATE_LIMIT_WINDOW_MS', 1000)
 
-      .optional('RATE_LIMIT_MAX_REQUESTS', { default: '100' })
-      .isNumber('RATE_LIMIT_MAX_REQUESTS', 1)
+        .optional('RATE_LIMIT_MAX_REQUESTS', { default: '100' })
+        .isNumber('RATE_LIMIT_MAX_REQUESTS', 1)
 
-      .optional('RATE_LIMIT_AUTH_MAX', { default: '10' })
-      .isNumber('RATE_LIMIT_AUTH_MAX', 1)
+        .optional('RATE_LIMIT_AUTH_MAX', { default: '10' })
+        .isNumber('RATE_LIMIT_AUTH_MAX', 1)
 
-      .optional('EMAIL_USER')
-      .isEmail('EMAIL_USER')
+        .optional('EMAIL_USER')
+        .isEmail('EMAIL_USER')
 
-      .optional('EMAIL_PASS')
+        .optional('EMAIL_PASS')
 
-      .optional('MCP_DEVELOPER_KEY')
-      .minLength('MCP_DEVELOPER_KEY', 16)
+        .optional('MCP_DEVELOPER_KEY')
+        .minLength('MCP_DEVELOPER_KEY', 16)
 
-      .optional('MCP_UNIVERSAL_KEY')
-      .minLength('MCP_UNIVERSAL_KEY', 16)
+        .optional('MCP_UNIVERSAL_KEY')
+        .minLength('MCP_UNIVERSAL_KEY', 16)
 
-      .optional('TEMP_ADMIN_PASSWORD')
-      .minLength('TEMP_ADMIN_PASSWORD', 8);
+        .optional('TEMP_ADMIN_PASSWORD')
+        .minLength('TEMP_ADMIN_PASSWORD', 8)
+    );
   }
 }
 

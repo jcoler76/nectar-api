@@ -167,7 +167,7 @@ async function executeStoredProcedure(spConfig) {
       method: 'GET',
       url: url,
       headers: {
-        'x-nectar-api-key': apiKey,
+        'x-nectarstudio-api-key': apiKey,
         Accept: 'application/json',
       },
       params: spConfig.parameters || {},

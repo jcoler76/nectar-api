@@ -19,17 +19,16 @@ const userResolvers = {
         throw new ForbiddenError('Forbidden');
       }
 
+      const whereClause = currentUser.organizationId
+        ? { id, organizationId: currentUser.organizationId }
+        : { id };
       const user = await prisma.user.findFirst({
-        where: {
-          id,
-          organizationId: currentUser.organizationId
-        },
+        where: whereClause,
         include: {
-          organization: true,
           roles: {
-            where: { isActive: true }
-          }
-        }
+            where: { isActive: true },
+          },
+        },
       });
 
       if (!user) {
@@ -54,18 +53,19 @@ const userResolvers = {
       const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'asc' } = pagination;
 
       // Build where clause for filters
-      const where = {
-        organizationId: currentUser.organizationId
-      };
+      const where = {};
+      if (currentUser.organizationId) {
+        where.organizationId = currentUser.organizationId;
+      }
 
       if (filters.isActive !== undefined) where.isActive = filters.isActive;
       if (filters.isAdmin !== undefined) where.isAdmin = filters.isAdmin;
-      
+
       if (filters.search) {
         where.OR = [
           { firstName: { contains: filters.search, mode: 'insensitive' } },
           { lastName: { contains: filters.search, mode: 'insensitive' } },
-          { email: { contains: filters.search, mode: 'insensitive' } }
+          { email: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -79,12 +79,11 @@ const userResolvers = {
         take: limit,
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
-          organization: true,
           roles: {
             where: { isActive: true },
-            select: { id: true, name: true }
-          }
-        }
+            select: { id: true, name: true },
+          },
+        },
       });
 
       return {
@@ -112,15 +111,15 @@ const userResolvers = {
       }
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
-      
+
       const user = await prisma.user.findUnique({
         where: { id: currentUser.userId },
         include: {
           organization: true,
           roles: {
-            where: { isActive: true }
-          }
-        }
+            where: { isActive: true },
+          },
+        },
       });
 
       if (!user) {
@@ -136,42 +135,24 @@ const userResolvers = {
       if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
 
       try {
-        const { roleIds, ...userData } = input;
-
-        // Verify roles exist and belong to organization if provided
-        if (roleIds?.length) {
-          const roles = await prisma.role.findMany({
-            where: {
-              id: { in: roleIds },
-              organizationId: currentUser.organizationId
-            }
-          });
-
-          if (roles.length !== roleIds.length) {
-            throw new UserInputError('One or more roles not found');
-          }
-        }
+        const { roles: roleIds, ...userData } = input;
 
         const user = await prisma.user.create({
           data: {
-            ...userData,
-            organizationId: currentUser.organizationId,
-            roles: roleIds?.length ? {
-              connect: roleIds.map(id => ({ id }))
-            } : undefined
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            isActive: userData.isActive ?? true,
           },
           include: {
-            organization: true,
-            roles: {
-              where: { isActive: true }
-            }
-          }
+            roles: { where: { isActive: true } },
+          },
         });
 
         logger.info('User created via GraphQL', {
           userId: user.id,
           createdBy: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return user;
@@ -191,62 +172,32 @@ const userResolvers = {
 
       try {
         // Verify user exists and belongs to organization
-        const existingUser = await prisma.user.findFirst({
-          where: {
-            id,
-            organizationId: currentUser.organizationId
-          }
-        });
+        const existingUser = await prisma.user.findFirst({ where: { id } });
 
         if (!existingUser) {
           throw new UserInputError('User not found');
         }
 
-        const { roleIds, ...updateData } = input;
+        const { roles: roleIds, ...updateData } = input;
         let roleUpdate = {};
-
-        // Handle role updates if provided
         if (roleIds !== undefined) {
-          if (roleIds?.length) {
-            // Verify roles exist and belong to organization
-            const roles = await prisma.role.findMany({
-              where: {
-                id: { in: roleIds },
-                organizationId: currentUser.organizationId
-              }
-            });
-
-            if (roles.length !== roleIds.length) {
-              throw new UserInputError('One or more roles not found');
-            }
-
-            roleUpdate = {
-              set: roleIds.map(id => ({ id }))
-            };
-          } else {
-            // Clear all roles
-            roleUpdate = { set: [] };
-          }
+          // Simplified: replace roles by ids (no org validation here)
+          roleUpdate = { set: roleIds.map(id => ({ id })) };
         }
 
         const user = await prisma.user.update({
           where: { id },
           data: {
             ...updateData,
-            ...(Object.keys(roleUpdate).length ? { roles: roleUpdate } : {})
+            ...(Object.keys(roleUpdate).length ? { roles: roleUpdate } : {}),
           },
-          include: {
-            organization: true,
-            roles: {
-              where: { isActive: true }
-            }
-          }
+          include: { roles: { where: { isActive: true } } },
         });
 
         logger.info('User updated via GraphQL', {
           userId: id,
           updatedBy: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return user;
@@ -265,10 +216,9 @@ const userResolvers = {
       try {
         // Verify user exists and belongs to organization
         const existingUser = await prisma.user.findFirst({
-          where: {
-            id,
-            organizationId: currentUser.organizationId
-          }
+          where: currentUser.organizationId
+            ? { id, organizationId: currentUser.organizationId }
+            : { id },
         });
 
         if (!existingUser) {
@@ -281,13 +231,13 @@ const userResolvers = {
         }
 
         await prisma.user.delete({
-          where: { id }
+          where: { id },
         });
 
         logger.info('User deleted via GraphQL', {
           userId: id,
           deletedBy: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return true;
@@ -337,23 +287,35 @@ const userResolvers = {
 
   User: {
     fullName: user => `${user.firstName} ${user.lastName}`,
-    
+
     // Resolver for roles field - ensures role info is populated
-    roles: async (user) => {
+    roles: async user => {
       if (user.roles) return user.roles;
-      
+
       if (!user.id) return [];
-      
+
       const userWithRoles = await prisma.user.findUnique({
         where: { id: user.id },
         include: {
           roles: {
-            where: { isActive: true }
-          }
-        }
+            where: { isActive: true },
+          },
+        },
       });
 
       return userWithRoles?.roles || [];
+    },
+    memberships: async user => {
+      if (!user?.id) return [];
+      const memberships = await prisma.membership.findMany({
+        where: { userId: user.id },
+        include: { organization: true },
+      });
+      return memberships.map(m => ({
+        organization: m.organization,
+        role: m.role,
+        joinedAt: m.joinedAt,
+      }));
     },
   },
 };

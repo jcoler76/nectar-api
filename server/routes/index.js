@@ -5,7 +5,12 @@
 
 const { authMiddleware } = require('../middleware/auth');
 const { csrfProtection, getCSRFToken } = require('../middleware/csrf');
-const { authLimiter, uploadLimiter, graphqlLimiter } = require('../middleware/dynamicRateLimiter');
+const {
+  apiLimiter,
+  authLimiter,
+  uploadLimiter,
+  graphqlLimiter,
+} = require('../middleware/dynamicRateLimiter');
 
 /**
  * Mount all application routes with appropriate middleware
@@ -59,8 +64,10 @@ const mountRoutes = app => {
   app.use('/api/checkout', (req, res, next) => next(), require('./marketingBilling'));
 
   // Public routes (no auth required) - apply stricter rate limiting
-  // Temporarily using Prisma-based auth routes
-  app.use('/api/auth', authLimiter, require('./auth-prisma'));
+  app.use('/api/auth', authLimiter, require('./auth'));
+
+  // Public contact chatbot (no auth, rate limited, no CSRF)
+  app.use('/api/contact-chat', apiLimiter, require('./contactChat'));
 
   // Versioned API routes (v1)
   app.use('/api/v1', authMiddleware, csrfProtection(csrfOptions), require('./v1'));
@@ -107,13 +114,13 @@ const mountRoutes = app => {
     csrfProtection(csrfOptions),
     require('./connections')
   );
-  // Temporarily disabled during MongoDB to Prisma migration - endpoints route
-  // app.use(
-  //   '/api/developer-endpoints',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./endpoints')
-  // );
+  // Re-enabled after Prisma migration - endpoints route
+  app.use(
+    '/api/developer-endpoints',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./endpoints')
+  );
   // Reports route - Updated for Prisma
   app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
   app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
@@ -193,6 +200,20 @@ const mountRoutes = app => {
     require('./invitations')
   );
 
+  // Terms and Conditions management
+  app.use(
+    '/api/terms',
+    (req, res, next) => {
+      // Public endpoint for fetching current terms
+      if (req.path === '/current' && req.method === 'GET') {
+        return next();
+      }
+      // All other endpoints require authentication
+      return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+    },
+    require('./terms')
+  );
+
   // Freemium limits and usage tracking
   app.use('/api/freemium', require('./freemium'));
 
@@ -202,8 +223,8 @@ const mountRoutes = app => {
   // GitHub Issue Poller API (development only)
   app.use('/api/issue-poller', require('./issue-poller'));
 
-  // Temporarily disabled during MongoDB to Prisma migration - developer route not needed
-  // app.use('/api/developer', require('./developer'));
+  // Re-enabled after Prisma migration - developer route for endpoint execution
+  app.use('/api/developer', require('./developer'));
 
   // Temporarily disabled during MongoDB to Prisma migration - developerIntelligence route
   // app.use(
@@ -301,6 +322,9 @@ const mountRoutes = app => {
   //   },
   //   require('./files')
   // );
+
+  // Admin CRM endpoints for contact chatbot management
+  app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminContacts'));
 
   console.log('✅ All routes mounted successfully');
 };

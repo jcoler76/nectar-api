@@ -11,8 +11,8 @@ const getApiKeyUser = async req => {
   try {
     // Check for API key in headers (support legacy and current headers)
     const apiKey =
-      req.headers['x-nectar-api-key'] ||
-      req.headers['x-dreamfactory-api-key'] ||
+      req.headers['x-nectarstudio-api-key'] ||
+      req.headers['x-nectarstudio-string-api-key'] ||
       req.headers['x-api-key'];
 
     if (!apiKey) return null;

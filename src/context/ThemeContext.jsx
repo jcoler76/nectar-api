@@ -1,12 +1,14 @@
 import { createTheme } from '@mui/material';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { darkTheme, lightTheme } from '../theme';
 
 const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
+  const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check for system preference first if no saved preference exists
     const saved = localStorage.getItem('darkMode');
@@ -26,17 +28,25 @@ export const ThemeProvider = ({ children }) => {
     setIsDarkMode(prev => !prev);
   };
 
-  // Apply dark mode class to HTML element
+  // Apply dark mode class to HTML element (but not on marketing pages)
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      if (isDarkMode) {
+      const isMarketingPage =
+        location.pathname.startsWith('/home') ||
+        location.pathname.startsWith('/pricing') ||
+        location.pathname.startsWith('/free-signup') ||
+        location.pathname.startsWith('/checkout') ||
+        location.pathname.startsWith('/contact') ||
+        location.pathname === '/';
+
+      if (isDarkMode && !isMarketingPage) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
     }
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
+  }, [isDarkMode, location.pathname]);
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>

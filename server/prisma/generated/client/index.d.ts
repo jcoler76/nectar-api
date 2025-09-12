@@ -111,6 +111,16 @@ export type ApiActivityLog = $Result.DefaultSelection<Prisma.$ApiActivityLogPayl
  *
  */
 export type DatabaseObject = $Result.DefaultSelection<Prisma.$DatabaseObjectPayload>;
+/**
+ * Model TermsAndConditions
+ *
+ */
+export type TermsAndConditions = $Result.DefaultSelection<Prisma.$TermsAndConditionsPayload>;
+/**
+ * Model TermsAcceptance
+ *
+ */
+export type TermsAcceptance = $Result.DefaultSelection<Prisma.$TermsAcceptancePayload>;
 
 /**
  * Enums
@@ -206,6 +216,14 @@ export namespace $Enums {
 
   export type NotificationPriority =
     (typeof NotificationPriority)[keyof typeof NotificationPriority];
+
+  export const AcceptanceMethod: {
+    CLICK: 'CLICK';
+    SCROLL: 'SCROLL';
+    SIGNATURE: 'SIGNATURE';
+  };
+
+  export type AcceptanceMethod = (typeof AcceptanceMethod)[keyof typeof AcceptanceMethod];
 }
 
 export type MemberRole = $Enums.MemberRole;
@@ -243,6 +261,10 @@ export const NotificationType: typeof $Enums.NotificationType;
 export type NotificationPriority = $Enums.NotificationPriority;
 
 export const NotificationPriority: typeof $Enums.NotificationPriority;
+
+export type AcceptanceMethod = $Enums.AcceptanceMethod;
+
+export const AcceptanceMethod: typeof $Enums.AcceptanceMethod;
 
 /**
  * ##  Prisma Client ʲˢ
@@ -590,6 +612,26 @@ export class PrismaClient<
    * ```
    */
   get databaseObject(): Prisma.DatabaseObjectDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.termsAndConditions`: Exposes CRUD operations for the **TermsAndConditions** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more TermsAndConditions
+   * const termsAndConditions = await prisma.termsAndConditions.findMany()
+   * ```
+   */
+  get termsAndConditions(): Prisma.TermsAndConditionsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.termsAcceptance`: Exposes CRUD operations for the **TermsAcceptance** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more TermsAcceptances
+   * const termsAcceptances = await prisma.termsAcceptance.findMany()
+   * ```
+   */
+  get termsAcceptance(): Prisma.TermsAcceptanceDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1044,6 +1086,8 @@ export namespace Prisma {
     Notification: 'Notification';
     ApiActivityLog: 'ApiActivityLog';
     DatabaseObject: 'DatabaseObject';
+    TermsAndConditions: 'TermsAndConditions';
+    TermsAcceptance: 'TermsAcceptance';
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -1088,7 +1132,9 @@ export namespace Prisma {
         | 'role'
         | 'notification'
         | 'apiActivityLog'
-        | 'databaseObject';
+        | 'databaseObject'
+        | 'termsAndConditions'
+        | 'termsAcceptance';
       txIsolationLevel: Prisma.TransactionIsolationLevel;
     };
     model: {
@@ -2572,6 +2618,154 @@ export namespace Prisma {
           };
         };
       };
+      TermsAndConditions: {
+        payload: Prisma.$TermsAndConditionsPayload<ExtArgs>;
+        fields: Prisma.TermsAndConditionsFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.TermsAndConditionsFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.TermsAndConditionsFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>;
+          };
+          findFirst: {
+            args: Prisma.TermsAndConditionsFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.TermsAndConditionsFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>;
+          };
+          findMany: {
+            args: Prisma.TermsAndConditionsFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>[];
+          };
+          create: {
+            args: Prisma.TermsAndConditionsCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>;
+          };
+          createMany: {
+            args: Prisma.TermsAndConditionsCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.TermsAndConditionsCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>[];
+          };
+          delete: {
+            args: Prisma.TermsAndConditionsDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>;
+          };
+          update: {
+            args: Prisma.TermsAndConditionsUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>;
+          };
+          deleteMany: {
+            args: Prisma.TermsAndConditionsDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.TermsAndConditionsUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.TermsAndConditionsUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>[];
+          };
+          upsert: {
+            args: Prisma.TermsAndConditionsUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAndConditionsPayload>;
+          };
+          aggregate: {
+            args: Prisma.TermsAndConditionsAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateTermsAndConditions>;
+          };
+          groupBy: {
+            args: Prisma.TermsAndConditionsGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<TermsAndConditionsGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.TermsAndConditionsCountArgs<ExtArgs>;
+            result: $Utils.Optional<TermsAndConditionsCountAggregateOutputType> | number;
+          };
+        };
+      };
+      TermsAcceptance: {
+        payload: Prisma.$TermsAcceptancePayload<ExtArgs>;
+        fields: Prisma.TermsAcceptanceFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.TermsAcceptanceFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.TermsAcceptanceFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>;
+          };
+          findFirst: {
+            args: Prisma.TermsAcceptanceFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.TermsAcceptanceFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>;
+          };
+          findMany: {
+            args: Prisma.TermsAcceptanceFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>[];
+          };
+          create: {
+            args: Prisma.TermsAcceptanceCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>;
+          };
+          createMany: {
+            args: Prisma.TermsAcceptanceCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.TermsAcceptanceCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>[];
+          };
+          delete: {
+            args: Prisma.TermsAcceptanceDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>;
+          };
+          update: {
+            args: Prisma.TermsAcceptanceUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>;
+          };
+          deleteMany: {
+            args: Prisma.TermsAcceptanceDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.TermsAcceptanceUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.TermsAcceptanceUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>[];
+          };
+          upsert: {
+            args: Prisma.TermsAcceptanceUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$TermsAcceptancePayload>;
+          };
+          aggregate: {
+            args: Prisma.TermsAcceptanceAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateTermsAcceptance>;
+          };
+          groupBy: {
+            args: Prisma.TermsAcceptanceGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<TermsAcceptanceGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.TermsAcceptanceCountArgs<ExtArgs>;
+            result: $Utils.Optional<TermsAcceptanceCountAggregateOutputType> | number;
+          };
+        };
+      };
     };
   } & {
     other: {
@@ -2688,6 +2882,8 @@ export namespace Prisma {
     notification?: NotificationOmit;
     apiActivityLog?: ApiActivityLogOmit;
     databaseObject?: DatabaseObjectOmit;
+    termsAndConditions?: TermsAndConditionsOmit;
+    termsAcceptance?: TermsAcceptanceOmit;
   };
 
   /* Types for Logging */
@@ -2778,6 +2974,7 @@ export namespace Prisma {
     apiActivityLogs: number;
     databaseObjects: number;
     endpoints: number;
+    termsAcceptances: number;
   };
 
   export type OrganizationCountOutputTypeSelect<
@@ -2798,6 +2995,7 @@ export namespace Prisma {
     apiActivityLogs?: boolean | OrganizationCountOutputTypeCountApiActivityLogsArgs;
     databaseObjects?: boolean | OrganizationCountOutputTypeCountDatabaseObjectsArgs;
     endpoints?: boolean | OrganizationCountOutputTypeCountEndpointsArgs;
+    termsAcceptances?: boolean | OrganizationCountOutputTypeCountTermsAcceptancesArgs;
   };
 
   // Custom InputTypes
@@ -2949,6 +3147,15 @@ export namespace Prisma {
   };
 
   /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountTermsAcceptancesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: TermsAcceptanceWhereInput;
+  };
+
+  /**
    * Count Type UserCountOutputType
    */
 
@@ -2965,6 +3172,7 @@ export namespace Prisma {
     endpointsCreated: number;
     databaseConnectionsCreated: number;
     workflowsCreated: number;
+    termsAcceptances: number;
   };
 
   export type UserCountOutputTypeSelect<
@@ -2982,6 +3190,7 @@ export namespace Prisma {
     endpointsCreated?: boolean | UserCountOutputTypeCountEndpointsCreatedArgs;
     databaseConnectionsCreated?: boolean | UserCountOutputTypeCountDatabaseConnectionsCreatedArgs;
     workflowsCreated?: boolean | UserCountOutputTypeCountWorkflowsCreatedArgs;
+    termsAcceptances?: boolean | UserCountOutputTypeCountTermsAcceptancesArgs;
   };
 
   // Custom InputTypes
@@ -3103,6 +3312,15 @@ export namespace Prisma {
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     where?: WorkflowWhereInput;
+  };
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountTermsAcceptancesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: TermsAcceptanceWhereInput;
   };
 
   /**
@@ -3380,6 +3598,42 @@ export namespace Prisma {
   };
 
   /**
+   * Count Type TermsAndConditionsCountOutputType
+   */
+
+  export type TermsAndConditionsCountOutputType = {
+    acceptances: number;
+  };
+
+  export type TermsAndConditionsCountOutputTypeSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    acceptances?: boolean | TermsAndConditionsCountOutputTypeCountAcceptancesArgs;
+  };
+
+  // Custom InputTypes
+  /**
+   * TermsAndConditionsCountOutputType without action
+   */
+  export type TermsAndConditionsCountOutputTypeDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditionsCountOutputType
+     */
+    select?: TermsAndConditionsCountOutputTypeSelect<ExtArgs> | null;
+  };
+
+  /**
+   * TermsAndConditionsCountOutputType without action
+   */
+  export type TermsAndConditionsCountOutputTypeCountAcceptancesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: TermsAcceptanceWhereInput;
+  };
+
+  /**
    * Models
    */
 
@@ -3402,6 +3656,8 @@ export namespace Prisma {
     website: string | null;
     createdAt: Date | null;
     updatedAt: Date | null;
+    requiresTermsAcceptance: boolean | null;
+    lastTermsPromptedAt: Date | null;
   };
 
   export type OrganizationMaxAggregateOutputType = {
@@ -3413,6 +3669,8 @@ export namespace Prisma {
     website: string | null;
     createdAt: Date | null;
     updatedAt: Date | null;
+    requiresTermsAcceptance: boolean | null;
+    lastTermsPromptedAt: Date | null;
   };
 
   export type OrganizationCountAggregateOutputType = {
@@ -3424,6 +3682,8 @@ export namespace Prisma {
     website: number;
     createdAt: number;
     updatedAt: number;
+    requiresTermsAcceptance: number;
+    lastTermsPromptedAt: number;
     _all: number;
   };
 
@@ -3436,6 +3696,8 @@ export namespace Prisma {
     website?: true;
     createdAt?: true;
     updatedAt?: true;
+    requiresTermsAcceptance?: true;
+    lastTermsPromptedAt?: true;
   };
 
   export type OrganizationMaxAggregateInputType = {
@@ -3447,6 +3709,8 @@ export namespace Prisma {
     website?: true;
     createdAt?: true;
     updatedAt?: true;
+    requiresTermsAcceptance?: true;
+    lastTermsPromptedAt?: true;
   };
 
   export type OrganizationCountAggregateInputType = {
@@ -3458,6 +3722,8 @@ export namespace Prisma {
     website?: true;
     createdAt?: true;
     updatedAt?: true;
+    requiresTermsAcceptance?: true;
+    lastTermsPromptedAt?: true;
     _all?: true;
   };
 
@@ -3543,6 +3809,8 @@ export namespace Prisma {
     website: string | null;
     createdAt: Date;
     updatedAt: Date;
+    requiresTermsAcceptance: boolean;
+    lastTermsPromptedAt: Date | null;
     _count: OrganizationCountAggregateOutputType | null;
     _min: OrganizationMinAggregateOutputType | null;
     _max: OrganizationMaxAggregateOutputType | null;
@@ -3572,6 +3840,8 @@ export namespace Prisma {
       website?: boolean;
       createdAt?: boolean;
       updatedAt?: boolean;
+      requiresTermsAcceptance?: boolean;
+      lastTermsPromptedAt?: boolean;
       memberships?: boolean | Organization$membershipsArgs<ExtArgs>;
       subscription?: boolean | Organization$subscriptionArgs<ExtArgs>;
       databaseConnections?: boolean | Organization$databaseConnectionsArgs<ExtArgs>;
@@ -3588,6 +3858,7 @@ export namespace Prisma {
       apiActivityLogs?: boolean | Organization$apiActivityLogsArgs<ExtArgs>;
       databaseObjects?: boolean | Organization$databaseObjectsArgs<ExtArgs>;
       endpoints?: boolean | Organization$endpointsArgs<ExtArgs>;
+      termsAcceptances?: boolean | Organization$termsAcceptancesArgs<ExtArgs>;
       _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>;
     },
     ExtArgs['result']['organization']
@@ -3605,6 +3876,8 @@ export namespace Prisma {
       website?: boolean;
       createdAt?: boolean;
       updatedAt?: boolean;
+      requiresTermsAcceptance?: boolean;
+      lastTermsPromptedAt?: boolean;
     },
     ExtArgs['result']['organization']
   >;
@@ -3621,6 +3894,8 @@ export namespace Prisma {
       website?: boolean;
       createdAt?: boolean;
       updatedAt?: boolean;
+      requiresTermsAcceptance?: boolean;
+      lastTermsPromptedAt?: boolean;
     },
     ExtArgs['result']['organization']
   >;
@@ -3634,11 +3909,22 @@ export namespace Prisma {
     website?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: boolean;
   };
 
   export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     $Extensions.GetOmit<
-      'id' | 'name' | 'slug' | 'domain' | 'logo' | 'website' | 'createdAt' | 'updatedAt',
+      | 'id'
+      | 'name'
+      | 'slug'
+      | 'domain'
+      | 'logo'
+      | 'website'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'requiresTermsAcceptance'
+      | 'lastTermsPromptedAt',
       ExtArgs['result']['organization']
     >;
   export type OrganizationInclude<
@@ -3660,6 +3946,7 @@ export namespace Prisma {
     apiActivityLogs?: boolean | Organization$apiActivityLogsArgs<ExtArgs>;
     databaseObjects?: boolean | Organization$databaseObjectsArgs<ExtArgs>;
     endpoints?: boolean | Organization$endpointsArgs<ExtArgs>;
+    termsAcceptances?: boolean | Organization$termsAcceptancesArgs<ExtArgs>;
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>;
   };
   export type OrganizationIncludeCreateManyAndReturn<
@@ -3690,6 +3977,7 @@ export namespace Prisma {
       apiActivityLogs: Prisma.$ApiActivityLogPayload<ExtArgs>[];
       databaseObjects: Prisma.$DatabaseObjectPayload<ExtArgs>[];
       endpoints: Prisma.$EndpointPayload<ExtArgs>[];
+      termsAcceptances: Prisma.$TermsAcceptancePayload<ExtArgs>[];
     };
     scalars: $Extensions.GetPayloadResult<
       {
@@ -3701,6 +3989,8 @@ export namespace Prisma {
         website: string | null;
         createdAt: Date;
         updatedAt: Date;
+        requiresTermsAcceptance: boolean;
+        lastTermsPromptedAt: Date | null;
       },
       ExtArgs['result']['organization']
     >;
@@ -4309,6 +4599,12 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<
       $Result.GetResult<Prisma.$EndpointPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions> | Null
     >;
+    termsAcceptances<T extends Organization$termsAcceptancesArgs<ExtArgs> = {}>(
+      args?: Subset<T, Organization$termsAcceptancesArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4348,6 +4644,8 @@ export namespace Prisma {
     readonly website: FieldRef<'Organization', 'String'>;
     readonly createdAt: FieldRef<'Organization', 'DateTime'>;
     readonly updatedAt: FieldRef<'Organization', 'DateTime'>;
+    readonly requiresTermsAcceptance: FieldRef<'Organization', 'Boolean'>;
+    readonly lastTermsPromptedAt: FieldRef<'Organization', 'DateTime'>;
   }
 
   // Custom InputTypes
@@ -5176,6 +5474,32 @@ export namespace Prisma {
   };
 
   /**
+   * Organization.termsAcceptances
+   */
+  export type Organization$termsAcceptancesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    where?: TermsAcceptanceWhereInput;
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: TermsAcceptanceScalarFieldEnum | TermsAcceptanceScalarFieldEnum[];
+  };
+
+  /**
    * Organization without action
    */
   export type OrganizationDefaultArgs<
@@ -5466,6 +5790,7 @@ export namespace Prisma {
         endpointsCreated?: boolean | User$endpointsCreatedArgs<ExtArgs>;
         databaseConnectionsCreated?: boolean | User$databaseConnectionsCreatedArgs<ExtArgs>;
         workflowsCreated?: boolean | User$workflowsCreatedArgs<ExtArgs>;
+        termsAcceptances?: boolean | User$termsAcceptancesArgs<ExtArgs>;
         _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>;
       },
       ExtArgs['result']['user']
@@ -5575,6 +5900,7 @@ export namespace Prisma {
     endpointsCreated?: boolean | User$endpointsCreatedArgs<ExtArgs>;
     databaseConnectionsCreated?: boolean | User$databaseConnectionsCreatedArgs<ExtArgs>;
     workflowsCreated?: boolean | User$workflowsCreatedArgs<ExtArgs>;
+    termsAcceptances?: boolean | User$termsAcceptancesArgs<ExtArgs>;
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>;
   };
   export type UserIncludeCreateManyAndReturn<
@@ -5599,6 +5925,7 @@ export namespace Prisma {
       endpointsCreated: Prisma.$EndpointPayload<ExtArgs>[];
       databaseConnectionsCreated: Prisma.$DatabaseConnectionPayload<ExtArgs>[];
       workflowsCreated: Prisma.$WorkflowPayload<ExtArgs>[];
+      termsAcceptances: Prisma.$TermsAcceptancePayload<ExtArgs>[];
     };
     scalars: $Extensions.GetPayloadResult<
       {
@@ -6165,6 +6492,12 @@ export namespace Prisma {
       args?: Subset<T, User$workflowsCreatedArgs<ExtArgs>>
     ): Prisma.PrismaPromise<
       $Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions> | Null
+    >;
+    termsAcceptances<T extends User$termsAcceptancesArgs<ExtArgs> = {}>(
+      args?: Subset<T, User$termsAcceptancesArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
     >;
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -6931,6 +7264,32 @@ export namespace Prisma {
     take?: number;
     skip?: number;
     distinct?: WorkflowScalarFieldEnum | WorkflowScalarFieldEnum[];
+  };
+
+  /**
+   * User.termsAcceptances
+   */
+  export type User$termsAcceptancesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    where?: TermsAcceptanceWhereInput;
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: TermsAcceptanceScalarFieldEnum | TermsAcceptanceScalarFieldEnum[];
   };
 
   /**
@@ -32079,6 +32438,2666 @@ export namespace Prisma {
   };
 
   /**
+   * Model TermsAndConditions
+   */
+
+  export type AggregateTermsAndConditions = {
+    _count: TermsAndConditionsCountAggregateOutputType | null;
+    _min: TermsAndConditionsMinAggregateOutputType | null;
+    _max: TermsAndConditionsMaxAggregateOutputType | null;
+  };
+
+  export type TermsAndConditionsMinAggregateOutputType = {
+    id: string | null;
+    version: string | null;
+    content: string | null;
+    summary: string | null;
+    effectiveDate: Date | null;
+    isActive: boolean | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
+  };
+
+  export type TermsAndConditionsMaxAggregateOutputType = {
+    id: string | null;
+    version: string | null;
+    content: string | null;
+    summary: string | null;
+    effectiveDate: Date | null;
+    isActive: boolean | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
+  };
+
+  export type TermsAndConditionsCountAggregateOutputType = {
+    id: number;
+    version: number;
+    content: number;
+    summary: number;
+    effectiveDate: number;
+    isActive: number;
+    createdAt: number;
+    updatedAt: number;
+    _all: number;
+  };
+
+  export type TermsAndConditionsMinAggregateInputType = {
+    id?: true;
+    version?: true;
+    content?: true;
+    summary?: true;
+    effectiveDate?: true;
+    isActive?: true;
+    createdAt?: true;
+    updatedAt?: true;
+  };
+
+  export type TermsAndConditionsMaxAggregateInputType = {
+    id?: true;
+    version?: true;
+    content?: true;
+    summary?: true;
+    effectiveDate?: true;
+    isActive?: true;
+    createdAt?: true;
+    updatedAt?: true;
+  };
+
+  export type TermsAndConditionsCountAggregateInputType = {
+    id?: true;
+    version?: true;
+    content?: true;
+    summary?: true;
+    effectiveDate?: true;
+    isActive?: true;
+    createdAt?: true;
+    updatedAt?: true;
+    _all?: true;
+  };
+
+  export type TermsAndConditionsAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which TermsAndConditions to aggregate.
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAndConditions to fetch.
+     */
+    orderBy?:
+      | TermsAndConditionsOrderByWithRelationInput
+      | TermsAndConditionsOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: TermsAndConditionsWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAndConditions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAndConditions.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned TermsAndConditions
+     **/
+    _count?: true | TermsAndConditionsCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: TermsAndConditionsMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: TermsAndConditionsMaxAggregateInputType;
+  };
+
+  export type GetTermsAndConditionsAggregateType<T extends TermsAndConditionsAggregateArgs> = {
+    [P in keyof T & keyof AggregateTermsAndConditions]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTermsAndConditions[P]>
+      : GetScalarType<T[P], AggregateTermsAndConditions[P]>;
+  };
+
+  export type TermsAndConditionsGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: TermsAndConditionsWhereInput;
+    orderBy?:
+      | TermsAndConditionsOrderByWithAggregationInput
+      | TermsAndConditionsOrderByWithAggregationInput[];
+    by: TermsAndConditionsScalarFieldEnum[] | TermsAndConditionsScalarFieldEnum;
+    having?: TermsAndConditionsScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: TermsAndConditionsCountAggregateInputType | true;
+    _min?: TermsAndConditionsMinAggregateInputType;
+    _max?: TermsAndConditionsMaxAggregateInputType;
+  };
+
+  export type TermsAndConditionsGroupByOutputType = {
+    id: string;
+    version: string;
+    content: string;
+    summary: string | null;
+    effectiveDate: Date;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    _count: TermsAndConditionsCountAggregateOutputType | null;
+    _min: TermsAndConditionsMinAggregateOutputType | null;
+    _max: TermsAndConditionsMaxAggregateOutputType | null;
+  };
+
+  type GetTermsAndConditionsGroupByPayload<T extends TermsAndConditionsGroupByArgs> =
+    Prisma.PrismaPromise<
+      Array<
+        PickEnumerable<TermsAndConditionsGroupByOutputType, T['by']> & {
+          [P in keyof T & keyof TermsAndConditionsGroupByOutputType]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TermsAndConditionsGroupByOutputType[P]>
+            : GetScalarType<T[P], TermsAndConditionsGroupByOutputType[P]>;
+        }
+      >
+    >;
+
+  export type TermsAndConditionsSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      version?: boolean;
+      content?: boolean;
+      summary?: boolean;
+      effectiveDate?: boolean;
+      isActive?: boolean;
+      createdAt?: boolean;
+      updatedAt?: boolean;
+      acceptances?: boolean | TermsAndConditions$acceptancesArgs<ExtArgs>;
+      _count?: boolean | TermsAndConditionsCountOutputTypeDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['termsAndConditions']
+  >;
+
+  export type TermsAndConditionsSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      version?: boolean;
+      content?: boolean;
+      summary?: boolean;
+      effectiveDate?: boolean;
+      isActive?: boolean;
+      createdAt?: boolean;
+      updatedAt?: boolean;
+    },
+    ExtArgs['result']['termsAndConditions']
+  >;
+
+  export type TermsAndConditionsSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      version?: boolean;
+      content?: boolean;
+      summary?: boolean;
+      effectiveDate?: boolean;
+      isActive?: boolean;
+      createdAt?: boolean;
+      updatedAt?: boolean;
+    },
+    ExtArgs['result']['termsAndConditions']
+  >;
+
+  export type TermsAndConditionsSelectScalar = {
+    id?: boolean;
+    version?: boolean;
+    content?: boolean;
+    summary?: boolean;
+    effectiveDate?: boolean;
+    isActive?: boolean;
+    createdAt?: boolean;
+    updatedAt?: boolean;
+  };
+
+  export type TermsAndConditionsOmit<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetOmit<
+    | 'id'
+    | 'version'
+    | 'content'
+    | 'summary'
+    | 'effectiveDate'
+    | 'isActive'
+    | 'createdAt'
+    | 'updatedAt',
+    ExtArgs['result']['termsAndConditions']
+  >;
+  export type TermsAndConditionsInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    acceptances?: boolean | TermsAndConditions$acceptancesArgs<ExtArgs>;
+    _count?: boolean | TermsAndConditionsCountOutputTypeDefaultArgs<ExtArgs>;
+  };
+  export type TermsAndConditionsIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {};
+  export type TermsAndConditionsIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {};
+
+  export type $TermsAndConditionsPayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'TermsAndConditions';
+    objects: {
+      acceptances: Prisma.$TermsAcceptancePayload<ExtArgs>[];
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        version: string;
+        content: string;
+        summary: string | null;
+        effectiveDate: Date;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+      },
+      ExtArgs['result']['termsAndConditions']
+    >;
+    composites: {};
+  };
+
+  type TermsAndConditionsGetPayload<
+    S extends boolean | null | undefined | TermsAndConditionsDefaultArgs,
+  > = $Result.GetResult<Prisma.$TermsAndConditionsPayload, S>;
+
+  type TermsAndConditionsCountArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = Omit<TermsAndConditionsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+    select?: TermsAndConditionsCountAggregateInputType | true;
+  };
+
+  export interface TermsAndConditionsDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['TermsAndConditions'];
+      meta: { name: 'TermsAndConditions' };
+    };
+    /**
+     * Find zero or one TermsAndConditions that matches the filter.
+     * @param {TermsAndConditionsFindUniqueArgs} args - Arguments to find a TermsAndConditions
+     * @example
+     * // Get one TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TermsAndConditionsFindUniqueArgs>(
+      args: SelectSubset<T, TermsAndConditionsFindUniqueArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one TermsAndConditions that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TermsAndConditionsFindUniqueOrThrowArgs} args - Arguments to find a TermsAndConditions
+     * @example
+     * // Get one TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TermsAndConditionsFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, TermsAndConditionsFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first TermsAndConditions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsFindFirstArgs} args - Arguments to find a TermsAndConditions
+     * @example
+     * // Get one TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TermsAndConditionsFindFirstArgs>(
+      args?: SelectSubset<T, TermsAndConditionsFindFirstArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first TermsAndConditions that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsFindFirstOrThrowArgs} args - Arguments to find a TermsAndConditions
+     * @example
+     * // Get one TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TermsAndConditionsFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, TermsAndConditionsFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more TermsAndConditions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.findMany()
+     *
+     * // Get first 10 TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const termsAndConditionsWithIdOnly = await prisma.termsAndConditions.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends TermsAndConditionsFindManyArgs>(
+      args?: SelectSubset<T, TermsAndConditionsFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create a TermsAndConditions.
+     * @param {TermsAndConditionsCreateArgs} args - Arguments to create a TermsAndConditions.
+     * @example
+     * // Create one TermsAndConditions
+     * const TermsAndConditions = await prisma.termsAndConditions.create({
+     *   data: {
+     *     // ... data to create a TermsAndConditions
+     *   }
+     * })
+     *
+     */
+    create<T extends TermsAndConditionsCreateArgs>(
+      args: SelectSubset<T, TermsAndConditionsCreateArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<Prisma.$TermsAndConditionsPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many TermsAndConditions.
+     * @param {TermsAndConditionsCreateManyArgs} args - Arguments to create many TermsAndConditions.
+     * @example
+     * // Create many TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends TermsAndConditionsCreateManyArgs>(
+      args?: SelectSubset<T, TermsAndConditionsCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many TermsAndConditions and returns the data saved in the database.
+     * @param {TermsAndConditionsCreateManyAndReturnArgs} args - Arguments to create many TermsAndConditions.
+     * @example
+     * // Create many TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many TermsAndConditions and only return the `id`
+     * const termsAndConditionsWithIdOnly = await prisma.termsAndConditions.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends TermsAndConditionsCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, TermsAndConditionsCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a TermsAndConditions.
+     * @param {TermsAndConditionsDeleteArgs} args - Arguments to delete one TermsAndConditions.
+     * @example
+     * // Delete one TermsAndConditions
+     * const TermsAndConditions = await prisma.termsAndConditions.delete({
+     *   where: {
+     *     // ... filter to delete one TermsAndConditions
+     *   }
+     * })
+     *
+     */
+    delete<T extends TermsAndConditionsDeleteArgs>(
+      args: SelectSubset<T, TermsAndConditionsDeleteArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<Prisma.$TermsAndConditionsPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one TermsAndConditions.
+     * @param {TermsAndConditionsUpdateArgs} args - Arguments to update one TermsAndConditions.
+     * @example
+     * // Update one TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends TermsAndConditionsUpdateArgs>(
+      args: SelectSubset<T, TermsAndConditionsUpdateArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<Prisma.$TermsAndConditionsPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more TermsAndConditions.
+     * @param {TermsAndConditionsDeleteManyArgs} args - Arguments to filter TermsAndConditions to delete.
+     * @example
+     * // Delete a few TermsAndConditions
+     * const { count } = await prisma.termsAndConditions.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends TermsAndConditionsDeleteManyArgs>(
+      args?: SelectSubset<T, TermsAndConditionsDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more TermsAndConditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends TermsAndConditionsUpdateManyArgs>(
+      args: SelectSubset<T, TermsAndConditionsUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more TermsAndConditions and returns the data updated in the database.
+     * @param {TermsAndConditionsUpdateManyAndReturnArgs} args - Arguments to update many TermsAndConditions.
+     * @example
+     * // Update many TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more TermsAndConditions and only return the `id`
+     * const termsAndConditionsWithIdOnly = await prisma.termsAndConditions.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends TermsAndConditionsUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, TermsAndConditionsUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$TermsAndConditionsPayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one TermsAndConditions.
+     * @param {TermsAndConditionsUpsertArgs} args - Arguments to update or create a TermsAndConditions.
+     * @example
+     * // Update or create a TermsAndConditions
+     * const termsAndConditions = await prisma.termsAndConditions.upsert({
+     *   create: {
+     *     // ... data to create a TermsAndConditions
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TermsAndConditions we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TermsAndConditionsUpsertArgs>(
+      args: SelectSubset<T, TermsAndConditionsUpsertArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      $Result.GetResult<Prisma.$TermsAndConditionsPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of TermsAndConditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsCountArgs} args - Arguments to filter TermsAndConditions to count.
+     * @example
+     * // Count the number of TermsAndConditions
+     * const count = await prisma.termsAndConditions.count({
+     *   where: {
+     *     // ... the filter for the TermsAndConditions we want to count
+     *   }
+     * })
+     **/
+    count<T extends TermsAndConditionsCountArgs>(
+      args?: Subset<T, TermsAndConditionsCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TermsAndConditionsCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a TermsAndConditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends TermsAndConditionsAggregateArgs>(
+      args: Subset<T, TermsAndConditionsAggregateArgs>
+    ): Prisma.PrismaPromise<GetTermsAndConditionsAggregateType<T>>;
+
+    /**
+     * Group by TermsAndConditions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAndConditionsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends TermsAndConditionsGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TermsAndConditionsGroupByArgs['orderBy'] }
+        : { orderBy?: TermsAndConditionsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, TermsAndConditionsGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors
+      ? GetTermsAndConditionsGroupByPayload<T>
+      : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the TermsAndConditions model
+     */
+    readonly fields: TermsAndConditionsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TermsAndConditions.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TermsAndConditionsClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    acceptances<T extends TermsAndConditions$acceptancesArgs<ExtArgs> = {}>(
+      args?: Subset<T, TermsAndConditions$acceptancesArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the TermsAndConditions model
+   */
+  interface TermsAndConditionsFieldRefs {
+    readonly id: FieldRef<'TermsAndConditions', 'String'>;
+    readonly version: FieldRef<'TermsAndConditions', 'String'>;
+    readonly content: FieldRef<'TermsAndConditions', 'String'>;
+    readonly summary: FieldRef<'TermsAndConditions', 'String'>;
+    readonly effectiveDate: FieldRef<'TermsAndConditions', 'DateTime'>;
+    readonly isActive: FieldRef<'TermsAndConditions', 'Boolean'>;
+    readonly createdAt: FieldRef<'TermsAndConditions', 'DateTime'>;
+    readonly updatedAt: FieldRef<'TermsAndConditions', 'DateTime'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * TermsAndConditions findUnique
+   */
+  export type TermsAndConditionsFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAndConditions to fetch.
+     */
+    where: TermsAndConditionsWhereUniqueInput;
+  };
+
+  /**
+   * TermsAndConditions findUniqueOrThrow
+   */
+  export type TermsAndConditionsFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAndConditions to fetch.
+     */
+    where: TermsAndConditionsWhereUniqueInput;
+  };
+
+  /**
+   * TermsAndConditions findFirst
+   */
+  export type TermsAndConditionsFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAndConditions to fetch.
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAndConditions to fetch.
+     */
+    orderBy?:
+      | TermsAndConditionsOrderByWithRelationInput
+      | TermsAndConditionsOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for TermsAndConditions.
+     */
+    cursor?: TermsAndConditionsWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAndConditions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAndConditions.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of TermsAndConditions.
+     */
+    distinct?: TermsAndConditionsScalarFieldEnum | TermsAndConditionsScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAndConditions findFirstOrThrow
+   */
+  export type TermsAndConditionsFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAndConditions to fetch.
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAndConditions to fetch.
+     */
+    orderBy?:
+      | TermsAndConditionsOrderByWithRelationInput
+      | TermsAndConditionsOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for TermsAndConditions.
+     */
+    cursor?: TermsAndConditionsWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAndConditions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAndConditions.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of TermsAndConditions.
+     */
+    distinct?: TermsAndConditionsScalarFieldEnum | TermsAndConditionsScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAndConditions findMany
+   */
+  export type TermsAndConditionsFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAndConditions to fetch.
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAndConditions to fetch.
+     */
+    orderBy?:
+      | TermsAndConditionsOrderByWithRelationInput
+      | TermsAndConditionsOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing TermsAndConditions.
+     */
+    cursor?: TermsAndConditionsWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAndConditions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAndConditions.
+     */
+    skip?: number;
+    distinct?: TermsAndConditionsScalarFieldEnum | TermsAndConditionsScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAndConditions create
+   */
+  export type TermsAndConditionsCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a TermsAndConditions.
+     */
+    data: XOR<TermsAndConditionsCreateInput, TermsAndConditionsUncheckedCreateInput>;
+  };
+
+  /**
+   * TermsAndConditions createMany
+   */
+  export type TermsAndConditionsCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many TermsAndConditions.
+     */
+    data: TermsAndConditionsCreateManyInput | TermsAndConditionsCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * TermsAndConditions createManyAndReturn
+   */
+  export type TermsAndConditionsCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * The data used to create many TermsAndConditions.
+     */
+    data: TermsAndConditionsCreateManyInput | TermsAndConditionsCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * TermsAndConditions update
+   */
+  export type TermsAndConditionsUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a TermsAndConditions.
+     */
+    data: XOR<TermsAndConditionsUpdateInput, TermsAndConditionsUncheckedUpdateInput>;
+    /**
+     * Choose, which TermsAndConditions to update.
+     */
+    where: TermsAndConditionsWhereUniqueInput;
+  };
+
+  /**
+   * TermsAndConditions updateMany
+   */
+  export type TermsAndConditionsUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update TermsAndConditions.
+     */
+    data: XOR<
+      TermsAndConditionsUpdateManyMutationInput,
+      TermsAndConditionsUncheckedUpdateManyInput
+    >;
+    /**
+     * Filter which TermsAndConditions to update
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * Limit how many TermsAndConditions to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * TermsAndConditions updateManyAndReturn
+   */
+  export type TermsAndConditionsUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * The data used to update TermsAndConditions.
+     */
+    data: XOR<
+      TermsAndConditionsUpdateManyMutationInput,
+      TermsAndConditionsUncheckedUpdateManyInput
+    >;
+    /**
+     * Filter which TermsAndConditions to update
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * Limit how many TermsAndConditions to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * TermsAndConditions upsert
+   */
+  export type TermsAndConditionsUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the TermsAndConditions to update in case it exists.
+     */
+    where: TermsAndConditionsWhereUniqueInput;
+    /**
+     * In case the TermsAndConditions found by the `where` argument doesn't exist, create a new TermsAndConditions with this data.
+     */
+    create: XOR<TermsAndConditionsCreateInput, TermsAndConditionsUncheckedCreateInput>;
+    /**
+     * In case the TermsAndConditions was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TermsAndConditionsUpdateInput, TermsAndConditionsUncheckedUpdateInput>;
+  };
+
+  /**
+   * TermsAndConditions delete
+   */
+  export type TermsAndConditionsDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+    /**
+     * Filter which TermsAndConditions to delete.
+     */
+    where: TermsAndConditionsWhereUniqueInput;
+  };
+
+  /**
+   * TermsAndConditions deleteMany
+   */
+  export type TermsAndConditionsDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which TermsAndConditions to delete
+     */
+    where?: TermsAndConditionsWhereInput;
+    /**
+     * Limit how many TermsAndConditions to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * TermsAndConditions.acceptances
+   */
+  export type TermsAndConditions$acceptancesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    where?: TermsAcceptanceWhereInput;
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: TermsAcceptanceScalarFieldEnum | TermsAcceptanceScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAndConditions without action
+   */
+  export type TermsAndConditionsDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAndConditions
+     */
+    select?: TermsAndConditionsSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAndConditions
+     */
+    omit?: TermsAndConditionsOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAndConditionsInclude<ExtArgs> | null;
+  };
+
+  /**
+   * Model TermsAcceptance
+   */
+
+  export type AggregateTermsAcceptance = {
+    _count: TermsAcceptanceCountAggregateOutputType | null;
+    _min: TermsAcceptanceMinAggregateOutputType | null;
+    _max: TermsAcceptanceMaxAggregateOutputType | null;
+  };
+
+  export type TermsAcceptanceMinAggregateOutputType = {
+    id: string | null;
+    acceptedAt: Date | null;
+    ipAddress: string | null;
+    userAgent: string | null;
+    acceptanceMethod: $Enums.AcceptanceMethod | null;
+    organizationId: string | null;
+    userId: string | null;
+    termsId: string | null;
+  };
+
+  export type TermsAcceptanceMaxAggregateOutputType = {
+    id: string | null;
+    acceptedAt: Date | null;
+    ipAddress: string | null;
+    userAgent: string | null;
+    acceptanceMethod: $Enums.AcceptanceMethod | null;
+    organizationId: string | null;
+    userId: string | null;
+    termsId: string | null;
+  };
+
+  export type TermsAcceptanceCountAggregateOutputType = {
+    id: number;
+    acceptedAt: number;
+    ipAddress: number;
+    userAgent: number;
+    geolocation: number;
+    acceptanceMethod: number;
+    organizationId: number;
+    userId: number;
+    termsId: number;
+    _all: number;
+  };
+
+  export type TermsAcceptanceMinAggregateInputType = {
+    id?: true;
+    acceptedAt?: true;
+    ipAddress?: true;
+    userAgent?: true;
+    acceptanceMethod?: true;
+    organizationId?: true;
+    userId?: true;
+    termsId?: true;
+  };
+
+  export type TermsAcceptanceMaxAggregateInputType = {
+    id?: true;
+    acceptedAt?: true;
+    ipAddress?: true;
+    userAgent?: true;
+    acceptanceMethod?: true;
+    organizationId?: true;
+    userId?: true;
+    termsId?: true;
+  };
+
+  export type TermsAcceptanceCountAggregateInputType = {
+    id?: true;
+    acceptedAt?: true;
+    ipAddress?: true;
+    userAgent?: true;
+    geolocation?: true;
+    acceptanceMethod?: true;
+    organizationId?: true;
+    userId?: true;
+    termsId?: true;
+    _all?: true;
+  };
+
+  export type TermsAcceptanceAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which TermsAcceptance to aggregate.
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAcceptances to fetch.
+     */
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAcceptances from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAcceptances.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned TermsAcceptances
+     **/
+    _count?: true | TermsAcceptanceCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: TermsAcceptanceMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: TermsAcceptanceMaxAggregateInputType;
+  };
+
+  export type GetTermsAcceptanceAggregateType<T extends TermsAcceptanceAggregateArgs> = {
+    [P in keyof T & keyof AggregateTermsAcceptance]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTermsAcceptance[P]>
+      : GetScalarType<T[P], AggregateTermsAcceptance[P]>;
+  };
+
+  export type TermsAcceptanceGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: TermsAcceptanceWhereInput;
+    orderBy?:
+      | TermsAcceptanceOrderByWithAggregationInput
+      | TermsAcceptanceOrderByWithAggregationInput[];
+    by: TermsAcceptanceScalarFieldEnum[] | TermsAcceptanceScalarFieldEnum;
+    having?: TermsAcceptanceScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: TermsAcceptanceCountAggregateInputType | true;
+    _min?: TermsAcceptanceMinAggregateInputType;
+    _max?: TermsAcceptanceMaxAggregateInputType;
+  };
+
+  export type TermsAcceptanceGroupByOutputType = {
+    id: string;
+    acceptedAt: Date;
+    ipAddress: string;
+    userAgent: string | null;
+    geolocation: JsonValue | null;
+    acceptanceMethod: $Enums.AcceptanceMethod;
+    organizationId: string;
+    userId: string;
+    termsId: string;
+    _count: TermsAcceptanceCountAggregateOutputType | null;
+    _min: TermsAcceptanceMinAggregateOutputType | null;
+    _max: TermsAcceptanceMaxAggregateOutputType | null;
+  };
+
+  type GetTermsAcceptanceGroupByPayload<T extends TermsAcceptanceGroupByArgs> =
+    Prisma.PrismaPromise<
+      Array<
+        PickEnumerable<TermsAcceptanceGroupByOutputType, T['by']> & {
+          [P in keyof T & keyof TermsAcceptanceGroupByOutputType]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TermsAcceptanceGroupByOutputType[P]>
+            : GetScalarType<T[P], TermsAcceptanceGroupByOutputType[P]>;
+        }
+      >
+    >;
+
+  export type TermsAcceptanceSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      acceptedAt?: boolean;
+      ipAddress?: boolean;
+      userAgent?: boolean;
+      geolocation?: boolean;
+      acceptanceMethod?: boolean;
+      organizationId?: boolean;
+      userId?: boolean;
+      termsId?: boolean;
+      organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+      user?: boolean | UserDefaultArgs<ExtArgs>;
+      terms?: boolean | TermsAndConditionsDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['termsAcceptance']
+  >;
+
+  export type TermsAcceptanceSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      acceptedAt?: boolean;
+      ipAddress?: boolean;
+      userAgent?: boolean;
+      geolocation?: boolean;
+      acceptanceMethod?: boolean;
+      organizationId?: boolean;
+      userId?: boolean;
+      termsId?: boolean;
+      organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+      user?: boolean | UserDefaultArgs<ExtArgs>;
+      terms?: boolean | TermsAndConditionsDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['termsAcceptance']
+  >;
+
+  export type TermsAcceptanceSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      acceptedAt?: boolean;
+      ipAddress?: boolean;
+      userAgent?: boolean;
+      geolocation?: boolean;
+      acceptanceMethod?: boolean;
+      organizationId?: boolean;
+      userId?: boolean;
+      termsId?: boolean;
+      organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+      user?: boolean | UserDefaultArgs<ExtArgs>;
+      terms?: boolean | TermsAndConditionsDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['termsAcceptance']
+  >;
+
+  export type TermsAcceptanceSelectScalar = {
+    id?: boolean;
+    acceptedAt?: boolean;
+    ipAddress?: boolean;
+    userAgent?: boolean;
+    geolocation?: boolean;
+    acceptanceMethod?: boolean;
+    organizationId?: boolean;
+    userId?: boolean;
+    termsId?: boolean;
+  };
+
+  export type TermsAcceptanceOmit<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetOmit<
+    | 'id'
+    | 'acceptedAt'
+    | 'ipAddress'
+    | 'userAgent'
+    | 'geolocation'
+    | 'acceptanceMethod'
+    | 'organizationId'
+    | 'userId'
+    | 'termsId',
+    ExtArgs['result']['termsAcceptance']
+  >;
+  export type TermsAcceptanceInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+    user?: boolean | UserDefaultArgs<ExtArgs>;
+    terms?: boolean | TermsAndConditionsDefaultArgs<ExtArgs>;
+  };
+  export type TermsAcceptanceIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+    user?: boolean | UserDefaultArgs<ExtArgs>;
+    terms?: boolean | TermsAndConditionsDefaultArgs<ExtArgs>;
+  };
+  export type TermsAcceptanceIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+    user?: boolean | UserDefaultArgs<ExtArgs>;
+    terms?: boolean | TermsAndConditionsDefaultArgs<ExtArgs>;
+  };
+
+  export type $TermsAcceptancePayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'TermsAcceptance';
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>;
+      user: Prisma.$UserPayload<ExtArgs>;
+      terms: Prisma.$TermsAndConditionsPayload<ExtArgs>;
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        acceptedAt: Date;
+        ipAddress: string;
+        userAgent: string | null;
+        geolocation: Prisma.JsonValue | null;
+        acceptanceMethod: $Enums.AcceptanceMethod;
+        organizationId: string;
+        userId: string;
+        termsId: string;
+      },
+      ExtArgs['result']['termsAcceptance']
+    >;
+    composites: {};
+  };
+
+  type TermsAcceptanceGetPayload<
+    S extends boolean | null | undefined | TermsAcceptanceDefaultArgs,
+  > = $Result.GetResult<Prisma.$TermsAcceptancePayload, S>;
+
+  type TermsAcceptanceCountArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = Omit<TermsAcceptanceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+    select?: TermsAcceptanceCountAggregateInputType | true;
+  };
+
+  export interface TermsAcceptanceDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['TermsAcceptance'];
+      meta: { name: 'TermsAcceptance' };
+    };
+    /**
+     * Find zero or one TermsAcceptance that matches the filter.
+     * @param {TermsAcceptanceFindUniqueArgs} args - Arguments to find a TermsAcceptance
+     * @example
+     * // Get one TermsAcceptance
+     * const termsAcceptance = await prisma.termsAcceptance.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TermsAcceptanceFindUniqueArgs>(
+      args: SelectSubset<T, TermsAcceptanceFindUniqueArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<
+        Prisma.$TermsAcceptancePayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one TermsAcceptance that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TermsAcceptanceFindUniqueOrThrowArgs} args - Arguments to find a TermsAcceptance
+     * @example
+     * // Get one TermsAcceptance
+     * const termsAcceptance = await prisma.termsAcceptance.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TermsAcceptanceFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, TermsAcceptanceFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<
+        Prisma.$TermsAcceptancePayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first TermsAcceptance that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceFindFirstArgs} args - Arguments to find a TermsAcceptance
+     * @example
+     * // Get one TermsAcceptance
+     * const termsAcceptance = await prisma.termsAcceptance.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TermsAcceptanceFindFirstArgs>(
+      args?: SelectSubset<T, TermsAcceptanceFindFirstArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<
+        Prisma.$TermsAcceptancePayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first TermsAcceptance that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceFindFirstOrThrowArgs} args - Arguments to find a TermsAcceptance
+     * @example
+     * // Get one TermsAcceptance
+     * const termsAcceptance = await prisma.termsAcceptance.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TermsAcceptanceFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, TermsAcceptanceFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<
+        Prisma.$TermsAcceptancePayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more TermsAcceptances that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TermsAcceptances
+     * const termsAcceptances = await prisma.termsAcceptance.findMany()
+     *
+     * // Get first 10 TermsAcceptances
+     * const termsAcceptances = await prisma.termsAcceptance.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const termsAcceptanceWithIdOnly = await prisma.termsAcceptance.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends TermsAcceptanceFindManyArgs>(
+      args?: SelectSubset<T, TermsAcceptanceFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a TermsAcceptance.
+     * @param {TermsAcceptanceCreateArgs} args - Arguments to create a TermsAcceptance.
+     * @example
+     * // Create one TermsAcceptance
+     * const TermsAcceptance = await prisma.termsAcceptance.create({
+     *   data: {
+     *     // ... data to create a TermsAcceptance
+     *   }
+     * })
+     *
+     */
+    create<T extends TermsAcceptanceCreateArgs>(
+      args: SelectSubset<T, TermsAcceptanceCreateArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many TermsAcceptances.
+     * @param {TermsAcceptanceCreateManyArgs} args - Arguments to create many TermsAcceptances.
+     * @example
+     * // Create many TermsAcceptances
+     * const termsAcceptance = await prisma.termsAcceptance.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends TermsAcceptanceCreateManyArgs>(
+      args?: SelectSubset<T, TermsAcceptanceCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many TermsAcceptances and returns the data saved in the database.
+     * @param {TermsAcceptanceCreateManyAndReturnArgs} args - Arguments to create many TermsAcceptances.
+     * @example
+     * // Create many TermsAcceptances
+     * const termsAcceptance = await prisma.termsAcceptance.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many TermsAcceptances and only return the `id`
+     * const termsAcceptanceWithIdOnly = await prisma.termsAcceptance.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends TermsAcceptanceCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, TermsAcceptanceCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$TermsAcceptancePayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a TermsAcceptance.
+     * @param {TermsAcceptanceDeleteArgs} args - Arguments to delete one TermsAcceptance.
+     * @example
+     * // Delete one TermsAcceptance
+     * const TermsAcceptance = await prisma.termsAcceptance.delete({
+     *   where: {
+     *     // ... filter to delete one TermsAcceptance
+     *   }
+     * })
+     *
+     */
+    delete<T extends TermsAcceptanceDeleteArgs>(
+      args: SelectSubset<T, TermsAcceptanceDeleteArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one TermsAcceptance.
+     * @param {TermsAcceptanceUpdateArgs} args - Arguments to update one TermsAcceptance.
+     * @example
+     * // Update one TermsAcceptance
+     * const termsAcceptance = await prisma.termsAcceptance.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends TermsAcceptanceUpdateArgs>(
+      args: SelectSubset<T, TermsAcceptanceUpdateArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more TermsAcceptances.
+     * @param {TermsAcceptanceDeleteManyArgs} args - Arguments to filter TermsAcceptances to delete.
+     * @example
+     * // Delete a few TermsAcceptances
+     * const { count } = await prisma.termsAcceptance.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends TermsAcceptanceDeleteManyArgs>(
+      args?: SelectSubset<T, TermsAcceptanceDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more TermsAcceptances.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TermsAcceptances
+     * const termsAcceptance = await prisma.termsAcceptance.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends TermsAcceptanceUpdateManyArgs>(
+      args: SelectSubset<T, TermsAcceptanceUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more TermsAcceptances and returns the data updated in the database.
+     * @param {TermsAcceptanceUpdateManyAndReturnArgs} args - Arguments to update many TermsAcceptances.
+     * @example
+     * // Update many TermsAcceptances
+     * const termsAcceptance = await prisma.termsAcceptance.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more TermsAcceptances and only return the `id`
+     * const termsAcceptanceWithIdOnly = await prisma.termsAcceptance.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends TermsAcceptanceUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, TermsAcceptanceUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$TermsAcceptancePayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one TermsAcceptance.
+     * @param {TermsAcceptanceUpsertArgs} args - Arguments to update or create a TermsAcceptance.
+     * @example
+     * // Update or create a TermsAcceptance
+     * const termsAcceptance = await prisma.termsAcceptance.upsert({
+     *   create: {
+     *     // ... data to create a TermsAcceptance
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TermsAcceptance we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TermsAcceptanceUpsertArgs>(
+      args: SelectSubset<T, TermsAcceptanceUpsertArgs<ExtArgs>>
+    ): Prisma__TermsAcceptanceClient<
+      $Result.GetResult<Prisma.$TermsAcceptancePayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of TermsAcceptances.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceCountArgs} args - Arguments to filter TermsAcceptances to count.
+     * @example
+     * // Count the number of TermsAcceptances
+     * const count = await prisma.termsAcceptance.count({
+     *   where: {
+     *     // ... the filter for the TermsAcceptances we want to count
+     *   }
+     * })
+     **/
+    count<T extends TermsAcceptanceCountArgs>(
+      args?: Subset<T, TermsAcceptanceCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TermsAcceptanceCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a TermsAcceptance.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends TermsAcceptanceAggregateArgs>(
+      args: Subset<T, TermsAcceptanceAggregateArgs>
+    ): Prisma.PrismaPromise<GetTermsAcceptanceAggregateType<T>>;
+
+    /**
+     * Group by TermsAcceptance.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TermsAcceptanceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends TermsAcceptanceGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TermsAcceptanceGroupByArgs['orderBy'] }
+        : { orderBy?: TermsAcceptanceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, TermsAcceptanceGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors
+      ? GetTermsAcceptanceGroupByPayload<T>
+      : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the TermsAcceptance model
+     */
+    readonly fields: TermsAcceptanceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TermsAcceptance.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TermsAcceptanceClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>
+    ): Prisma__OrganizationClient<
+      | $Result.GetResult<
+          Prisma.$OrganizationPayload<ExtArgs>,
+          T,
+          'findUniqueOrThrow',
+          GlobalOmitOptions
+        >
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, UserDefaultArgs<ExtArgs>>
+    ): Prisma__UserClient<
+      | $Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    terms<T extends TermsAndConditionsDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, TermsAndConditionsDefaultArgs<ExtArgs>>
+    ): Prisma__TermsAndConditionsClient<
+      | $Result.GetResult<
+          Prisma.$TermsAndConditionsPayload<ExtArgs>,
+          T,
+          'findUniqueOrThrow',
+          GlobalOmitOptions
+        >
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the TermsAcceptance model
+   */
+  interface TermsAcceptanceFieldRefs {
+    readonly id: FieldRef<'TermsAcceptance', 'String'>;
+    readonly acceptedAt: FieldRef<'TermsAcceptance', 'DateTime'>;
+    readonly ipAddress: FieldRef<'TermsAcceptance', 'String'>;
+    readonly userAgent: FieldRef<'TermsAcceptance', 'String'>;
+    readonly geolocation: FieldRef<'TermsAcceptance', 'Json'>;
+    readonly acceptanceMethod: FieldRef<'TermsAcceptance', 'AcceptanceMethod'>;
+    readonly organizationId: FieldRef<'TermsAcceptance', 'String'>;
+    readonly userId: FieldRef<'TermsAcceptance', 'String'>;
+    readonly termsId: FieldRef<'TermsAcceptance', 'String'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * TermsAcceptance findUnique
+   */
+  export type TermsAcceptanceFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAcceptance to fetch.
+     */
+    where: TermsAcceptanceWhereUniqueInput;
+  };
+
+  /**
+   * TermsAcceptance findUniqueOrThrow
+   */
+  export type TermsAcceptanceFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAcceptance to fetch.
+     */
+    where: TermsAcceptanceWhereUniqueInput;
+  };
+
+  /**
+   * TermsAcceptance findFirst
+   */
+  export type TermsAcceptanceFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAcceptance to fetch.
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAcceptances to fetch.
+     */
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for TermsAcceptances.
+     */
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAcceptances from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAcceptances.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of TermsAcceptances.
+     */
+    distinct?: TermsAcceptanceScalarFieldEnum | TermsAcceptanceScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAcceptance findFirstOrThrow
+   */
+  export type TermsAcceptanceFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAcceptance to fetch.
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAcceptances to fetch.
+     */
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for TermsAcceptances.
+     */
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAcceptances from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAcceptances.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of TermsAcceptances.
+     */
+    distinct?: TermsAcceptanceScalarFieldEnum | TermsAcceptanceScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAcceptance findMany
+   */
+  export type TermsAcceptanceFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * Filter, which TermsAcceptances to fetch.
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TermsAcceptances to fetch.
+     */
+    orderBy?: TermsAcceptanceOrderByWithRelationInput | TermsAcceptanceOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing TermsAcceptances.
+     */
+    cursor?: TermsAcceptanceWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TermsAcceptances from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TermsAcceptances.
+     */
+    skip?: number;
+    distinct?: TermsAcceptanceScalarFieldEnum | TermsAcceptanceScalarFieldEnum[];
+  };
+
+  /**
+   * TermsAcceptance create
+   */
+  export type TermsAcceptanceCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a TermsAcceptance.
+     */
+    data: XOR<TermsAcceptanceCreateInput, TermsAcceptanceUncheckedCreateInput>;
+  };
+
+  /**
+   * TermsAcceptance createMany
+   */
+  export type TermsAcceptanceCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many TermsAcceptances.
+     */
+    data: TermsAcceptanceCreateManyInput | TermsAcceptanceCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * TermsAcceptance createManyAndReturn
+   */
+  export type TermsAcceptanceCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * The data used to create many TermsAcceptances.
+     */
+    data: TermsAcceptanceCreateManyInput | TermsAcceptanceCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * TermsAcceptance update
+   */
+  export type TermsAcceptanceUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a TermsAcceptance.
+     */
+    data: XOR<TermsAcceptanceUpdateInput, TermsAcceptanceUncheckedUpdateInput>;
+    /**
+     * Choose, which TermsAcceptance to update.
+     */
+    where: TermsAcceptanceWhereUniqueInput;
+  };
+
+  /**
+   * TermsAcceptance updateMany
+   */
+  export type TermsAcceptanceUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update TermsAcceptances.
+     */
+    data: XOR<TermsAcceptanceUpdateManyMutationInput, TermsAcceptanceUncheckedUpdateManyInput>;
+    /**
+     * Filter which TermsAcceptances to update
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * Limit how many TermsAcceptances to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * TermsAcceptance updateManyAndReturn
+   */
+  export type TermsAcceptanceUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * The data used to update TermsAcceptances.
+     */
+    data: XOR<TermsAcceptanceUpdateManyMutationInput, TermsAcceptanceUncheckedUpdateManyInput>;
+    /**
+     * Filter which TermsAcceptances to update
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * Limit how many TermsAcceptances to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * TermsAcceptance upsert
+   */
+  export type TermsAcceptanceUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the TermsAcceptance to update in case it exists.
+     */
+    where: TermsAcceptanceWhereUniqueInput;
+    /**
+     * In case the TermsAcceptance found by the `where` argument doesn't exist, create a new TermsAcceptance with this data.
+     */
+    create: XOR<TermsAcceptanceCreateInput, TermsAcceptanceUncheckedCreateInput>;
+    /**
+     * In case the TermsAcceptance was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TermsAcceptanceUpdateInput, TermsAcceptanceUncheckedUpdateInput>;
+  };
+
+  /**
+   * TermsAcceptance delete
+   */
+  export type TermsAcceptanceDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+    /**
+     * Filter which TermsAcceptance to delete.
+     */
+    where: TermsAcceptanceWhereUniqueInput;
+  };
+
+  /**
+   * TermsAcceptance deleteMany
+   */
+  export type TermsAcceptanceDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which TermsAcceptances to delete
+     */
+    where?: TermsAcceptanceWhereInput;
+    /**
+     * Limit how many TermsAcceptances to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * TermsAcceptance without action
+   */
+  export type TermsAcceptanceDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the TermsAcceptance
+     */
+    select?: TermsAcceptanceSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TermsAcceptance
+     */
+    omit?: TermsAcceptanceOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TermsAcceptanceInclude<ExtArgs> | null;
+  };
+
+  /**
    * Enums
    */
 
@@ -32101,6 +35120,8 @@ export namespace Prisma {
     website: 'website';
     createdAt: 'createdAt';
     updatedAt: 'updatedAt';
+    requiresTermsAcceptance: 'requiresTermsAcceptance';
+    lastTermsPromptedAt: 'lastTermsPromptedAt';
   };
 
   export type OrganizationScalarFieldEnum =
@@ -32450,6 +35471,35 @@ export namespace Prisma {
   export type DatabaseObjectScalarFieldEnum =
     (typeof DatabaseObjectScalarFieldEnum)[keyof typeof DatabaseObjectScalarFieldEnum];
 
+  export const TermsAndConditionsScalarFieldEnum: {
+    id: 'id';
+    version: 'version';
+    content: 'content';
+    summary: 'summary';
+    effectiveDate: 'effectiveDate';
+    isActive: 'isActive';
+    createdAt: 'createdAt';
+    updatedAt: 'updatedAt';
+  };
+
+  export type TermsAndConditionsScalarFieldEnum =
+    (typeof TermsAndConditionsScalarFieldEnum)[keyof typeof TermsAndConditionsScalarFieldEnum];
+
+  export const TermsAcceptanceScalarFieldEnum: {
+    id: 'id';
+    acceptedAt: 'acceptedAt';
+    ipAddress: 'ipAddress';
+    userAgent: 'userAgent';
+    geolocation: 'geolocation';
+    acceptanceMethod: 'acceptanceMethod';
+    organizationId: 'organizationId';
+    userId: 'userId';
+    termsId: 'termsId';
+  };
+
+  export type TermsAcceptanceScalarFieldEnum =
+    (typeof TermsAcceptanceScalarFieldEnum)[keyof typeof TermsAcceptanceScalarFieldEnum];
+
   export const SortOrder: {
     asc: 'asc';
     desc: 'desc';
@@ -32703,6 +35753,22 @@ export namespace Prisma {
   >;
 
   /**
+   * Reference to a field of type 'AcceptanceMethod'
+   */
+  export type EnumAcceptanceMethodFieldRefInput<$PrismaModel> = FieldRefInputType<
+    $PrismaModel,
+    'AcceptanceMethod'
+  >;
+
+  /**
+   * Reference to a field of type 'AcceptanceMethod[]'
+   */
+  export type ListEnumAcceptanceMethodFieldRefInput<$PrismaModel> = FieldRefInputType<
+    $PrismaModel,
+    'AcceptanceMethod[]'
+  >;
+
+  /**
    * Deep Input Types
    */
 
@@ -32718,6 +35784,8 @@ export namespace Prisma {
     website?: StringNullableFilter<'Organization'> | string | null;
     createdAt?: DateTimeFilter<'Organization'> | Date | string;
     updatedAt?: DateTimeFilter<'Organization'> | Date | string;
+    requiresTermsAcceptance?: BoolFilter<'Organization'> | boolean;
+    lastTermsPromptedAt?: DateTimeNullableFilter<'Organization'> | Date | string | null;
     memberships?: MembershipListRelationFilter;
     subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null;
     databaseConnections?: DatabaseConnectionListRelationFilter;
@@ -32734,6 +35802,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogListRelationFilter;
     databaseObjects?: DatabaseObjectListRelationFilter;
     endpoints?: EndpointListRelationFilter;
+    termsAcceptances?: TermsAcceptanceListRelationFilter;
   };
 
   export type OrganizationOrderByWithRelationInput = {
@@ -32745,6 +35814,8 @@ export namespace Prisma {
     website?: SortOrderInput | SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
+    requiresTermsAcceptance?: SortOrder;
+    lastTermsPromptedAt?: SortOrderInput | SortOrder;
     memberships?: MembershipOrderByRelationAggregateInput;
     subscription?: SubscriptionOrderByWithRelationInput;
     databaseConnections?: DatabaseConnectionOrderByRelationAggregateInput;
@@ -32761,6 +35832,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogOrderByRelationAggregateInput;
     databaseObjects?: DatabaseObjectOrderByRelationAggregateInput;
     endpoints?: EndpointOrderByRelationAggregateInput;
+    termsAcceptances?: TermsAcceptanceOrderByRelationAggregateInput;
   };
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<
@@ -32776,6 +35848,8 @@ export namespace Prisma {
       website?: StringNullableFilter<'Organization'> | string | null;
       createdAt?: DateTimeFilter<'Organization'> | Date | string;
       updatedAt?: DateTimeFilter<'Organization'> | Date | string;
+      requiresTermsAcceptance?: BoolFilter<'Organization'> | boolean;
+      lastTermsPromptedAt?: DateTimeNullableFilter<'Organization'> | Date | string | null;
       memberships?: MembershipListRelationFilter;
       subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null;
       databaseConnections?: DatabaseConnectionListRelationFilter;
@@ -32792,6 +35866,7 @@ export namespace Prisma {
       apiActivityLogs?: ApiActivityLogListRelationFilter;
       databaseObjects?: DatabaseObjectListRelationFilter;
       endpoints?: EndpointListRelationFilter;
+      termsAcceptances?: TermsAcceptanceListRelationFilter;
     },
     'id' | 'slug' | 'domain'
   >;
@@ -32805,6 +35880,8 @@ export namespace Prisma {
     website?: SortOrderInput | SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
+    requiresTermsAcceptance?: SortOrder;
+    lastTermsPromptedAt?: SortOrderInput | SortOrder;
     _count?: OrganizationCountOrderByAggregateInput;
     _max?: OrganizationMaxOrderByAggregateInput;
     _min?: OrganizationMinOrderByAggregateInput;
@@ -32822,6 +35899,12 @@ export namespace Prisma {
     website?: StringNullableWithAggregatesFilter<'Organization'> | string | null;
     createdAt?: DateTimeWithAggregatesFilter<'Organization'> | Date | string;
     updatedAt?: DateTimeWithAggregatesFilter<'Organization'> | Date | string;
+    requiresTermsAcceptance?: BoolWithAggregatesFilter<'Organization'> | boolean;
+    lastTermsPromptedAt?:
+      | DateTimeNullableWithAggregatesFilter<'Organization'>
+      | Date
+      | string
+      | null;
   };
 
   export type UserWhereInput = {
@@ -32857,6 +35940,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointListRelationFilter;
     databaseConnectionsCreated?: DatabaseConnectionListRelationFilter;
     workflowsCreated?: WorkflowListRelationFilter;
+    termsAcceptances?: TermsAcceptanceListRelationFilter;
   };
 
   export type UserOrderByWithRelationInput = {
@@ -32889,6 +35973,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointOrderByRelationAggregateInput;
     databaseConnectionsCreated?: DatabaseConnectionOrderByRelationAggregateInput;
     workflowsCreated?: WorkflowOrderByRelationAggregateInput;
+    termsAcceptances?: TermsAcceptanceOrderByRelationAggregateInput;
   };
 
   export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -32925,6 +36010,7 @@ export namespace Prisma {
       endpointsCreated?: EndpointListRelationFilter;
       databaseConnectionsCreated?: DatabaseConnectionListRelationFilter;
       workflowsCreated?: WorkflowListRelationFilter;
+      termsAcceptances?: TermsAcceptanceListRelationFilter;
     },
     'id' | 'email'
   >;
@@ -34787,6 +37873,174 @@ export namespace Prisma {
     serviceId?: StringNullableWithAggregatesFilter<'DatabaseObject'> | string | null;
   };
 
+  export type TermsAndConditionsWhereInput = {
+    AND?: TermsAndConditionsWhereInput | TermsAndConditionsWhereInput[];
+    OR?: TermsAndConditionsWhereInput[];
+    NOT?: TermsAndConditionsWhereInput | TermsAndConditionsWhereInput[];
+    id?: StringFilter<'TermsAndConditions'> | string;
+    version?: StringFilter<'TermsAndConditions'> | string;
+    content?: StringFilter<'TermsAndConditions'> | string;
+    summary?: StringNullableFilter<'TermsAndConditions'> | string | null;
+    effectiveDate?: DateTimeFilter<'TermsAndConditions'> | Date | string;
+    isActive?: BoolFilter<'TermsAndConditions'> | boolean;
+    createdAt?: DateTimeFilter<'TermsAndConditions'> | Date | string;
+    updatedAt?: DateTimeFilter<'TermsAndConditions'> | Date | string;
+    acceptances?: TermsAcceptanceListRelationFilter;
+  };
+
+  export type TermsAndConditionsOrderByWithRelationInput = {
+    id?: SortOrder;
+    version?: SortOrder;
+    content?: SortOrder;
+    summary?: SortOrderInput | SortOrder;
+    effectiveDate?: SortOrder;
+    isActive?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+    acceptances?: TermsAcceptanceOrderByRelationAggregateInput;
+  };
+
+  export type TermsAndConditionsWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      version?: string;
+      AND?: TermsAndConditionsWhereInput | TermsAndConditionsWhereInput[];
+      OR?: TermsAndConditionsWhereInput[];
+      NOT?: TermsAndConditionsWhereInput | TermsAndConditionsWhereInput[];
+      content?: StringFilter<'TermsAndConditions'> | string;
+      summary?: StringNullableFilter<'TermsAndConditions'> | string | null;
+      effectiveDate?: DateTimeFilter<'TermsAndConditions'> | Date | string;
+      isActive?: BoolFilter<'TermsAndConditions'> | boolean;
+      createdAt?: DateTimeFilter<'TermsAndConditions'> | Date | string;
+      updatedAt?: DateTimeFilter<'TermsAndConditions'> | Date | string;
+      acceptances?: TermsAcceptanceListRelationFilter;
+    },
+    'id' | 'version'
+  >;
+
+  export type TermsAndConditionsOrderByWithAggregationInput = {
+    id?: SortOrder;
+    version?: SortOrder;
+    content?: SortOrder;
+    summary?: SortOrderInput | SortOrder;
+    effectiveDate?: SortOrder;
+    isActive?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+    _count?: TermsAndConditionsCountOrderByAggregateInput;
+    _max?: TermsAndConditionsMaxOrderByAggregateInput;
+    _min?: TermsAndConditionsMinOrderByAggregateInput;
+  };
+
+  export type TermsAndConditionsScalarWhereWithAggregatesInput = {
+    AND?:
+      | TermsAndConditionsScalarWhereWithAggregatesInput
+      | TermsAndConditionsScalarWhereWithAggregatesInput[];
+    OR?: TermsAndConditionsScalarWhereWithAggregatesInput[];
+    NOT?:
+      | TermsAndConditionsScalarWhereWithAggregatesInput
+      | TermsAndConditionsScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'TermsAndConditions'> | string;
+    version?: StringWithAggregatesFilter<'TermsAndConditions'> | string;
+    content?: StringWithAggregatesFilter<'TermsAndConditions'> | string;
+    summary?: StringNullableWithAggregatesFilter<'TermsAndConditions'> | string | null;
+    effectiveDate?: DateTimeWithAggregatesFilter<'TermsAndConditions'> | Date | string;
+    isActive?: BoolWithAggregatesFilter<'TermsAndConditions'> | boolean;
+    createdAt?: DateTimeWithAggregatesFilter<'TermsAndConditions'> | Date | string;
+    updatedAt?: DateTimeWithAggregatesFilter<'TermsAndConditions'> | Date | string;
+  };
+
+  export type TermsAcceptanceWhereInput = {
+    AND?: TermsAcceptanceWhereInput | TermsAcceptanceWhereInput[];
+    OR?: TermsAcceptanceWhereInput[];
+    NOT?: TermsAcceptanceWhereInput | TermsAcceptanceWhereInput[];
+    id?: StringFilter<'TermsAcceptance'> | string;
+    acceptedAt?: DateTimeFilter<'TermsAcceptance'> | Date | string;
+    ipAddress?: StringFilter<'TermsAcceptance'> | string;
+    userAgent?: StringNullableFilter<'TermsAcceptance'> | string | null;
+    geolocation?: JsonNullableFilter<'TermsAcceptance'>;
+    acceptanceMethod?: EnumAcceptanceMethodFilter<'TermsAcceptance'> | $Enums.AcceptanceMethod;
+    organizationId?: StringFilter<'TermsAcceptance'> | string;
+    userId?: StringFilter<'TermsAcceptance'> | string;
+    termsId?: StringFilter<'TermsAcceptance'> | string;
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>;
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>;
+    terms?: XOR<TermsAndConditionsScalarRelationFilter, TermsAndConditionsWhereInput>;
+  };
+
+  export type TermsAcceptanceOrderByWithRelationInput = {
+    id?: SortOrder;
+    acceptedAt?: SortOrder;
+    ipAddress?: SortOrder;
+    userAgent?: SortOrderInput | SortOrder;
+    geolocation?: SortOrderInput | SortOrder;
+    acceptanceMethod?: SortOrder;
+    organizationId?: SortOrder;
+    userId?: SortOrder;
+    termsId?: SortOrder;
+    organization?: OrganizationOrderByWithRelationInput;
+    user?: UserOrderByWithRelationInput;
+    terms?: TermsAndConditionsOrderByWithRelationInput;
+  };
+
+  export type TermsAcceptanceWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      organizationId_userId_termsId?: TermsAcceptanceOrganizationIdUserIdTermsIdCompoundUniqueInput;
+      AND?: TermsAcceptanceWhereInput | TermsAcceptanceWhereInput[];
+      OR?: TermsAcceptanceWhereInput[];
+      NOT?: TermsAcceptanceWhereInput | TermsAcceptanceWhereInput[];
+      acceptedAt?: DateTimeFilter<'TermsAcceptance'> | Date | string;
+      ipAddress?: StringFilter<'TermsAcceptance'> | string;
+      userAgent?: StringNullableFilter<'TermsAcceptance'> | string | null;
+      geolocation?: JsonNullableFilter<'TermsAcceptance'>;
+      acceptanceMethod?: EnumAcceptanceMethodFilter<'TermsAcceptance'> | $Enums.AcceptanceMethod;
+      organizationId?: StringFilter<'TermsAcceptance'> | string;
+      userId?: StringFilter<'TermsAcceptance'> | string;
+      termsId?: StringFilter<'TermsAcceptance'> | string;
+      organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>;
+      user?: XOR<UserScalarRelationFilter, UserWhereInput>;
+      terms?: XOR<TermsAndConditionsScalarRelationFilter, TermsAndConditionsWhereInput>;
+    },
+    'id' | 'organizationId_userId_termsId'
+  >;
+
+  export type TermsAcceptanceOrderByWithAggregationInput = {
+    id?: SortOrder;
+    acceptedAt?: SortOrder;
+    ipAddress?: SortOrder;
+    userAgent?: SortOrderInput | SortOrder;
+    geolocation?: SortOrderInput | SortOrder;
+    acceptanceMethod?: SortOrder;
+    organizationId?: SortOrder;
+    userId?: SortOrder;
+    termsId?: SortOrder;
+    _count?: TermsAcceptanceCountOrderByAggregateInput;
+    _max?: TermsAcceptanceMaxOrderByAggregateInput;
+    _min?: TermsAcceptanceMinOrderByAggregateInput;
+  };
+
+  export type TermsAcceptanceScalarWhereWithAggregatesInput = {
+    AND?:
+      | TermsAcceptanceScalarWhereWithAggregatesInput
+      | TermsAcceptanceScalarWhereWithAggregatesInput[];
+    OR?: TermsAcceptanceScalarWhereWithAggregatesInput[];
+    NOT?:
+      | TermsAcceptanceScalarWhereWithAggregatesInput
+      | TermsAcceptanceScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'TermsAcceptance'> | string;
+    acceptedAt?: DateTimeWithAggregatesFilter<'TermsAcceptance'> | Date | string;
+    ipAddress?: StringWithAggregatesFilter<'TermsAcceptance'> | string;
+    userAgent?: StringNullableWithAggregatesFilter<'TermsAcceptance'> | string | null;
+    geolocation?: JsonNullableWithAggregatesFilter<'TermsAcceptance'>;
+    acceptanceMethod?:
+      | EnumAcceptanceMethodWithAggregatesFilter<'TermsAcceptance'>
+      | $Enums.AcceptanceMethod;
+    organizationId?: StringWithAggregatesFilter<'TermsAcceptance'> | string;
+    userId?: StringWithAggregatesFilter<'TermsAcceptance'> | string;
+    termsId?: StringWithAggregatesFilter<'TermsAcceptance'> | string;
+  };
+
   export type OrganizationCreateInput = {
     id?: string;
     name: string;
@@ -34796,6 +38050,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -34812,6 +38068,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateInput = {
@@ -34823,6 +38080,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -34839,6 +38098,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUpdateInput = {
@@ -34850,6 +38110,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -34866,6 +38128,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateInput = {
@@ -34877,6 +38140,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -34893,6 +38158,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateManyInput = {
@@ -34904,6 +38170,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
   };
 
   export type OrganizationUpdateManyMutationInput = {
@@ -34915,6 +38183,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   };
 
   export type OrganizationUncheckedUpdateManyInput = {
@@ -34926,6 +38196,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   };
 
   export type UserCreateInput = {
@@ -34958,6 +38230,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateInput = {
@@ -34990,6 +38263,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserUpdateInput = {
@@ -35022,6 +38296,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateInput = {
@@ -35054,6 +38329,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type UserCreateManyInput = {
@@ -36998,6 +40274,168 @@ export namespace Prisma {
     serviceId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
+  export type TermsAndConditionsCreateInput = {
+    id?: string;
+    version: string;
+    content: string;
+    summary?: string | null;
+    effectiveDate: Date | string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    acceptances?: TermsAcceptanceCreateNestedManyWithoutTermsInput;
+  };
+
+  export type TermsAndConditionsUncheckedCreateInput = {
+    id?: string;
+    version: string;
+    content: string;
+    summary?: string | null;
+    effectiveDate: Date | string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    acceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutTermsInput;
+  };
+
+  export type TermsAndConditionsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    version?: StringFieldUpdateOperationsInput | string;
+    content?: StringFieldUpdateOperationsInput | string;
+    summary?: NullableStringFieldUpdateOperationsInput | string | null;
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    acceptances?: TermsAcceptanceUpdateManyWithoutTermsNestedInput;
+  };
+
+  export type TermsAndConditionsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    version?: StringFieldUpdateOperationsInput | string;
+    content?: StringFieldUpdateOperationsInput | string;
+    summary?: NullableStringFieldUpdateOperationsInput | string | null;
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    acceptances?: TermsAcceptanceUncheckedUpdateManyWithoutTermsNestedInput;
+  };
+
+  export type TermsAndConditionsCreateManyInput = {
+    id?: string;
+    version: string;
+    content: string;
+    summary?: string | null;
+    effectiveDate: Date | string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type TermsAndConditionsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    version?: StringFieldUpdateOperationsInput | string;
+    content?: StringFieldUpdateOperationsInput | string;
+    summary?: NullableStringFieldUpdateOperationsInput | string | null;
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type TermsAndConditionsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    version?: StringFieldUpdateOperationsInput | string;
+    content?: StringFieldUpdateOperationsInput | string;
+    summary?: NullableStringFieldUpdateOperationsInput | string | null;
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type TermsAcceptanceCreateInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organization: OrganizationCreateNestedOneWithoutTermsAcceptancesInput;
+    user: UserCreateNestedOneWithoutTermsAcceptancesInput;
+    terms: TermsAndConditionsCreateNestedOneWithoutAcceptancesInput;
+  };
+
+  export type TermsAcceptanceUncheckedCreateInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organizationId: string;
+    userId: string;
+    termsId: string;
+  };
+
+  export type TermsAcceptanceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organization?: OrganizationUpdateOneRequiredWithoutTermsAcceptancesNestedInput;
+    user?: UserUpdateOneRequiredWithoutTermsAcceptancesNestedInput;
+    terms?: TermsAndConditionsUpdateOneRequiredWithoutAcceptancesNestedInput;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    userId?: StringFieldUpdateOperationsInput | string;
+    termsId?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type TermsAcceptanceCreateManyInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organizationId: string;
+    userId: string;
+    termsId: string;
+  };
+
+  export type TermsAcceptanceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    userId?: StringFieldUpdateOperationsInput | string;
+    termsId?: StringFieldUpdateOperationsInput | string;
+  };
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
     in?: string[] | ListStringFieldRefInput<$PrismaModel>;
@@ -37037,6 +40475,22 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string;
+  };
+
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>;
+    not?: NestedBoolFilter<$PrismaModel> | boolean;
+  };
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null;
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null;
   };
 
   export type MembershipListRelationFilter = {
@@ -37134,6 +40588,12 @@ export namespace Prisma {
     none?: EndpointWhereInput;
   };
 
+  export type TermsAcceptanceListRelationFilter = {
+    every?: TermsAcceptanceWhereInput;
+    some?: TermsAcceptanceWhereInput;
+    none?: TermsAcceptanceWhereInput;
+  };
+
   export type SortOrderInput = {
     sort: SortOrder;
     nulls?: NullsOrder;
@@ -37199,6 +40659,10 @@ export namespace Prisma {
     _count?: SortOrder;
   };
 
+  export type TermsAcceptanceOrderByRelationAggregateInput = {
+    _count?: SortOrder;
+  };
+
   export type OrganizationCountOrderByAggregateInput = {
     id?: SortOrder;
     name?: SortOrder;
@@ -37208,6 +40672,8 @@ export namespace Prisma {
     website?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
+    requiresTermsAcceptance?: SortOrder;
+    lastTermsPromptedAt?: SortOrder;
   };
 
   export type OrganizationMaxOrderByAggregateInput = {
@@ -37219,6 +40685,8 @@ export namespace Prisma {
     website?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
+    requiresTermsAcceptance?: SortOrder;
+    lastTermsPromptedAt?: SortOrder;
   };
 
   export type OrganizationMinOrderByAggregateInput = {
@@ -37230,6 +40698,8 @@ export namespace Prisma {
     website?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
+    requiresTermsAcceptance?: SortOrder;
+    lastTermsPromptedAt?: SortOrder;
   };
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -37282,12 +40752,15 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>;
   };
 
-  export type BoolFilter<$PrismaModel = never> = {
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>;
-    not?: NestedBoolFilter<$PrismaModel> | boolean;
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _min?: NestedBoolFilter<$PrismaModel>;
+    _max?: NestedBoolFilter<$PrismaModel>;
   };
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null;
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
     notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
@@ -37295,7 +40768,10 @@ export namespace Prisma {
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null;
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null;
+    _count?: NestedIntNullableFilter<$PrismaModel>;
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>;
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>;
   };
 
   export type UserCountOrderByAggregateInput = {
@@ -37356,28 +40832,6 @@ export namespace Prisma {
     isSuperAdmin?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
-  };
-
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>;
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean;
-    _count?: NestedIntFilter<$PrismaModel>;
-    _min?: NestedBoolFilter<$PrismaModel>;
-    _max?: NestedBoolFilter<$PrismaModel>;
-  };
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null;
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null;
-    _count?: NestedIntNullableFilter<$PrismaModel>;
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>;
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>;
   };
 
   export type EnumMemberRoleFilter<$PrismaModel = never> = {
@@ -38722,6 +42176,101 @@ export namespace Prisma {
     serviceId?: SortOrder;
   };
 
+  export type TermsAndConditionsCountOrderByAggregateInput = {
+    id?: SortOrder;
+    version?: SortOrder;
+    content?: SortOrder;
+    summary?: SortOrder;
+    effectiveDate?: SortOrder;
+    isActive?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+  };
+
+  export type TermsAndConditionsMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    version?: SortOrder;
+    content?: SortOrder;
+    summary?: SortOrder;
+    effectiveDate?: SortOrder;
+    isActive?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+  };
+
+  export type TermsAndConditionsMinOrderByAggregateInput = {
+    id?: SortOrder;
+    version?: SortOrder;
+    content?: SortOrder;
+    summary?: SortOrder;
+    effectiveDate?: SortOrder;
+    isActive?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+  };
+
+  export type EnumAcceptanceMethodFilter<$PrismaModel = never> = {
+    equals?: $Enums.AcceptanceMethod | EnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    in?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    not?: NestedEnumAcceptanceMethodFilter<$PrismaModel> | $Enums.AcceptanceMethod;
+  };
+
+  export type TermsAndConditionsScalarRelationFilter = {
+    is?: TermsAndConditionsWhereInput;
+    isNot?: TermsAndConditionsWhereInput;
+  };
+
+  export type TermsAcceptanceOrganizationIdUserIdTermsIdCompoundUniqueInput = {
+    organizationId: string;
+    userId: string;
+    termsId: string;
+  };
+
+  export type TermsAcceptanceCountOrderByAggregateInput = {
+    id?: SortOrder;
+    acceptedAt?: SortOrder;
+    ipAddress?: SortOrder;
+    userAgent?: SortOrder;
+    geolocation?: SortOrder;
+    acceptanceMethod?: SortOrder;
+    organizationId?: SortOrder;
+    userId?: SortOrder;
+    termsId?: SortOrder;
+  };
+
+  export type TermsAcceptanceMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    acceptedAt?: SortOrder;
+    ipAddress?: SortOrder;
+    userAgent?: SortOrder;
+    acceptanceMethod?: SortOrder;
+    organizationId?: SortOrder;
+    userId?: SortOrder;
+    termsId?: SortOrder;
+  };
+
+  export type TermsAcceptanceMinOrderByAggregateInput = {
+    id?: SortOrder;
+    acceptedAt?: SortOrder;
+    ipAddress?: SortOrder;
+    userAgent?: SortOrder;
+    acceptanceMethod?: SortOrder;
+    organizationId?: SortOrder;
+    userId?: SortOrder;
+    termsId?: SortOrder;
+  };
+
+  export type EnumAcceptanceMethodWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AcceptanceMethod | EnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    in?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    not?: NestedEnumAcceptanceMethodWithAggregatesFilter<$PrismaModel> | $Enums.AcceptanceMethod;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _min?: NestedEnumAcceptanceMethodFilter<$PrismaModel>;
+    _max?: NestedEnumAcceptanceMethodFilter<$PrismaModel>;
+  };
+
   export type MembershipCreateNestedManyWithoutOrganizationInput = {
     create?:
       | XOR<
@@ -38933,6 +42482,21 @@ export namespace Prisma {
       | EndpointCreateOrConnectWithoutOrganizationInput[];
     createMany?: EndpointCreateManyOrganizationInputEnvelope;
     connect?: EndpointWhereUniqueInput | EndpointWhereUniqueInput[];
+  };
+
+  export type TermsAcceptanceCreateNestedManyWithoutOrganizationInput = {
+    create?:
+      | XOR<
+          TermsAcceptanceCreateWithoutOrganizationInput,
+          TermsAcceptanceUncheckedCreateWithoutOrganizationInput
+        >
+      | TermsAcceptanceCreateWithoutOrganizationInput[]
+      | TermsAcceptanceUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput[];
+    createMany?: TermsAcceptanceCreateManyOrganizationInputEnvelope;
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
   };
 
   export type MembershipUncheckedCreateNestedManyWithoutOrganizationInput = {
@@ -39148,6 +42712,21 @@ export namespace Prisma {
     connect?: EndpointWhereUniqueInput | EndpointWhereUniqueInput[];
   };
 
+  export type TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?:
+      | XOR<
+          TermsAcceptanceCreateWithoutOrganizationInput,
+          TermsAcceptanceUncheckedCreateWithoutOrganizationInput
+        >
+      | TermsAcceptanceCreateWithoutOrganizationInput[]
+      | TermsAcceptanceUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput[];
+    createMany?: TermsAcceptanceCreateManyOrganizationInputEnvelope;
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+  };
+
   export type StringFieldUpdateOperationsInput = {
     set?: string;
   };
@@ -39158,6 +42737,14 @@ export namespace Prisma {
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string;
+  };
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean;
+  };
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null;
   };
 
   export type MembershipUpdateManyWithoutOrganizationNestedInput = {
@@ -39578,6 +43165,34 @@ export namespace Prisma {
     deleteMany?: EndpointScalarWhereInput | EndpointScalarWhereInput[];
   };
 
+  export type TermsAcceptanceUpdateManyWithoutOrganizationNestedInput = {
+    create?:
+      | XOR<
+          TermsAcceptanceCreateWithoutOrganizationInput,
+          TermsAcceptanceUncheckedCreateWithoutOrganizationInput
+        >
+      | TermsAcceptanceCreateWithoutOrganizationInput[]
+      | TermsAcceptanceUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput[];
+    upsert?:
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutOrganizationInput
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutOrganizationInput[];
+    createMany?: TermsAcceptanceCreateManyOrganizationInputEnvelope;
+    set?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    disconnect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    delete?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    update?:
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutOrganizationInput
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutOrganizationInput[];
+    updateMany?:
+      | TermsAcceptanceUpdateManyWithWhereWithoutOrganizationInput
+      | TermsAcceptanceUpdateManyWithWhereWithoutOrganizationInput[];
+    deleteMany?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+  };
+
   export type MembershipUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?:
       | XOR<
@@ -39996,6 +43611,34 @@ export namespace Prisma {
     deleteMany?: EndpointScalarWhereInput | EndpointScalarWhereInput[];
   };
 
+  export type TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?:
+      | XOR<
+          TermsAcceptanceCreateWithoutOrganizationInput,
+          TermsAcceptanceUncheckedCreateWithoutOrganizationInput
+        >
+      | TermsAcceptanceCreateWithoutOrganizationInput[]
+      | TermsAcceptanceUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput
+      | TermsAcceptanceCreateOrConnectWithoutOrganizationInput[];
+    upsert?:
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutOrganizationInput
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutOrganizationInput[];
+    createMany?: TermsAcceptanceCreateManyOrganizationInputEnvelope;
+    set?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    disconnect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    delete?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    update?:
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutOrganizationInput
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutOrganizationInput[];
+    updateMany?:
+      | TermsAcceptanceUpdateManyWithWhereWithoutOrganizationInput
+      | TermsAcceptanceUpdateManyWithWhereWithoutOrganizationInput[];
+    deleteMany?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+  };
+
   export type MembershipCreateNestedManyWithoutUserInput = {
     create?:
       | XOR<MembershipCreateWithoutUserInput, MembershipUncheckedCreateWithoutUserInput>
@@ -40141,6 +43784,18 @@ export namespace Prisma {
       | WorkflowCreateOrConnectWithoutCreatorInput[];
     createMany?: WorkflowCreateManyCreatorInputEnvelope;
     connect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[];
+  };
+
+  export type TermsAcceptanceCreateNestedManyWithoutUserInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutUserInput, TermsAcceptanceUncheckedCreateWithoutUserInput>
+      | TermsAcceptanceCreateWithoutUserInput[]
+      | TermsAcceptanceUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutUserInput
+      | TermsAcceptanceCreateOrConnectWithoutUserInput[];
+    createMany?: TermsAcceptanceCreateManyUserInputEnvelope;
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
   };
 
   export type MembershipUncheckedCreateNestedManyWithoutUserInput = {
@@ -40290,12 +43945,16 @@ export namespace Prisma {
     connect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[];
   };
 
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean;
-  };
-
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null;
+  export type TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutUserInput, TermsAcceptanceUncheckedCreateWithoutUserInput>
+      | TermsAcceptanceCreateWithoutUserInput[]
+      | TermsAcceptanceUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutUserInput
+      | TermsAcceptanceCreateOrConnectWithoutUserInput[];
+    createMany?: TermsAcceptanceCreateManyUserInputEnvelope;
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
   };
 
   export type MembershipUpdateManyWithoutUserNestedInput = {
@@ -40601,6 +44260,31 @@ export namespace Prisma {
     deleteMany?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[];
   };
 
+  export type TermsAcceptanceUpdateManyWithoutUserNestedInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutUserInput, TermsAcceptanceUncheckedCreateWithoutUserInput>
+      | TermsAcceptanceCreateWithoutUserInput[]
+      | TermsAcceptanceUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutUserInput
+      | TermsAcceptanceCreateOrConnectWithoutUserInput[];
+    upsert?:
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutUserInput
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutUserInput[];
+    createMany?: TermsAcceptanceCreateManyUserInputEnvelope;
+    set?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    disconnect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    delete?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    update?:
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutUserInput
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutUserInput[];
+    updateMany?:
+      | TermsAcceptanceUpdateManyWithWhereWithoutUserInput
+      | TermsAcceptanceUpdateManyWithWhereWithoutUserInput[];
+    deleteMany?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+  };
+
   export type MembershipUncheckedUpdateManyWithoutUserNestedInput = {
     create?:
       | XOR<MembershipCreateWithoutUserInput, MembershipUncheckedCreateWithoutUserInput>
@@ -40902,6 +44586,31 @@ export namespace Prisma {
       | WorkflowUpdateManyWithWhereWithoutCreatorInput
       | WorkflowUpdateManyWithWhereWithoutCreatorInput[];
     deleteMany?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[];
+  };
+
+  export type TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutUserInput, TermsAcceptanceUncheckedCreateWithoutUserInput>
+      | TermsAcceptanceCreateWithoutUserInput[]
+      | TermsAcceptanceUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutUserInput
+      | TermsAcceptanceCreateOrConnectWithoutUserInput[];
+    upsert?:
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutUserInput
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutUserInput[];
+    createMany?: TermsAcceptanceCreateManyUserInputEnvelope;
+    set?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    disconnect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    delete?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    update?:
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutUserInput
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutUserInput[];
+    updateMany?:
+      | TermsAcceptanceUpdateManyWithWhereWithoutUserInput
+      | TermsAcceptanceUpdateManyWithWhereWithoutUserInput[];
+    deleteMany?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
   };
 
   export type UserCreateNestedOneWithoutMembershipsInput = {
@@ -42599,6 +46308,162 @@ export namespace Prisma {
     >;
   };
 
+  export type TermsAcceptanceCreateNestedManyWithoutTermsInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutTermsInput, TermsAcceptanceUncheckedCreateWithoutTermsInput>
+      | TermsAcceptanceCreateWithoutTermsInput[]
+      | TermsAcceptanceUncheckedCreateWithoutTermsInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput[];
+    createMany?: TermsAcceptanceCreateManyTermsInputEnvelope;
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+  };
+
+  export type TermsAcceptanceUncheckedCreateNestedManyWithoutTermsInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutTermsInput, TermsAcceptanceUncheckedCreateWithoutTermsInput>
+      | TermsAcceptanceCreateWithoutTermsInput[]
+      | TermsAcceptanceUncheckedCreateWithoutTermsInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput[];
+    createMany?: TermsAcceptanceCreateManyTermsInputEnvelope;
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+  };
+
+  export type TermsAcceptanceUpdateManyWithoutTermsNestedInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutTermsInput, TermsAcceptanceUncheckedCreateWithoutTermsInput>
+      | TermsAcceptanceCreateWithoutTermsInput[]
+      | TermsAcceptanceUncheckedCreateWithoutTermsInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput[];
+    upsert?:
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutTermsInput
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutTermsInput[];
+    createMany?: TermsAcceptanceCreateManyTermsInputEnvelope;
+    set?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    disconnect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    delete?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    update?:
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutTermsInput
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutTermsInput[];
+    updateMany?:
+      | TermsAcceptanceUpdateManyWithWhereWithoutTermsInput
+      | TermsAcceptanceUpdateManyWithWhereWithoutTermsInput[];
+    deleteMany?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+  };
+
+  export type TermsAcceptanceUncheckedUpdateManyWithoutTermsNestedInput = {
+    create?:
+      | XOR<TermsAcceptanceCreateWithoutTermsInput, TermsAcceptanceUncheckedCreateWithoutTermsInput>
+      | TermsAcceptanceCreateWithoutTermsInput[]
+      | TermsAcceptanceUncheckedCreateWithoutTermsInput[];
+    connectOrCreate?:
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput
+      | TermsAcceptanceCreateOrConnectWithoutTermsInput[];
+    upsert?:
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutTermsInput
+      | TermsAcceptanceUpsertWithWhereUniqueWithoutTermsInput[];
+    createMany?: TermsAcceptanceCreateManyTermsInputEnvelope;
+    set?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    disconnect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    delete?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    connect?: TermsAcceptanceWhereUniqueInput | TermsAcceptanceWhereUniqueInput[];
+    update?:
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutTermsInput
+      | TermsAcceptanceUpdateWithWhereUniqueWithoutTermsInput[];
+    updateMany?:
+      | TermsAcceptanceUpdateManyWithWhereWithoutTermsInput
+      | TermsAcceptanceUpdateManyWithWhereWithoutTermsInput[];
+    deleteMany?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+  };
+
+  export type OrganizationCreateNestedOneWithoutTermsAcceptancesInput = {
+    create?: XOR<
+      OrganizationCreateWithoutTermsAcceptancesInput,
+      OrganizationUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+    connectOrCreate?: OrganizationCreateOrConnectWithoutTermsAcceptancesInput;
+    connect?: OrganizationWhereUniqueInput;
+  };
+
+  export type UserCreateNestedOneWithoutTermsAcceptancesInput = {
+    create?: XOR<
+      UserCreateWithoutTermsAcceptancesInput,
+      UserUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutTermsAcceptancesInput;
+    connect?: UserWhereUniqueInput;
+  };
+
+  export type TermsAndConditionsCreateNestedOneWithoutAcceptancesInput = {
+    create?: XOR<
+      TermsAndConditionsCreateWithoutAcceptancesInput,
+      TermsAndConditionsUncheckedCreateWithoutAcceptancesInput
+    >;
+    connectOrCreate?: TermsAndConditionsCreateOrConnectWithoutAcceptancesInput;
+    connect?: TermsAndConditionsWhereUniqueInput;
+  };
+
+  export type EnumAcceptanceMethodFieldUpdateOperationsInput = {
+    set?: $Enums.AcceptanceMethod;
+  };
+
+  export type OrganizationUpdateOneRequiredWithoutTermsAcceptancesNestedInput = {
+    create?: XOR<
+      OrganizationCreateWithoutTermsAcceptancesInput,
+      OrganizationUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+    connectOrCreate?: OrganizationCreateOrConnectWithoutTermsAcceptancesInput;
+    upsert?: OrganizationUpsertWithoutTermsAcceptancesInput;
+    connect?: OrganizationWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        OrganizationUpdateToOneWithWhereWithoutTermsAcceptancesInput,
+        OrganizationUpdateWithoutTermsAcceptancesInput
+      >,
+      OrganizationUncheckedUpdateWithoutTermsAcceptancesInput
+    >;
+  };
+
+  export type UserUpdateOneRequiredWithoutTermsAcceptancesNestedInput = {
+    create?: XOR<
+      UserCreateWithoutTermsAcceptancesInput,
+      UserUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutTermsAcceptancesInput;
+    upsert?: UserUpsertWithoutTermsAcceptancesInput;
+    connect?: UserWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        UserUpdateToOneWithWhereWithoutTermsAcceptancesInput,
+        UserUpdateWithoutTermsAcceptancesInput
+      >,
+      UserUncheckedUpdateWithoutTermsAcceptancesInput
+    >;
+  };
+
+  export type TermsAndConditionsUpdateOneRequiredWithoutAcceptancesNestedInput = {
+    create?: XOR<
+      TermsAndConditionsCreateWithoutAcceptancesInput,
+      TermsAndConditionsUncheckedCreateWithoutAcceptancesInput
+    >;
+    connectOrCreate?: TermsAndConditionsCreateOrConnectWithoutAcceptancesInput;
+    upsert?: TermsAndConditionsUpsertWithoutAcceptancesInput;
+    connect?: TermsAndConditionsWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        TermsAndConditionsUpdateToOneWithWhereWithoutAcceptancesInput,
+        TermsAndConditionsUpdateWithoutAcceptancesInput
+      >,
+      TermsAndConditionsUncheckedUpdateWithoutAcceptancesInput
+    >;
+  };
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
     in?: string[] | ListStringFieldRefInput<$PrismaModel>;
@@ -42636,6 +46501,22 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string;
+  };
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>;
+    not?: NestedBoolFilter<$PrismaModel> | boolean;
+  };
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null;
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null;
   };
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
@@ -42706,22 +46587,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedDateTimeFilter<$PrismaModel>;
     _max?: NestedDateTimeFilter<$PrismaModel>;
-  };
-
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>;
-    not?: NestedBoolFilter<$PrismaModel> | boolean;
-  };
-
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null;
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null;
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>;
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null;
   };
 
   export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -43036,6 +46901,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedEnumNotificationPriorityFilter<$PrismaModel>;
     _max?: NestedEnumNotificationPriorityFilter<$PrismaModel>;
+  };
+
+  export type NestedEnumAcceptanceMethodFilter<$PrismaModel = never> = {
+    equals?: $Enums.AcceptanceMethod | EnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    in?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    not?: NestedEnumAcceptanceMethodFilter<$PrismaModel> | $Enums.AcceptanceMethod;
+  };
+
+  export type NestedEnumAcceptanceMethodWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AcceptanceMethod | EnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    in?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.AcceptanceMethod[] | ListEnumAcceptanceMethodFieldRefInput<$PrismaModel>;
+    not?: NestedEnumAcceptanceMethodWithAggregatesFilter<$PrismaModel> | $Enums.AcceptanceMethod;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _min?: NestedEnumAcceptanceMethodFilter<$PrismaModel>;
+    _max?: NestedEnumAcceptanceMethodFilter<$PrismaModel>;
   };
 
   export type MembershipCreateWithoutOrganizationInput = {
@@ -43711,6 +47593,41 @@ export namespace Prisma {
 
   export type EndpointCreateManyOrganizationInputEnvelope = {
     data: EndpointCreateManyOrganizationInput | EndpointCreateManyOrganizationInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type TermsAcceptanceCreateWithoutOrganizationInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    user: UserCreateNestedOneWithoutTermsAcceptancesInput;
+    terms: TermsAndConditionsCreateNestedOneWithoutAcceptancesInput;
+  };
+
+  export type TermsAcceptanceUncheckedCreateWithoutOrganizationInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    userId: string;
+    termsId: string;
+  };
+
+  export type TermsAcceptanceCreateOrConnectWithoutOrganizationInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    create: XOR<
+      TermsAcceptanceCreateWithoutOrganizationInput,
+      TermsAcceptanceUncheckedCreateWithoutOrganizationInput
+    >;
+  };
+
+  export type TermsAcceptanceCreateManyOrganizationInputEnvelope = {
+    data: TermsAcceptanceCreateManyOrganizationInput | TermsAcceptanceCreateManyOrganizationInput[];
     skipDuplicates?: boolean;
   };
 
@@ -44430,6 +48347,49 @@ export namespace Prisma {
     connectionId?: StringNullableFilter<'Endpoint'> | string | null;
   };
 
+  export type TermsAcceptanceUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    update: XOR<
+      TermsAcceptanceUpdateWithoutOrganizationInput,
+      TermsAcceptanceUncheckedUpdateWithoutOrganizationInput
+    >;
+    create: XOR<
+      TermsAcceptanceCreateWithoutOrganizationInput,
+      TermsAcceptanceUncheckedCreateWithoutOrganizationInput
+    >;
+  };
+
+  export type TermsAcceptanceUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    data: XOR<
+      TermsAcceptanceUpdateWithoutOrganizationInput,
+      TermsAcceptanceUncheckedUpdateWithoutOrganizationInput
+    >;
+  };
+
+  export type TermsAcceptanceUpdateManyWithWhereWithoutOrganizationInput = {
+    where: TermsAcceptanceScalarWhereInput;
+    data: XOR<
+      TermsAcceptanceUpdateManyMutationInput,
+      TermsAcceptanceUncheckedUpdateManyWithoutOrganizationInput
+    >;
+  };
+
+  export type TermsAcceptanceScalarWhereInput = {
+    AND?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+    OR?: TermsAcceptanceScalarWhereInput[];
+    NOT?: TermsAcceptanceScalarWhereInput | TermsAcceptanceScalarWhereInput[];
+    id?: StringFilter<'TermsAcceptance'> | string;
+    acceptedAt?: DateTimeFilter<'TermsAcceptance'> | Date | string;
+    ipAddress?: StringFilter<'TermsAcceptance'> | string;
+    userAgent?: StringNullableFilter<'TermsAcceptance'> | string | null;
+    geolocation?: JsonNullableFilter<'TermsAcceptance'>;
+    acceptanceMethod?: EnumAcceptanceMethodFilter<'TermsAcceptance'> | $Enums.AcceptanceMethod;
+    organizationId?: StringFilter<'TermsAcceptance'> | string;
+    userId?: StringFilter<'TermsAcceptance'> | string;
+    termsId?: StringFilter<'TermsAcceptance'> | string;
+  };
+
   export type MembershipCreateWithoutUserInput = {
     id?: string;
     role?: $Enums.MemberRole;
@@ -44928,6 +48888,41 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
+  export type TermsAcceptanceCreateWithoutUserInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organization: OrganizationCreateNestedOneWithoutTermsAcceptancesInput;
+    terms: TermsAndConditionsCreateNestedOneWithoutAcceptancesInput;
+  };
+
+  export type TermsAcceptanceUncheckedCreateWithoutUserInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organizationId: string;
+    termsId: string;
+  };
+
+  export type TermsAcceptanceCreateOrConnectWithoutUserInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    create: XOR<
+      TermsAcceptanceCreateWithoutUserInput,
+      TermsAcceptanceUncheckedCreateWithoutUserInput
+    >;
+  };
+
+  export type TermsAcceptanceCreateManyUserInputEnvelope = {
+    data: TermsAcceptanceCreateManyUserInput | TermsAcceptanceCreateManyUserInput[];
+    skipDuplicates?: boolean;
+  };
+
   export type MembershipUpsertWithWhereUniqueWithoutUserInput = {
     where: MembershipWhereUniqueInput;
     update: XOR<MembershipUpdateWithoutUserInput, MembershipUncheckedUpdateWithoutUserInput>;
@@ -45162,6 +49157,34 @@ export namespace Prisma {
     data: XOR<WorkflowUpdateManyMutationInput, WorkflowUncheckedUpdateManyWithoutCreatorInput>;
   };
 
+  export type TermsAcceptanceUpsertWithWhereUniqueWithoutUserInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    update: XOR<
+      TermsAcceptanceUpdateWithoutUserInput,
+      TermsAcceptanceUncheckedUpdateWithoutUserInput
+    >;
+    create: XOR<
+      TermsAcceptanceCreateWithoutUserInput,
+      TermsAcceptanceUncheckedCreateWithoutUserInput
+    >;
+  };
+
+  export type TermsAcceptanceUpdateWithWhereUniqueWithoutUserInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    data: XOR<
+      TermsAcceptanceUpdateWithoutUserInput,
+      TermsAcceptanceUncheckedUpdateWithoutUserInput
+    >;
+  };
+
+  export type TermsAcceptanceUpdateManyWithWhereWithoutUserInput = {
+    where: TermsAcceptanceScalarWhereInput;
+    data: XOR<
+      TermsAcceptanceUpdateManyMutationInput,
+      TermsAcceptanceUncheckedUpdateManyWithoutUserInput
+    >;
+  };
+
   export type UserCreateWithoutMembershipsInput = {
     id?: string;
     email: string;
@@ -45191,6 +49214,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -45222,6 +49246,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -45238,6 +49263,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
     apiKeys?: ApiKeyCreateNestedManyWithoutOrganizationInput;
@@ -45253,6 +49280,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutMembershipsInput = {
@@ -45264,6 +49292,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
     apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -45279,6 +49309,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutMembershipsInput = {
@@ -45329,6 +49360,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -45360,6 +49392,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutMembershipsInput = {
@@ -45391,6 +49424,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
     apiKeys?: ApiKeyUpdateManyWithoutOrganizationNestedInput;
@@ -45406,6 +49441,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutMembershipsInput = {
@@ -45417,6 +49453,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
     apiKeys?: ApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -45432,6 +49470,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateWithoutInvitationsInput = {
@@ -45443,6 +49482,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -45458,6 +49499,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -45469,6 +49511,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -45484,6 +49528,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -45523,6 +49568,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutInvitationsSentInput = {
@@ -45554,6 +49600,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutInvitationsSentInput = {
@@ -45593,6 +49640,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -45608,6 +49657,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -45619,6 +49669,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -45634,6 +49686,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutInvitationsSentInput = {
@@ -45685,6 +49738,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutInvitationsSentInput = {
@@ -45716,6 +49770,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationCreateWithoutSubscriptionInput = {
@@ -45727,6 +49782,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
     apiKeys?: ApiKeyCreateNestedManyWithoutOrganizationInput;
@@ -45742,6 +49799,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutSubscriptionInput = {
@@ -45753,6 +49811,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
     apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -45768,6 +49828,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutSubscriptionInput = {
@@ -45848,6 +49909,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
     apiKeys?: ApiKeyUpdateManyWithoutOrganizationNestedInput;
@@ -45863,6 +49926,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutSubscriptionInput = {
@@ -45874,6 +49938,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
     apiKeys?: ApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -45889,6 +49955,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type InvoiceUpsertWithWhereUniqueWithoutSubscriptionInput = {
@@ -46071,6 +50138,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutDatabaseConnectionsCreatedInput = {
@@ -46102,6 +50170,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutDatabaseConnectionsCreatedInput = {
@@ -46121,6 +50190,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     apiKeys?: ApiKeyCreateNestedManyWithoutOrganizationInput;
@@ -46136,6 +50207,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutDatabaseConnectionsInput = {
@@ -46147,6 +50219,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -46162,6 +50236,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutDatabaseConnectionsInput = {
@@ -46328,6 +50403,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutDatabaseConnectionsCreatedInput = {
@@ -46359,6 +50435,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutDatabaseConnectionsInput = {
@@ -46390,6 +50467,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     apiKeys?: ApiKeyUpdateManyWithoutOrganizationNestedInput;
@@ -46405,6 +50484,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutDatabaseConnectionsInput = {
@@ -46416,6 +50496,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     apiKeys?: ApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -46431,6 +50513,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type EndpointUpsertWithWhereUniqueWithoutConnectionInput = {
@@ -46480,6 +50563,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -46495,6 +50580,7 @@ export namespace Prisma {
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput;
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutEndpointsInput = {
@@ -46506,6 +50592,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -46521,6 +50609,7 @@ export namespace Prisma {
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput;
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutEndpointsInput = {
@@ -46560,6 +50649,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutEndpointsCreatedInput = {
@@ -46591,6 +50681,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutEndpointsCreatedInput = {
@@ -46733,6 +50824,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -46748,6 +50841,7 @@ export namespace Prisma {
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput;
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutEndpointsInput = {
@@ -46759,6 +50853,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -46774,6 +50870,7 @@ export namespace Prisma {
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput;
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutEndpointsCreatedInput = {
@@ -46825,6 +50922,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutEndpointsCreatedInput = {
@@ -46856,6 +50954,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type DatabaseConnectionUpsertWithoutEndpointsInput = {
@@ -46957,6 +51056,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -46972,6 +51073,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApiKeysInput = {
@@ -46983,6 +51085,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -46998,6 +51102,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApiKeysInput = {
@@ -47037,6 +51142,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutApiKeysCreatedInput = {
@@ -47068,6 +51174,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutApiKeysCreatedInput = {
@@ -47137,6 +51244,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -47152,6 +51261,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApiKeysInput = {
@@ -47163,6 +51273,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -47178,6 +51290,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutApiKeysCreatedInput = {
@@ -47226,6 +51339,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApiKeysCreatedInput = {
@@ -47257,6 +51371,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type UsageMetricUpsertWithWhereUniqueWithoutApiKeyInput = {
@@ -47284,6 +51399,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -47299,6 +51416,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutUsageMetricsInput = {
@@ -47310,6 +51428,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -47325,6 +51445,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutUsageMetricsInput = {
@@ -47400,6 +51521,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -47415,6 +51538,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutUsageMetricsInput = {
@@ -47426,6 +51550,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -47441,6 +51567,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ApiKeyUpsertWithoutUsageMetricsInput = {
@@ -47517,6 +51644,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutWorkflowsCreatedInput = {
@@ -47548,6 +51676,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutWorkflowsCreatedInput = {
@@ -47567,6 +51696,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -47582,6 +51713,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutWorkflowsInput = {
@@ -47593,6 +51725,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -47608,6 +51742,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutWorkflowsInput = {
@@ -47698,6 +51833,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutWorkflowsCreatedInput = {
@@ -47729,6 +51865,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutWorkflowsInput = {
@@ -47760,6 +51897,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -47775,6 +51914,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutWorkflowsInput = {
@@ -47786,6 +51926,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -47801,6 +51943,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput = {
@@ -47938,6 +52081,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -47953,6 +52098,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutWebhooksInput = {
@@ -47964,6 +52110,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -47979,6 +52127,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutWebhooksInput = {
@@ -48018,6 +52167,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -48033,6 +52184,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutWebhooksInput = {
@@ -48044,6 +52196,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -48059,6 +52213,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -48070,6 +52225,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -48085,6 +52242,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -48096,6 +52254,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -48111,6 +52271,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -48150,6 +52311,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -48181,6 +52343,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -48217,6 +52380,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -48232,6 +52397,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -48243,6 +52409,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -48258,6 +52426,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -48300,6 +52469,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -48331,6 +52501,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationCreateWithoutServicesInput = {
@@ -48342,6 +52513,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -48357,6 +52530,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutServicesInput = {
@@ -48368,6 +52542,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -48383,6 +52559,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutServicesInput = {
@@ -48422,6 +52599,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutServicesCreatedInput = {
@@ -48453,6 +52631,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutServicesCreatedInput = {
@@ -48615,6 +52794,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -48630,6 +52811,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutServicesInput = {
@@ -48641,6 +52823,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -48656,6 +52840,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutServicesCreatedInput = {
@@ -48707,6 +52892,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutServicesCreatedInput = {
@@ -48738,6 +52924,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type DatabaseConnectionUpsertWithoutServicesInput = {
@@ -48855,6 +53042,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -48870,6 +53059,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -48881,6 +53071,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -48896,6 +53088,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -48935,6 +53128,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutApplicationsCreatedInput = {
@@ -48966,6 +53160,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutApplicationsCreatedInput = {
@@ -49036,6 +53231,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -49051,6 +53248,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -49062,6 +53260,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -49077,6 +53277,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutApplicationsCreatedInput = {
@@ -49128,6 +53329,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApplicationsCreatedInput = {
@@ -49159,6 +53361,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type RoleUpsertWithoutApplicationsInput = {
@@ -49207,6 +53410,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -49222,6 +53427,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRolesInput = {
@@ -49233,6 +53439,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -49248,6 +53456,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRolesInput = {
@@ -49331,6 +53540,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutRolesCreatedInput = {
@@ -49362,6 +53572,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutRolesCreatedInput = {
@@ -49432,6 +53643,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -49447,6 +53660,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRolesInput = {
@@ -49458,6 +53672,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -49473,6 +53689,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutRolesInput = {
@@ -49568,6 +53785,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRolesCreatedInput = {
@@ -49599,6 +53817,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type ApplicationUpsertWithWhereUniqueWithoutDefaultRoleInput = {
@@ -49638,6 +53857,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -49653,6 +53874,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutNotificationsInput = {
@@ -49664,6 +53886,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -49679,6 +53903,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutNotificationsInput = {
@@ -49718,6 +53943,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -49749,6 +53975,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -49785,6 +54012,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -49800,6 +54029,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutNotificationsInput = {
@@ -49811,6 +54041,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -49826,6 +54058,7 @@ export namespace Prisma {
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutNotificationsInput = {
@@ -49868,6 +54101,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -49899,6 +54133,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationCreateWithoutApiActivityLogsInput = {
@@ -49910,6 +54145,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -49925,6 +54162,7 @@ export namespace Prisma {
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApiActivityLogsInput = {
@@ -49936,6 +54174,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -49951,6 +54191,7 @@ export namespace Prisma {
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput;
     databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApiActivityLogsInput = {
@@ -49990,6 +54231,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutApiActivityLogsInput = {
@@ -50021,6 +54263,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutApiActivityLogsInput = {
@@ -50107,6 +54350,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -50122,6 +54367,7 @@ export namespace Prisma {
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApiActivityLogsInput = {
@@ -50133,6 +54379,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -50148,6 +54396,7 @@ export namespace Prisma {
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput;
     databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutApiActivityLogsInput = {
@@ -50199,6 +54448,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApiActivityLogsInput = {
@@ -50230,6 +54480,7 @@ export namespace Prisma {
     endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
     databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type EndpointUpsertWithoutUsageLogsInput = {
@@ -50294,6 +54545,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
@@ -50309,6 +54562,7 @@ export namespace Prisma {
     notifications?: NotificationCreateNestedManyWithoutOrganizationInput;
     apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutDatabaseObjectsInput = {
@@ -50320,6 +54574,8 @@ export namespace Prisma {
     website?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
     memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
     subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
     databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
@@ -50335,6 +54591,7 @@ export namespace Prisma {
     notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput;
     apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
     endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutDatabaseObjectsInput = {
@@ -50424,6 +54681,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
@@ -50439,6 +54698,7 @@ export namespace Prisma {
     notifications?: NotificationUpdateManyWithoutOrganizationNestedInput;
     apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutDatabaseObjectsInput = {
@@ -50450,6 +54710,8 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
     memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
     databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
@@ -50465,6 +54727,7 @@ export namespace Prisma {
     notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput;
     apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
     endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutDatabaseObjectsInput = {
@@ -50527,6 +54790,441 @@ export namespace Prisma {
     createdBy?: StringFieldUpdateOperationsInput | string;
     connectionId?: NullableStringFieldUpdateOperationsInput | string | null;
     roles?: RoleUncheckedUpdateManyWithoutServiceNestedInput;
+  };
+
+  export type TermsAcceptanceCreateWithoutTermsInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organization: OrganizationCreateNestedOneWithoutTermsAcceptancesInput;
+    user: UserCreateNestedOneWithoutTermsAcceptancesInput;
+  };
+
+  export type TermsAcceptanceUncheckedCreateWithoutTermsInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organizationId: string;
+    userId: string;
+  };
+
+  export type TermsAcceptanceCreateOrConnectWithoutTermsInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    create: XOR<
+      TermsAcceptanceCreateWithoutTermsInput,
+      TermsAcceptanceUncheckedCreateWithoutTermsInput
+    >;
+  };
+
+  export type TermsAcceptanceCreateManyTermsInputEnvelope = {
+    data: TermsAcceptanceCreateManyTermsInput | TermsAcceptanceCreateManyTermsInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type TermsAcceptanceUpsertWithWhereUniqueWithoutTermsInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    update: XOR<
+      TermsAcceptanceUpdateWithoutTermsInput,
+      TermsAcceptanceUncheckedUpdateWithoutTermsInput
+    >;
+    create: XOR<
+      TermsAcceptanceCreateWithoutTermsInput,
+      TermsAcceptanceUncheckedCreateWithoutTermsInput
+    >;
+  };
+
+  export type TermsAcceptanceUpdateWithWhereUniqueWithoutTermsInput = {
+    where: TermsAcceptanceWhereUniqueInput;
+    data: XOR<
+      TermsAcceptanceUpdateWithoutTermsInput,
+      TermsAcceptanceUncheckedUpdateWithoutTermsInput
+    >;
+  };
+
+  export type TermsAcceptanceUpdateManyWithWhereWithoutTermsInput = {
+    where: TermsAcceptanceScalarWhereInput;
+    data: XOR<
+      TermsAcceptanceUpdateManyMutationInput,
+      TermsAcceptanceUncheckedUpdateManyWithoutTermsInput
+    >;
+  };
+
+  export type OrganizationCreateWithoutTermsAcceptancesInput = {
+    id?: string;
+    name: string;
+    slug: string;
+    domain?: string | null;
+    logo?: string | null;
+    website?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
+    memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
+    subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
+    databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
+    apiKeys?: ApiKeyCreateNestedManyWithoutOrganizationInput;
+    usageMetrics?: UsageMetricCreateNestedManyWithoutOrganizationInput;
+    workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
+    invitations?: InvitationCreateNestedManyWithoutOrganizationInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput;
+    webhooks?: WebhookCreateNestedManyWithoutOrganizationInput;
+    services?: ServiceCreateNestedManyWithoutOrganizationInput;
+    applications?: ApplicationCreateNestedManyWithoutOrganizationInput;
+    roles?: RoleCreateNestedManyWithoutOrganizationInput;
+    notifications?: NotificationCreateNestedManyWithoutOrganizationInput;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
+    databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
+    endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+  };
+
+  export type OrganizationUncheckedCreateWithoutTermsAcceptancesInput = {
+    id?: string;
+    name: string;
+    slug: string;
+    domain?: string | null;
+    logo?: string | null;
+    website?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    requiresTermsAcceptance?: boolean;
+    lastTermsPromptedAt?: Date | string | null;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
+    databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutOrganizationInput;
+    usageMetrics?: UsageMetricUncheckedCreateNestedManyWithoutOrganizationInput;
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
+    invitations?: InvitationUncheckedCreateNestedManyWithoutOrganizationInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput;
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutOrganizationInput;
+    services?: ServiceUncheckedCreateNestedManyWithoutOrganizationInput;
+    applications?: ApplicationUncheckedCreateNestedManyWithoutOrganizationInput;
+    roles?: RoleUncheckedCreateNestedManyWithoutOrganizationInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
+    databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
+    endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+  };
+
+  export type OrganizationCreateOrConnectWithoutTermsAcceptancesInput = {
+    where: OrganizationWhereUniqueInput;
+    create: XOR<
+      OrganizationCreateWithoutTermsAcceptancesInput,
+      OrganizationUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+  };
+
+  export type UserCreateWithoutTermsAcceptancesInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    memberships?: MembershipCreateNestedManyWithoutUserInput;
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyCreateNestedManyWithoutCreatedByInput;
+    servicesCreated?: ServiceCreateNestedManyWithoutCreatorInput;
+    applicationsCreated?: ApplicationCreateNestedManyWithoutCreatorInput;
+    rolesCreated?: RoleCreateNestedManyWithoutCreatorInput;
+    notifications?: NotificationCreateNestedManyWithoutUserInput;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
+    endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
+    databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
+    workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+  };
+
+  export type UserUncheckedCreateWithoutTermsAcceptancesInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutUserInput;
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput;
+    servicesCreated?: ServiceUncheckedCreateNestedManyWithoutCreatorInput;
+    applicationsCreated?: ApplicationUncheckedCreateNestedManyWithoutCreatorInput;
+    rolesCreated?: RoleUncheckedCreateNestedManyWithoutCreatorInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
+    endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
+    workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+  };
+
+  export type UserCreateOrConnectWithoutTermsAcceptancesInput = {
+    where: UserWhereUniqueInput;
+    create: XOR<
+      UserCreateWithoutTermsAcceptancesInput,
+      UserUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+  };
+
+  export type TermsAndConditionsCreateWithoutAcceptancesInput = {
+    id?: string;
+    version: string;
+    content: string;
+    summary?: string | null;
+    effectiveDate: Date | string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type TermsAndConditionsUncheckedCreateWithoutAcceptancesInput = {
+    id?: string;
+    version: string;
+    content: string;
+    summary?: string | null;
+    effectiveDate: Date | string;
+    isActive?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type TermsAndConditionsCreateOrConnectWithoutAcceptancesInput = {
+    where: TermsAndConditionsWhereUniqueInput;
+    create: XOR<
+      TermsAndConditionsCreateWithoutAcceptancesInput,
+      TermsAndConditionsUncheckedCreateWithoutAcceptancesInput
+    >;
+  };
+
+  export type OrganizationUpsertWithoutTermsAcceptancesInput = {
+    update: XOR<
+      OrganizationUpdateWithoutTermsAcceptancesInput,
+      OrganizationUncheckedUpdateWithoutTermsAcceptancesInput
+    >;
+    create: XOR<
+      OrganizationCreateWithoutTermsAcceptancesInput,
+      OrganizationUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+    where?: OrganizationWhereInput;
+  };
+
+  export type OrganizationUpdateToOneWithWhereWithoutTermsAcceptancesInput = {
+    where?: OrganizationWhereInput;
+    data: XOR<
+      OrganizationUpdateWithoutTermsAcceptancesInput,
+      OrganizationUncheckedUpdateWithoutTermsAcceptancesInput
+    >;
+  };
+
+  export type OrganizationUpdateWithoutTermsAcceptancesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    name?: StringFieldUpdateOperationsInput | string;
+    slug?: StringFieldUpdateOperationsInput | string;
+    domain?: NullableStringFieldUpdateOperationsInput | string | null;
+    logo?: NullableStringFieldUpdateOperationsInput | string | null;
+    website?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
+    subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
+    databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
+    apiKeys?: ApiKeyUpdateManyWithoutOrganizationNestedInput;
+    usageMetrics?: UsageMetricUpdateManyWithoutOrganizationNestedInput;
+    workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
+    invitations?: InvitationUpdateManyWithoutOrganizationNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput;
+    webhooks?: WebhookUpdateManyWithoutOrganizationNestedInput;
+    services?: ServiceUpdateManyWithoutOrganizationNestedInput;
+    applications?: ApplicationUpdateManyWithoutOrganizationNestedInput;
+    roles?: RoleUpdateManyWithoutOrganizationNestedInput;
+    notifications?: NotificationUpdateManyWithoutOrganizationNestedInput;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
+    databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
+    endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type OrganizationUncheckedUpdateWithoutTermsAcceptancesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    name?: StringFieldUpdateOperationsInput | string;
+    slug?: StringFieldUpdateOperationsInput | string;
+    domain?: NullableStringFieldUpdateOperationsInput | string | null;
+    logo?: NullableStringFieldUpdateOperationsInput | string | null;
+    website?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
+    subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
+    databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput;
+    usageMetrics?: UsageMetricUncheckedUpdateManyWithoutOrganizationNestedInput;
+    workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
+    invitations?: InvitationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput;
+    webhooks?: WebhookUncheckedUpdateManyWithoutOrganizationNestedInput;
+    services?: ServiceUncheckedUpdateManyWithoutOrganizationNestedInput;
+    applications?: ApplicationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    roles?: RoleUncheckedUpdateManyWithoutOrganizationNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
+    databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
+    endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type UserUpsertWithoutTermsAcceptancesInput = {
+    update: XOR<
+      UserUpdateWithoutTermsAcceptancesInput,
+      UserUncheckedUpdateWithoutTermsAcceptancesInput
+    >;
+    create: XOR<
+      UserCreateWithoutTermsAcceptancesInput,
+      UserUncheckedCreateWithoutTermsAcceptancesInput
+    >;
+    where?: UserWhereInput;
+  };
+
+  export type UserUpdateToOneWithWhereWithoutTermsAcceptancesInput = {
+    where?: UserWhereInput;
+    data: XOR<
+      UserUpdateWithoutTermsAcceptancesInput,
+      UserUncheckedUpdateWithoutTermsAcceptancesInput
+    >;
+  };
+
+  export type UserUpdateWithoutTermsAcceptancesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    memberships?: MembershipUpdateManyWithoutUserNestedInput;
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUpdateManyWithoutCreatedByNestedInput;
+    servicesCreated?: ServiceUpdateManyWithoutCreatorNestedInput;
+    applicationsCreated?: ApplicationUpdateManyWithoutCreatorNestedInput;
+    rolesCreated?: RoleUpdateManyWithoutCreatorNestedInput;
+    notifications?: NotificationUpdateManyWithoutUserNestedInput;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
+    endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
+    workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type UserUncheckedUpdateWithoutTermsAcceptancesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    memberships?: MembershipUncheckedUpdateManyWithoutUserNestedInput;
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput;
+    servicesCreated?: ServiceUncheckedUpdateManyWithoutCreatorNestedInput;
+    applicationsCreated?: ApplicationUncheckedUpdateManyWithoutCreatorNestedInput;
+    rolesCreated?: RoleUncheckedUpdateManyWithoutCreatorNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
+    endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
+    workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type TermsAndConditionsUpsertWithoutAcceptancesInput = {
+    update: XOR<
+      TermsAndConditionsUpdateWithoutAcceptancesInput,
+      TermsAndConditionsUncheckedUpdateWithoutAcceptancesInput
+    >;
+    create: XOR<
+      TermsAndConditionsCreateWithoutAcceptancesInput,
+      TermsAndConditionsUncheckedCreateWithoutAcceptancesInput
+    >;
+    where?: TermsAndConditionsWhereInput;
+  };
+
+  export type TermsAndConditionsUpdateToOneWithWhereWithoutAcceptancesInput = {
+    where?: TermsAndConditionsWhereInput;
+    data: XOR<
+      TermsAndConditionsUpdateWithoutAcceptancesInput,
+      TermsAndConditionsUncheckedUpdateWithoutAcceptancesInput
+    >;
+  };
+
+  export type TermsAndConditionsUpdateWithoutAcceptancesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    version?: StringFieldUpdateOperationsInput | string;
+    content?: StringFieldUpdateOperationsInput | string;
+    summary?: NullableStringFieldUpdateOperationsInput | string | null;
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type TermsAndConditionsUncheckedUpdateWithoutAcceptancesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    version?: StringFieldUpdateOperationsInput | string;
+    content?: StringFieldUpdateOperationsInput | string;
+    summary?: NullableStringFieldUpdateOperationsInput | string | null;
+    effectiveDate?: DateTimeFieldUpdateOperationsInput | Date | string;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
   export type MembershipCreateManyOrganizationInput = {
@@ -50736,6 +55434,17 @@ export namespace Prisma {
     updatedAt?: Date | string;
     createdBy: string;
     connectionId?: string | null;
+  };
+
+  export type TermsAcceptanceCreateManyOrganizationInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    userId: string;
+    termsId: string;
   };
 
   export type MembershipUpdateWithoutOrganizationInput = {
@@ -51381,6 +56090,39 @@ export namespace Prisma {
     connectionId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
+  export type TermsAcceptanceUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    user?: UserUpdateOneRequiredWithoutTermsAcceptancesNestedInput;
+    terms?: TermsAndConditionsUpdateOneRequiredWithoutAcceptancesNestedInput;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    userId?: StringFieldUpdateOperationsInput | string;
+    termsId?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    userId?: StringFieldUpdateOperationsInput | string;
+    termsId?: StringFieldUpdateOperationsInput | string;
+  };
+
   export type MembershipCreateManyUserInput = {
     id?: string;
     role?: $Enums.MemberRole;
@@ -51554,6 +56296,17 @@ export namespace Prisma {
     createdAt?: Date | string;
     updatedAt?: Date | string;
     organizationId: string;
+  };
+
+  export type TermsAcceptanceCreateManyUserInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organizationId: string;
+    termsId: string;
   };
 
   export type MembershipUpdateWithoutUserInput = {
@@ -52097,6 +56850,39 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string;
   };
 
+  export type TermsAcceptanceUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organization?: OrganizationUpdateOneRequiredWithoutTermsAcceptancesNestedInput;
+    terms?: TermsAndConditionsUpdateOneRequiredWithoutAcceptancesNestedInput;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    termsId?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    termsId?: StringFieldUpdateOperationsInput | string;
+  };
+
   export type InvoiceCreateManySubscriptionInput = {
     id?: string;
     invoiceNumber: string;
@@ -52627,6 +57413,50 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     organizationId?: StringFieldUpdateOperationsInput | string;
     createdBy?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type TermsAcceptanceCreateManyTermsInput = {
+    id?: string;
+    acceptedAt?: Date | string;
+    ipAddress: string;
+    userAgent?: string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: $Enums.AcceptanceMethod;
+    organizationId: string;
+    userId: string;
+  };
+
+  export type TermsAcceptanceUpdateWithoutTermsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organization?: OrganizationUpdateOneRequiredWithoutTermsAcceptancesNestedInput;
+    user?: UserUpdateOneRequiredWithoutTermsAcceptancesNestedInput;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateWithoutTermsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    userId?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type TermsAcceptanceUncheckedUpdateManyWithoutTermsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    acceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    ipAddress?: StringFieldUpdateOperationsInput | string;
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null;
+    geolocation?: NullableJsonNullValueInput | InputJsonValue;
+    acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    userId?: StringFieldUpdateOperationsInput | string;
   };
 
   /**

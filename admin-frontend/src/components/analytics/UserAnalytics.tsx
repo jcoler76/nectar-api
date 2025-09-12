@@ -5,6 +5,7 @@ import {
   CalendarDaysIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
+import { graphqlRequest } from '../../services/graphql'
 import MetricCard from '../dashboard/MetricCard'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -49,50 +50,64 @@ export default function UserAnalytics() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMetrics({
-        totalUsers: 1247,
-        activeUsers: 892,
-        newUsersToday: 23,
-        newUsersThisWeek: 156,
-        newUsersThisMonth: 634,
-        averageSessionDuration: 18.5,
-        dailyActiveUsers: 325,
-        monthlyActiveUsers: 892,
-        userRetentionRate: 78.2
-      })
+    let mounted = true
+    const load = async () => {
+      try {
+        const [totals, actives, recent] = await Promise.all([
+          graphqlRequest<{ users: { pageInfo: { totalCount: number } } }>(`query { users(pagination: { limit: 1, offset: 0 }) { pageInfo { totalCount } } }`),
+          graphqlRequest<{ users: { pageInfo: { totalCount: number } } }>(`query { users(filters: { isActive: true }, pagination: { limit: 1, offset: 0 }) { pageInfo { totalCount } } }`),
+          graphqlRequest<{ users: { edges: { node: { createdAt: string } }[] } }>(`query { users(pagination: { limit: 1000, offset: 0, sortBy: "createdAt", sortOrder: DESC }) { edges { node { createdAt } } } }`),
+        ])
+        if (!mounted) return
+        const totalUsers = totals.users.pageInfo.totalCount
+        const activeUsers = actives.users.pageInfo.totalCount
+        const today = new Date().toISOString().slice(0,10)
+        const createdDates = recent.users.edges.map(e => e.node.createdAt.slice(0,10))
+        const newUsersToday = createdDates.filter(d => d === today).length
+        const oneWeekAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10)
+        const newUsersThisWeek = createdDates.filter(d => d >= oneWeekAgo).length
+        const oneMonthAgo = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10)
+        const newUsersThisMonth = createdDates.filter(d => d >= oneMonthAgo).length
 
-      setGrowthData([
-        { date: '2024-01-01', newUsers: 45, totalUsers: 1150, activeUsers: 820 },
-        { date: '2024-02-01', newUsers: 52, totalUsers: 1202, activeUsers: 845 },
-        { date: '2024-03-01', newUsers: 38, totalUsers: 1240, activeUsers: 870 },
-        { date: '2024-04-01', newUsers: 47, totalUsers: 1287, activeUsers: 892 },
-        { date: '2024-05-01', newUsers: 61, totalUsers: 1348, activeUsers: 915 },
-        { date: '2024-06-01', newUsers: 43, totalUsers: 1391, activeUsers: 925 }
-      ])
+        setMetrics({
+          totalUsers,
+          activeUsers,
+          newUsersToday,
+          newUsersThisWeek,
+          newUsersThisMonth,
+          averageSessionDuration: 0,
+          dailyActiveUsers: 0,
+          monthlyActiveUsers: activeUsers,
+          userRetentionRate: 0,
+        })
 
-      setEngagementData([
-        { feature: 'Dashboard', usage: 95, users: 847 },
-        { feature: 'Reports', usage: 78, users: 695 },
-        { feature: 'Settings', usage: 45, users: 401 },
-        { feature: 'API Access', usage: 32, users: 285 },
-        { feature: 'Integrations', usage: 28, users: 249 },
-        { feature: 'Analytics', usage: 67, users: 598 }
-      ])
-
-      setAcquisitionData([
-        { channel: 'Organic Search', users: 425, conversion: 3.2 },
-        { channel: 'Direct', users: 312, conversion: 8.5 },
-        { channel: 'Social Media', users: 187, conversion: 2.1 },
-        { channel: 'Email Campaign', users: 156, conversion: 12.3 },
-        { channel: 'Referral', users: 134, conversion: 6.8 },
-        { channel: 'Paid Ads', users: 89, conversion: 4.7 }
-      ])
-
-      setLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
+        // Build growthData: last 6 months buckets
+        const growth: { date: string; newUsers: number; totalUsers: number; activeUsers: number }[] = []
+        const now = new Date()
+        const byMonth: Record<string, number> = {}
+        createdDates.forEach(d => {
+          const month = d.slice(0,7) + '-01'
+          byMonth[month] = (byMonth[month] || 0) + 1
+        })
+        let runningTotal = 0
+        for (let i = 5; i >= 0; i--) {
+          const dt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1))
+          const key = dt.toISOString().slice(0,10)
+          const newUsers = byMonth[key] || 0
+          runningTotal += newUsers
+          growth.push({ date: key, newUsers, totalUsers: runningTotal, activeUsers })
+        }
+        setGrowthData(growth)
+        setEngagementData([])
+        setAcquisitionData([])
+      } catch (e) {
+        console.error('Failed to load user analytics', e)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => { mounted = false }
   }, [])
 
   const acquisitionColumns = [

@@ -54,8 +54,8 @@ async function authenticateUser(username, password) {
     path: `${apiUrl.pathname}${apiUrl.search}`,
     method: 'GET',
     headers: {
-      'x-nectar-api-key': apiKey,
-      'x-dreamfactory-api-key': apiKey,
+      'x-nectarstudio-api-key': apiKey,
+      'x-nectarstudio-string-api-key': apiKey,
     },
   };
 

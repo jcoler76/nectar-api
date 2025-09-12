@@ -52,7 +52,9 @@ const DatabaseTriggerPanel = ({ node, onNodeDataChange }) => {
       setLoading(prev => ({ ...prev, connections: true }));
       try {
         const fetchedConnections = await getConnections();
-        setConnections(fetchedConnections);
+        // Filter to only show active connections for workflow configuration
+        const activeConnections = fetchedConnections.filter(connection => connection.isActive);
+        setConnections(activeConnections);
       } catch (error) {
         showNotification('Failed to load database connections', 'error');
         console.error('Error fetching connections:', error);
