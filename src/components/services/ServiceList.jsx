@@ -1,15 +1,5 @@
-import { Tooltip } from '@mui/material';
-import {
-  AlertCircle,
-  CheckCircle,
-  Download,
-  Edit,
-  HelpCircle,
-  Info,
-  Plus,
-  RefreshCw,
-  Trash2,
-} from 'lucide-react';
+import Tooltip from '@mui/material/Tooltip';
+import { Edit, HelpCircle, Info, RefreshCw, Trash2 } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
@@ -17,13 +7,11 @@ import { useConnections } from '../../hooks/useConnections';
 import { useFormDialog } from '../../hooks/useFormDialog';
 import { useServices } from '../../hooks/useServices';
 import api from '../../services/api';
+import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DependencyWarningDialog from '../common/DependencyWarningDialog';
-import LoadingSpinner from '../common/LoadingSpinner';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import { DataTable } from '../ui/data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
@@ -318,91 +306,30 @@ const ServiceList = () => {
     ]
   );
 
-  if (loading) return <LoadingSpinner />;
-
   return (
-    <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Error and Success Messages */}
-      {error && (
-        <Card className="border-destructive/50 bg-destructive/10">
-          <CardContent className="flex items-center gap-2 p-4">
-            <AlertCircle className="h-4 w-4 text-destructive" />
-            <span className="text-destructive font-medium">{error}</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {success && (
-        <Card className="border-green-500/50 bg-green-50">
-          <CardContent className="flex items-center gap-2 p-4">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <span className="text-green-700 font-medium">{success}</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Header - Responsive */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="text-center sm:text-left">
-          <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
-              Services
-            </h1>
-            <Tooltip title="Services are database connections that expose your data through secure API endpoints. Create, manage, and monitor your database integrations here.">
-              <Info className="h-5 w-5 text-ocean-600 cursor-help" />
-            </Tooltip>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Manage your database services and connections
-          </p>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
-          <Tooltip title="Export all services to CSV format for backup, reporting, or external analysis">
-            <Button
-              variant="ocean"
-              size="sm"
-              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              onClick={() => {
-                const csvContent = prepareExportData();
-                // Simple CSV export functionality
-                const csv = [
-                  Object.keys(csvContent[0]).join(','),
-                  ...csvContent.map(row => Object.values(row).join(',')),
-                ].join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob); // eslint-disable-line no-undef
-                const a = document.createElement('a'); // eslint-disable-line no-undef
-                a.href = url;
-                a.download = 'services-list.csv';
-                a.click();
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-          </Tooltip>
-          <Tooltip title="Create a new database service by connecting to an existing database connection">
-            <Button
-              size="sm"
-              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              onClick={() => handleAdd(fetchConnections)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="sm:hidden">Add</span>
-              <span className="hidden sm:inline">Add Service</span>
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-
-      {/* Services Data Table */}
-      <DataTable
+    <>
+      <BaseListView
+        title="Services"
+        description="Manage your database services and connections"
         data={services}
         columns={columns}
+        loading={loading}
+        error={error}
+        success={success}
+        onAdd={() => handleAdd(fetchConnections)}
+        prepareExportData={prepareExportData}
+        exportFilename="services-list.csv"
+        customActions={[
+          {
+            label: 'Swagger',
+            onClick: openSwaggerDialog,
+            icon: Info,
+            variant: 'outline',
+            mobileHidden: true,
+          },
+        ]}
         searchable={true}
         filterable={true}
-        exportable={false}
-        loading={loading}
         defaultSort={{ key: 'name', direction: 'asc' }}
       />
 
@@ -501,7 +428,7 @@ const ServiceList = () => {
         dependencies={dependencyWarning.dependencies}
         additionalWarning="All associated roles and database objects will be permanently deleted."
       />
-    </div>
+    </>
   );
 };
 

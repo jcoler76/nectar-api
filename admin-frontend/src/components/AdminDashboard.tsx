@@ -9,6 +9,8 @@ import {
 import { useEffect, useState } from 'react'
 import { graphqlRequest } from '../services/graphql'
 import AdminLayout from './layout/AdminLayout'
+import SecuritySettings from './system/SecuritySettings'
+import ApplicationKeyManager from './system/ApplicationKeyManager'
 import LeadList from './crm/LeadList'
 import ConversationView from './crm/ConversationView'
 import RevenueDashboard from './analytics/RevenueDashboard'
@@ -124,6 +126,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case '/billing/transactions': return 'Transactions'
       case '/billing/stripe': return 'Stripe Configuration'
       case '/system': return 'System'
+      case '/system/security': return 'Security Settings'
+      case '/system/app-keys': return 'Application Keys'
       case '/crm/leads': return 'Leads'
       case '/crm/conversations': return 'Conversations'
       case '/system/config': return 'System Configuration'
@@ -264,6 +268,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         {currentPage === '/billing/transactions' && <TransactionReport />}
         {currentPage === '/billing/stripe' && <StripeConfiguration />}
         
+        {/* System Pages */}
+        {currentPage === '/system/security' && <SecuritySettings />}
+        {currentPage === '/system/app-keys' && <ApplicationKeyManager />}
+
         {/* Other Pages */}
         {currentPage !== '/dashboard' && 
          currentPage !== '/analytics/revenue' &&
@@ -274,7 +282,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
          currentPage !== '/users/subscriptions' &&
          currentPage !== '/billing/overview' &&
          currentPage !== '/billing/transactions' &&
-         currentPage !== '/billing/stripe' && (
+         currentPage !== '/billing/stripe' &&
+         currentPage !== '/system/security' &&
+         currentPage !== '/system/app-keys' && (
           <div className="bg-white rounded-lg shadow p-8">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">{getPageTitle()}</h2>

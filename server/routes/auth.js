@@ -4,6 +4,8 @@ const authService = require('../services/authService');
 const AuthFactory = require('../middleware/authFactory');
 const { logger } = require('../utils/logger');
 const { body, validationResult } = require('express-validator');
+const { getPrismaClient } = require('../config/prisma');
+const bcrypt = require('bcryptjs');
 
 // Validation rules
 const loginValidation = [
@@ -41,6 +43,20 @@ const changePasswordValidation = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
     .withMessage(
       'New password must contain at least 8 characters with uppercase, lowercase, number, and special character'
+    ),
+];
+
+const emailVerificationValidation = [
+  body('token').isUUID().withMessage('Valid verification token is required'),
+];
+
+const setPasswordValidation = [
+  body('token').isUUID().withMessage('Valid verification token is required'),
+  body('password')
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage(
+      'Password must contain at least 8 characters with uppercase, lowercase, number, and special character'
     ),
 ];
 
@@ -310,6 +326,231 @@ router.post('/logout', AuthFactory.createJWTMiddleware(), async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Logout failed',
+    });
+  }
+});
+
+/**
+ * GET /api/auth/verify-email/:token
+ * Verify email verification token and get user info
+ */
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required',
+      });
+    }
+
+    const prisma = getPrismaClient();
+
+    // Find the verification token
+    const verificationToken = await prisma.emailVerificationToken.findUnique({
+      where: { token },
+    });
+
+    if (!verificationToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification token',
+      });
+    }
+
+    // Check if token is expired
+    if (verificationToken.expiresAt < new Date()) {
+      await prisma.emailVerificationToken.delete({
+        where: { id: verificationToken.id },
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token has expired',
+      });
+    }
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email: verificationToken.email },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Token is valid',
+      data: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        needsPassword: !user.passwordHash,
+        token: token,
+      },
+    });
+  } catch (error) {
+    logger.error('Email verification error', { error: error.message, token: req.params.token });
+    res.status(500).json({
+      success: false,
+      message: 'Verification failed',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/set-password
+ * Set password for verified user account
+ */
+router.post('/set-password', setPasswordValidation, handleValidationErrors, async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    const ipAddress = getClientIP(req);
+
+    const prisma = getPrismaClient();
+
+    // Find and validate the verification token
+    const verificationToken = await prisma.emailVerificationToken.findUnique({
+      where: { token },
+    });
+
+    if (!verificationToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification token',
+      });
+    }
+
+    // Check if token is expired
+    if (verificationToken.expiresAt < new Date()) {
+      await prisma.emailVerificationToken.delete({
+        where: { id: verificationToken.id },
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token has expired',
+      });
+    }
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email: verificationToken.email },
+      include: {
+        memberships: {
+          include: {
+            organization: {
+              include: {
+                subscription: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Hash the password
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Update user in transaction
+    await prisma.$transaction(async tx => {
+      // Update user with password and verify email
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+          lastLoginAt: new Date(),
+        },
+      });
+
+      // Delete the verification token
+      await tx.emailVerificationToken.delete({
+        where: { id: verificationToken.id },
+      });
+    });
+
+    // Generate JWT token for immediate login
+    const primaryMembership = user.memberships[0];
+    const organization = primaryMembership.organization;
+
+    const tokenPayload = {
+      userId: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      organizationId: organization.id,
+      organizationSlug: organization.slug,
+      role: primaryMembership.role,
+      isAdmin: primaryMembership.role === 'OWNER',
+      isSuperAdmin: user.isSuperAdmin || false,
+      type: 'access',
+    };
+
+    const jwt = require('jsonwebtoken');
+    const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
+    const jwtToken = jwt.sign(tokenPayload, jwtSecret, {
+      expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+      issuer: process.env.JWT_ISSUER || 'nectar-api',
+      audience: 'nectar-users',
+    });
+
+    logger.info('Password set successfully', {
+      userId: user.id,
+      email: user.email,
+      organizationId: organization.id,
+      ipAddress,
+    });
+
+    res.json({
+      success: true,
+      message: 'Password set successfully. You are now logged in.',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isActive: user.isActive,
+        emailVerified: true,
+        lastLoginAt: new Date(),
+      },
+      organization: {
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+        subscription: organization.subscription,
+      },
+      membership: {
+        role: primaryMembership.role,
+        joinedAt: primaryMembership.joinedAt,
+      },
+      token: jwtToken,
+      expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    });
+  } catch (error) {
+    logger.error('Set password error', {
+      error: error.message,
+      email: req.body.email,
+      ipAddress: getClientIP(req),
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to set password',
     });
   }
 });

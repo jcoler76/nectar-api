@@ -3,6 +3,7 @@ const bcryptjs = require('bcryptjs');
 const { logger } = require('./logger');
 
 const prisma = new PrismaClient();
+const { getConfiguredApiKey } = require('../utils/headerUtils');
 
 class AuthenticationError extends Error {
   constructor(message, statusCode, details = {}) {
@@ -13,20 +14,10 @@ class AuthenticationError extends Error {
   }
 }
 
-function getHeaderCaseInsensitive(headers, targetHeader) {
-  if (headers[targetHeader]) return headers[targetHeader];
-  const lower = targetHeader.toLowerCase();
-  for (const [k, v] of Object.entries(headers)) {
-    if (k.toLowerCase() === lower) return v;
-  }
-  return null;
-}
-
 const apiKeyServiceMiddleware = async (req, res, next) => {
   const started = Date.now();
   try {
-    let apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectarstudio-api-key');
-    if (!apiKey) apiKey = req.query.api_key;
+    const { apiKey } = getConfiguredApiKey(req);
     if (!apiKey) throw new AuthenticationError('API key required', 401);
 
     const prefix = apiKey.substring(0, 4);

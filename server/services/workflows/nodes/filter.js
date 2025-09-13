@@ -1,4 +1,4 @@
-const get = require('lodash.get');
+const { get } = require('../../../utils/objectUtils');
 const { logger } = require('../../../utils/logger');
 
 const checkCondition = (actualValue, operator, expectedValue) => {

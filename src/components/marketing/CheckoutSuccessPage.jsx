@@ -103,9 +103,10 @@ const CheckoutSuccessPage = () => {
                   1
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">Check your email</p>
+                  <p className="font-medium text-gray-900">Check your email immediately</p>
                   <p className="text-gray-600 text-sm">
-                    We've sent you a welcome email with your account details
+                    We've sent a welcome email with a verification link to{' '}
+                    <strong>{sessionData?.customer_email || 'your email address'}</strong>
                   </p>
                 </div>
               </div>
@@ -114,9 +115,9 @@ const CheckoutSuccessPage = () => {
                   2
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">Set up your workspace</p>
+                  <p className="font-medium text-gray-900">Verify & set your password</p>
                   <p className="text-gray-600 text-sm">
-                    Complete the onboarding process to get started
+                    Click the verification link to activate your account and create your password
                   </p>
                 </div>
               </div>
@@ -125,24 +126,37 @@ const CheckoutSuccessPage = () => {
                   3
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">Start automating</p>
+                  <p className="font-medium text-gray-900">Start building workflows</p>
                   <p className="text-gray-600 text-sm">
-                    Create your first workflow and see the magic happen
+                    Access your dashboard and create your first automation
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Email Verification Required */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8">
+            <div className="flex items-center gap-2 text-amber-800 mb-2">
+              <Mail className="w-5 h-5" />
+              <span className="font-semibold">Email Verification Required</span>
+            </div>
+            <p className="text-amber-700 text-sm">
+              Please check your email at{' '}
+              <strong>{sessionData?.customer_email || 'your email address'}</strong> and click the
+              verification link to complete your account setup. The link expires in 24 hours.
+            </p>
+          </div>
+
           {/* Free Trial Info */}
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-8">
             <div className="flex items-center gap-2 text-green-800 mb-2">
               <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold">14-Day Free Trial Active</span>
+              <span className="font-semibold">Subscription Active</span>
             </div>
             <p className="text-green-700 text-sm">
-              A confirmation has been sent to {sessionData?.customer_email || 'your email address'}.
-              You can manage billing from your account settings.
+              Your subscription is ready! After verifying your email, you'll have immediate access
+              to all features.
             </p>
           </div>
 

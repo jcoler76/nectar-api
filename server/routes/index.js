@@ -349,6 +349,8 @@ const mountRoutes = app => {
 
   // Admin CRM endpoints for contact chatbot management
   app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminContacts'));
+  // Admin settings for security (header aliases) — self-service
+  app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminSettings'));
 
   console.log('✅ All routes mounted successfully');
 };

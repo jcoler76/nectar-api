@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  nectar-api:
+    image: nectar/api:latest
+    # or build: { context: .., dockerfile: Dockerfile }
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # CORS and header config
+      CORS_ORIGIN: "https://app.theirco.com,https://admin.theirco.com"
+      API_AUTH_HEADER: "x-nectarstudio-api-key"
+      API_HEADER_ALIASES: "x-theirco-api-key"
+      # Database and other secrets should be set via .env or secrets management
+    env_file:
+      - ../server/.env
+    restart: unless-stopped
+

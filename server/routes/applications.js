@@ -144,6 +144,66 @@ router.post('/:id/regenerate-key', async (req, res) => {
   });
 });
 
+// Allow admin to set a specific API key value (BYO key)
+router.post('/:id/set-key', async (req, res) => {
+  try {
+    if (!req.user?.isAdmin && !req.user?.isSuperAdmin) {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+    const { apiKey } = req.body || {};
+    if (!apiKey || typeof apiKey !== 'string') {
+      return res.status(400).json({ success: false, message: 'apiKey must be a string' });
+    }
+    const trimmed = apiKey.trim();
+    const errors = [];
+    if (trimmed.length < 32) errors.push('at least 32 characters');
+    if (!/[a-z]/.test(trimmed)) errors.push('one lowercase letter');
+    if (!/[A-Z]/.test(trimmed)) errors.push('one uppercase letter');
+    if (!/[0-9]/.test(trimmed)) errors.push('one number');
+    if (!/[^A-Za-z0-9]/.test(trimmed)) errors.push('one symbol');
+    if (/\s/.test(trimmed)) errors.push('no whitespace');
+    // very simple repetition pattern guard
+    if (/^(.)\1{7,}$/.test(trimmed)) errors.push('not a repeated character');
+    if (errors.length) {
+      return res.status(400).json({
+        success: false,
+        message: `apiKey does not meet strength requirements: ${errors.join(', ')}`,
+      });
+    }
+
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+    const bcryptjs = require('bcryptjs');
+    const { encryptApiKey } = require('../utils/encryption');
+
+    const hash = await bcryptjs.hash(trimmed, 10);
+    const prefix = trimmed.substring(0, 4);
+    const encrypted = encryptApiKey(trimmed);
+
+    const updated = await prisma.application.update({
+      where: { id },
+      data: {
+        apiKeyHash: hash,
+        apiKeyPrefix: prefix,
+        apiKeyEncrypted: encrypted,
+      },
+      include: { defaultRole: true },
+    });
+
+    return res.json({
+      success: true,
+      message: 'API key set successfully',
+      // Do NOT return the raw apiKey back; client already provided it.
+      application: { id: updated.id, name: updated.name },
+    });
+  } catch (err) {
+    logger.error('Set API key failed', { error: err.message });
+    return res.status(500).json({ success: false, message: 'Failed to set API key' });
+  }
+});
+
 // Get API key from cache (admin only)
 router.get('/:id/api-key', async (req, res) => {
   const { id } = req.params;

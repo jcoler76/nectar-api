@@ -13,22 +13,7 @@ class AuthenticationError extends Error {
   }
 }
 
-// Helper function for case-insensitive header lookup
-function getHeaderCaseInsensitive(headers, targetHeader) {
-  // First try exact match (most common)
-  if (headers[targetHeader]) {
-    return headers[targetHeader];
-  }
-
-  // Then try case-insensitive search
-  const lowerTarget = targetHeader.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === lowerTarget) {
-      return value;
-    }
-  }
-  return null;
-}
+const { getConfiguredApiKey } = require('../utils/headerUtils');
 
 const consolidatedApiKeyMiddleware = async (req, res, next) => {
   const requestStart = Date.now();
@@ -36,31 +21,11 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
 
   try {
     // 1. Validate API key exists (support both headers and query parameters for backward compatibility)
-    let apiKey = null;
-    let usedDreamFactoryHeader = false;
-
-    // Check for Nectar Studio key (case-insensitive)
-    apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectarstudio-api-key');
-
-    // Check for DreamFactory API key (case-insensitive) if Mirabel key not found
-    if (!apiKey) {
-      apiKey = getHeaderCaseInsensitive(req.headers, 'x-nectarstudio-string-api-key');
-      if (apiKey) {
-        usedDreamFactoryHeader = true;
-      }
+    const { apiKey, headerUsed } = getConfiguredApiKey(req);
+    if (headerUsed === 'x-nectarstudio-string-api-key') {
+      req.isLegacyClient = true;
     }
-
-    // Fallback to query parameters for legacy clients
-    if (!apiKey) {
-      apiKey = req.query.api_key;
-      if (apiKey) {
-        // Treat query parameter API key usage as legacy client
-        req.isLegacyClient = true;
-      }
-    }
-
-    // Mark as legacy client if DreamFactory header was used
-    if (usedDreamFactoryHeader) {
+    if (headerUsed === 'query:api_key') {
       req.isLegacyClient = true;
     }
 

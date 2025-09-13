@@ -54,13 +54,14 @@ function buildOpenApiDoc(service, entities) {
     };
   }
 
+  const apiKeyHeader = process.env.API_AUTH_HEADER || 'x-nectarstudio-api-key';
   return {
     openapi: '3.0.0',
     info: { title: `Auto-REST: ${service.name}`, version: '1.0.0' },
     paths,
     components: {
       securitySchemes: {
-        ApiKeyAuth: { type: 'apiKey', in: 'header', name: 'x-nectarstudio-api-key' },
+        ApiKeyAuth: { type: 'apiKey', in: 'header', name: apiKeyHeader },
       },
     },
   };

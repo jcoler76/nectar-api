@@ -1,6 +1,3 @@
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const User = require('../models/User');
-
 const { PrismaClient } = require('../prisma/generated/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');

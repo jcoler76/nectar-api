@@ -8,7 +8,7 @@ const cors = require('cors');
 const { logger } = require('./logger');
 const { apiLimiter, authLimiter, uploadLimiter, graphqlLimiter } = require('./dynamicRateLimiter');
 const { apiVersioning, addVersionInfo } = require('./apiVersioning');
-const corsOptions = require('../config/corsOptions');
+const buildCorsOptions = require('../config/corsOptions');
 
 /**
  * Apply all security middleware to the Express app
@@ -123,8 +123,8 @@ const applySecurityMiddleware = app => {
     next();
   });
 
-  // CORS configuration
-  app.use(cors(corsOptions));
+  // CORS configuration (re-evaluated per request to reflect runtime updates)
+  app.use((req, res, next) => cors(buildCorsOptions())(req, res, next));
 
   // Apply general rate limiting and other middleware
   app.use('/api', apiLimiter);

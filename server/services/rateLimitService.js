@@ -41,6 +41,14 @@ class RateLimitService {
     const { keyStrategy } = config;
 
     switch (keyStrategy) {
+      case 'organization':
+        // Multi-tenant rate limiting by organization
+        return req.organizationId
+          ? `org:${req.organizationId}`
+          : req.user?.organizationId
+            ? `org:${req.user.organizationId}`
+            : `ip:${req.ip}`;
+
       case 'application':
         return req.application ? `app:${req.application._id}` : `ip:${req.ip}`;
 
@@ -82,8 +90,23 @@ class RateLimitService {
       source: 'default',
     };
 
-    // Priority 1: Application-specific limits
-    if (req.application && config.applicationLimits.length > 0) {
+    // Priority 1: Organization-specific limits (highest priority for multi-tenant isolation)
+    const organizationId = req.organizationId || req.user?.organizationId;
+    if (organizationId && config.organizationLimits?.length > 0) {
+      const orgLimit = config.organizationLimits.find(
+        limit => limit.organizationId.toString() === organizationId.toString()
+      );
+      if (orgLimit) {
+        effectiveLimit = {
+          max: orgLimit.max,
+          windowMs: orgLimit.windowMs || config.windowMs,
+          source: `organization:${organizationId}`,
+        };
+      }
+    }
+
+    // Priority 2: Application-specific limits
+    if (req.application && config.applicationLimits?.length > 0) {
       const appLimit = config.applicationLimits.find(
         limit => limit.applicationId._id.toString() === req.application._id.toString()
       );
@@ -96,7 +119,7 @@ class RateLimitService {
       }
     }
 
-    // Priority 2: Service+Component specific limits (for expensive operations)
+    // Priority 3: Service+Component specific limits (for expensive operations)
     if (req.service && req.procedureName && config.componentLimits.length > 0) {
       const componentLimit = config.componentLimits.find(
         limit =>
