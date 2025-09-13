@@ -1,30 +1,30 @@
-import { CreditCard, ExternalLink, AlertCircle } from 'lucide-react'
-import React, { useState } from 'react'
+import { CreditCard, ExternalLink, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
 
 export default function BillingPage() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const openPortal = async () => {
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true);
+      setError('');
       const res = await fetch('/api/checkout/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (data?.url) {
-        window.location.href = data.url
+        window.location.href = data.url;
       } else {
-        setError(data?.error || 'Unable to open billing portal')
+        setError(data?.error || 'Unable to open billing portal');
       }
     } catch (e) {
-      setError('Unable to open billing portal')
+      setError('Unable to open billing portal');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -59,6 +59,5 @@ export default function BillingPage() {
         </button>
       </div>
     </div>
-  )
+  );
 }
-

@@ -15,17 +15,17 @@ const enforceTenantIsolation = (req, res, next) => {
   req.prisma = new Proxy(originalPrisma, {
     get(target, prop) {
       const originalMethod = target[prop];
-      
+
       // Models that should be organization-scoped
       const scopedModels = [
         'connection',
-        'service', 
+        'service',
         'application',
         'workflow',
         'workflowRun',
         'apiKey',
         'endpoint',
-        'usageMetric'
+        'usageMetric',
       ];
 
       if (scopedModels.includes(prop)) {
@@ -36,18 +36,18 @@ const enforceTenantIsolation = (req, res, next) => {
             // Methods that need organization filtering
             const queryMethods = [
               'findMany',
-              'findFirst', 
+              'findFirst',
               'findUnique',
               'count',
               'aggregate',
               'update',
               'updateMany',
               'delete',
-              'deleteMany'
+              'deleteMany',
             ];
 
             if (queryMethods.includes(modelProp)) {
-              return function(args = {}) {
+              return function (args = {}) {
                 // Automatically add organization filter
                 const modifiedArgs = {
                   ...args,
@@ -71,7 +71,7 @@ const enforceTenantIsolation = (req, res, next) => {
 
             // For create operations, automatically add organizationId
             if (modelProp === 'create') {
-              return function(args = {}) {
+              return function (args = {}) {
                 const modifiedArgs = {
                   ...args,
                   data: {
@@ -92,12 +92,12 @@ const enforceTenantIsolation = (req, res, next) => {
             }
 
             return originalModelMethod;
-          }
+          },
         });
       }
 
       return originalMethod;
-    }
+    },
   });
 
   next();

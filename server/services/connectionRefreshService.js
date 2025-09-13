@@ -334,7 +334,7 @@ const updateServiceConnection = async (service, oldConnection, newConnection) =>
     // service.username = newConnection.username;
     // service.password = newConnection.password; // Already encrypted
     // service.failoverHost = newConnection.failoverHost;
-    
+
     // await service.save();
 
     logger.info(

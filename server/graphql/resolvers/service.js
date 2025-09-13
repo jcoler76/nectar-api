@@ -245,7 +245,7 @@ const serviceResolvers = {
       }
     },
 
-    deleteService: async (_, { id }, { user: currentUser }) => {
+    deleteService: async (_, { id, force = false }, { user: currentUser }) => {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
@@ -255,31 +255,156 @@ const serviceResolvers = {
             id,
             organizationId: currentUser.organizationId,
           },
+          include: {
+            _count: {
+              select: {
+                roles: true,
+                databaseObjects: true,
+              },
+            },
+          },
         });
 
         if (!existingService) {
           throw new UserInputError('Service not found');
         }
 
-        await prisma.service.delete({
-          where: { id },
+        // Check for additional dependent records
+        const exposedEntitiesCount = await prisma.exposedEntity.count({
+          where: { serviceId: id },
+        });
+
+        // Check for dependent records
+        const hasRoles = existingService._count.roles > 0;
+        const hasDatabaseObjects = existingService._count.databaseObjects > 0;
+        const hasExposedEntities = exposedEntitiesCount > 0;
+        const hasDependents = hasRoles || hasDatabaseObjects || hasExposedEntities;
+
+        if (hasDependents && !force) {
+          const dependencies = [];
+          if (hasRoles) dependencies.push(`${existingService._count.roles} role(s)`);
+          if (hasDatabaseObjects)
+            dependencies.push(`${existingService._count.databaseObjects} database object(s)`);
+          if (hasExposedEntities)
+            dependencies.push(`${exposedEntitiesCount} exposed entity/entities`);
+
+          throw new UserInputError(
+            `Cannot delete service: it has dependent records (${dependencies.join(', ')}). Use force deletion to remove all dependent records.`
+          );
+        }
+
+        // Use a transaction for all deletions
+        await prisma.$transaction(async tx => {
+          // If force deletion, delete all dependent records
+          if (force) {
+            // Delete all roles associated with this service
+            await tx.role.deleteMany({
+              where: { serviceId: id },
+            });
+
+            // Delete all database objects associated with this service
+            await tx.databaseObject.deleteMany({
+              where: { serviceId: id },
+            });
+
+            // Delete all exposed entities associated with this service
+            await tx.exposedEntity.deleteMany({
+              where: { serviceId: id },
+            });
+
+            // Delete any API activity logs that might reference this service
+            try {
+              // First, find and delete logs with serviceId in metadata
+              const logsWithServiceId = await tx.apiActivityLog.findMany({
+                where: {
+                  metadata: {
+                    path: ['serviceId'],
+                    equals: id,
+                  },
+                },
+                select: { id: true },
+              });
+
+              if (logsWithServiceId.length > 0) {
+                await tx.apiActivityLog.deleteMany({
+                  where: {
+                    id: { in: logsWithServiceId.map(log => log.id) },
+                  },
+                });
+              }
+
+              // Also delete logs related to the service's connection if applicable
+              if (existingService.connectionId) {
+                await tx.apiActivityLog.deleteMany({
+                  where: {
+                    endpoint: {
+                      connectionId: existingService.connectionId,
+                    },
+                  },
+                });
+              }
+            } catch (e) {
+              // Log but don't fail if this fails
+              logger.warn('Could not fully clean up API activity logs', { error: e.message });
+            }
+
+            logger.info('Force deleting service with dependencies', {
+              serviceId: id,
+              rolesDeleted: existingService._count.roles,
+              databaseObjectsDeleted: existingService._count.databaseObjects,
+              exposedEntitiesDeleted: exposedEntitiesCount,
+              userId: currentUser.userId,
+              organizationId: currentUser.organizationId,
+            });
+          }
+
+          // Now delete the service
+          await tx.service.delete({
+            where: { id },
+          });
         });
 
         logger.info('Service deleted via GraphQL', {
           serviceId: id,
+          forced: force,
           userId: currentUser.userId,
           organizationId: currentUser.organizationId,
         });
 
         return true;
       } catch (error) {
+        // Check for foreign key constraint error
         if (error.code === 'P2003') {
-          throw new UserInputError(
-            'Cannot delete service: it has dependent records (roles, endpoints, etc.)'
-          );
+          // Try to provide more specific error message
+          logger.error('Foreign key constraint violation', {
+            error: error.message,
+            meta: error.meta,
+            serviceId: id,
+          });
+
+          // If not forcing, suggest force deletion
+          if (!force) {
+            throw new UserInputError(
+              'Cannot delete service due to existing dependencies. Try using force deletion to remove all dependent records.'
+            );
+          } else {
+            throw new UserInputError(
+              'Cannot delete service due to database constraint. There may be additional references to this service that need to be manually removed.'
+            );
+          }
         }
-        logger.error('GraphQL service deletion error', { error: error.message, serviceId: id });
-        return false;
+
+        if (error instanceof UserInputError) {
+          throw error;
+        }
+
+        logger.error('GraphQL service deletion error', {
+          error: error.message,
+          code: error.code,
+          serviceId: id,
+        });
+
+        throw new Error(`Failed to delete service: ${error.message}`);
       }
     },
 

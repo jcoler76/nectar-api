@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const AISchemaGeneratorService = require('../services/AISchemaGeneratorService');
+// AISchemaGeneratorService has been deprecated - using OpenAI SDK instead
+// const AISchemaGeneratorService = require('../services/AISchemaGeneratorService');
 const DatabaseObjectService = require('../services/DatabaseObjectService');
 const SchemaIntelligence = require('../models/SchemaIntelligence');
 const GeneratedArtifact = require('../models/GeneratedArtifact');
@@ -86,17 +87,14 @@ router.post(
         });
       }
 
-      // Start generation process
-      const result = await AISchemaGeneratorService.generateArtifactsForService(
-        serviceId,
-        req.user.id,
-        {
-          artifactTypes,
-          regenerate,
-          businessContext: includeBusinessContext,
-          ...options,
-        }
-      );
+      // AI Schema Generator Service has been deprecated
+      // Use OpenAI SDK for AI-powered schema generation instead
+      return res.status(501).json({
+        success: false,
+        message:
+          'AI Schema Generator Service has been deprecated. Please use OpenAI SDK for AI-powered schema generation.',
+        recommendation: 'Contact support for migration guidance',
+      });
 
       res.json({
         success: result.success,
@@ -593,16 +591,14 @@ router.put(
         }
       );
 
-      // Regenerate artifacts
-      const result = await AISchemaGeneratorService.generateArtifactsForService(
-        serviceId,
-        req.user.id,
-        {
-          artifactTypes,
-          regenerate: true,
-          ...options,
-        }
-      );
+      // AI Schema Generator Service has been deprecated
+      // Use OpenAI SDK for AI-powered schema generation instead
+      return res.status(501).json({
+        success: false,
+        message:
+          'AI Schema Generator Service has been deprecated. Please use OpenAI SDK for AI-powered schema generation.',
+        recommendation: 'Contact support for migration guidance',
+      });
 
       res.json({
         success: result.success,

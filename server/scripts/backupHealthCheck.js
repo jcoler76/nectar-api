@@ -430,7 +430,9 @@ class BackupHealthChecker {
       }
 
       if (check.status === 'fail') {
-        this.healthStatus.recommendations.push('Install PostgreSQL client tools (pg_dump/pg_restore).');
+        this.healthStatus.recommendations.push(
+          'Install PostgreSQL client tools (pg_dump/pg_restore).'
+        );
       }
     } catch (error) {
       check.status = 'fail';

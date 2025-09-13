@@ -40,11 +40,33 @@ export const updateConnection = async (id, connectionData) => {
   }
 };
 
-export const deleteConnection = async id => {
+export const deleteConnection = async (id, force = false) => {
   try {
-    const response = await api.delete(`/api/connections/${id}`);
-    return response.data;
+    const response = await api.delete(`/api/connections/${id}`, {
+      params: { force },
+    });
+    return {
+      ...response.data,
+      success: true,
+    };
   } catch (error) {
+    // Check if error is due to dependencies
+    if (error.response?.data?.message?.includes('dependent records')) {
+      // Extract dependency information from error message
+      const match = error.response.data.message.match(/\(([^)]+)\)/g);
+      const dependencies = match ? match[0].slice(1, -1) : 'dependent records';
+      const serviceNames = match && match[1] ? match[1].slice(1, -1) : '';
+
+      return {
+        success: false,
+        hasDependencies: true,
+        dependencies,
+        serviceNames,
+        message: error.response.data.message,
+        error: error.response.data.message,
+      };
+    }
+
     console.error(`Error deleting connection ${id}:`, error);
     // Throw the entire error object to preserve status codes
     throw error;

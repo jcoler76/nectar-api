@@ -1,34 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const RateLimitConfig = require('../models/RateLimitConfig');
-const rateLimitService = require('../services/rateLimitService');
+const { PrismaClient } = require('../prisma/generated/client');
 const { adminOnly } = require('../middleware/auth');
 
-// Apply admin middleware to all routes (auth already handled by persistentAuth in server.js)
+const prisma = new PrismaClient();
+
+// Apply admin middleware to all routes
 router.use(adminOnly);
-
-// Temporary debug endpoint to test data retrieval (remove after debugging)
-router.get('/debug/applications', async (req, res) => {
-  try {
-    const Application = require('../models/Application');
-    const applications = await Application.find({ isActive: true })
-      .select('name description createdAt')
-      .sort({ name: 1 });
-
-    res.json({
-      success: true,
-      data: applications,
-      debug: true,
-    });
-  } catch (error) {
-    console.error('Debug applications error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Debug error fetching applications',
-      error: error.message,
-    });
-  }
-});
 
 /**
  * GET /api/admin/rate-limits/configs
@@ -37,18 +15,31 @@ router.get('/debug/applications', async (req, res) => {
 router.get('/configs', async (req, res) => {
   try {
     const { type, enabled } = req.query;
-    const filter = {};
+    const where = {};
 
-    if (type) filter.type = type;
-    if (enabled !== undefined) filter.enabled = enabled === 'true';
+    if (type) where.type = type.toUpperCase();
+    if (enabled !== undefined) where.enabled = enabled === 'true';
 
-    const configs = await RateLimitConfig.find(filter)
-      .populate('applicationLimits.applicationId', 'name description')
-      .populate('roleLimits.roleId', 'name serviceId')
-      .populate('componentLimits.serviceId', 'name description')
-      .populate('createdBy', 'firstName lastName email')
-      .populate('updatedBy', 'firstName lastName email')
-      .sort({ type: 1, name: 1 });
+    const configs = await prisma.rateLimitConfig.findMany({
+      where,
+      include: {
+        creator: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        updater: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: [{ type: 'asc' }, { name: 'asc' }],
+    });
 
     res.json({
       success: true,
@@ -71,13 +62,25 @@ router.get('/configs', async (req, res) => {
  */
 router.get('/configs/:id', async (req, res) => {
   try {
-    const config = await RateLimitConfig.findById(req.params.id)
-      .populate('applicationLimits.applicationId', 'name description')
-      .populate('roleLimits.roleId', 'name serviceId')
-      .populate('componentLimits.serviceId', 'name description')
-      .populate('createdBy', 'firstName lastName email')
-      .populate('updatedBy', 'firstName lastName email')
-      .populate('changeHistory.changedBy', 'firstName lastName email');
+    const config = await prisma.rateLimitConfig.findUnique({
+      where: { id: req.params.id },
+      include: {
+        creator: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        updater: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
 
     if (!config) {
       return res.status(404).json({
@@ -106,24 +109,28 @@ router.get('/configs/:id', async (req, res) => {
  */
 router.post('/configs', async (req, res) => {
   try {
+    const userId = req.user.userId || req.user.id;
+
     const configData = {
       ...req.body,
-      createdBy: req.user.userId || req.user._id,
+      type: req.body.type.toUpperCase(),
+      keyStrategy: req.body.keyStrategy.toUpperCase(),
+      organizationId: req.user.organizationId,
+      createdBy: userId,
     };
 
-    const config = new RateLimitConfig(configData);
-    await config.save();
-
-    // Populate the response
-    await config.populate([
-      { path: 'applicationLimits.applicationId', select: 'name description' },
-      { path: 'roleLimits.roleId', select: 'name serviceId' },
-      { path: 'componentLimits.serviceId', select: 'name description' },
-      { path: 'createdBy', select: 'firstName lastName email' },
-    ]);
-
-    // Clear cache to force reload
-    rateLimitService.clearCache();
+    const config = await prisma.rateLimitConfig.create({
+      data: configData,
+      include: {
+        creator: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
 
     res.status(201).json({
       success: true,
@@ -133,18 +140,7 @@ router.post('/configs', async (req, res) => {
   } catch (error) {
     console.error('Error creating rate limit config:', error);
 
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: Object.values(error.errors).map(err => ({
-          field: err.path,
-          message: err.message,
-        })),
-      });
-    }
-
-    if (error.code === 11000) {
+    if (error.code === 'P2002') {
       return res.status(409).json({
         success: false,
         message: 'Rate limit configuration with this name already exists',
@@ -165,45 +161,45 @@ router.post('/configs', async (req, res) => {
  */
 router.put('/configs/:id', async (req, res) => {
   try {
-    const config = await RateLimitConfig.findById(req.params.id);
+    const userId = req.user.userId || req.user.id;
 
-    if (!config) {
-      return res.status(404).json({
-        success: false,
-        message: 'Rate limit configuration not found',
-      });
+    const updateData = {
+      ...req.body,
+      updatedBy: userId,
+    };
+
+    if (updateData.type) {
+      updateData.type = updateData.type.toUpperCase();
+    }
+    if (updateData.keyStrategy) {
+      updateData.keyStrategy = updateData.keyStrategy.toUpperCase();
     }
 
-    // Store original for change tracking
-    config._original = config.toObject();
+    // Remove fields that shouldn't be updated
+    delete updateData.createdBy;
+    delete updateData.createdAt;
+    delete updateData.organizationId;
 
-    // Update fields
-    Object.keys(req.body).forEach(key => {
-      if (key !== 'createdBy' && key !== 'changeHistory') {
-        config[key] = req.body[key];
-      }
+    const config = await prisma.rateLimitConfig.update({
+      where: { id: req.params.id },
+      data: updateData,
+      include: {
+        creator: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        updater: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
     });
-
-    config.updatedBy = req.user._id;
-
-    // Add change reason if provided
-    if (req.body.changeReason) {
-      config.changeReason = req.body.changeReason;
-    }
-
-    await config.save();
-
-    // Populate the response
-    await config.populate([
-      { path: 'applicationLimits.applicationId', select: 'name description' },
-      { path: 'roleLimits.roleId', select: 'name serviceId' },
-      { path: 'componentLimits.serviceId', select: 'name description' },
-      { path: 'createdBy', select: 'firstName lastName email' },
-      { path: 'updatedBy', select: 'firstName lastName email' },
-    ]);
-
-    // Clear cache to force reload
-    rateLimitService.clearCache();
 
     res.json({
       success: true,
@@ -213,14 +209,10 @@ router.put('/configs/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating rate limit config:', error);
 
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
+    if (error.code === 'P2025') {
+      return res.status(404).json({
         success: false,
-        message: 'Validation error',
-        errors: Object.values(error.errors).map(err => ({
-          field: err.path,
-          message: err.message,
-        })),
+        message: 'Rate limit configuration not found',
       });
     }
 
@@ -238,19 +230,9 @@ router.put('/configs/:id', async (req, res) => {
  */
 router.delete('/configs/:id', async (req, res) => {
   try {
-    const config = await RateLimitConfig.findById(req.params.id);
-
-    if (!config) {
-      return res.status(404).json({
-        success: false,
-        message: 'Rate limit configuration not found',
-      });
-    }
-
-    await RateLimitConfig.findByIdAndDelete(req.params.id);
-
-    // Clear cache to force reload
-    rateLimitService.clearCache();
+    await prisma.rateLimitConfig.delete({
+      where: { id: req.params.id },
+    });
 
     res.json({
       success: true,
@@ -258,6 +240,14 @@ router.delete('/configs/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting rate limit config:', error);
+
+    if (error.code === 'P2025') {
+      return res.status(404).json({
+        success: false,
+        message: 'Rate limit configuration not found',
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Error deleting rate limit configuration',
@@ -272,7 +262,11 @@ router.delete('/configs/:id', async (req, res) => {
  */
 router.post('/configs/:id/toggle', async (req, res) => {
   try {
-    const config = await RateLimitConfig.findById(req.params.id);
+    const userId = req.user.userId || req.user.id;
+
+    const config = await prisma.rateLimitConfig.findUnique({
+      where: { id: req.params.id },
+    });
 
     if (!config) {
       return res.status(404).json({
@@ -281,30 +275,19 @@ router.post('/configs/:id/toggle', async (req, res) => {
       });
     }
 
-    config.enabled = !config.enabled;
-    config.updatedBy = req.user._id;
-
-    // Add change to history
-    config.changeHistory.push({
-      changedBy: req.user._id,
-      changes: {
-        enabled: {
-          from: !config.enabled,
-          to: config.enabled,
-        },
+    const updatedConfig = await prisma.rateLimitConfig.update({
+      where: { id: req.params.id },
+      data: {
+        enabled: !config.enabled,
+        updatedBy: userId,
+        changeReason: req.body.reason || `${!config.enabled ? 'Enabled' : 'Disabled'} by admin`,
       },
-      reason: req.body.reason || `${config.enabled ? 'Enabled' : 'Disabled'} by admin`,
     });
-
-    await config.save();
-
-    // Clear cache to force reload
-    rateLimitService.clearCache();
 
     res.json({
       success: true,
-      data: { enabled: config.enabled },
-      message: `Rate limit configuration ${config.enabled ? 'enabled' : 'disabled'} successfully`,
+      data: { enabled: updatedConfig.enabled },
+      message: `Rate limit configuration ${updatedConfig.enabled ? 'enabled' : 'disabled'} successfully`,
     });
   } catch (error) {
     console.error('Error toggling rate limit config:', error);
@@ -322,7 +305,17 @@ router.post('/configs/:id/toggle', async (req, res) => {
  */
 router.get('/active', async (req, res) => {
   try {
-    const activeLimits = await rateLimitService.getActiveRateLimits();
+    const activeLimits = await prisma.rateLimitUsage.findMany({
+      where: {
+        blocked: false,
+        resetAt: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        currentCount: 'desc',
+      },
+    });
 
     res.json({
       success: true,
@@ -340,75 +333,21 @@ router.get('/active', async (req, res) => {
 });
 
 /**
- * GET /api/admin/rate-limits/status/:configName/:key
- * Get rate limit status for a specific key
- */
-router.get('/status/:configName/:key', async (req, res) => {
-  try {
-    const { configName, key } = req.params;
-    const status = await rateLimitService.getRateLimitStatus(configName, key);
-
-    if (!status) {
-      return res.status(404).json({
-        success: false,
-        message: 'Rate limit status not found',
-      });
-    }
-
-    res.json({
-      success: true,
-      data: status,
-    });
-  } catch (error) {
-    console.error('Error fetching rate limit status:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching rate limit status',
-      error: error.message,
-    });
-  }
-});
-
-/**
- * POST /api/admin/rate-limits/reset/:configName/:key
- * Reset rate limit for a specific key
- */
-router.post('/reset/:configName/:key', async (req, res) => {
-  try {
-    const { configName, key } = req.params;
-    const success = await rateLimitService.resetRateLimit(configName, key);
-
-    if (!success) {
-      return res.status(404).json({
-        success: false,
-        message: 'Rate limit configuration not found',
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Rate limit reset successfully',
-    });
-  } catch (error) {
-    console.error('Error resetting rate limit:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error resetting rate limit',
-      error: error.message,
-    });
-  }
-});
-
-/**
  * GET /api/admin/rate-limits/applications
  * Get all applications for rate limit configuration
  */
 router.get('/applications', async (req, res) => {
   try {
-    const Application = require('../models/Application');
-    const applications = await Application.find({ isActive: true })
-      .select('name description createdAt')
-      .sort({ name: 1 });
+    const applications = await prisma.application.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        createdAt: true,
+      },
+      orderBy: { name: 'asc' },
+    });
 
     res.json({
       success: true,
@@ -430,11 +369,17 @@ router.get('/applications', async (req, res) => {
  */
 router.get('/roles', async (req, res) => {
   try {
-    const Role = require('../models/Role');
-    const roles = await Role.find({})
-      .populate('serviceId', 'name description')
-      .select('name serviceId createdAt')
-      .sort({ name: 1 });
+    const roles = await prisma.role.findMany({
+      include: {
+        service: {
+          select: {
+            name: true,
+            description: true,
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
 
     res.json({
       success: true,
@@ -452,16 +397,23 @@ router.get('/roles', async (req, res) => {
 
 /**
  * GET /api/admin/rate-limits/services
- * Get all services with their procedures for rate limit configuration
+ * Get all services for rate limit configuration
  */
 router.get('/services', async (req, res) => {
   try {
-    const Service = require('../models/Service');
-    const services = await Service.find({}).select('name description objects').sort({ name: 1 });
+    const services = await prisma.service.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        objects: true,
+      },
+      orderBy: { name: 'asc' },
+    });
 
     // Extract procedure names from objects
     const servicesWithProcedures = services.map(service => ({
-      _id: service._id,
+      id: service.id,
       name: service.name,
       description: service.description,
       procedures: service.objects ? service.objects.map(obj => obj.name) : [],
@@ -487,12 +439,34 @@ router.get('/services', async (req, res) => {
  */
 router.get('/analytics', async (req, res) => {
   try {
-    const { timeRange = '24h' } = req.query;
+    const configs = await prisma.rateLimitConfig.findMany();
+    const activeLimits = await prisma.rateLimitUsage.findMany({
+      where: {
+        blocked: false,
+        resetAt: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        currentCount: 'desc',
+      },
+      take: 10,
+    });
 
-    // This would integrate with your existing analytics
-    // For now, return basic statistics
-    const configs = await RateLimitConfig.find({});
-    const activeLimits = await rateLimitService.getActiveRateLimits();
+    const recentChanges = await prisma.rateLimitConfig.findMany({
+      include: {
+        updater: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      take: 10,
+    });
 
     const analytics = {
       totalConfigs: configs.length,
@@ -502,12 +476,14 @@ router.get('/analytics', async (req, res) => {
         return acc;
       }, {}),
       activeLimits: activeLimits.length,
-      topLimitedKeys: activeLimits.sort((a, b) => b.currentCount - a.currentCount).slice(0, 10),
-      recentChanges: await RateLimitConfig.find({})
-        .populate('updatedBy', 'firstName lastName')
-        .sort({ updatedAt: -1 })
-        .limit(10)
-        .select('name type enabled updatedAt updatedBy'),
+      topLimitedKeys: activeLimits,
+      recentChanges: recentChanges.map(config => ({
+        name: config.name,
+        type: config.type,
+        enabled: config.enabled,
+        updatedAt: config.updatedAt,
+        updatedBy: config.updater,
+      })),
     };
 
     res.json({
@@ -556,171 +532,41 @@ router.get('/history', async (req, res) => {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
 
-    // Get configuration change history
-    const configHistory = await RateLimitConfig.find({
-      'changeHistory.changedAt': { $gte: startDate },
-    })
-      .populate('changeHistory.changedBy', 'firstName lastName')
-      .select('name type displayName changeHistory')
-      .lean();
-
-    // Flatten change history with metadata
-    const changes = [];
-    configHistory.forEach(config => {
-      config.changeHistory
-        .filter(change => change.changedAt >= startDate)
-        .forEach(change => {
-          changes.push({
-            configName: config.name,
-            configDisplayName: config.displayName,
-            configType: config.type,
-            changedBy: change.changedBy,
-            changedAt: change.changedAt,
-            changes: change.changes,
-            reason: change.reason,
-          });
-        });
-    });
-
-    // Sort changes by date
-    changes.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
-
-    // Get API usage data if available
-    let usageData = [];
-    try {
-      const ApiUsage = require('../models/ApiUsage');
-
-      // Aggregate usage data by time periods
-      const aggregationPipeline = [
-        {
-          $match: {
-            timestamp: { $gte: startDate },
+    // Get configuration changes in time range
+    const recentConfigs = await prisma.rateLimitConfig.findMany({
+      where: {
+        updatedAt: {
+          gte: startDate,
+        },
+      },
+      include: {
+        updater: {
+          select: {
+            firstName: true,
+            lastName: true,
           },
         },
-        {
-          $group: {
-            _id: {
-              $dateToString: {
-                format: granularity === 'hour' ? '%Y-%m-%d %H:00:00' : '%Y-%m-%d',
-                date: '$timestamp',
-              },
-            },
-            requestCount: { $sum: 1 },
-            successCount: { $sum: { $cond: [{ $lt: ['$statusCode', 400] }, 1, 0] } },
-            errorCount: { $sum: { $cond: [{ $gte: ['$statusCode', 400] }, 1, 0] } },
-            avgRequestSize: { $avg: '$requestSize' },
-            avgResponseSize: { $avg: '$responseSize' },
-          },
-        },
-        {
-          $sort: { _id: 1 },
-        },
-      ];
-
-      usageData = await ApiUsage.aggregate(aggregationPipeline);
-    } catch (error) {
-      console.warn('ApiUsage collection not available, skipping usage data:', error.message);
-    }
-
-    // Get configuration statistics over time
-    const allConfigs = await RateLimitConfig.find({}).lean();
-    const configStats = [];
-
-    // Create time series for configuration counts
-    const timePoints = [];
-    const intervalMs = granularity === 'hour' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-
-    for (let time = startDate.getTime(); time <= now.getTime(); time += intervalMs) {
-      const pointDate = new Date(time);
-      timePoints.push({
-        date: pointDate.toISOString().split('T')[0],
-        timestamp: pointDate,
-        totalConfigs: 0,
-        enabledConfigs: 0,
-        configsByType: {},
-      });
-    }
-
-    // Calculate configuration counts at each time point
-    timePoints.forEach(point => {
-      allConfigs.forEach(config => {
-        const configCreated = new Date(config.createdAt) <= point.timestamp;
-
-        if (configCreated) {
-          point.totalConfigs++;
-
-          // Check if config was enabled at this time point
-          let wasEnabled = config.enabled;
-
-          // Check change history to see if it was enabled/disabled by this point
-          const relevantChanges = config.changeHistory
-            .filter(change => new Date(change.changedAt) <= point.timestamp)
-            .sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
-
-          for (const change of relevantChanges) {
-            if (change.changes.enabled) {
-              wasEnabled = change.changes.enabled.to;
-              break;
-            }
-          }
-
-          if (wasEnabled) {
-            point.enabledConfigs++;
-          }
-
-          // Count by type
-          point.configsByType[config.type] = (point.configsByType[config.type] || 0) + 1;
-        }
-      });
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
     });
-
-    // Calculate trends
-    const firstPoint = timePoints[0];
-    const lastPoint = timePoints[timePoints.length - 1];
-
-    const trends = {
-      configsChange: lastPoint && firstPoint ? lastPoint.totalConfigs - firstPoint.totalConfigs : 0,
-      enabledChange:
-        lastPoint && firstPoint ? lastPoint.enabledConfigs - firstPoint.enabledConfigs : 0,
-      totalRequests: usageData.reduce((sum, point) => sum + point.requestCount, 0),
-      avgSuccessRate:
-        usageData.length > 0
-          ? (
-              (usageData.reduce((sum, point) => sum + point.successCount / point.requestCount, 0) /
-                usageData.length) *
-              100
-            ).toFixed(1)
-          : 0,
-    };
 
     const historyData = {
       timeRange,
       startDate: startDate.toISOString(),
       endDate: now.toISOString(),
-      changes: changes.slice(0, 50), // Limit to most recent 50 changes
-      usageData,
-      configStats: timePoints,
-      trends,
+      changes: recentConfigs.map(config => ({
+        configName: config.name,
+        configDisplayName: config.displayName,
+        configType: config.type,
+        updatedAt: config.updatedAt,
+        updatedBy: config.updater,
+        reason: config.changeReason,
+      })),
       summary: {
-        totalChanges: changes.length,
-        changesInPeriod: changes.length,
-        mostActiveConfig:
-          changes.length > 0
-            ? changes.reduce((acc, change) => {
-                acc[change.configName] = (acc[change.configName] || 0) + 1;
-                return acc;
-              }, {})
-            : {},
-        mostActiveUser:
-          changes.length > 0
-            ? changes.reduce((acc, change) => {
-                if (change.changedBy) {
-                  const userKey = `${change.changedBy.firstName} ${change.changedBy.lastName}`;
-                  acc[userKey] = (acc[userKey] || 0) + 1;
-                }
-                return acc;
-              }, {})
-            : {},
+        totalChanges: recentConfigs.length,
+        changesInPeriod: recentConfigs.length,
       },
     };
 

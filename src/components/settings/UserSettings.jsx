@@ -1,4 +1,15 @@
-import { Bell, Eye, EyeOff, Loader2, Lock, Save, Shield, User, CreditCard, ExternalLink } from 'lucide-react';
+import {
+  Bell,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Save,
+  Shield,
+  User,
+  CreditCard,
+  ExternalLink,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -53,7 +64,10 @@ const UserSettings = () => {
   const openPortal = async () => {
     try {
       setBillingLoading(true);
-      const res = await fetch('/api/checkout/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const res = await fetch('/api/checkout/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
       const data = await res.json();
       if (data?.url) {
         window.location.href = data.url;
@@ -207,10 +221,16 @@ const UserSettings = () => {
                 <CreditCard className="h-5 w-5" />
                 Billing
               </CardTitle>
-              <CardDescription>Manage your subscription, payment methods, and invoices</CardDescription>
+              <CardDescription>
+                Manage your subscription, payment methods, and invoices
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={openPortal} disabled={billingLoading} className="inline-flex items-center gap-2">
+              <Button
+                onClick={openPortal}
+                disabled={billingLoading}
+                className="inline-flex items-center gap-2"
+              >
                 {billingLoading ? 'Opening…' : 'Manage Billing'}
                 <ExternalLink className="w-4 h-4" />
               </Button>

@@ -18,7 +18,7 @@ const customerAuth = async (req, res, next) => {
 
     // Use enhanced token validation
     const decoded = await validateToken(token);
-    
+
     // Only allow customer tokens, no platform admin access
     if (decoded.type === 'admin') {
       logger.warn('Platform admin token rejected in customer app', {
@@ -53,7 +53,7 @@ const customerAuth = async (req, res, next) => {
     };
 
     req.organizationId = decoded.organizationId;
-    
+
     logger.debug('Customer authentication successful', {
       userId: decoded.userId,
       email: decoded.email,
@@ -61,7 +61,7 @@ const customerAuth = async (req, res, next) => {
       role: decoded.role,
       path: req.path,
     });
-    
+
     next();
   } catch (error) {
     logger.error('Customer auth middleware error:', {
@@ -100,10 +100,10 @@ const requireRole = (allowedRoles = []) => {
         organizationId: req.user.organizationId,
         path: req.path,
       });
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Insufficient permissions for this action',
         required: allowedRoles,
-        current: req.user.role
+        current: req.user.role,
       });
     }
 

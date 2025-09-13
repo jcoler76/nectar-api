@@ -125,8 +125,8 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   website: 'website',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  requiresTermsAcceptance: 'requiresTermsAcceptance',
   lastTermsPromptedAt: 'lastTermsPromptedAt',
+  requiresTermsAcceptance: 'requiresTermsAcceptance',
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -217,11 +217,11 @@ exports.Prisma.DatabaseConnectionScalarFieldEnum = {
   isActive: 'isActive',
   lastTestedAt: 'lastTestedAt',
   lastTestResult: 'lastTestResult',
-  databases: 'databases',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  createdBy: 'createdBy',
   organizationId: 'organizationId',
+  createdBy: 'createdBy',
+  databases: 'databases',
 };
 
 exports.Prisma.EndpointScalarFieldEnum = {
@@ -281,8 +281,8 @@ exports.Prisma.WorkflowScalarFieldEnum = {
   runCount: 'runCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  createdBy: 'createdBy',
   organizationId: 'organizationId',
+  createdBy: 'createdBy',
 };
 
 exports.Prisma.WorkflowExecutionScalarFieldEnum = {
@@ -418,6 +418,51 @@ exports.Prisma.DatabaseObjectScalarFieldEnum = {
   serviceId: 'serviceId',
 };
 
+exports.Prisma.ExposedEntityScalarFieldEnum = {
+  id: 'id',
+  serviceId: 'serviceId',
+  connectionId: 'connectionId',
+  organizationId: 'organizationId',
+  database: 'database',
+  schema: 'schema',
+  name: 'name',
+  type: 'type',
+  primaryKey: 'primaryKey',
+  allowRead: 'allowRead',
+  allowCreate: 'allowCreate',
+  allowUpdate: 'allowUpdate',
+  allowDelete: 'allowDelete',
+  defaultSort: 'defaultSort',
+  softDeleteEnabled: 'softDeleteEnabled',
+  softDeleteColumn: 'softDeleteColumn',
+  softDeleteValue: 'softDeleteValue',
+  pathSlug: 'pathSlug',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy',
+};
+
+exports.Prisma.ExposedFieldPolicyScalarFieldEnum = {
+  id: 'id',
+  exposedEntityId: 'exposedEntityId',
+  roleId: 'roleId',
+  includeFields: 'includeFields',
+  excludeFields: 'excludeFields',
+  writeProtected: 'writeProtected',
+  maskedFields: 'maskedFields',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.ExposedRowPolicyScalarFieldEnum = {
+  id: 'id',
+  exposedEntityId: 'exposedEntityId',
+  roleId: 'roleId',
+  filterTemplate: 'filterTemplate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
 exports.Prisma.TermsAndConditionsScalarFieldEnum = {
   id: 'id',
   version: 'version',
@@ -439,6 +484,40 @@ exports.Prisma.TermsAcceptanceScalarFieldEnum = {
   organizationId: 'organizationId',
   userId: 'userId',
   termsId: 'termsId',
+};
+
+exports.Prisma.RateLimitConfigScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  displayName: 'displayName',
+  type: 'type',
+  max: 'max',
+  windowMs: 'windowMs',
+  keyStrategy: 'keyStrategy',
+  enabled: 'enabled',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  applicationLimits: 'applicationLimits',
+  roleLimits: 'roleLimits',
+  componentLimits: 'componentLimits',
+  changeHistory: 'changeHistory',
+  changeReason: 'changeReason',
+  organizationId: 'organizationId',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy',
+};
+
+exports.Prisma.RateLimitUsageScalarFieldEnum = {
+  id: 'id',
+  configName: 'configName',
+  limitKey: 'limitKey',
+  currentCount: 'currentCount',
+  resetAt: 'resetAt',
+  blocked: 'blocked',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  organizationId: 'organizationId',
 };
 
 exports.Prisma.SortOrder = {
@@ -542,10 +621,32 @@ exports.NotificationPriority = exports.$Enums.NotificationPriority = {
   LOW: 'LOW',
 };
 
+exports.ExposedEntityType = exports.$Enums.ExposedEntityType = {
+  TABLE: 'TABLE',
+  VIEW: 'VIEW',
+};
+
 exports.AcceptanceMethod = exports.$Enums.AcceptanceMethod = {
   CLICK: 'CLICK',
   SCROLL: 'SCROLL',
   SIGNATURE: 'SIGNATURE',
+};
+
+exports.RateLimitType = exports.$Enums.RateLimitType = {
+  API: 'API',
+  AUTH: 'AUTH',
+  UPLOAD: 'UPLOAD',
+  GRAPHQL: 'GRAPHQL',
+  WEBSOCKET: 'WEBSOCKET',
+  CUSTOM: 'CUSTOM',
+};
+
+exports.RateLimitKeyStrategy = exports.$Enums.RateLimitKeyStrategy = {
+  IP: 'IP',
+  USER_ID: 'USER_ID',
+  API_KEY: 'API_KEY',
+  SESSION: 'SESSION',
+  CUSTOM: 'CUSTOM',
 };
 
 exports.Prisma.ModelName = {
@@ -569,8 +670,13 @@ exports.Prisma.ModelName = {
   Notification: 'Notification',
   ApiActivityLog: 'ApiActivityLog',
   DatabaseObject: 'DatabaseObject',
+  ExposedEntity: 'ExposedEntity',
+  ExposedFieldPolicy: 'ExposedFieldPolicy',
+  ExposedRowPolicy: 'ExposedRowPolicy',
   TermsAndConditions: 'TermsAndConditions',
   TermsAcceptance: 'TermsAcceptance',
+  RateLimitConfig: 'RateLimitConfig',
+  RateLimitUsage: 'RateLimitUsage',
 };
 
 /**

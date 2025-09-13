@@ -9,21 +9,21 @@ const endpointResolvers = {
   // Type resolvers
   Endpoint: {
     // Resolver for creator field - ensures user info is populated
-    creator: async (endpoint) => {
+    creator: async endpoint => {
       if (endpoint.creator) return endpoint.creator;
-      
+
       if (!endpoint.createdBy) return null;
-      
+
       return await prisma.user.findUnique({
         where: { id: endpoint.createdBy },
-        select: { id: true, email: true, firstName: true, lastName: true }
+        select: { id: true, email: true, firstName: true, lastName: true },
       });
     },
 
     // Usage statistics from activity logs
     usageCount: async endpoint => {
-      return await prisma.apiActivityLog.count({ 
-        where: { endpointId: endpoint.id } 
+      return await prisma.apiActivityLog.count({
+        where: { endpointId: endpoint.id },
       });
     },
 
@@ -31,24 +31,24 @@ const endpointResolvers = {
       const lastUsage = await prisma.apiActivityLog.findFirst({
         where: { endpointId: endpoint.id },
         orderBy: { timestamp: 'desc' },
-        select: { timestamp: true }
+        select: { timestamp: true },
       });
       return lastUsage?.timestamp || null;
     },
 
     // Connection resolver
-    connection: async (endpoint) => {
+    connection: async endpoint => {
       if (endpoint.connection) return endpoint.connection;
-      
+
       if (!endpoint.connectionId) return null;
-      
+
       return await prisma.databaseConnection.findUnique({
         where: { id: endpoint.connectionId },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
-          }
-        }
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+        },
       });
     },
   },
@@ -66,21 +66,21 @@ const endpointResolvers = {
       const endpoint = await prisma.endpoint.findFirst({
         where: {
           id,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           connection: {
             include: {
               creator: {
-                select: { id: true, email: true, firstName: true, lastName: true }
-              }
-            }
+                select: { id: true, email: true, firstName: true, lastName: true },
+              },
+            },
           },
-          organization: true
-        }
+          organization: true,
+        },
       });
 
       if (!endpoint) {
@@ -111,7 +111,7 @@ const endpointResolvers = {
 
       // Build where clause for filters
       const where = {
-        organizationId: currentUser.organizationId
+        organizationId: currentUser.organizationId,
       };
 
       if (filters.name) {
@@ -126,14 +126,14 @@ const endpointResolvers = {
         // Non-admin users can only see their own endpoints
         where.createdBy = currentUser.userId;
       }
-      
+
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } }
+          { description: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
-      
+
       if (filters.createdAfter) {
         where.createdAt = { ...where.createdAt, gte: new Date(filters.createdAfter) };
       }
@@ -152,15 +152,15 @@ const endpointResolvers = {
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           connection: {
-            select: { id: true, name: true, host: true, port: true }
+            select: { id: true, name: true, host: true, port: true },
           },
           _count: {
-            select: { usageLogs: true }
-          }
-        }
+            select: { usageLogs: true },
+          },
+        },
       });
 
       return {
@@ -182,7 +182,11 @@ const endpointResolvers = {
       };
     },
 
-    myEndpoints: async (_, { filters = {}, pagination = {} }, { user: currentUser, jwtUser, apiKeyUser }) => {
+    myEndpoints: async (
+      _,
+      { filters = {}, pagination = {} },
+      { user: currentUser, jwtUser, apiKeyUser }
+    ) => {
       // Block client API keys from accessing endpoints
       if (apiKeyUser && apiKeyUser.type === 'client') {
         throw new ForbiddenError('Client API keys cannot access endpoint management');
@@ -194,7 +198,7 @@ const endpointResolvers = {
 
       const where = {
         createdBy: currentUser.userId,
-        organizationId: currentUser.organizationId
+        organizationId: currentUser.organizationId,
       };
 
       if (filters.isActive !== undefined) {
@@ -203,7 +207,7 @@ const endpointResolvers = {
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } }
+          { description: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -215,12 +219,12 @@ const endpointResolvers = {
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
           connection: {
-            select: { id: true, name: true, host: true, port: true }
+            select: { id: true, name: true, host: true, port: true },
           },
           _count: {
-            select: { usageLogs: true }
-          }
-        }
+            select: { usageLogs: true },
+          },
+        },
       });
 
       return {
@@ -253,10 +257,10 @@ const endpointResolvers = {
       const endpoint = await prisma.endpoint.findFirst({
         where: {
           id,
-          organizationId: currentUser.organizationId
-        }
+          organizationId: currentUser.organizationId,
+        },
       });
-      
+
       if (!endpoint) {
         throw new UserInputError('Endpoint not found');
       }
@@ -272,11 +276,11 @@ const endpointResolvers = {
         where: { endpointId: id },
         _count: { id: true },
         _avg: { responseTime: true },
-        orderBy: { statusCode: 'asc' }
+        orderBy: { statusCode: 'asc' },
       });
 
       const totalRequests = await prisma.apiActivityLog.count({
-        where: { endpointId: id }
+        where: { endpointId: id },
       });
 
       const recentUsage = await prisma.apiActivityLog.findMany({
@@ -288,8 +292,8 @@ const endpointResolvers = {
           statusCode: true,
           responseTime: true,
           method: true,
-          userAgent: true
-        }
+          userAgent: true,
+        },
       });
 
       return {
@@ -297,9 +301,9 @@ const endpointResolvers = {
         statusCodes: usageStats.map(stat => ({
           code: stat.statusCode,
           count: stat._count.id,
-          avgResponseTime: stat._avg.responseTime
+          avgResponseTime: stat._avg.responseTime,
         })),
-        recentUsage
+        recentUsage,
       };
     },
 
@@ -309,15 +313,15 @@ const endpointResolvers = {
         where: { apiKey },
         include: {
           creator: {
-            select: { id: true, email: true, firstName: true, lastName: true }
+            select: { id: true, email: true, firstName: true, lastName: true },
           },
           connection: {
-            select: { id: true, name: true, host: true, port: true }
+            select: { id: true, name: true, host: true, port: true },
           },
           organization: {
-            select: { id: true, name: true, slug: true }
-          }
-        }
+            select: { id: true, name: true, slug: true },
+          },
+        },
       });
 
       // Only return active endpoints
@@ -346,10 +350,10 @@ const endpointResolvers = {
           const connection = await prisma.databaseConnection.findFirst({
             where: {
               id: connectionId,
-              organizationId: currentUser.organizationId
-            }
+              organizationId: currentUser.organizationId,
+            },
           });
-          
+
           if (!connection) {
             throw new UserInputError('Connection not found');
           }
@@ -372,23 +376,23 @@ const endpointResolvers = {
           },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
-                }
-              }
+                  select: { id: true, email: true, firstName: true, lastName: true },
+                },
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Endpoint created via GraphQL', {
           endpointId: endpoint.id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return endpoint;
@@ -409,8 +413,8 @@ const endpointResolvers = {
         const existingEndpoint = await prisma.endpoint.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingEndpoint) {
@@ -429,8 +433,8 @@ const endpointResolvers = {
           const connection = await prisma.databaseConnection.findFirst({
             where: {
               id: connectionId,
-              organizationId: currentUser.organizationId
-            }
+              organizationId: currentUser.organizationId,
+            },
           });
 
           if (!connection) {
@@ -445,23 +449,23 @@ const endpointResolvers = {
           data: updateData,
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
-                }
-              }
+                  select: { id: true, email: true, firstName: true, lastName: true },
+                },
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Endpoint updated via GraphQL', {
           endpointId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return endpoint;
@@ -482,8 +486,8 @@ const endpointResolvers = {
         const existingEndpoint = await prisma.endpoint.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingEndpoint) {
@@ -500,7 +504,7 @@ const endpointResolvers = {
         logger.info('Endpoint deleted via GraphQL', {
           endpointId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return true;
@@ -521,8 +525,8 @@ const endpointResolvers = {
         const existingEndpoint = await prisma.endpoint.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingEndpoint) {
@@ -538,10 +542,10 @@ const endpointResolvers = {
         let newApiKey = crypto.randomBytes(32).toString('hex');
 
         // Ensure the new key is unique (very unlikely to collide, but be safe)
-        const existingWithKey = await prisma.endpoint.findUnique({ 
-          where: { apiKey: newApiKey } 
+        const existingWithKey = await prisma.endpoint.findUnique({
+          where: { apiKey: newApiKey },
         });
-        
+
         if (existingWithKey) {
           // Regenerate if collision (extremely rare)
           newApiKey = crypto.randomBytes(32).toString('hex');
@@ -552,29 +556,32 @@ const endpointResolvers = {
           data: { apiKey: newApiKey },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: {
-              select: { id: true, name: true, host: true, port: true }
+              select: { id: true, name: true, host: true, port: true },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Endpoint API key regenerated via GraphQL', {
           endpointId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return {
           success: true,
           newApiKey: endpoint.apiKey,
           message: 'API key regenerated successfully',
-          endpoint
+          endpoint,
         };
       } catch (error) {
-        logger.error('GraphQL endpoint API key regeneration error', { error: error.message, endpointId: id });
+        logger.error('GraphQL endpoint API key regeneration error', {
+          error: error.message,
+          endpointId: id,
+        });
         throw new Error('Failed to regenerate API key');
       }
     },
@@ -587,8 +594,8 @@ const endpointResolvers = {
         const existingEndpoint = await prisma.endpoint.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingEndpoint) {
@@ -605,23 +612,23 @@ const endpointResolvers = {
           data: { isActive: true },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
-                }
-              }
+                  select: { id: true, email: true, firstName: true, lastName: true },
+                },
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Endpoint activated via GraphQL', {
           endpointId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return endpoint;
@@ -639,8 +646,8 @@ const endpointResolvers = {
         const existingEndpoint = await prisma.endpoint.findFirst({
           where: {
             id,
-            organizationId: currentUser.organizationId
-          }
+            organizationId: currentUser.organizationId,
+          },
         });
 
         if (!existingEndpoint) {
@@ -657,28 +664,31 @@ const endpointResolvers = {
           data: { isActive: false },
           include: {
             creator: {
-              select: { id: true, email: true, firstName: true, lastName: true }
+              select: { id: true, email: true, firstName: true, lastName: true },
             },
             connection: {
               include: {
                 creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true }
-                }
-              }
+                  select: { id: true, email: true, firstName: true, lastName: true },
+                },
+              },
             },
-            organization: true
-          }
+            organization: true,
+          },
         });
 
         logger.info('Endpoint deactivated via GraphQL', {
           endpointId: id,
           userId: currentUser.userId,
-          organizationId: currentUser.organizationId
+          organizationId: currentUser.organizationId,
         });
 
         return endpoint;
       } catch (error) {
-        logger.error('GraphQL endpoint deactivation error', { error: error.message, endpointId: id });
+        logger.error('GraphQL endpoint deactivation error', {
+          error: error.message,
+          endpointId: id,
+        });
         throw new Error('Failed to deactivate endpoint');
       }
     },

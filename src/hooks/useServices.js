@@ -33,7 +33,7 @@ export const useServices = () => {
   }, []);
 
   const handleDelete = useCallback(
-    async serviceId => {
+    async (serviceId, force = false) => {
       // Prevent concurrent delete operations for the same service
       if (operationInProgress[`delete-${serviceId}`]) {
         return { success: false, error: 'Delete operation already in progress' };
@@ -41,11 +41,25 @@ export const useServices = () => {
 
       try {
         setOperationInProgress(prev => ({ ...prev, [`delete-${serviceId}`]: true }));
-        const result = await deleteService(serviceId);
+        const result = await deleteService(serviceId, force);
+
         if (result.success) {
           setServices(prevServices => prevServices.filter(service => service.id !== serviceId));
-          showNotification('Service deleted successfully', 'success');
+          showNotification(
+            force
+              ? 'Service and all dependent records deleted successfully'
+              : 'Service deleted successfully',
+            'success'
+          );
           return { success: true };
+        } else if (result.hasDependencies) {
+          // Return dependency information for the UI to handle
+          return {
+            success: false,
+            hasDependencies: true,
+            dependencies: result.dependencies,
+            message: result.message,
+          };
         } else {
           setError('Failed to delete service');
           return { success: false, error: result.error || 'Delete operation failed' };

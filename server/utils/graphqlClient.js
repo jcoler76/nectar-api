@@ -22,22 +22,22 @@ class GraphQLClient {
         schema,
         document,
         variableValues: variables,
-        contextValue: context
+        contextValue: context,
       });
 
       if (result.errors) {
-        logger.error('GraphQL execution errors', { 
+        logger.error('GraphQL execution errors', {
           errors: result.errors,
-          query: query.substring(0, 200) + '...'
+          query: query.substring(0, 200) + '...',
         });
         throw new Error(`GraphQL Error: ${result.errors[0].message}`);
       }
 
       return result.data;
     } catch (error) {
-      logger.error('GraphQL client error', { 
+      logger.error('GraphQL client error', {
         error: error.message,
-        query: query.substring(0, 200) + '...'
+        query: query.substring(0, 200) + '...',
       });
       throw error;
     }

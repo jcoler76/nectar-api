@@ -100,9 +100,21 @@ class PostgresBackupService {
       const result = await backup.execute(options);
 
       const duration = Date.now() - startTime;
-      this.lastBackupResult = { ...result, duration, timestamp: new Date().toISOString(), success: true };
+      this.lastBackupResult = {
+        ...result,
+        duration,
+        timestamp: new Date().toISOString(),
+        success: true,
+      };
 
-      this.addToHistory({ type: 'backup', success: true, backupPath: result.backupPath, size: result.size, duration, ...result });
+      this.addToHistory({
+        type: 'backup',
+        success: true,
+        backupPath: result.backupPath,
+        size: result.size,
+        duration,
+        ...result,
+      });
       await this.queueSuccessNotification(this.lastBackupResult);
 
       logger.info('PostgreSQL backup completed successfully', {
@@ -114,7 +126,12 @@ class PostgresBackupService {
       return this.lastBackupResult;
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.lastBackupResult = { success: false, error: error.message, duration, timestamp: new Date().toISOString() };
+      this.lastBackupResult = {
+        success: false,
+        error: error.message,
+        duration,
+        timestamp: new Date().toISOString(),
+      };
       this.addToHistory({ type: 'backup', success: false, error: error.message, duration });
       await this.queueFailureNotification(error, duration);
       logger.error('PostgreSQL backup failed', { duration: `${duration}ms`, error: error.message });
@@ -139,7 +156,12 @@ class PostgresBackupService {
       logger.info('Starting PostgreSQL backup cleanup process');
       const backup = new PostgresBackup();
       const result = await backup.cleanupOldBackups();
-      this.addToHistory({ type: 'cleanup', success: true, deletedCount: result.deletedCount, deletedSizeInMB: result.deletedSizeInMB });
+      this.addToHistory({
+        type: 'cleanup',
+        success: true,
+        deletedCount: result.deletedCount,
+        deletedSizeInMB: result.deletedSizeInMB,
+      });
       logger.info('Backup cleanup completed', result);
       return result;
     } catch (error) {
@@ -166,7 +188,11 @@ class PostgresBackupService {
         oldestBackup: backups.length > 0 ? backups[backups.length - 1].created : null,
         newestBackup: backups.length > 0 ? backups[0].created : null,
       };
-      logger.info('Generated backup status report', { enabled: status.enabled, availableBackups: status.availableBackups, lastBackup: this.lastBackupResult?.timestamp });
+      logger.info('Generated backup status report', {
+        enabled: status.enabled,
+        availableBackups: status.availableBackups,
+        lastBackup: this.lastBackupResult?.timestamp,
+      });
       return status;
     } catch (error) {
       logger.error('Error getting backup status', error);
@@ -177,7 +203,11 @@ class PostgresBackupService {
   async queueSuccessNotification(result) {
     try {
       const messageQueue = await getMessageQueue();
-      await messageQueue.add('backup-success-notification', { type: 'backup-success', result, timestamp: new Date().toISOString() });
+      await messageQueue.add('backup-success-notification', {
+        type: 'backup-success',
+        result,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
       logger.error('Failed to queue success notification', error);
     }
@@ -188,7 +218,12 @@ class PostgresBackupService {
       const messageQueue = await getMessageQueue();
       await messageQueue.add(
         'backup-failure-notification',
-        { type: 'backup-failure', error: error.message, duration, timestamp: new Date().toISOString() },
+        {
+          type: 'backup-failure',
+          error: error.message,
+          duration,
+          timestamp: new Date().toISOString(),
+        },
         { priority: 'high', attempts: 3 }
       );
     } catch (queueError) {
@@ -202,7 +237,12 @@ class PostgresBackupService {
 
   async getHealthStatus() {
     const status = await this.getBackupStatus();
-    const health = { healthy: true, issues: [], lastBackup: this.lastBackupResult, enabled: status.enabled };
+    const health = {
+      healthy: true,
+      issues: [],
+      lastBackup: this.lastBackupResult,
+      enabled: status.enabled,
+    };
     if (status.enabled && status.availableBackups === 0) {
       health.healthy = false;
       health.issues.push('No backup files found but backup is enabled');
@@ -216,7 +256,9 @@ class PostgresBackupService {
       const lastBackupAge = Date.now() - new Date(this.lastBackupResult.timestamp).getTime();
       if (lastBackupAge > maxAge) {
         health.healthy = false;
-        health.issues.push(`Last backup is ${Math.floor(lastBackupAge / (24 * 60 * 60 * 1000))} days old`);
+        health.issues.push(
+          `Last backup is ${Math.floor(lastBackupAge / (24 * 60 * 60 * 1000))} days old`
+        );
       }
     }
     return health;
@@ -224,4 +266,3 @@ class PostgresBackupService {
 }
 
 module.exports = PostgresBackupService;
-

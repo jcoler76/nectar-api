@@ -17,7 +17,7 @@ router.post('/trigger/:workflowId', async (req, res) => {
     const { workflowId } = req.params;
     const workflow = await prisma.workflow.findUnique({
       where: { id: workflowId },
-      include: { organization: true }
+      include: { organization: true },
     });
 
     if (!workflow || !workflow.isActive) {

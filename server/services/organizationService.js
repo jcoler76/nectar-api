@@ -7,22 +7,22 @@ class OrganizationService {
    */
   static async createOrganization(userId, organizationData) {
     const prisma = getPrismaClient();
-    
+
     // Generate a unique slug from the organization name
     const baseSlug = organizationData.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
-    
+
     let slug = baseSlug;
     let counter = 1;
-    
+
     // Ensure slug is unique
     while (await prisma.organization.findUnique({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`;
       counter++;
     }
-    
+
     // Create organization with creator as owner
     const organization = await prisma.organization.create({
       data: {
@@ -54,7 +54,7 @@ class OrganizationService {
         subscription: true,
       },
     });
-    
+
     // Log organization creation
     await prisma.auditLog.create({
       data: {
@@ -69,16 +69,16 @@ class OrganizationService {
         },
       },
     });
-    
+
     return organization;
   }
-  
+
   /**
    * Get organization by ID with membership check
    */
   static async getOrganization(organizationId, userId) {
     const prisma = getPrismaClient({ organizationId, userId });
-    
+
     const organization = await prisma.organization.findFirst({
       where: {
         id: organizationId,
@@ -112,20 +112,20 @@ class OrganizationService {
         },
       },
     });
-    
+
     if (!organization) {
       throw new Error('Organization not found or access denied');
     }
-    
+
     return organization;
   }
-  
+
   /**
    * List all organizations for a user
    */
   static async listUserOrganizations(userId) {
     const prisma = getPrismaClient({ userId });
-    
+
     const memberships = await prisma.membership.findMany({
       where: {
         userId,
@@ -151,20 +151,20 @@ class OrganizationService {
         joinedAt: 'desc',
       },
     });
-    
+
     return memberships.map(m => ({
       ...m.organization,
       role: m.role,
       joinedAt: m.joinedAt,
     }));
   }
-  
+
   /**
    * Update organization details
    */
   static async updateOrganization(organizationId, userId, updates) {
     const prisma = getPrismaClient({ organizationId, userId });
-    
+
     // Check if user has admin or owner role
     const membership = await prisma.membership.findFirst({
       where: {
@@ -175,27 +175,27 @@ class OrganizationService {
         },
       },
     });
-    
+
     if (!membership) {
       throw new Error('Insufficient permissions to update organization');
     }
-    
+
     // If updating slug, ensure it's unique
     if (updates.slug) {
       const existing = await prisma.organization.findUnique({
         where: { slug: updates.slug },
       });
-      
+
       if (existing && existing.id !== organizationId) {
         throw new Error('Slug is already taken');
       }
     }
-    
+
     const organization = await prisma.organization.update({
       where: { id: organizationId },
       data: updates,
     });
-    
+
     // Log the update
     await prisma.auditLog.create({
       data: {
@@ -207,16 +207,16 @@ class OrganizationService {
         metadata: updates,
       },
     });
-    
+
     return organization;
   }
-  
+
   /**
    * Delete organization (owner only)
    */
   static async deleteOrganization(organizationId, userId) {
     const prisma = getPrismaClient({ organizationId, userId });
-    
+
     // Check if user is owner
     const membership = await prisma.membership.findFirst({
       where: {
@@ -225,20 +225,20 @@ class OrganizationService {
         role: 'OWNER',
       },
     });
-    
+
     if (!membership) {
       throw new Error('Only organization owners can delete the organization');
     }
-    
+
     // Check for active subscription
     const subscription = await prisma.subscription.findUnique({
       where: { organizationId },
     });
-    
+
     if (subscription && subscription.status === 'ACTIVE' && subscription.plan !== 'FREE') {
       throw new Error('Please cancel your subscription before deleting the organization');
     }
-    
+
     // Log deletion before it happens
     await prisma.auditLog.create({
       data: {
@@ -252,21 +252,21 @@ class OrganizationService {
         },
       },
     });
-    
+
     // Delete organization (cascades to all related data)
     await prisma.organization.delete({
       where: { id: organizationId },
     });
-    
+
     return { success: true };
   }
-  
+
   /**
    * Get organization usage statistics
    */
   static async getOrganizationStats(organizationId, userId) {
     const prisma = getPrismaClient({ organizationId, userId });
-    
+
     // Check membership
     const membership = await prisma.membership.findFirst({
       where: {
@@ -274,47 +274,42 @@ class OrganizationService {
         userId,
       },
     });
-    
+
     if (!membership) {
       throw new Error('Access denied');
     }
-    
+
     // Get current month's date range
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-    
+
     // Get usage statistics
-    const [
-      apiCallCount,
-      connectionCount,
-      workflowCount,
-      memberCount,
-      subscription,
-    ] = await Promise.all([
-      prisma.usageMetric.count({
-        where: {
-          organizationId,
-          timestamp: {
-            gte: startOfMonth,
-            lte: endOfMonth,
+    const [apiCallCount, connectionCount, workflowCount, memberCount, subscription] =
+      await Promise.all([
+        prisma.usageMetric.count({
+          where: {
+            organizationId,
+            timestamp: {
+              gte: startOfMonth,
+              lte: endOfMonth,
+            },
           },
-        },
-      }),
-      prisma.databaseConnection.count({
-        where: { organizationId },
-      }),
-      prisma.workflow.count({
-        where: { organizationId },
-      }),
-      prisma.membership.count({
-        where: { organizationId },
-      }),
-      prisma.subscription.findUnique({
-        where: { organizationId },
-      }),
-    ]);
-    
+        }),
+        prisma.databaseConnection.count({
+          where: { organizationId },
+        }),
+        prisma.workflow.count({
+          where: { organizationId },
+        }),
+        prisma.membership.count({
+          where: { organizationId },
+        }),
+        prisma.subscription.findUnique({
+          where: { organizationId },
+        }),
+      ]);
+
     return {
       usage: {
         apiCalls: {

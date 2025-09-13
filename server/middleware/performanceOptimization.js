@@ -19,7 +19,7 @@ const createOrganizationRateLimit = (windowMs = 15 * 60 * 1000, max = 1000) => {
   return rateLimit({
     windowMs,
     max,
-    keyGenerator: (req) => {
+    keyGenerator: req => {
       // Rate limit by organization ID
       return req.user?.organizationId || req.ip;
     },
@@ -51,7 +51,8 @@ const optimizeDatabaseQueries = (req, res, next) => {
       const result = await originalQuery.apply(req.prisma, args);
       const queryDuration = Date.now() - queryStartTime;
 
-      if (queryDuration > 1000) { // Log queries slower than 1 second
+      if (queryDuration > 1000) {
+        // Log queries slower than 1 second
         logger.warn('Slow database query detected', {
           duration: queryDuration,
           organizationId: req.user?.organizationId,
@@ -67,8 +68,9 @@ const optimizeDatabaseQueries = (req, res, next) => {
   // Log slow API responses
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    
-    if (duration > 3000) { // Log responses slower than 3 seconds
+
+    if (duration > 3000) {
+      // Log responses slower than 3 seconds
       logger.warn('Slow API response detected', {
         duration,
         organizationId: req.user?.organizationId,
@@ -104,7 +106,7 @@ const cacheExpensiveOperations = () => {
 
     // Override res.json to cache the response
     const originalJson = res.json;
-    res.json = function(data) {
+    res.json = function (data) {
       // Cache successful responses
       if (res.statusCode >= 200 && res.statusCode < 300) {
         cache.set(cacheKey, {

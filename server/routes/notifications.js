@@ -23,7 +23,7 @@ router.use((req, res, next) => {
 router.get('/', async (req, res) => {
   try {
     logger.info('Notifications endpoint hit - returning empty data (temporary)');
-    
+
     res.json({
       success: true,
       notifications: [],
@@ -32,8 +32,8 @@ router.get('/', async (req, res) => {
         limit: 20,
         total: 0,
         pages: 1,
-        hasMore: false
-      }
+        hasMore: false,
+      },
     });
   } catch (error) {
     logger.error('Error in notifications endpoint:', error);
@@ -48,10 +48,10 @@ router.get('/', async (req, res) => {
 router.get('/unread-count', async (req, res) => {
   try {
     logger.info('Unread count endpoint hit - returning zero (temporary)');
-    
+
     res.json({
       success: true,
-      unreadCount: 0
+      unreadCount: 0,
     });
   } catch (error) {
     logger.error('Error in unread-count endpoint:', error);
@@ -66,16 +66,16 @@ router.get('/unread-count', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     logger.info('Create notification endpoint hit - returning success (temporary)');
-    
+
     res.status(201).json({
       success: true,
       notification: {
         id: 'temp-' + Date.now(),
         ...req.body,
         isRead: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       },
-      message: 'Notification created successfully'
+      message: 'Notification created successfully',
     });
   } catch (error) {
     logger.error('Error in create notification endpoint:', error);
@@ -90,15 +90,15 @@ router.post('/', async (req, res) => {
 router.patch('/:id/read', async (req, res) => {
   try {
     logger.info(`Mark read endpoint hit for ID: ${req.params.id} (temporary)`);
-    
+
     res.json({
       success: true,
       notification: {
         id: req.params.id,
         isRead: true,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       },
-      message: 'Notification marked as read'
+      message: 'Notification marked as read',
     });
   } catch (error) {
     logger.error('Error in mark read endpoint:', error);
@@ -113,11 +113,11 @@ router.patch('/:id/read', async (req, res) => {
 router.patch('/mark-all-read', async (req, res) => {
   try {
     logger.info('Mark all read endpoint hit (temporary)');
-    
+
     res.json({
       success: true,
       modifiedCount: 0,
-      message: 'All notifications marked as read'
+      message: 'All notifications marked as read',
     });
   } catch (error) {
     logger.error('Error in mark all read endpoint:', error);
@@ -132,10 +132,10 @@ router.patch('/mark-all-read', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     logger.info(`Delete notification endpoint hit for ID: ${req.params.id} (temporary)`);
-    
+
     res.json({
       success: true,
-      message: 'Notification deleted successfully'
+      message: 'Notification deleted successfully',
     });
   } catch (error) {
     logger.error('Error in delete notification endpoint:', error);
@@ -150,11 +150,11 @@ router.delete('/:id', async (req, res) => {
 router.delete('/', async (req, res) => {
   try {
     logger.info('Clear all notifications endpoint hit (temporary)');
-    
+
     res.json({
       success: true,
       deletedCount: 0,
-      message: 'All notifications cleared'
+      message: 'All notifications cleared',
     });
   } catch (error) {
     logger.error('Error in clear all notifications endpoint:', error);

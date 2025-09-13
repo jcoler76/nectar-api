@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 /**
  * SchemaIntelligenceService
- * Connects to Template20 database and retrieves schema information
+ * Connects to database and retrieves schema information
  * Stores retrieved data in SchemaIntelligence model with proper categorization
  */
 
@@ -35,20 +35,20 @@ class SchemaIntelligenceService {
       }
 
       // TODO: Replace with Prisma query for PostgreSQL migration
-      // Find Template20 connection (assuming it's the connection for this service)
+      // Find database connection for this service
       // const connection = await Connection.findOne({
-      //   $or: [{ name: /template20/i }, { database: /template20/i }, { host: service.host }],
+      //   serviceId: serviceId
       // });
       const connection = null; // Placeholder
 
       if (!connection) {
-        throw new Error('Template20 database connection not found');
+        throw new Error('Database connection not found');
       }
 
       // Create connection pool
       const config = {
         server: connection.host,
-        database: connection.database || 'template20',
+        database: connection.database,
         user: connection.username,
         password: connection.password,
         port: connection.port || 1433,
@@ -68,11 +68,11 @@ class SchemaIntelligenceService {
       this.connectionPool = await new sql.ConnectionPool(config).connect();
       this.currentConnectionId = connection._id;
 
-      console.log(`Connected to Template20 database: ${connection.host}/${connection.database}`);
+      console.log(`Connected to database: ${connection.host}/${connection.database}`);
       return this.connectionPool;
     } catch (error) {
       console.error('Database connection failed:', error);
-      throw new Error(`Failed to connect to Template20 database: ${error.message}`);
+      throw new Error(`Failed to connect to database: ${error.message}`);
     }
   }
 
@@ -579,7 +579,7 @@ class SchemaIntelligenceService {
       // });
       //
       // return await schemaIntelligence.save({ session });
-      
+
       const schemaIntelligenceData = {
         databaseObjectId: databaseObject._id,
         serviceId: databaseObject.serviceId,
@@ -596,7 +596,7 @@ class SchemaIntelligenceService {
           businessImportance: databaseObject.businessImportance,
         },
       };
-      
+
       // return await prisma.schemaIntelligence.create({ data: schemaIntelligenceData });
       return { id: 'placeholder' }; // Placeholder
     } catch (error) {

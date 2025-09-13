@@ -33,7 +33,7 @@ class MongoDBDriver extends IDatabaseDriver {
     const port = this.connectionConfig.port || 27017;
     const username = this.connectionConfig.username;
     const dbName = database || this.connectionConfig.database || 'admin';
-    
+
     // Build connection string based on whether authentication is required
     let connectionString;
     if (username && password) {
@@ -64,7 +64,7 @@ class MongoDBDriver extends IDatabaseDriver {
       maxPoolSize: 10,
       minPoolSize: 0,
       retryWrites: true,
-      retryReads: true
+      retryReads: true,
     };
   }
 
@@ -74,18 +74,18 @@ class MongoDBDriver extends IDatabaseDriver {
   async testConnection() {
     let client;
     try {
-      logger.debug('Testing MongoDB connection', { 
-        host: this.connectionConfig.host, 
+      logger.debug('Testing MongoDB connection', {
+        host: this.connectionConfig.host,
         port: this.connectionConfig.port,
-        database: this.connectionConfig.database 
+        database: this.connectionConfig.database,
       });
 
       const connectionString = this._buildConnectionString();
       const options = this._getClientOptions();
-      
+
       client = new MongoClient(connectionString, options);
       await client.connect();
-      
+
       // Ping the database to verify connection
       const db = client.db();
       await db.admin().ping();
@@ -121,10 +121,10 @@ class MongoDBDriver extends IDatabaseDriver {
   async createConnection(database = null) {
     const connectionString = this._buildConnectionString(database);
     const options = this._getClientOptions();
-    
+
     const client = new MongoClient(connectionString, options);
     await client.connect();
-    
+
     return client;
   }
 
@@ -136,7 +136,7 @@ class MongoDBDriver extends IDatabaseDriver {
     // In MongoDB context, 'query' would be collection name and operation
     // Parameters would include the actual query filter
     const { collection, operation = 'find', filter = {}, options = {} } = parameters;
-    
+
     if (!collection) {
       throw new Error('Collection name is required for MongoDB operations');
     }
@@ -165,21 +165,23 @@ class MongoDBDriver extends IDatabaseDriver {
     // MongoDB doesn't have stored procedures in the traditional sense
     // We can use aggregation pipelines or run commands
     const db = connection.db();
-    
+
     // If procedureName is actually a command
     if (procedureName.startsWith('$')) {
       const command = { [procedureName.substring(1)]: 1, ...parameters };
       return await db.command(command);
     }
-    
+
     // Otherwise, treat it as a collection operation
     const { collection, pipeline } = parameters;
     if (collection && pipeline) {
       const coll = db.collection(collection);
       return await coll.aggregate(pipeline).toArray();
     }
-    
-    throw new Error('MongoDB does not support traditional stored procedures. Use aggregation pipelines or commands instead.');
+
+    throw new Error(
+      'MongoDB does not support traditional stored procedures. Use aggregation pipelines or commands instead.'
+    );
   }
 
   /**
@@ -188,7 +190,7 @@ class MongoDBDriver extends IDatabaseDriver {
   async getDatabaseList(connection) {
     const admin = connection.db().admin();
     const result = await admin.listDatabases();
-    
+
     return result.databases
       .map(db => db.name)
       .filter(name => !['admin', 'config', 'local'].includes(name));
@@ -199,31 +201,32 @@ class MongoDBDriver extends IDatabaseDriver {
    */
   async getDatabaseObjects(connection, databaseName) {
     const db = databaseName ? connection.db(databaseName) : connection.db();
-    
+
     // Get collections
     const collections = await db.listCollections().toArray();
-    
+
     const results = collections.map(coll => ({
       name: coll.name,
       type_desc: coll.type === 'view' ? 'VIEW' : 'COLLECTION',
       type: coll.type === 'view' ? 'V' : 'C',
       schema_name: databaseName || db.databaseName,
-      object_category: coll.type === 'view' ? 'VIEW' : 'COLLECTION'
+      object_category: coll.type === 'view' ? 'VIEW' : 'COLLECTION',
     }));
-    
+
     // Get indexes as a type of database object
     for (const coll of collections) {
       if (coll.type !== 'view') {
         try {
           const indexes = await db.collection(coll.name).indexes();
           indexes.forEach(index => {
-            if (index.name !== '_id_') { // Skip default _id index
+            if (index.name !== '_id_') {
+              // Skip default _id index
               results.push({
                 name: `${coll.name}.${index.name}`,
                 type_desc: 'INDEX',
                 type: 'I',
                 schema_name: databaseName || db.databaseName,
-                object_category: 'INDEX'
+                object_category: 'INDEX',
               });
             }
           });
@@ -232,7 +235,7 @@ class MongoDBDriver extends IDatabaseDriver {
         }
       }
     }
-    
+
     return results;
   }
 
@@ -242,22 +245,22 @@ class MongoDBDriver extends IDatabaseDriver {
   async getTableColumns(connection, databaseName, collectionName) {
     const db = databaseName ? connection.db(databaseName) : connection.db();
     const collection = db.collection(collectionName);
-    
+
     // Sample documents to infer schema
     const sampleSize = 100;
     const samples = await collection.find({}).limit(sampleSize).toArray();
-    
+
     if (samples.length === 0) {
       return [];
     }
-    
+
     // Analyze the samples to determine field types
     const fieldMap = new Map();
-    
+
     samples.forEach(doc => {
       this._analyzeDocument(doc, '', fieldMap);
     });
-    
+
     // Convert to column-like format
     const columns = [];
     fieldMap.forEach((typeInfo, fieldPath) => {
@@ -268,10 +271,10 @@ class MongoDBDriver extends IDatabaseDriver {
         maxLength: typeInfo.maxLength || null,
         precision: null,
         scale: null,
-        defaultValue: null
+        defaultValue: null,
       });
     });
-    
+
     return columns;
   }
 
@@ -281,14 +284,14 @@ class MongoDBDriver extends IDatabaseDriver {
    */
   _analyzeDocument(obj, prefix, fieldMap, depth = 0) {
     if (depth > 5) return; // Limit recursion depth
-    
+
     Object.entries(obj).forEach(([key, value]) => {
       const fieldPath = prefix ? `${prefix}.${key}` : key;
-      
+
       let type = 'unknown';
       let nullable = false;
       let maxLength = null;
-      
+
       if (value === null || value === undefined) {
         type = 'null';
         nullable = true;
@@ -312,7 +315,7 @@ class MongoDBDriver extends IDatabaseDriver {
         // Recursively analyze nested objects
         this._analyzeDocument(value, fieldPath, fieldMap, depth + 1);
       }
-      
+
       // Update or create field info
       const existing = fieldMap.get(fieldPath);
       if (existing) {
@@ -384,7 +387,7 @@ class MongoDBDriver extends IDatabaseDriver {
       username: { required: false, type: 'string' },
       password: { required: false, type: 'string' },
       database: { required: false, type: 'string', default: 'admin' },
-      sslEnabled: { required: false, type: 'boolean', default: false }
+      sslEnabled: { required: false, type: 'boolean', default: false },
     };
   }
 

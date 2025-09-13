@@ -43,9 +43,7 @@ prisma.$use(async (params, next) => {
     await prisma.$executeRawUnsafe(
       `SET LOCAL app.current_organization_id = '${organizationId || ''}'`
     );
-    await prisma.$executeRawUnsafe(
-      `SET LOCAL app.current_user_id = '${userId || ''}'`
-    );
+    await prisma.$executeRawUnsafe(`SET LOCAL app.current_user_id = '${userId || ''}'`);
   }
 
   // Automatically filter by organization for tenant-scoped models
@@ -102,15 +100,15 @@ function getPrismaClient(context = {}) {
   return new Proxy(prisma, {
     get(target, prop) {
       const original = target[prop];
-      
+
       // If it's a model operation, wrap it to include context
       if (typeof original === 'object' && original !== null) {
         return new Proxy(original, {
           get(modelTarget, modelProp) {
             const modelMethod = modelTarget[modelProp];
-            
+
             if (typeof modelMethod === 'function') {
-              return function(...args) {
+              return function (...args) {
                 // Add context to the arguments
                 if (args[0] && typeof args[0] === 'object') {
                   args[0].__organizationId = context.organizationId;
@@ -119,14 +117,14 @@ function getPrismaClient(context = {}) {
                 return modelMethod.apply(modelTarget, args);
               };
             }
-            
+
             return modelMethod;
-          }
+          },
         });
       }
-      
+
       return original;
-    }
+    },
   });
 }
 

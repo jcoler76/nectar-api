@@ -50,10 +50,10 @@ class PostgreSQLDriver extends IDatabaseDriver {
   async testConnection() {
     let client;
     try {
-      logger.debug('Testing PostgreSQL connection', { 
-        host: this.connectionConfig.host, 
+      logger.debug('Testing PostgreSQL connection', {
+        host: this.connectionConfig.host,
         port: this.connectionConfig.port,
-        database: this.connectionConfig.database 
+        database: this.connectionConfig.database,
       });
 
       const config = this._createConfig();
@@ -106,7 +106,7 @@ class PostgreSQLDriver extends IDatabaseDriver {
     if (typeof parameters === 'object' && !Array.isArray(parameters)) {
       paramArray = [];
       let paramIndex = 1;
-      
+
       // Replace named parameters with numbered parameters
       for (const [key, value] of Object.entries(parameters)) {
         const placeholder = `:${key}`;
@@ -178,7 +178,7 @@ class PostgreSQLDriver extends IDatabaseDriver {
         await newConnection.end();
       }
     }
-    
+
     return await this._getDatabaseObjectsFromConnection(connection);
   }
 
@@ -243,7 +243,8 @@ class PostgreSQLDriver extends IDatabaseDriver {
     }
 
     try {
-      const result = await workingConnection.query(`
+      const result = await workingConnection.query(
+        `
         SELECT 
           column_name as name,
           data_type as "dataType",
@@ -256,7 +257,9 @@ class PostgreSQLDriver extends IDatabaseDriver {
         WHERE table_name = $1
           AND table_schema NOT IN ('information_schema', 'pg_catalog')
         ORDER BY ordinal_position;
-      `, [tableName]);
+      `,
+        [tableName]
+      );
 
       return result.rows;
     } finally {
@@ -378,7 +381,7 @@ class PostgreSQLDriver extends IDatabaseDriver {
       username: { required: true, type: 'string' },
       password: { required: true, type: 'string' },
       database: { required: false, type: 'string', default: 'postgres' },
-      sslEnabled: { required: false, type: 'boolean', default: false }
+      sslEnabled: { required: false, type: 'boolean', default: false },
     };
   }
 

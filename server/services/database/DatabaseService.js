@@ -32,12 +32,12 @@ class DatabaseService {
     try {
       // Determine database type - default to MSSQL for backward compatibility
       const databaseType = connectionConfig.type || 'MSSQL';
-      
+
       logger.debug('Testing database connection', {
         type: databaseType,
         host: connectionConfig.host,
         port: connectionConfig.port,
-        database: connectionConfig.database
+        database: connectionConfig.database,
       });
 
       const driver = DatabaseDriverFactory.createDriver(databaseType, connectionConfig);
@@ -46,7 +46,7 @@ class DatabaseService {
       logger.error('Database connection test failed:', error.message);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -64,7 +64,7 @@ class DatabaseService {
       username: connection.username,
       password: connection.passwordEncrypted,
       database: connection.database,
-      sslEnabled: connection.sslEnabled
+      sslEnabled: connection.sslEnabled,
     };
 
     return await this.testConnection(connectionConfig);
@@ -84,12 +84,12 @@ class DatabaseService {
         port: connection.port,
         username: connection.username,
         password: connection.passwordEncrypted,
-        sslEnabled: connection.sslEnabled
+        sslEnabled: connection.sslEnabled,
       };
 
       driver = DatabaseDriverFactory.createDriver(connectionConfig.type, connectionConfig);
       dbConnection = await driver.createConnection();
-      
+
       return await driver.getDatabaseList(dbConnection);
     } finally {
       if (driver && dbConnection) {
@@ -120,12 +120,12 @@ class DatabaseService {
         username: service.username,
         password: service.password,
         database: service.database,
-        sslEnabled: service.sslEnabled
+        sslEnabled: service.sslEnabled,
       };
 
       driver = DatabaseDriverFactory.createDriver(connectionConfig.type, connectionConfig);
       connection = await driver.createConnection();
-      
+
       return await driver.executeStoredProcedure(connection, procedureName, params, options);
     } finally {
       if (driver && connection) {
@@ -140,7 +140,7 @@ class DatabaseService {
 
   /**
    * Get database objects
-   * @param {Object} service - Service configuration  
+   * @param {Object} service - Service configuration
    * @returns {Promise<Array>} Database objects
    */
   static async getDatabaseObjects(service) {
@@ -153,12 +153,12 @@ class DatabaseService {
         username: service.username,
         password: service.password,
         database: service.database,
-        sslEnabled: service.sslEnabled
+        sslEnabled: service.sslEnabled,
       };
 
       driver = DatabaseDriverFactory.createDriver(connectionConfig.type, connectionConfig);
       connection = await driver.createConnection();
-      
+
       return await driver.getDatabaseObjects(connection, service.database);
     } finally {
       if (driver && connection) {
@@ -181,9 +181,12 @@ class DatabaseService {
   static async getTableColumns(connectionConfig, database, table) {
     let driver, connection;
     try {
-      driver = DatabaseDriverFactory.createDriver(connectionConfig.type || 'MSSQL', connectionConfig);
+      driver = DatabaseDriverFactory.createDriver(
+        connectionConfig.type || 'MSSQL',
+        connectionConfig
+      );
       connection = await driver.createConnection();
-      
+
       return await driver.getTableColumns(connection, database, table);
     } finally {
       if (driver && connection) {
@@ -210,7 +213,7 @@ class DatabaseService {
       username: connection.username,
       password: connection.password || connection.passwordEncrypted,
       database: database || connection.database,
-      sslEnabled: connection.sslEnabled
+      sslEnabled: connection.sslEnabled,
     };
 
     return await DatabaseDriverFactory.createService(connectionConfig);

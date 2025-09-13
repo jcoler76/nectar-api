@@ -65,8 +65,8 @@ class ActivityLogController {
         where.user = {
           email: {
             contains: userEmail,
-            mode: 'insensitive'
-          }
+            mode: 'insensitive',
+          },
         };
       }
       if (errorType) where.error = { contains: errorType };
@@ -88,7 +88,8 @@ class ActivityLogController {
           .map(i => i.trim())
           .filter(i => i.length > 0);
         if (importanceValues.length > 0) {
-          where.importance = importanceValues.length > 1 ? { in: importanceValues } : importanceValues[0];
+          where.importance =
+            importanceValues.length > 1 ? { in: importanceValues } : importanceValues[0];
         }
       }
 
@@ -105,7 +106,7 @@ class ActivityLogController {
           { url: { contains: search, mode: 'insensitive' } },
           { endpoint: { contains: search, mode: 'insensitive' } },
           { userAgent: { contains: search, mode: 'insensitive' } },
-          { error: { contains: search, mode: 'insensitive' } }
+          { error: { contains: search, mode: 'insensitive' } },
         ];
       }
 
@@ -138,10 +139,10 @@ class ActivityLogController {
                 id: true,
                 email: true,
                 firstName: true,
-                lastName: true
-              }
-            }
-          }
+                lastName: true,
+              },
+            },
+          },
         }),
         prisma.apiActivityLog.count({ where }),
       ]);
@@ -190,10 +191,10 @@ class ActivityLogController {
               id: true,
               email: true,
               firstName: true,
-              lastName: true
-            }
-          }
-        }
+              lastName: true,
+            },
+          },
+        },
       });
 
       if (!log) {
@@ -254,13 +255,13 @@ class ActivityLogController {
       // Get activity summary using Prisma aggregations
       const [totalRequests, successfulRequests, avgResponseTime] = await Promise.all([
         prisma.apiActivityLog.count({ where: baseWhere }),
-        prisma.apiActivityLog.count({ 
-          where: { ...baseWhere, statusCode: { lt: 400 } } 
+        prisma.apiActivityLog.count({
+          where: { ...baseWhere, statusCode: { lt: 400 } },
         }),
         prisma.apiActivityLog.aggregate({
           where: baseWhere,
-          _avg: { responseTime: true }
-        })
+          _avg: { responseTime: true },
+        }),
       ]);
 
       const summary = {
@@ -275,7 +276,7 @@ class ActivityLogController {
       const [errorBreakdown, topEndpoints, userActivity] = await Promise.all([
         ActivityLogController.getErrorBreakdown(timeframe, onlyImportant),
         ActivityLogController.getTopEndpoints(timeframe, onlyImportant),
-        ActivityLogController.getUserActivity(timeframe, onlyImportant)
+        ActivityLogController.getUserActivity(timeframe, onlyImportant),
       ]);
 
       res.json({
@@ -327,9 +328,9 @@ class ActivityLogController {
         take: 10000, // Limit export size
         include: {
           user: {
-            select: { email: true }
-          }
-        }
+            select: { email: true },
+          },
+        },
       });
 
       if (format === 'csv') {
@@ -403,8 +404,8 @@ class ActivityLogController {
 
       const result = await prisma.apiActivityLog.deleteMany({
         where: {
-          timestamp: { lt: cutoffTime }
-        }
+          timestamp: { lt: cutoffTime },
+        },
       });
 
       res.json({
@@ -455,13 +456,13 @@ class ActivityLogController {
         AND category IN ('api', 'workflow')
         AND "endpointType" IN ('client', 'public')
     `;
-    
+
     const params = [startTime];
-    
+
     if (onlyImportant) {
       query += ` AND importance IN ('critical', 'high')`;
     }
-    
+
     query += `
       GROUP BY COALESCE(error, 'Unknown Error')
       ORDER BY count DESC
@@ -499,13 +500,13 @@ class ActivityLogController {
         AND category IN ('api', 'workflow')
         AND "endpointType" IN ('client', 'public')
     `;
-    
+
     const params = [startTime];
-    
+
     if (onlyImportant) {
       query += ` AND importance IN ('critical', 'high')`;
     }
-    
+
     query += `
       GROUP BY endpoint
       ORDER BY "totalRequests" DESC
@@ -546,13 +547,13 @@ class ActivityLogController {
         AND category IN ('api', 'workflow')
         AND "endpointType" IN ('client', 'public')
     `;
-    
+
     const params = [startTime];
-    
+
     if (onlyImportant) {
       query += ` AND importance IN ('critical', 'high')`;
     }
-    
+
     query += `
       GROUP BY u.email
       ORDER BY "totalRequests" DESC

@@ -21,7 +21,7 @@ class AuthService {
 
       // Find user by email
       const user = await prismaService.findUserByEmail(email);
-      
+
       if (!user) {
         logger.warn('Login failed - user not found', { email, ipAddress });
         throw new Error('Invalid email or password');
@@ -46,7 +46,11 @@ class AuthService {
 
       // Check if user has any organization memberships
       if (!user.memberships || user.memberships.length === 0) {
-        logger.warn('Login failed - no organization memberships', { email, userId: user.id, ipAddress });
+        logger.warn('Login failed - no organization memberships', {
+          email,
+          userId: user.id,
+          ipAddress,
+        });
         throw new Error('No organization access found');
       }
 
@@ -108,7 +112,6 @@ class AuthService {
         token,
         expiresIn: this.tokenExpiry,
       };
-
     } catch (error) {
       logger.error('Login error', { error: error.message, email, ipAddress });
       throw error;
@@ -163,13 +166,16 @@ class AuthService {
 
       // Generate organization slug
       const orgSlug = organizationName
-        ? organizationName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
+        ? organizationName
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '-')
+            .replace(/-+/g, '-')
         : `${firstName}-${lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
       // Create user, organization, subscription, and membership in a transaction
       const prisma = await prismaService.getClient();
-      
-      const result = await prisma.$transaction(async (tx) => {
+
+      const result = await prisma.$transaction(async tx => {
         // Create user
         const user = await tx.user.create({
           data: {
@@ -232,7 +238,6 @@ class AuthService {
       });
 
       return result;
-
     } catch (error) {
       logger.error('Registration error', { error: error.message, userData });
       throw error;
@@ -263,7 +268,7 @@ class AuthService {
       const prisma = await prismaService.getClient();
       await prisma.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           passwordHash: newPasswordHash,
           updatedAt: new Date(),
         },
@@ -271,7 +276,6 @@ class AuthService {
 
       logger.info('Password changed successfully', { userId });
       return true;
-
     } catch (error) {
       logger.error('Password change error', { error: error.message, userId });
       throw error;

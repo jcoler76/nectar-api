@@ -61,10 +61,10 @@ class MSSQLDriver extends IDatabaseDriver {
   async testConnection() {
     let pool;
     try {
-      logger.debug('Testing MSSQL connection', { 
-        host: this.connectionConfig.host, 
+      logger.debug('Testing MSSQL connection', {
+        host: this.connectionConfig.host,
         port: this.connectionConfig.port,
-        database: this.connectionConfig.database 
+        database: this.connectionConfig.database,
       });
 
       const config = this._createConfig();
@@ -172,7 +172,7 @@ class MSSQLDriver extends IDatabaseDriver {
         await newConnection.close();
       }
     }
-    
+
     return await this._getDatabaseObjectsFromConnection(connection);
   }
 
@@ -349,7 +349,7 @@ class MSSQLDriver extends IDatabaseDriver {
       username: { required: true, type: 'string' },
       password: { required: true, type: 'string' },
       database: { required: false, type: 'string' },
-      sslEnabled: { required: false, type: 'boolean', default: true }
+      sslEnabled: { required: false, type: 'boolean', default: true },
     };
   }
 

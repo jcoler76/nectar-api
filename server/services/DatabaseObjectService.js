@@ -1,6 +1,5 @@
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const DatabaseObject = require('../models/DatabaseObject');
-// const Template20Intelligence = require('../models/Template20Intelligence');
 // const SchemaIntelligence = require('../models/SchemaIntelligence');
 // const mongoose = require('mongoose');
 
@@ -10,7 +9,7 @@ const prisma = new PrismaClient();
 /**
  * DatabaseObjectService
  * Manages object selection persistence, validation, and dependency resolution
- * Integrates with Template20Intelligence for object metadata
+ * Integrates with schema intelligence for object metadata
  */
 
 class DatabaseObjectService {
@@ -101,8 +100,7 @@ class DatabaseObjectService {
       await this.validateService(serviceId);
 
       // TODO: Replace with Prisma query for PostgreSQL migration
-      // Get Template20Intelligence for metadata enrichment
-      // const intelligence = await Template20Intelligence.getLatestIntelligence();
+      // Get schema intelligence for metadata enrichment
       const intelligence = null; // Placeholder
 
       // TODO: Replace with Prisma query for PostgreSQL migration
@@ -420,7 +418,7 @@ class DatabaseObjectService {
   }
 
   /**
-   * Get object metadata from Template20Intelligence
+   * Get object metadata from schema intelligence
    */
   getObjectMetadata(intelligence, objectType, objectName) {
     if (!intelligence) return null;
@@ -479,18 +477,18 @@ class DatabaseObjectService {
   }
 
   /**
-   * Validate object selections against Template20Intelligence
+   * Validate object selections against schema intelligence
    */
   async validateSelections(serviceId, selectedObjects) {
     try {
       // TODO: Replace with Prisma query for PostgreSQL migration
-      // const intelligence = await Template20Intelligence.getLatestIntelligence();
+      // const intelligence = await getLatestSchemaIntelligence();
       // if (!intelligence) {
-      //   throw new Error('No Template20Intelligence data available');
+      //   throw new Error('No schema intelligence data available');
       // }
       const intelligence = null; // Placeholder
       if (!intelligence) {
-        throw new Error('No Template20Intelligence data available');
+        throw new Error('No schema intelligence data available');
       }
 
       const validation = {
@@ -515,7 +513,7 @@ class DatabaseObjectService {
           validation.invalid.push({
             type: 'table',
             name: tableName,
-            reason: 'Not found in Template20Intelligence',
+            reason: 'Not found in schema intelligence',
           });
         }
       }
@@ -529,7 +527,7 @@ class DatabaseObjectService {
           validation.invalid.push({
             type: 'view',
             name: viewName,
-            reason: 'Not found in Template20Intelligence',
+            reason: 'Not found in schema intelligence',
           });
         }
       }
@@ -548,7 +546,7 @@ class DatabaseObjectService {
           validation.invalid.push({
             type: 'procedure',
             name: procedureName,
-            reason: 'Not found in Template20Intelligence',
+            reason: 'Not found in schema intelligence',
           });
         }
       }

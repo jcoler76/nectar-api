@@ -51,84 +51,90 @@ const trackApiUsage = async (req, res, next) => {
 
       // Implement proper Prisma queries for API usage tracking
       const organizationId = req.organization?.id || req.user?.memberships?.[0]?.organizationId;
-      
+
       if (req.service?._id && organizationId) {
         // Create API activity log entry
-        await prisma.apiActivityLog.create({
-          data: {
-            requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: usageData.timestamp,
-            method: usageData.method,
-            url: req.originalUrl,
-            endpoint: usageData.endpoint,
-            statusCode: usageData.statusCode,
-            responseTime: responseSize > 0 ? Math.floor(Math.random() * 100) + 50 : null, // Placeholder response time
-            category: 'api',
-            endpointType: 'public',
-            importance: 'medium',
-            organizationId: organizationId,
-            userId: req.user?.id || null,
-            metadata: {
-              requestSize: usageData.requestSize,
-              responseSize: usageData.responseSize,
-              component: usageData.component
-            }
-          }
-        }).catch(err => {
-          console.log('Failed to save API activity log:', err.message);
-        });
+        await prisma.apiActivityLog
+          .create({
+            data: {
+              requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              timestamp: usageData.timestamp,
+              method: usageData.method,
+              url: req.originalUrl,
+              endpoint: usageData.endpoint,
+              statusCode: usageData.statusCode,
+              responseTime: responseSize > 0 ? Math.floor(Math.random() * 100) + 50 : null, // Placeholder response time
+              category: 'api',
+              endpointType: 'public',
+              importance: 'medium',
+              organizationId: organizationId,
+              userId: req.user?.id || null,
+              metadata: {
+                requestSize: usageData.requestSize,
+                responseSize: usageData.responseSize,
+                component: usageData.component,
+              },
+            },
+          })
+          .catch(err => {
+            console.log('Failed to save API activity log:', err.message);
+          });
 
         // Create usage metric entry for the organization
-        await prisma.usageMetric.create({
-          data: {
-            endpoint: usageData.endpoint,
-            method: usageData.method,
-            statusCode: usageData.statusCode,
-            responseTimeMs: Math.floor(Math.random() * 100) + 50, // Placeholder response time
-            organizationId: organizationId,
-            apiKeyId: req.apiKey?.id || null
-          }
-        }).catch(err => {
-          console.log('Failed to save usage metric:', err.message);
-        });
+        await prisma.usageMetric
+          .create({
+            data: {
+              endpoint: usageData.endpoint,
+              method: usageData.method,
+              statusCode: usageData.statusCode,
+              responseTimeMs: Math.floor(Math.random() * 100) + 50, // Placeholder response time
+              organizationId: organizationId,
+              apiKeyId: req.apiKey?.id || null,
+            },
+          })
+          .catch(err => {
+            console.log('Failed to save usage metric:', err.message);
+          });
       } else if (!req.service?._id) {
         const serviceName = isV2Path
           ? pathParts[pathParts.indexOf('v2') + 1]
           : req.params.serviceId;
 
         if (serviceName && organizationId) {
-          const service = await prisma.service.findFirst({ 
-            where: { 
+          const service = await prisma.service.findFirst({
+            where: {
               name: serviceName,
-              organizationId: organizationId
-            } 
+              organizationId: organizationId,
+            },
           });
           if (service) {
             // Create API activity log entry
-            await prisma.apiActivityLog.create({
-              data: {
-                requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                timestamp: usageData.timestamp,
-                method: usageData.method,
-                url: req.originalUrl,
-                endpoint: usageData.endpoint,
-                statusCode: usageData.statusCode,
-                responseTime: Math.floor(Math.random() * 100) + 50,
-                category: 'api',
-                endpointType: 'public',
-                importance: 'medium',
-                organizationId: organizationId,
-                userId: req.user?.id || null,
-                metadata: {
-                  requestSize: usageData.requestSize,
-                  responseSize: usageData.responseSize,
-                  component: usageData.component,
-                  serviceId: service.id
-                }
-              }
-            }).catch(err => {
-              console.log('Failed to save API activity log:', err.message);
-            });
+            await prisma.apiActivityLog
+              .create({
+                data: {
+                  requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  timestamp: usageData.timestamp,
+                  method: usageData.method,
+                  url: req.originalUrl,
+                  endpoint: usageData.endpoint,
+                  statusCode: usageData.statusCode,
+                  responseTime: Math.floor(Math.random() * 100) + 50,
+                  category: 'api',
+                  endpointType: 'public',
+                  importance: 'medium',
+                  organizationId: organizationId,
+                  userId: req.user?.id || null,
+                  metadata: {
+                    requestSize: usageData.requestSize,
+                    responseSize: usageData.responseSize,
+                    component: usageData.component,
+                    serviceId: service.id,
+                  },
+                },
+              })
+              .catch(err => {
+                console.log('Failed to save API activity log:', err.message);
+              });
           }
         }
       }

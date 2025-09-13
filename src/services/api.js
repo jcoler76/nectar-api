@@ -3,8 +3,26 @@ import axios from 'axios';
 import { clearAllAuthData } from '../utils/authMigration';
 import SecureSessionStorage from '../utils/secureStorage';
 
-// Use empty string for relative URL in production
-const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001').trim();
+// Ensure we have a valid API_URL
+const getApiUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL;
+
+  // If environment URL is not set or is empty, use localhost
+  if (!envUrl || envUrl.trim() === '') {
+    return 'http://localhost:3001';
+  }
+
+  // Validate the URL format
+  try {
+    new URL(envUrl);
+    return envUrl.trim();
+  } catch (error) {
+    console.warn('Invalid REACT_APP_API_URL, falling back to localhost:', envUrl);
+    return 'http://localhost:3001';
+  }
+};
+
+const API_URL = getApiUrl();
 
 const secureStorage = new SecureSessionStorage();
 
@@ -103,7 +121,7 @@ api.interceptors.request.use(
             // Use a separate axios instance to avoid interceptor recursion
             const csrfResponse = await axios
               .create({
-                baseURL: API_URL.trim(),
+                baseURL: API_URL,
                 withCredentials: true,
               })
               .get('/api/csrf-token', {

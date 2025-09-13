@@ -74,7 +74,7 @@ const addProductionMiddleware = app => {
     // Resolve build directory (configurable), default to CRA build at repo root
     const buildDir = process.env.PUBLIC_DIR
       ? path.resolve(process.env.PUBLIC_DIR)
-      : path.join(__dirname, '../build')
+      : path.join(__dirname, '../build');
 
     // Cache static assets (JS, CSS, images) for 1 year
     app.use(

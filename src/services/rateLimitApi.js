@@ -1,6 +1,25 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// Ensure we have a valid API_BASE_URL
+const getApiBaseUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL;
+
+  // If environment URL is not set or is empty, use localhost
+  if (!envUrl || envUrl.trim() === '') {
+    return 'http://localhost:3001';
+  }
+
+  // Validate the URL format
+  try {
+    new URL(envUrl);
+    return envUrl.trim();
+  } catch (error) {
+    console.warn('Invalid REACT_APP_API_URL, falling back to localhost:', envUrl);
+    return 'http://localhost:3001';
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Import getToken function to avoid circular dependency and use same token logic as main API
 let getToken = null;
