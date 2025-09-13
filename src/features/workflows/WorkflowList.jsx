@@ -1,13 +1,12 @@
-import { Tooltip } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 import { Copy, Edit, HelpCircle, Info, Plus, Trash2, Workflow } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
+import { BaseListView } from '../../components/common/BaseListView';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
-import { DataTable } from '../../components/ui/data-table';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useFormDialog } from '../../hooks/useFormDialog';
 import { useWorkflows } from '../../hooks/useWorkflows';
@@ -181,72 +180,54 @@ const WorkflowList = () => {
     [handleEdit, handleDuplicate, openConfirm, operationInProgress]
   );
 
-  if (isLoading) return <LoadingSpinner />;
-
-  return (
-    <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Header - Responsive */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="text-center sm:text-left">
-          <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
-              Workflows
-            </h1>
-            <Tooltip title="Workflows are automated processes that connect different services and systems to perform complex tasks without manual intervention. Create workflows to automate data synchronization, notifications, approvals, and business processes across your connected databases and applications.">
-              <Info className="h-5 w-5 text-ocean-600 cursor-help" />
-            </Tooltip>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Create and manage your automated workflows
+  // Custom empty state for workflows
+  const emptyState = (
+    <Card className="border-info/50 bg-info/10">
+      <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+        <Workflow className="h-12 w-12 text-info" />
+        <div>
+          <h3 className="text-lg font-semibold text-info">No Workflows</h3>
+          <p className="text-muted-foreground mt-1">
+            No workflows found. Create your first workflow to get started.
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
-          <Tooltip title="Create a new automated workflow by defining triggers, actions, and conditions. Start with a blank workflow or choose from pre-built templates for common automation scenarios.">
-            <Button
-              size="sm"
-              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              onClick={() => handleAdd()}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="sm:hidden">Add</span>
-              <span className="hidden sm:inline">Add Workflow</span>
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
+        <Tooltip title="Create your first workflow to start automating business processes and data operations across your connected systems">
+          <Button
+            onClick={() => handleAdd()}
+            className="mt-2 bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Workflow
+          </Button>
+        </Tooltip>
+      </CardContent>
+    </Card>
+  );
 
-      {/* Workflows Table or Empty State */}
-      {workflows.length === 0 && !isLoading ? (
-        <Card className="border-info/50 bg-info/10">
-          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-            <Workflow className="h-12 w-12 text-info" />
-            <div>
-              <h3 className="text-lg font-semibold text-info">No Workflows</h3>
-              <p className="text-muted-foreground mt-1">
-                No workflows found. Create your first workflow to get started.
-              </p>
-            </div>
-            <Tooltip title="Create your first workflow to start automating business processes and data operations across your connected systems">
-              <Button
-                onClick={() => handleAdd()}
-                className="mt-2 bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Workflow
-              </Button>
-            </Tooltip>
-          </CardContent>
-        </Card>
-      ) : (
-        <DataTable
-          data={workflows}
-          columns={columns}
-          searchable={true}
-          filterable={true}
-          exportable={false}
-          loading={isLoading}
-        />
-      )}
+  return (
+    <>
+      <BaseListView
+        title="Workflows"
+        description="Create and manage your automated workflows"
+        data={workflows}
+        columns={columns}
+        loading={isLoading}
+        onAdd={() => handleAdd()}
+        searchable={true}
+        filterable={true}
+        emptyState={emptyState}
+        customActions={[
+          {
+            label: 'Info',
+            icon: Info,
+            variant: 'ghost',
+            onClick: () => {},
+            tooltip:
+              'Workflows are automated processes that connect different services and systems to perform complex tasks without manual intervention.',
+            mobileHidden: true,
+          },
+        ]}
+      ></BaseListView>
 
       <AddWorkflowDialog open={isFormOpen} onClose={handleClose} onSave={handleCreate} />
 
@@ -257,7 +238,7 @@ const WorkflowList = () => {
         onConfirm={() => handleConfirm(handleDelete)}
         onCancel={closeConfirm}
       />
-    </div>
+    </>
   );
 };
 

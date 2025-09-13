@@ -14,7 +14,8 @@ function webpackOverride(config, env) {
     "http": require.resolve("stream-http"),
     "https": require.resolve("https-browserify"),
     "os": require.resolve("os-browserify/browser"),
-    "url": require.resolve("url/")
+    "url": require.resolve("url/"),
+    "zlib": false  // axios uses zlib for compression, disable for browser
   };
 
   // Add path alias support for @/ -> src/

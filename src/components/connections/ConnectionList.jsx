@@ -1,17 +1,14 @@
-import { Tooltip } from '@mui/material';
-import { AlertCircle, Edit, HelpCircle, Info, Play, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import Tooltip from '@mui/material/Tooltip';
+import { Edit, HelpCircle, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { memo, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnectionOperations } from '../../hooks/useConnectionOperations';
 import { useFormDialog } from '../../hooks/useFormDialog';
+import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DependencyWarningDialog from '../common/DependencyWarningDialog';
-import LoadingSpinner from '../common/LoadingSpinner';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import { DataTable } from '../ui/data-table';
 import { Switch } from '../ui/switch';
 
 import ConnectionForm from './ConnectionForm';
@@ -251,90 +248,28 @@ const ConnectionList = () => {
     ]
   );
 
-  if (loading) return <LoadingSpinner />;
-
   return (
-    <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Error Messages */}
-      {error && (
-        <Card className="border-destructive/50 bg-destructive/10">
-          <CardContent className="flex items-center gap-2 p-4">
-            <AlertCircle className="h-4 w-4 text-destructive" />
-            <span className="text-destructive font-medium">{error}</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Header - Responsive */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="text-center sm:text-left">
-          <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
-              Database Connections
-            </h1>
-            <Tooltip title="Database connections are the foundation for your services. Configure server credentials, test connectivity, and manage database access here. Each connection can serve multiple services.">
-              <Info className="h-5 w-5 text-ocean-600 cursor-help" />
-            </Tooltip>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Manage your database connections and test connectivity
-          </p>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
-          <Tooltip title="Create a new database connection to establish secure access to your database servers">
-            <Button
-              size="sm"
-              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              onClick={() => handleAdd()}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="sm:hidden">Add</span>
-              <span className="hidden sm:inline">Add Connection</span>
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-
-      {/* Connection Form */}
-      <ConnectionForm
-        open={isFormOpen}
-        onClose={handleClose}
-        onSave={handleSaveConnection}
-        connection={selectedConnection}
-        onTestConnection={handleTestConnectionDetails}
-      />
-
-      {/* Modern Data Table or Empty State */}
-      {connections.length === 0 && !loading ? (
-        <Card className="border-info/50 bg-info/10">
-          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-info" />
-            <div>
-              <h3 className="text-lg font-semibold text-ocean-800">No Database Connections</h3>
-              <p className="text-muted-foreground mt-1">
-                No database connections configured yet. Click &quot;Add Connection&quot; to create
-                your first stored connection.
-              </p>
-            </div>
-            <Button
-              onClick={() => handleAdd()}
-              className="mt-2 bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Connection
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <DataTable
-          data={connections.sort((a, b) => a.name.localeCompare(b.name))}
-          columns={columns}
-          searchable={true}
-          filterable={true}
-          exportable={false}
-          loading={loading}
+    <>
+      <BaseListView
+        title="Database Connections"
+        description="Manage your database connections and test connectivity"
+        data={connections.sort((a, b) => a.name.localeCompare(b.name))}
+        columns={columns}
+        loading={loading}
+        error={error}
+        onAdd={() => handleAdd()}
+        searchable={true}
+        filterable={true}
+      >
+        {/* Connection Form */}
+        <ConnectionForm
+          open={isFormOpen}
+          onClose={handleClose}
+          onSave={handleSaveConnection}
+          connection={selectedConnection}
+          onTestConnection={handleTestConnectionDetails}
         />
-      )}
+      </BaseListView>
 
       {/* Dependency Confirmation Dialog */}
       <ConfirmDialog
@@ -396,7 +331,7 @@ const ConnectionList = () => {
             : 'All associated services and endpoints will be permanently deleted.'
         }
       />
-    </div>
+    </>
   );
 };
 

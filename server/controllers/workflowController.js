@@ -1,13 +1,8 @@
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const { Workflow } = require('../models/workflowModels');
-// const WorkflowRun = require('../models/WorkflowRun');
-
 const { PrismaClient } = require('../prisma/generated/client');
 const prisma = new PrismaClient();
 const { executeWorkflow } = require('../services/workflows/engine');
 const { scheduleWorkflow, unscheduleWorkflow } = require('../services/scheduler');
 const { logger } = require('../middleware/logger');
-// const mongoose = require('mongoose'); // Removed for Prisma migration
 
 // Get all workflows for the authenticated user
 exports.getWorkflows = async (req, res) => {

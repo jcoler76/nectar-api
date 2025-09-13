@@ -16,11 +16,12 @@ class APIService {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
-    this.token = localStorage.getItem('nectar_admin_token')
+    this.token = localStorage.getItem('admin_token') || localStorage.getItem('nectar_admin_token')
   }
 
   setToken(token: string) {
     this.token = token
+    localStorage.setItem('admin_token', token)
     localStorage.setItem('nectar_admin_token', token)
   }
 
@@ -44,7 +45,7 @@ class APIService {
       ...options,
     }
 
-    try {
+    const doFetch = async () => {
       const response = await fetch(url, config)
 
       if (!response.ok) {
@@ -57,6 +58,9 @@ class APIService {
             errorMessage = errorData.error.message || errorData.error
             errorCode = errorData.error.code || errorCode
           }
+          if (errorData.message) {
+            errorMessage = errorData.message
+          }
         } catch {
           // If we can't parse error response, use status text
           errorMessage = response.statusText || errorMessage
@@ -67,6 +71,24 @@ class APIService {
 
       const data = await response.json()
       return data as T
+    }
+
+    try {
+      try {
+        return await doFetch()
+      } catch (err) {
+        // Attempt CSRF fetch + retry on CSRF errors
+        if (err instanceof APIError && (err.status === 403 || err.status === 401) && (err.message.includes('CSRF') || err.message.includes('Authentication'))) {
+          // Try to fetch CSRF token if authenticated
+          if (this.token) {
+            await fetch(`${this.baseUrl}/csrf-token`, {
+              headers: { 'Authorization': `Bearer ${this.token}` },
+            })
+            return await doFetch()
+          }
+        }
+        throw err
+      }
     } catch (error) {
       if (error instanceof APIError) {
         throw error

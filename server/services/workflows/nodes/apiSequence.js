@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { interpolateSecure } = require('../interpolationSecure');
-const get = require('lodash.get');
+const { get } = require('../../../utils/objectUtils');
 const { logger } = require('../../../utils/logger');
 
 const execute = async (config, context, node) => {

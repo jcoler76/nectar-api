@@ -32,6 +32,17 @@ export type Membership = $Result.DefaultSelection<Prisma.$MembershipPayload>;
  */
 export type Invitation = $Result.DefaultSelection<Prisma.$InvitationPayload>;
 /**
+ * Model EmailVerificationToken
+ *
+ */
+export type EmailVerificationToken =
+  $Result.DefaultSelection<Prisma.$EmailVerificationTokenPayload>;
+/**
+ * Model BillingEvent
+ *
+ */
+export type BillingEvent = $Result.DefaultSelection<Prisma.$BillingEventPayload>;
+/**
  * Model Subscription
  *
  */
@@ -518,6 +529,26 @@ export class PrismaClient<
    * ```
    */
   get invitation(): Prisma.InvitationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.emailVerificationToken`: Exposes CRUD operations for the **EmailVerificationToken** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more EmailVerificationTokens
+   * const emailVerificationTokens = await prisma.emailVerificationToken.findMany()
+   * ```
+   */
+  get emailVerificationToken(): Prisma.EmailVerificationTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.billingEvent`: Exposes CRUD operations for the **BillingEvent** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more BillingEvents
+   * const billingEvents = await prisma.billingEvent.findMany()
+   * ```
+   */
+  get billingEvent(): Prisma.BillingEventDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.subscription`: Exposes CRUD operations for the **Subscription** model.
@@ -1186,6 +1217,8 @@ export namespace Prisma {
     User: 'User';
     Membership: 'Membership';
     Invitation: 'Invitation';
+    EmailVerificationToken: 'EmailVerificationToken';
+    BillingEvent: 'BillingEvent';
     Subscription: 'Subscription';
     Invoice: 'Invoice';
     DatabaseConnection: 'DatabaseConnection';
@@ -1238,6 +1271,8 @@ export namespace Prisma {
         | 'user'
         | 'membership'
         | 'invitation'
+        | 'emailVerificationToken'
+        | 'billingEvent'
         | 'subscription'
         | 'invoice'
         | 'databaseConnection'
@@ -1557,6 +1592,154 @@ export namespace Prisma {
           count: {
             args: Prisma.InvitationCountArgs<ExtArgs>;
             result: $Utils.Optional<InvitationCountAggregateOutputType> | number;
+          };
+        };
+      };
+      EmailVerificationToken: {
+        payload: Prisma.$EmailVerificationTokenPayload<ExtArgs>;
+        fields: Prisma.EmailVerificationTokenFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.EmailVerificationTokenFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.EmailVerificationTokenFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+          };
+          findFirst: {
+            args: Prisma.EmailVerificationTokenFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.EmailVerificationTokenFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+          };
+          findMany: {
+            args: Prisma.EmailVerificationTokenFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>[];
+          };
+          create: {
+            args: Prisma.EmailVerificationTokenCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+          };
+          createMany: {
+            args: Prisma.EmailVerificationTokenCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.EmailVerificationTokenCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>[];
+          };
+          delete: {
+            args: Prisma.EmailVerificationTokenDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+          };
+          update: {
+            args: Prisma.EmailVerificationTokenUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+          };
+          deleteMany: {
+            args: Prisma.EmailVerificationTokenDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.EmailVerificationTokenUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.EmailVerificationTokenUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>[];
+          };
+          upsert: {
+            args: Prisma.EmailVerificationTokenUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$EmailVerificationTokenPayload>;
+          };
+          aggregate: {
+            args: Prisma.EmailVerificationTokenAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateEmailVerificationToken>;
+          };
+          groupBy: {
+            args: Prisma.EmailVerificationTokenGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<EmailVerificationTokenGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.EmailVerificationTokenCountArgs<ExtArgs>;
+            result: $Utils.Optional<EmailVerificationTokenCountAggregateOutputType> | number;
+          };
+        };
+      };
+      BillingEvent: {
+        payload: Prisma.$BillingEventPayload<ExtArgs>;
+        fields: Prisma.BillingEventFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.BillingEventFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.BillingEventFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>;
+          };
+          findFirst: {
+            args: Prisma.BillingEventFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.BillingEventFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>;
+          };
+          findMany: {
+            args: Prisma.BillingEventFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>[];
+          };
+          create: {
+            args: Prisma.BillingEventCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>;
+          };
+          createMany: {
+            args: Prisma.BillingEventCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.BillingEventCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>[];
+          };
+          delete: {
+            args: Prisma.BillingEventDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>;
+          };
+          update: {
+            args: Prisma.BillingEventUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>;
+          };
+          deleteMany: {
+            args: Prisma.BillingEventDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.BillingEventUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.BillingEventUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>[];
+          };
+          upsert: {
+            args: Prisma.BillingEventUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$BillingEventPayload>;
+          };
+          aggregate: {
+            args: Prisma.BillingEventAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateBillingEvent>;
+          };
+          groupBy: {
+            args: Prisma.BillingEventGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<BillingEventGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.BillingEventCountArgs<ExtArgs>;
+            result: $Utils.Optional<BillingEventCountAggregateOutputType> | number;
           };
         };
       };
@@ -3362,6 +3545,8 @@ export namespace Prisma {
     user?: UserOmit;
     membership?: MembershipOmit;
     invitation?: InvitationOmit;
+    emailVerificationToken?: EmailVerificationTokenOmit;
+    billingEvent?: BillingEventOmit;
     subscription?: SubscriptionOmit;
     invoice?: InvoiceOmit;
     databaseConnection?: DatabaseConnectionOmit;
@@ -3479,6 +3664,7 @@ export namespace Prisma {
     workflows: number;
     rateLimitConfigs: number;
     rateLimitUsage: number;
+    billingEvents: number;
   };
 
   export type OrganizationCountOutputTypeSelect<
@@ -3503,6 +3689,7 @@ export namespace Prisma {
     workflows?: boolean | OrganizationCountOutputTypeCountWorkflowsArgs;
     rateLimitConfigs?: boolean | OrganizationCountOutputTypeCountRateLimitConfigsArgs;
     rateLimitUsage?: boolean | OrganizationCountOutputTypeCountRateLimitUsageArgs;
+    billingEvents?: boolean | OrganizationCountOutputTypeCountBillingEventsArgs;
   };
 
   // Custom InputTypes
@@ -3687,6 +3874,15 @@ export namespace Prisma {
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     where?: RateLimitUsageWhereInput;
+  };
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountBillingEventsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: BillingEventWhereInput;
   };
 
   /**
@@ -3896,12 +4092,14 @@ export namespace Prisma {
 
   export type SubscriptionCountOutputType = {
     invoices: number;
+    billingEvents: number;
   };
 
   export type SubscriptionCountOutputTypeSelect<
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     invoices?: boolean | SubscriptionCountOutputTypeCountInvoicesArgs;
+    billingEvents?: boolean | SubscriptionCountOutputTypeCountBillingEventsArgs;
   };
 
   // Custom InputTypes
@@ -3924,6 +4122,15 @@ export namespace Prisma {
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     where?: InvoiceWhereInput;
+  };
+
+  /**
+   * SubscriptionCountOutputType without action
+   */
+  export type SubscriptionCountOutputTypeCountBillingEventsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: BillingEventWhereInput;
   };
 
   /**
@@ -4520,6 +4727,7 @@ export namespace Prisma {
       workflows?: boolean | Organization$workflowsArgs<ExtArgs>;
       rateLimitConfigs?: boolean | Organization$rateLimitConfigsArgs<ExtArgs>;
       rateLimitUsage?: boolean | Organization$rateLimitUsageArgs<ExtArgs>;
+      billingEvents?: boolean | Organization$billingEventsArgs<ExtArgs>;
       _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>;
     },
     ExtArgs['result']['organization']
@@ -4611,6 +4819,7 @@ export namespace Prisma {
     workflows?: boolean | Organization$workflowsArgs<ExtArgs>;
     rateLimitConfigs?: boolean | Organization$rateLimitConfigsArgs<ExtArgs>;
     rateLimitUsage?: boolean | Organization$rateLimitUsageArgs<ExtArgs>;
+    billingEvents?: boolean | Organization$billingEventsArgs<ExtArgs>;
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>;
   };
   export type OrganizationIncludeCreateManyAndReturn<
@@ -4645,6 +4854,7 @@ export namespace Prisma {
       workflows: Prisma.$WorkflowPayload<ExtArgs>[];
       rateLimitConfigs: Prisma.$RateLimitConfigPayload<ExtArgs>[];
       rateLimitUsage: Prisma.$RateLimitUsagePayload<ExtArgs>[];
+      billingEvents: Prisma.$BillingEventPayload<ExtArgs>[];
     };
     scalars: $Extensions.GetPayloadResult<
       {
@@ -5288,6 +5498,12 @@ export namespace Prisma {
       args?: Subset<T, Organization$rateLimitUsageArgs<ExtArgs>>
     ): Prisma.PrismaPromise<
       | $Result.GetResult<Prisma.$RateLimitUsagePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    billingEvents<T extends Organization$billingEventsArgs<ExtArgs> = {}>(
+      args?: Subset<T, Organization$billingEventsArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
       | Null
     >;
     /**
@@ -6260,6 +6476,32 @@ export namespace Prisma {
     take?: number;
     skip?: number;
     distinct?: RateLimitUsageScalarFieldEnum | RateLimitUsageScalarFieldEnum[];
+  };
+
+  /**
+   * Organization.billingEvents
+   */
+  export type Organization$billingEventsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    where?: BillingEventWhereInput;
+    orderBy?: BillingEventOrderByWithRelationInput | BillingEventOrderByWithRelationInput[];
+    cursor?: BillingEventWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: BillingEventScalarFieldEnum | BillingEventScalarFieldEnum[];
   };
 
   /**
@@ -10750,6 +10992,2544 @@ export namespace Prisma {
   };
 
   /**
+   * Model EmailVerificationToken
+   */
+
+  export type AggregateEmailVerificationToken = {
+    _count: EmailVerificationTokenCountAggregateOutputType | null;
+    _min: EmailVerificationTokenMinAggregateOutputType | null;
+    _max: EmailVerificationTokenMaxAggregateOutputType | null;
+  };
+
+  export type EmailVerificationTokenMinAggregateOutputType = {
+    id: string | null;
+    token: string | null;
+    email: string | null;
+    expiresAt: Date | null;
+    createdAt: Date | null;
+  };
+
+  export type EmailVerificationTokenMaxAggregateOutputType = {
+    id: string | null;
+    token: string | null;
+    email: string | null;
+    expiresAt: Date | null;
+    createdAt: Date | null;
+  };
+
+  export type EmailVerificationTokenCountAggregateOutputType = {
+    id: number;
+    token: number;
+    email: number;
+    expiresAt: number;
+    createdAt: number;
+    _all: number;
+  };
+
+  export type EmailVerificationTokenMinAggregateInputType = {
+    id?: true;
+    token?: true;
+    email?: true;
+    expiresAt?: true;
+    createdAt?: true;
+  };
+
+  export type EmailVerificationTokenMaxAggregateInputType = {
+    id?: true;
+    token?: true;
+    email?: true;
+    expiresAt?: true;
+    createdAt?: true;
+  };
+
+  export type EmailVerificationTokenCountAggregateInputType = {
+    id?: true;
+    token?: true;
+    email?: true;
+    expiresAt?: true;
+    createdAt?: true;
+    _all?: true;
+  };
+
+  export type EmailVerificationTokenAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which EmailVerificationToken to aggregate.
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of EmailVerificationTokens to fetch.
+     */
+    orderBy?:
+      | EmailVerificationTokenOrderByWithRelationInput
+      | EmailVerificationTokenOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: EmailVerificationTokenWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` EmailVerificationTokens from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` EmailVerificationTokens.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned EmailVerificationTokens
+     **/
+    _count?: true | EmailVerificationTokenCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: EmailVerificationTokenMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: EmailVerificationTokenMaxAggregateInputType;
+  };
+
+  export type GetEmailVerificationTokenAggregateType<
+    T extends EmailVerificationTokenAggregateArgs,
+  > = {
+    [P in keyof T & keyof AggregateEmailVerificationToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmailVerificationToken[P]>
+      : GetScalarType<T[P], AggregateEmailVerificationToken[P]>;
+  };
+
+  export type EmailVerificationTokenGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: EmailVerificationTokenWhereInput;
+    orderBy?:
+      | EmailVerificationTokenOrderByWithAggregationInput
+      | EmailVerificationTokenOrderByWithAggregationInput[];
+    by: EmailVerificationTokenScalarFieldEnum[] | EmailVerificationTokenScalarFieldEnum;
+    having?: EmailVerificationTokenScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: EmailVerificationTokenCountAggregateInputType | true;
+    _min?: EmailVerificationTokenMinAggregateInputType;
+    _max?: EmailVerificationTokenMaxAggregateInputType;
+  };
+
+  export type EmailVerificationTokenGroupByOutputType = {
+    id: string;
+    token: string;
+    email: string;
+    expiresAt: Date;
+    createdAt: Date;
+    _count: EmailVerificationTokenCountAggregateOutputType | null;
+    _min: EmailVerificationTokenMinAggregateOutputType | null;
+    _max: EmailVerificationTokenMaxAggregateOutputType | null;
+  };
+
+  type GetEmailVerificationTokenGroupByPayload<T extends EmailVerificationTokenGroupByArgs> =
+    Prisma.PrismaPromise<
+      Array<
+        PickEnumerable<EmailVerificationTokenGroupByOutputType, T['by']> & {
+          [P in keyof T & keyof EmailVerificationTokenGroupByOutputType]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmailVerificationTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], EmailVerificationTokenGroupByOutputType[P]>;
+        }
+      >
+    >;
+
+  export type EmailVerificationTokenSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      token?: boolean;
+      email?: boolean;
+      expiresAt?: boolean;
+      createdAt?: boolean;
+    },
+    ExtArgs['result']['emailVerificationToken']
+  >;
+
+  export type EmailVerificationTokenSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      token?: boolean;
+      email?: boolean;
+      expiresAt?: boolean;
+      createdAt?: boolean;
+    },
+    ExtArgs['result']['emailVerificationToken']
+  >;
+
+  export type EmailVerificationTokenSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      token?: boolean;
+      email?: boolean;
+      expiresAt?: boolean;
+      createdAt?: boolean;
+    },
+    ExtArgs['result']['emailVerificationToken']
+  >;
+
+  export type EmailVerificationTokenSelectScalar = {
+    id?: boolean;
+    token?: boolean;
+    email?: boolean;
+    expiresAt?: boolean;
+    createdAt?: boolean;
+  };
+
+  export type EmailVerificationTokenOmit<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetOmit<
+    'id' | 'token' | 'email' | 'expiresAt' | 'createdAt',
+    ExtArgs['result']['emailVerificationToken']
+  >;
+
+  export type $EmailVerificationTokenPayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'EmailVerificationToken';
+    objects: {};
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        token: string;
+        email: string;
+        expiresAt: Date;
+        createdAt: Date;
+      },
+      ExtArgs['result']['emailVerificationToken']
+    >;
+    composites: {};
+  };
+
+  type EmailVerificationTokenGetPayload<
+    S extends boolean | null | undefined | EmailVerificationTokenDefaultArgs,
+  > = $Result.GetResult<Prisma.$EmailVerificationTokenPayload, S>;
+
+  type EmailVerificationTokenCountArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = Omit<EmailVerificationTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+    select?: EmailVerificationTokenCountAggregateInputType | true;
+  };
+
+  export interface EmailVerificationTokenDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['EmailVerificationToken'];
+      meta: { name: 'EmailVerificationToken' };
+    };
+    /**
+     * Find zero or one EmailVerificationToken that matches the filter.
+     * @param {EmailVerificationTokenFindUniqueArgs} args - Arguments to find a EmailVerificationToken
+     * @example
+     * // Get one EmailVerificationToken
+     * const emailVerificationToken = await prisma.emailVerificationToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EmailVerificationTokenFindUniqueArgs>(
+      args: SelectSubset<T, EmailVerificationTokenFindUniqueArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one EmailVerificationToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EmailVerificationTokenFindUniqueOrThrowArgs} args - Arguments to find a EmailVerificationToken
+     * @example
+     * // Get one EmailVerificationToken
+     * const emailVerificationToken = await prisma.emailVerificationToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EmailVerificationTokenFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, EmailVerificationTokenFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first EmailVerificationToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenFindFirstArgs} args - Arguments to find a EmailVerificationToken
+     * @example
+     * // Get one EmailVerificationToken
+     * const emailVerificationToken = await prisma.emailVerificationToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EmailVerificationTokenFindFirstArgs>(
+      args?: SelectSubset<T, EmailVerificationTokenFindFirstArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first EmailVerificationToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenFindFirstOrThrowArgs} args - Arguments to find a EmailVerificationToken
+     * @example
+     * // Get one EmailVerificationToken
+     * const emailVerificationToken = await prisma.emailVerificationToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EmailVerificationTokenFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, EmailVerificationTokenFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more EmailVerificationTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmailVerificationTokens
+     * const emailVerificationTokens = await prisma.emailVerificationToken.findMany()
+     *
+     * // Get first 10 EmailVerificationTokens
+     * const emailVerificationTokens = await prisma.emailVerificationToken.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const emailVerificationTokenWithIdOnly = await prisma.emailVerificationToken.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends EmailVerificationTokenFindManyArgs>(
+      args?: SelectSubset<T, EmailVerificationTokenFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create a EmailVerificationToken.
+     * @param {EmailVerificationTokenCreateArgs} args - Arguments to create a EmailVerificationToken.
+     * @example
+     * // Create one EmailVerificationToken
+     * const EmailVerificationToken = await prisma.emailVerificationToken.create({
+     *   data: {
+     *     // ... data to create a EmailVerificationToken
+     *   }
+     * })
+     *
+     */
+    create<T extends EmailVerificationTokenCreateArgs>(
+      args: SelectSubset<T, EmailVerificationTokenCreateArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'create',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many EmailVerificationTokens.
+     * @param {EmailVerificationTokenCreateManyArgs} args - Arguments to create many EmailVerificationTokens.
+     * @example
+     * // Create many EmailVerificationTokens
+     * const emailVerificationToken = await prisma.emailVerificationToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends EmailVerificationTokenCreateManyArgs>(
+      args?: SelectSubset<T, EmailVerificationTokenCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many EmailVerificationTokens and returns the data saved in the database.
+     * @param {EmailVerificationTokenCreateManyAndReturnArgs} args - Arguments to create many EmailVerificationTokens.
+     * @example
+     * // Create many EmailVerificationTokens
+     * const emailVerificationToken = await prisma.emailVerificationToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many EmailVerificationTokens and only return the `id`
+     * const emailVerificationTokenWithIdOnly = await prisma.emailVerificationToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends EmailVerificationTokenCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, EmailVerificationTokenCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a EmailVerificationToken.
+     * @param {EmailVerificationTokenDeleteArgs} args - Arguments to delete one EmailVerificationToken.
+     * @example
+     * // Delete one EmailVerificationToken
+     * const EmailVerificationToken = await prisma.emailVerificationToken.delete({
+     *   where: {
+     *     // ... filter to delete one EmailVerificationToken
+     *   }
+     * })
+     *
+     */
+    delete<T extends EmailVerificationTokenDeleteArgs>(
+      args: SelectSubset<T, EmailVerificationTokenDeleteArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'delete',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one EmailVerificationToken.
+     * @param {EmailVerificationTokenUpdateArgs} args - Arguments to update one EmailVerificationToken.
+     * @example
+     * // Update one EmailVerificationToken
+     * const emailVerificationToken = await prisma.emailVerificationToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends EmailVerificationTokenUpdateArgs>(
+      args: SelectSubset<T, EmailVerificationTokenUpdateArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'update',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more EmailVerificationTokens.
+     * @param {EmailVerificationTokenDeleteManyArgs} args - Arguments to filter EmailVerificationTokens to delete.
+     * @example
+     * // Delete a few EmailVerificationTokens
+     * const { count } = await prisma.emailVerificationToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends EmailVerificationTokenDeleteManyArgs>(
+      args?: SelectSubset<T, EmailVerificationTokenDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more EmailVerificationTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmailVerificationTokens
+     * const emailVerificationToken = await prisma.emailVerificationToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends EmailVerificationTokenUpdateManyArgs>(
+      args: SelectSubset<T, EmailVerificationTokenUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more EmailVerificationTokens and returns the data updated in the database.
+     * @param {EmailVerificationTokenUpdateManyAndReturnArgs} args - Arguments to update many EmailVerificationTokens.
+     * @example
+     * // Update many EmailVerificationTokens
+     * const emailVerificationToken = await prisma.emailVerificationToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more EmailVerificationTokens and only return the `id`
+     * const emailVerificationTokenWithIdOnly = await prisma.emailVerificationToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends EmailVerificationTokenUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, EmailVerificationTokenUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one EmailVerificationToken.
+     * @param {EmailVerificationTokenUpsertArgs} args - Arguments to update or create a EmailVerificationToken.
+     * @example
+     * // Update or create a EmailVerificationToken
+     * const emailVerificationToken = await prisma.emailVerificationToken.upsert({
+     *   create: {
+     *     // ... data to create a EmailVerificationToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmailVerificationToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EmailVerificationTokenUpsertArgs>(
+      args: SelectSubset<T, EmailVerificationTokenUpsertArgs<ExtArgs>>
+    ): Prisma__EmailVerificationTokenClient<
+      $Result.GetResult<
+        Prisma.$EmailVerificationTokenPayload<ExtArgs>,
+        T,
+        'upsert',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of EmailVerificationTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenCountArgs} args - Arguments to filter EmailVerificationTokens to count.
+     * @example
+     * // Count the number of EmailVerificationTokens
+     * const count = await prisma.emailVerificationToken.count({
+     *   where: {
+     *     // ... the filter for the EmailVerificationTokens we want to count
+     *   }
+     * })
+     **/
+    count<T extends EmailVerificationTokenCountArgs>(
+      args?: Subset<T, EmailVerificationTokenCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmailVerificationTokenCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a EmailVerificationToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends EmailVerificationTokenAggregateArgs>(
+      args: Subset<T, EmailVerificationTokenAggregateArgs>
+    ): Prisma.PrismaPromise<GetEmailVerificationTokenAggregateType<T>>;
+
+    /**
+     * Group by EmailVerificationToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmailVerificationTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends EmailVerificationTokenGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmailVerificationTokenGroupByArgs['orderBy'] }
+        : { orderBy?: EmailVerificationTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, EmailVerificationTokenGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors
+      ? GetEmailVerificationTokenGroupByPayload<T>
+      : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the EmailVerificationToken model
+     */
+    readonly fields: EmailVerificationTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmailVerificationToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EmailVerificationTokenClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the EmailVerificationToken model
+   */
+  interface EmailVerificationTokenFieldRefs {
+    readonly id: FieldRef<'EmailVerificationToken', 'String'>;
+    readonly token: FieldRef<'EmailVerificationToken', 'String'>;
+    readonly email: FieldRef<'EmailVerificationToken', 'String'>;
+    readonly expiresAt: FieldRef<'EmailVerificationToken', 'DateTime'>;
+    readonly createdAt: FieldRef<'EmailVerificationToken', 'DateTime'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * EmailVerificationToken findUnique
+   */
+  export type EmailVerificationTokenFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * Filter, which EmailVerificationToken to fetch.
+     */
+    where: EmailVerificationTokenWhereUniqueInput;
+  };
+
+  /**
+   * EmailVerificationToken findUniqueOrThrow
+   */
+  export type EmailVerificationTokenFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * Filter, which EmailVerificationToken to fetch.
+     */
+    where: EmailVerificationTokenWhereUniqueInput;
+  };
+
+  /**
+   * EmailVerificationToken findFirst
+   */
+  export type EmailVerificationTokenFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * Filter, which EmailVerificationToken to fetch.
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of EmailVerificationTokens to fetch.
+     */
+    orderBy?:
+      | EmailVerificationTokenOrderByWithRelationInput
+      | EmailVerificationTokenOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for EmailVerificationTokens.
+     */
+    cursor?: EmailVerificationTokenWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` EmailVerificationTokens from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` EmailVerificationTokens.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of EmailVerificationTokens.
+     */
+    distinct?: EmailVerificationTokenScalarFieldEnum | EmailVerificationTokenScalarFieldEnum[];
+  };
+
+  /**
+   * EmailVerificationToken findFirstOrThrow
+   */
+  export type EmailVerificationTokenFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * Filter, which EmailVerificationToken to fetch.
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of EmailVerificationTokens to fetch.
+     */
+    orderBy?:
+      | EmailVerificationTokenOrderByWithRelationInput
+      | EmailVerificationTokenOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for EmailVerificationTokens.
+     */
+    cursor?: EmailVerificationTokenWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` EmailVerificationTokens from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` EmailVerificationTokens.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of EmailVerificationTokens.
+     */
+    distinct?: EmailVerificationTokenScalarFieldEnum | EmailVerificationTokenScalarFieldEnum[];
+  };
+
+  /**
+   * EmailVerificationToken findMany
+   */
+  export type EmailVerificationTokenFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * Filter, which EmailVerificationTokens to fetch.
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of EmailVerificationTokens to fetch.
+     */
+    orderBy?:
+      | EmailVerificationTokenOrderByWithRelationInput
+      | EmailVerificationTokenOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing EmailVerificationTokens.
+     */
+    cursor?: EmailVerificationTokenWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` EmailVerificationTokens from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` EmailVerificationTokens.
+     */
+    skip?: number;
+    distinct?: EmailVerificationTokenScalarFieldEnum | EmailVerificationTokenScalarFieldEnum[];
+  };
+
+  /**
+   * EmailVerificationToken create
+   */
+  export type EmailVerificationTokenCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * The data needed to create a EmailVerificationToken.
+     */
+    data: XOR<EmailVerificationTokenCreateInput, EmailVerificationTokenUncheckedCreateInput>;
+  };
+
+  /**
+   * EmailVerificationToken createMany
+   */
+  export type EmailVerificationTokenCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many EmailVerificationTokens.
+     */
+    data: EmailVerificationTokenCreateManyInput | EmailVerificationTokenCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * EmailVerificationToken createManyAndReturn
+   */
+  export type EmailVerificationTokenCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * The data used to create many EmailVerificationTokens.
+     */
+    data: EmailVerificationTokenCreateManyInput | EmailVerificationTokenCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * EmailVerificationToken update
+   */
+  export type EmailVerificationTokenUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * The data needed to update a EmailVerificationToken.
+     */
+    data: XOR<EmailVerificationTokenUpdateInput, EmailVerificationTokenUncheckedUpdateInput>;
+    /**
+     * Choose, which EmailVerificationToken to update.
+     */
+    where: EmailVerificationTokenWhereUniqueInput;
+  };
+
+  /**
+   * EmailVerificationToken updateMany
+   */
+  export type EmailVerificationTokenUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update EmailVerificationTokens.
+     */
+    data: XOR<
+      EmailVerificationTokenUpdateManyMutationInput,
+      EmailVerificationTokenUncheckedUpdateManyInput
+    >;
+    /**
+     * Filter which EmailVerificationTokens to update
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * Limit how many EmailVerificationTokens to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * EmailVerificationToken updateManyAndReturn
+   */
+  export type EmailVerificationTokenUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * The data used to update EmailVerificationTokens.
+     */
+    data: XOR<
+      EmailVerificationTokenUpdateManyMutationInput,
+      EmailVerificationTokenUncheckedUpdateManyInput
+    >;
+    /**
+     * Filter which EmailVerificationTokens to update
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * Limit how many EmailVerificationTokens to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * EmailVerificationToken upsert
+   */
+  export type EmailVerificationTokenUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * The filter to search for the EmailVerificationToken to update in case it exists.
+     */
+    where: EmailVerificationTokenWhereUniqueInput;
+    /**
+     * In case the EmailVerificationToken found by the `where` argument doesn't exist, create a new EmailVerificationToken with this data.
+     */
+    create: XOR<EmailVerificationTokenCreateInput, EmailVerificationTokenUncheckedCreateInput>;
+    /**
+     * In case the EmailVerificationToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EmailVerificationTokenUpdateInput, EmailVerificationTokenUncheckedUpdateInput>;
+  };
+
+  /**
+   * EmailVerificationToken delete
+   */
+  export type EmailVerificationTokenDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+    /**
+     * Filter which EmailVerificationToken to delete.
+     */
+    where: EmailVerificationTokenWhereUniqueInput;
+  };
+
+  /**
+   * EmailVerificationToken deleteMany
+   */
+  export type EmailVerificationTokenDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which EmailVerificationTokens to delete
+     */
+    where?: EmailVerificationTokenWhereInput;
+    /**
+     * Limit how many EmailVerificationTokens to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * EmailVerificationToken without action
+   */
+  export type EmailVerificationTokenDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the EmailVerificationToken
+     */
+    select?: EmailVerificationTokenSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the EmailVerificationToken
+     */
+    omit?: EmailVerificationTokenOmit<ExtArgs> | null;
+  };
+
+  /**
+   * Model BillingEvent
+   */
+
+  export type AggregateBillingEvent = {
+    _count: BillingEventCountAggregateOutputType | null;
+    _min: BillingEventMinAggregateOutputType | null;
+    _max: BillingEventMaxAggregateOutputType | null;
+  };
+
+  export type BillingEventMinAggregateOutputType = {
+    id: string | null;
+    eventType: string | null;
+    stripeEventId: string | null;
+    createdAt: Date | null;
+    organizationId: string | null;
+    subscriptionId: string | null;
+  };
+
+  export type BillingEventMaxAggregateOutputType = {
+    id: string | null;
+    eventType: string | null;
+    stripeEventId: string | null;
+    createdAt: Date | null;
+    organizationId: string | null;
+    subscriptionId: string | null;
+  };
+
+  export type BillingEventCountAggregateOutputType = {
+    id: number;
+    eventType: number;
+    stripeEventId: number;
+    metadata: number;
+    createdAt: number;
+    organizationId: number;
+    subscriptionId: number;
+    _all: number;
+  };
+
+  export type BillingEventMinAggregateInputType = {
+    id?: true;
+    eventType?: true;
+    stripeEventId?: true;
+    createdAt?: true;
+    organizationId?: true;
+    subscriptionId?: true;
+  };
+
+  export type BillingEventMaxAggregateInputType = {
+    id?: true;
+    eventType?: true;
+    stripeEventId?: true;
+    createdAt?: true;
+    organizationId?: true;
+    subscriptionId?: true;
+  };
+
+  export type BillingEventCountAggregateInputType = {
+    id?: true;
+    eventType?: true;
+    stripeEventId?: true;
+    metadata?: true;
+    createdAt?: true;
+    organizationId?: true;
+    subscriptionId?: true;
+    _all?: true;
+  };
+
+  export type BillingEventAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which BillingEvent to aggregate.
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of BillingEvents to fetch.
+     */
+    orderBy?: BillingEventOrderByWithRelationInput | BillingEventOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: BillingEventWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` BillingEvents from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` BillingEvents.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned BillingEvents
+     **/
+    _count?: true | BillingEventCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: BillingEventMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: BillingEventMaxAggregateInputType;
+  };
+
+  export type GetBillingEventAggregateType<T extends BillingEventAggregateArgs> = {
+    [P in keyof T & keyof AggregateBillingEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBillingEvent[P]>
+      : GetScalarType<T[P], AggregateBillingEvent[P]>;
+  };
+
+  export type BillingEventGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: BillingEventWhereInput;
+    orderBy?: BillingEventOrderByWithAggregationInput | BillingEventOrderByWithAggregationInput[];
+    by: BillingEventScalarFieldEnum[] | BillingEventScalarFieldEnum;
+    having?: BillingEventScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: BillingEventCountAggregateInputType | true;
+    _min?: BillingEventMinAggregateInputType;
+    _max?: BillingEventMaxAggregateInputType;
+  };
+
+  export type BillingEventGroupByOutputType = {
+    id: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonValue;
+    createdAt: Date;
+    organizationId: string | null;
+    subscriptionId: string | null;
+    _count: BillingEventCountAggregateOutputType | null;
+    _min: BillingEventMinAggregateOutputType | null;
+    _max: BillingEventMaxAggregateOutputType | null;
+  };
+
+  type GetBillingEventGroupByPayload<T extends BillingEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BillingEventGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof BillingEventGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], BillingEventGroupByOutputType[P]>
+          : GetScalarType<T[P], BillingEventGroupByOutputType[P]>;
+      }
+    >
+  >;
+
+  export type BillingEventSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      eventType?: boolean;
+      stripeEventId?: boolean;
+      metadata?: boolean;
+      createdAt?: boolean;
+      organizationId?: boolean;
+      subscriptionId?: boolean;
+      organization?: boolean | BillingEvent$organizationArgs<ExtArgs>;
+      subscription?: boolean | BillingEvent$subscriptionArgs<ExtArgs>;
+    },
+    ExtArgs['result']['billingEvent']
+  >;
+
+  export type BillingEventSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      eventType?: boolean;
+      stripeEventId?: boolean;
+      metadata?: boolean;
+      createdAt?: boolean;
+      organizationId?: boolean;
+      subscriptionId?: boolean;
+      organization?: boolean | BillingEvent$organizationArgs<ExtArgs>;
+      subscription?: boolean | BillingEvent$subscriptionArgs<ExtArgs>;
+    },
+    ExtArgs['result']['billingEvent']
+  >;
+
+  export type BillingEventSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      eventType?: boolean;
+      stripeEventId?: boolean;
+      metadata?: boolean;
+      createdAt?: boolean;
+      organizationId?: boolean;
+      subscriptionId?: boolean;
+      organization?: boolean | BillingEvent$organizationArgs<ExtArgs>;
+      subscription?: boolean | BillingEvent$subscriptionArgs<ExtArgs>;
+    },
+    ExtArgs['result']['billingEvent']
+  >;
+
+  export type BillingEventSelectScalar = {
+    id?: boolean;
+    eventType?: boolean;
+    stripeEventId?: boolean;
+    metadata?: boolean;
+    createdAt?: boolean;
+    organizationId?: boolean;
+    subscriptionId?: boolean;
+  };
+
+  export type BillingEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    $Extensions.GetOmit<
+      | 'id'
+      | 'eventType'
+      | 'stripeEventId'
+      | 'metadata'
+      | 'createdAt'
+      | 'organizationId'
+      | 'subscriptionId',
+      ExtArgs['result']['billingEvent']
+    >;
+  export type BillingEventInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | BillingEvent$organizationArgs<ExtArgs>;
+    subscription?: boolean | BillingEvent$subscriptionArgs<ExtArgs>;
+  };
+  export type BillingEventIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | BillingEvent$organizationArgs<ExtArgs>;
+    subscription?: boolean | BillingEvent$subscriptionArgs<ExtArgs>;
+  };
+  export type BillingEventIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | BillingEvent$organizationArgs<ExtArgs>;
+    subscription?: boolean | BillingEvent$subscriptionArgs<ExtArgs>;
+  };
+
+  export type $BillingEventPayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'BillingEvent';
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs> | null;
+      subscription: Prisma.$SubscriptionPayload<ExtArgs> | null;
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        eventType: string;
+        stripeEventId: string;
+        metadata: Prisma.JsonValue;
+        createdAt: Date;
+        organizationId: string | null;
+        subscriptionId: string | null;
+      },
+      ExtArgs['result']['billingEvent']
+    >;
+    composites: {};
+  };
+
+  type BillingEventGetPayload<S extends boolean | null | undefined | BillingEventDefaultArgs> =
+    $Result.GetResult<Prisma.$BillingEventPayload, S>;
+
+  type BillingEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BillingEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BillingEventCountAggregateInputType | true;
+    };
+
+  export interface BillingEventDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['BillingEvent'];
+      meta: { name: 'BillingEvent' };
+    };
+    /**
+     * Find zero or one BillingEvent that matches the filter.
+     * @param {BillingEventFindUniqueArgs} args - Arguments to find a BillingEvent
+     * @example
+     * // Get one BillingEvent
+     * const billingEvent = await prisma.billingEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BillingEventFindUniqueArgs>(
+      args: SelectSubset<T, BillingEventFindUniqueArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<
+        Prisma.$BillingEventPayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one BillingEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BillingEventFindUniqueOrThrowArgs} args - Arguments to find a BillingEvent
+     * @example
+     * // Get one BillingEvent
+     * const billingEvent = await prisma.billingEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BillingEventFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, BillingEventFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<
+        Prisma.$BillingEventPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first BillingEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventFindFirstArgs} args - Arguments to find a BillingEvent
+     * @example
+     * // Get one BillingEvent
+     * const billingEvent = await prisma.billingEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BillingEventFindFirstArgs>(
+      args?: SelectSubset<T, BillingEventFindFirstArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<
+        Prisma.$BillingEventPayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first BillingEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventFindFirstOrThrowArgs} args - Arguments to find a BillingEvent
+     * @example
+     * // Get one BillingEvent
+     * const billingEvent = await prisma.billingEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BillingEventFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, BillingEventFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<
+        Prisma.$BillingEventPayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more BillingEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BillingEvents
+     * const billingEvents = await prisma.billingEvent.findMany()
+     *
+     * // Get first 10 BillingEvents
+     * const billingEvents = await prisma.billingEvent.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const billingEventWithIdOnly = await prisma.billingEvent.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends BillingEventFindManyArgs>(
+      args?: SelectSubset<T, BillingEventFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a BillingEvent.
+     * @param {BillingEventCreateArgs} args - Arguments to create a BillingEvent.
+     * @example
+     * // Create one BillingEvent
+     * const BillingEvent = await prisma.billingEvent.create({
+     *   data: {
+     *     // ... data to create a BillingEvent
+     *   }
+     * })
+     *
+     */
+    create<T extends BillingEventCreateArgs>(
+      args: SelectSubset<T, BillingEventCreateArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many BillingEvents.
+     * @param {BillingEventCreateManyArgs} args - Arguments to create many BillingEvents.
+     * @example
+     * // Create many BillingEvents
+     * const billingEvent = await prisma.billingEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends BillingEventCreateManyArgs>(
+      args?: SelectSubset<T, BillingEventCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many BillingEvents and returns the data saved in the database.
+     * @param {BillingEventCreateManyAndReturnArgs} args - Arguments to create many BillingEvents.
+     * @example
+     * // Create many BillingEvents
+     * const billingEvent = await prisma.billingEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many BillingEvents and only return the `id`
+     * const billingEventWithIdOnly = await prisma.billingEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends BillingEventCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, BillingEventCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$BillingEventPayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a BillingEvent.
+     * @param {BillingEventDeleteArgs} args - Arguments to delete one BillingEvent.
+     * @example
+     * // Delete one BillingEvent
+     * const BillingEvent = await prisma.billingEvent.delete({
+     *   where: {
+     *     // ... filter to delete one BillingEvent
+     *   }
+     * })
+     *
+     */
+    delete<T extends BillingEventDeleteArgs>(
+      args: SelectSubset<T, BillingEventDeleteArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one BillingEvent.
+     * @param {BillingEventUpdateArgs} args - Arguments to update one BillingEvent.
+     * @example
+     * // Update one BillingEvent
+     * const billingEvent = await prisma.billingEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends BillingEventUpdateArgs>(
+      args: SelectSubset<T, BillingEventUpdateArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more BillingEvents.
+     * @param {BillingEventDeleteManyArgs} args - Arguments to filter BillingEvents to delete.
+     * @example
+     * // Delete a few BillingEvents
+     * const { count } = await prisma.billingEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends BillingEventDeleteManyArgs>(
+      args?: SelectSubset<T, BillingEventDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more BillingEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BillingEvents
+     * const billingEvent = await prisma.billingEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends BillingEventUpdateManyArgs>(
+      args: SelectSubset<T, BillingEventUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more BillingEvents and returns the data updated in the database.
+     * @param {BillingEventUpdateManyAndReturnArgs} args - Arguments to update many BillingEvents.
+     * @example
+     * // Update many BillingEvents
+     * const billingEvent = await prisma.billingEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more BillingEvents and only return the `id`
+     * const billingEventWithIdOnly = await prisma.billingEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends BillingEventUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, BillingEventUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$BillingEventPayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one BillingEvent.
+     * @param {BillingEventUpsertArgs} args - Arguments to update or create a BillingEvent.
+     * @example
+     * // Update or create a BillingEvent
+     * const billingEvent = await prisma.billingEvent.upsert({
+     *   create: {
+     *     // ... data to create a BillingEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BillingEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BillingEventUpsertArgs>(
+      args: SelectSubset<T, BillingEventUpsertArgs<ExtArgs>>
+    ): Prisma__BillingEventClient<
+      $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of BillingEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventCountArgs} args - Arguments to filter BillingEvents to count.
+     * @example
+     * // Count the number of BillingEvents
+     * const count = await prisma.billingEvent.count({
+     *   where: {
+     *     // ... the filter for the BillingEvents we want to count
+     *   }
+     * })
+     **/
+    count<T extends BillingEventCountArgs>(
+      args?: Subset<T, BillingEventCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BillingEventCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a BillingEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends BillingEventAggregateArgs>(
+      args: Subset<T, BillingEventAggregateArgs>
+    ): Prisma.PrismaPromise<GetBillingEventAggregateType<T>>;
+
+    /**
+     * Group by BillingEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends BillingEventGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BillingEventGroupByArgs['orderBy'] }
+        : { orderBy?: BillingEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, BillingEventGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors
+      ? GetBillingEventGroupByPayload<T>
+      : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the BillingEvent model
+     */
+    readonly fields: BillingEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BillingEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BillingEventClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    organization<T extends BillingEvent$organizationArgs<ExtArgs> = {}>(
+      args?: Subset<T, BillingEvent$organizationArgs<ExtArgs>>
+    ): Prisma__OrganizationClient<
+      $Result.GetResult<
+        Prisma.$OrganizationPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    subscription<T extends BillingEvent$subscriptionArgs<ExtArgs> = {}>(
+      args?: Subset<T, BillingEvent$subscriptionArgs<ExtArgs>>
+    ): Prisma__SubscriptionClient<
+      $Result.GetResult<
+        Prisma.$SubscriptionPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the BillingEvent model
+   */
+  interface BillingEventFieldRefs {
+    readonly id: FieldRef<'BillingEvent', 'String'>;
+    readonly eventType: FieldRef<'BillingEvent', 'String'>;
+    readonly stripeEventId: FieldRef<'BillingEvent', 'String'>;
+    readonly metadata: FieldRef<'BillingEvent', 'Json'>;
+    readonly createdAt: FieldRef<'BillingEvent', 'DateTime'>;
+    readonly organizationId: FieldRef<'BillingEvent', 'String'>;
+    readonly subscriptionId: FieldRef<'BillingEvent', 'String'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * BillingEvent findUnique
+   */
+  export type BillingEventFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * Filter, which BillingEvent to fetch.
+     */
+    where: BillingEventWhereUniqueInput;
+  };
+
+  /**
+   * BillingEvent findUniqueOrThrow
+   */
+  export type BillingEventFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * Filter, which BillingEvent to fetch.
+     */
+    where: BillingEventWhereUniqueInput;
+  };
+
+  /**
+   * BillingEvent findFirst
+   */
+  export type BillingEventFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * Filter, which BillingEvent to fetch.
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of BillingEvents to fetch.
+     */
+    orderBy?: BillingEventOrderByWithRelationInput | BillingEventOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for BillingEvents.
+     */
+    cursor?: BillingEventWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` BillingEvents from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` BillingEvents.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of BillingEvents.
+     */
+    distinct?: BillingEventScalarFieldEnum | BillingEventScalarFieldEnum[];
+  };
+
+  /**
+   * BillingEvent findFirstOrThrow
+   */
+  export type BillingEventFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * Filter, which BillingEvent to fetch.
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of BillingEvents to fetch.
+     */
+    orderBy?: BillingEventOrderByWithRelationInput | BillingEventOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for BillingEvents.
+     */
+    cursor?: BillingEventWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` BillingEvents from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` BillingEvents.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of BillingEvents.
+     */
+    distinct?: BillingEventScalarFieldEnum | BillingEventScalarFieldEnum[];
+  };
+
+  /**
+   * BillingEvent findMany
+   */
+  export type BillingEventFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * Filter, which BillingEvents to fetch.
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of BillingEvents to fetch.
+     */
+    orderBy?: BillingEventOrderByWithRelationInput | BillingEventOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing BillingEvents.
+     */
+    cursor?: BillingEventWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` BillingEvents from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` BillingEvents.
+     */
+    skip?: number;
+    distinct?: BillingEventScalarFieldEnum | BillingEventScalarFieldEnum[];
+  };
+
+  /**
+   * BillingEvent create
+   */
+  export type BillingEventCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a BillingEvent.
+     */
+    data: XOR<BillingEventCreateInput, BillingEventUncheckedCreateInput>;
+  };
+
+  /**
+   * BillingEvent createMany
+   */
+  export type BillingEventCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many BillingEvents.
+     */
+    data: BillingEventCreateManyInput | BillingEventCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * BillingEvent createManyAndReturn
+   */
+  export type BillingEventCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * The data used to create many BillingEvents.
+     */
+    data: BillingEventCreateManyInput | BillingEventCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * BillingEvent update
+   */
+  export type BillingEventUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a BillingEvent.
+     */
+    data: XOR<BillingEventUpdateInput, BillingEventUncheckedUpdateInput>;
+    /**
+     * Choose, which BillingEvent to update.
+     */
+    where: BillingEventWhereUniqueInput;
+  };
+
+  /**
+   * BillingEvent updateMany
+   */
+  export type BillingEventUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update BillingEvents.
+     */
+    data: XOR<BillingEventUpdateManyMutationInput, BillingEventUncheckedUpdateManyInput>;
+    /**
+     * Filter which BillingEvents to update
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * Limit how many BillingEvents to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * BillingEvent updateManyAndReturn
+   */
+  export type BillingEventUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * The data used to update BillingEvents.
+     */
+    data: XOR<BillingEventUpdateManyMutationInput, BillingEventUncheckedUpdateManyInput>;
+    /**
+     * Filter which BillingEvents to update
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * Limit how many BillingEvents to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * BillingEvent upsert
+   */
+  export type BillingEventUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the BillingEvent to update in case it exists.
+     */
+    where: BillingEventWhereUniqueInput;
+    /**
+     * In case the BillingEvent found by the `where` argument doesn't exist, create a new BillingEvent with this data.
+     */
+    create: XOR<BillingEventCreateInput, BillingEventUncheckedCreateInput>;
+    /**
+     * In case the BillingEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BillingEventUpdateInput, BillingEventUncheckedUpdateInput>;
+  };
+
+  /**
+   * BillingEvent delete
+   */
+  export type BillingEventDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    /**
+     * Filter which BillingEvent to delete.
+     */
+    where: BillingEventWhereUniqueInput;
+  };
+
+  /**
+   * BillingEvent deleteMany
+   */
+  export type BillingEventDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which BillingEvents to delete
+     */
+    where?: BillingEventWhereInput;
+    /**
+     * Limit how many BillingEvents to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * BillingEvent.organization
+   */
+  export type BillingEvent$organizationArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the Organization
+     */
+    select?: OrganizationSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the Organization
+     */
+    omit?: OrganizationOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationInclude<ExtArgs> | null;
+    where?: OrganizationWhereInput;
+  };
+
+  /**
+   * BillingEvent.subscription
+   */
+  export type BillingEvent$subscriptionArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the Subscription
+     */
+    select?: SubscriptionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the Subscription
+     */
+    omit?: SubscriptionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SubscriptionInclude<ExtArgs> | null;
+    where?: SubscriptionWhereInput;
+  };
+
+  /**
+   * BillingEvent without action
+   */
+  export type BillingEventDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+  };
+
+  /**
    * Model Subscription
    */
 
@@ -11057,6 +13837,7 @@ export namespace Prisma {
       maxWorkflows?: boolean;
       organizationId?: boolean;
       invoices?: boolean | Subscription$invoicesArgs<ExtArgs>;
+      billingEvents?: boolean | Subscription$billingEventsArgs<ExtArgs>;
       organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
       _count?: boolean | SubscriptionCountOutputTypeDefaultArgs<ExtArgs>;
     },
@@ -11160,6 +13941,7 @@ export namespace Prisma {
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     invoices?: boolean | Subscription$invoicesArgs<ExtArgs>;
+    billingEvents?: boolean | Subscription$billingEventsArgs<ExtArgs>;
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
     _count?: boolean | SubscriptionCountOutputTypeDefaultArgs<ExtArgs>;
   };
@@ -11180,6 +13962,7 @@ export namespace Prisma {
     name: 'Subscription';
     objects: {
       invoices: Prisma.$InvoicePayload<ExtArgs>[];
+      billingEvents: Prisma.$BillingEventPayload<ExtArgs>[];
       organization: Prisma.$OrganizationPayload<ExtArgs>;
     };
     scalars: $Extensions.GetPayloadResult<
@@ -11715,6 +14498,12 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<
       $Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions> | Null
     >;
+    billingEvents<T extends Subscription$billingEventsArgs<ExtArgs> = {}>(
+      args?: Subset<T, Subscription$billingEventsArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(
       args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>
     ): Prisma__OrganizationClient<
@@ -12223,6 +15012,32 @@ export namespace Prisma {
     take?: number;
     skip?: number;
     distinct?: InvoiceScalarFieldEnum | InvoiceScalarFieldEnum[];
+  };
+
+  /**
+   * Subscription.billingEvents
+   */
+  export type Subscription$billingEventsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the BillingEvent
+     */
+    select?: BillingEventSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the BillingEvent
+     */
+    omit?: BillingEventOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingEventInclude<ExtArgs> | null;
+    where?: BillingEventWhereInput;
+    orderBy?: BillingEventOrderByWithRelationInput | BillingEventOrderByWithRelationInput[];
+    cursor?: BillingEventWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: BillingEventScalarFieldEnum | BillingEventScalarFieldEnum[];
   };
 
   /**
@@ -43349,6 +46164,30 @@ export namespace Prisma {
   export type InvitationScalarFieldEnum =
     (typeof InvitationScalarFieldEnum)[keyof typeof InvitationScalarFieldEnum];
 
+  export const EmailVerificationTokenScalarFieldEnum: {
+    id: 'id';
+    token: 'token';
+    email: 'email';
+    expiresAt: 'expiresAt';
+    createdAt: 'createdAt';
+  };
+
+  export type EmailVerificationTokenScalarFieldEnum =
+    (typeof EmailVerificationTokenScalarFieldEnum)[keyof typeof EmailVerificationTokenScalarFieldEnum];
+
+  export const BillingEventScalarFieldEnum: {
+    id: 'id';
+    eventType: 'eventType';
+    stripeEventId: 'stripeEventId';
+    metadata: 'metadata';
+    createdAt: 'createdAt';
+    organizationId: 'organizationId';
+    subscriptionId: 'subscriptionId';
+  };
+
+  export type BillingEventScalarFieldEnum =
+    (typeof BillingEventScalarFieldEnum)[keyof typeof BillingEventScalarFieldEnum];
+
   export const SubscriptionScalarFieldEnum: {
     id: 'id';
     plan: 'plan';
@@ -43775,6 +46614,12 @@ export namespace Prisma {
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
 
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull;
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput];
+
   export const NullableJsonNullValueInput: {
     DbNull: typeof DbNull;
     JsonNull: typeof JsonNull;
@@ -43782,12 +46627,6 @@ export namespace Prisma {
 
   export type NullableJsonNullValueInput =
     (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput];
-
-  export const JsonNullValueInput: {
-    JsonNull: typeof JsonNull;
-  };
-
-  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput];
 
   export const QueryMode: {
     default: 'default';
@@ -43857,6 +46696,19 @@ export namespace Prisma {
   export type ListEnumMemberRoleFieldRefInput<$PrismaModel> = FieldRefInputType<
     $PrismaModel,
     'MemberRole[]'
+  >;
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>;
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<
+    $PrismaModel,
+    'QueryMode'
   >;
 
   /**
@@ -43941,19 +46793,6 @@ export namespace Prisma {
   export type ListEnumDatabaseTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
     $PrismaModel,
     'DatabaseType[]'
-  >;
-
-  /**
-   * Reference to a field of type 'Json'
-   */
-  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>;
-
-  /**
-   * Reference to a field of type 'QueryMode'
-   */
-  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<
-    $PrismaModel,
-    'QueryMode'
   >;
 
   /**
@@ -44122,6 +46961,7 @@ export namespace Prisma {
     workflows?: WorkflowListRelationFilter;
     rateLimitConfigs?: RateLimitConfigListRelationFilter;
     rateLimitUsage?: RateLimitUsageListRelationFilter;
+    billingEvents?: BillingEventListRelationFilter;
   };
 
   export type OrganizationOrderByWithRelationInput = {
@@ -44155,6 +46995,7 @@ export namespace Prisma {
     workflows?: WorkflowOrderByRelationAggregateInput;
     rateLimitConfigs?: RateLimitConfigOrderByRelationAggregateInput;
     rateLimitUsage?: RateLimitUsageOrderByRelationAggregateInput;
+    billingEvents?: BillingEventOrderByRelationAggregateInput;
   };
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<
@@ -44192,6 +47033,7 @@ export namespace Prisma {
       workflows?: WorkflowListRelationFilter;
       rateLimitConfigs?: RateLimitConfigListRelationFilter;
       rateLimitUsage?: RateLimitUsageListRelationFilter;
+      billingEvents?: BillingEventListRelationFilter;
     },
     'id' | 'slug' | 'domain'
   >;
@@ -44538,6 +47380,136 @@ export namespace Prisma {
     invitedById?: StringWithAggregatesFilter<'Invitation'> | string;
   };
 
+  export type EmailVerificationTokenWhereInput = {
+    AND?: EmailVerificationTokenWhereInput | EmailVerificationTokenWhereInput[];
+    OR?: EmailVerificationTokenWhereInput[];
+    NOT?: EmailVerificationTokenWhereInput | EmailVerificationTokenWhereInput[];
+    id?: StringFilter<'EmailVerificationToken'> | string;
+    token?: StringFilter<'EmailVerificationToken'> | string;
+    email?: StringFilter<'EmailVerificationToken'> | string;
+    expiresAt?: DateTimeFilter<'EmailVerificationToken'> | Date | string;
+    createdAt?: DateTimeFilter<'EmailVerificationToken'> | Date | string;
+  };
+
+  export type EmailVerificationTokenOrderByWithRelationInput = {
+    id?: SortOrder;
+    token?: SortOrder;
+    email?: SortOrder;
+    expiresAt?: SortOrder;
+    createdAt?: SortOrder;
+  };
+
+  export type EmailVerificationTokenWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      token?: string;
+      AND?: EmailVerificationTokenWhereInput | EmailVerificationTokenWhereInput[];
+      OR?: EmailVerificationTokenWhereInput[];
+      NOT?: EmailVerificationTokenWhereInput | EmailVerificationTokenWhereInput[];
+      email?: StringFilter<'EmailVerificationToken'> | string;
+      expiresAt?: DateTimeFilter<'EmailVerificationToken'> | Date | string;
+      createdAt?: DateTimeFilter<'EmailVerificationToken'> | Date | string;
+    },
+    'id' | 'token'
+  >;
+
+  export type EmailVerificationTokenOrderByWithAggregationInput = {
+    id?: SortOrder;
+    token?: SortOrder;
+    email?: SortOrder;
+    expiresAt?: SortOrder;
+    createdAt?: SortOrder;
+    _count?: EmailVerificationTokenCountOrderByAggregateInput;
+    _max?: EmailVerificationTokenMaxOrderByAggregateInput;
+    _min?: EmailVerificationTokenMinOrderByAggregateInput;
+  };
+
+  export type EmailVerificationTokenScalarWhereWithAggregatesInput = {
+    AND?:
+      | EmailVerificationTokenScalarWhereWithAggregatesInput
+      | EmailVerificationTokenScalarWhereWithAggregatesInput[];
+    OR?: EmailVerificationTokenScalarWhereWithAggregatesInput[];
+    NOT?:
+      | EmailVerificationTokenScalarWhereWithAggregatesInput
+      | EmailVerificationTokenScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'EmailVerificationToken'> | string;
+    token?: StringWithAggregatesFilter<'EmailVerificationToken'> | string;
+    email?: StringWithAggregatesFilter<'EmailVerificationToken'> | string;
+    expiresAt?: DateTimeWithAggregatesFilter<'EmailVerificationToken'> | Date | string;
+    createdAt?: DateTimeWithAggregatesFilter<'EmailVerificationToken'> | Date | string;
+  };
+
+  export type BillingEventWhereInput = {
+    AND?: BillingEventWhereInput | BillingEventWhereInput[];
+    OR?: BillingEventWhereInput[];
+    NOT?: BillingEventWhereInput | BillingEventWhereInput[];
+    id?: StringFilter<'BillingEvent'> | string;
+    eventType?: StringFilter<'BillingEvent'> | string;
+    stripeEventId?: StringFilter<'BillingEvent'> | string;
+    metadata?: JsonFilter<'BillingEvent'>;
+    createdAt?: DateTimeFilter<'BillingEvent'> | Date | string;
+    organizationId?: StringNullableFilter<'BillingEvent'> | string | null;
+    subscriptionId?: StringNullableFilter<'BillingEvent'> | string | null;
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null;
+    subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null;
+  };
+
+  export type BillingEventOrderByWithRelationInput = {
+    id?: SortOrder;
+    eventType?: SortOrder;
+    stripeEventId?: SortOrder;
+    metadata?: SortOrder;
+    createdAt?: SortOrder;
+    organizationId?: SortOrderInput | SortOrder;
+    subscriptionId?: SortOrderInput | SortOrder;
+    organization?: OrganizationOrderByWithRelationInput;
+    subscription?: SubscriptionOrderByWithRelationInput;
+  };
+
+  export type BillingEventWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      stripeEventId?: string;
+      AND?: BillingEventWhereInput | BillingEventWhereInput[];
+      OR?: BillingEventWhereInput[];
+      NOT?: BillingEventWhereInput | BillingEventWhereInput[];
+      eventType?: StringFilter<'BillingEvent'> | string;
+      metadata?: JsonFilter<'BillingEvent'>;
+      createdAt?: DateTimeFilter<'BillingEvent'> | Date | string;
+      organizationId?: StringNullableFilter<'BillingEvent'> | string | null;
+      subscriptionId?: StringNullableFilter<'BillingEvent'> | string | null;
+      organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null;
+      subscription?: XOR<SubscriptionNullableScalarRelationFilter, SubscriptionWhereInput> | null;
+    },
+    'id' | 'stripeEventId'
+  >;
+
+  export type BillingEventOrderByWithAggregationInput = {
+    id?: SortOrder;
+    eventType?: SortOrder;
+    stripeEventId?: SortOrder;
+    metadata?: SortOrder;
+    createdAt?: SortOrder;
+    organizationId?: SortOrderInput | SortOrder;
+    subscriptionId?: SortOrderInput | SortOrder;
+    _count?: BillingEventCountOrderByAggregateInput;
+    _max?: BillingEventMaxOrderByAggregateInput;
+    _min?: BillingEventMinOrderByAggregateInput;
+  };
+
+  export type BillingEventScalarWhereWithAggregatesInput = {
+    AND?: BillingEventScalarWhereWithAggregatesInput | BillingEventScalarWhereWithAggregatesInput[];
+    OR?: BillingEventScalarWhereWithAggregatesInput[];
+    NOT?: BillingEventScalarWhereWithAggregatesInput | BillingEventScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'BillingEvent'> | string;
+    eventType?: StringWithAggregatesFilter<'BillingEvent'> | string;
+    stripeEventId?: StringWithAggregatesFilter<'BillingEvent'> | string;
+    metadata?: JsonWithAggregatesFilter<'BillingEvent'>;
+    createdAt?: DateTimeWithAggregatesFilter<'BillingEvent'> | Date | string;
+    organizationId?: StringNullableWithAggregatesFilter<'BillingEvent'> | string | null;
+    subscriptionId?: StringNullableWithAggregatesFilter<'BillingEvent'> | string | null;
+  };
+
   export type SubscriptionWhereInput = {
     AND?: SubscriptionWhereInput | SubscriptionWhereInput[];
     OR?: SubscriptionWhereInput[];
@@ -44560,6 +47532,7 @@ export namespace Prisma {
     maxWorkflows?: IntFilter<'Subscription'> | number;
     organizationId?: StringFilter<'Subscription'> | string;
     invoices?: InvoiceListRelationFilter;
+    billingEvents?: BillingEventListRelationFilter;
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>;
   };
 
@@ -44582,6 +47555,7 @@ export namespace Prisma {
     maxWorkflows?: SortOrder;
     organizationId?: SortOrder;
     invoices?: InvoiceOrderByRelationAggregateInput;
+    billingEvents?: BillingEventOrderByRelationAggregateInput;
     organization?: OrganizationOrderByWithRelationInput;
   };
 
@@ -44608,6 +47582,7 @@ export namespace Prisma {
       maxUsersPerOrg?: IntFilter<'Subscription'> | number;
       maxWorkflows?: IntFilter<'Subscription'> | number;
       invoices?: InvoiceListRelationFilter;
+      billingEvents?: BillingEventListRelationFilter;
       organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>;
     },
     'id' | 'stripeCustomerId' | 'stripeSubscriptionId' | 'organizationId'
@@ -46959,6 +49934,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateInput = {
@@ -46992,6 +49968,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUpdateInput = {
@@ -47025,6 +50002,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateInput = {
@@ -47058,6 +50036,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateManyInput = {
@@ -47439,6 +50418,130 @@ export namespace Prisma {
     invitedById?: StringFieldUpdateOperationsInput | string;
   };
 
+  export type EmailVerificationTokenCreateInput = {
+    id?: string;
+    token: string;
+    email: string;
+    expiresAt: Date | string;
+    createdAt?: Date | string;
+  };
+
+  export type EmailVerificationTokenUncheckedCreateInput = {
+    id?: string;
+    token: string;
+    email: string;
+    expiresAt: Date | string;
+    createdAt?: Date | string;
+  };
+
+  export type EmailVerificationTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    token?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type EmailVerificationTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    token?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type EmailVerificationTokenCreateManyInput = {
+    id?: string;
+    token: string;
+    email: string;
+    expiresAt: Date | string;
+    createdAt?: Date | string;
+  };
+
+  export type EmailVerificationTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    token?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type EmailVerificationTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    token?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type BillingEventCreateInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    organization?: OrganizationCreateNestedOneWithoutBillingEventsInput;
+    subscription?: SubscriptionCreateNestedOneWithoutBillingEventsInput;
+  };
+
+  export type BillingEventUncheckedCreateInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    organizationId?: string | null;
+    subscriptionId?: string | null;
+  };
+
+  export type BillingEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    organization?: OrganizationUpdateOneWithoutBillingEventsNestedInput;
+    subscription?: SubscriptionUpdateOneWithoutBillingEventsNestedInput;
+  };
+
+  export type BillingEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null;
+    subscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type BillingEventCreateManyInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    organizationId?: string | null;
+    subscriptionId?: string | null;
+  };
+
+  export type BillingEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type BillingEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null;
+    subscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
   export type SubscriptionCreateInput = {
     id?: string;
     plan?: $Enums.SubscriptionPlan;
@@ -47457,6 +50560,7 @@ export namespace Prisma {
     maxUsersPerOrg?: number;
     maxWorkflows?: number;
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutSubscriptionInput;
     organization: OrganizationCreateNestedOneWithoutSubscriptionInput;
   };
 
@@ -47479,6 +50583,7 @@ export namespace Prisma {
     maxWorkflows?: number;
     organizationId: string;
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutSubscriptionInput;
   };
 
   export type SubscriptionUpdateInput = {
@@ -47499,6 +50604,7 @@ export namespace Prisma {
     maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
     maxWorkflows?: IntFieldUpdateOperationsInput | number;
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutSubscriptionNestedInput;
     organization?: OrganizationUpdateOneRequiredWithoutSubscriptionNestedInput;
   };
 
@@ -47521,6 +50627,7 @@ export namespace Prisma {
     maxWorkflows?: IntFieldUpdateOperationsInput | number;
     organizationId?: StringFieldUpdateOperationsInput | string;
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutSubscriptionNestedInput;
   };
 
   export type SubscriptionCreateManyInput = {
@@ -50088,6 +53195,12 @@ export namespace Prisma {
     none?: RateLimitUsageWhereInput;
   };
 
+  export type BillingEventListRelationFilter = {
+    every?: BillingEventWhereInput;
+    some?: BillingEventWhereInput;
+    none?: BillingEventWhereInput;
+  };
+
   export type SortOrderInput = {
     sort: SortOrder;
     nulls?: NullsOrder;
@@ -50166,6 +53279,10 @@ export namespace Prisma {
   };
 
   export type RateLimitUsageOrderByRelationAggregateInput = {
+    _count?: SortOrder;
+  };
+
+  export type BillingEventOrderByRelationAggregateInput = {
     _count?: SortOrder;
   };
 
@@ -50430,6 +53547,118 @@ export namespace Prisma {
     createdAt?: SortOrder;
     organizationId?: SortOrder;
     invitedById?: SortOrder;
+  };
+
+  export type EmailVerificationTokenCountOrderByAggregateInput = {
+    id?: SortOrder;
+    token?: SortOrder;
+    email?: SortOrder;
+    expiresAt?: SortOrder;
+    createdAt?: SortOrder;
+  };
+
+  export type EmailVerificationTokenMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    token?: SortOrder;
+    email?: SortOrder;
+    expiresAt?: SortOrder;
+    createdAt?: SortOrder;
+  };
+
+  export type EmailVerificationTokenMinOrderByAggregateInput = {
+    id?: SortOrder;
+    token?: SortOrder;
+    email?: SortOrder;
+    expiresAt?: SortOrder;
+    createdAt?: SortOrder;
+  };
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<
+          Required<JsonFilterBase<$PrismaModel>>,
+          Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>
+        >,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>;
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
+    path?: string[];
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>;
+    string_contains?: string | StringFieldRefInput<$PrismaModel>;
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>;
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>;
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
+  };
+
+  export type OrganizationNullableScalarRelationFilter = {
+    is?: OrganizationWhereInput | null;
+    isNot?: OrganizationWhereInput | null;
+  };
+
+  export type BillingEventCountOrderByAggregateInput = {
+    id?: SortOrder;
+    eventType?: SortOrder;
+    stripeEventId?: SortOrder;
+    metadata?: SortOrder;
+    createdAt?: SortOrder;
+    organizationId?: SortOrder;
+    subscriptionId?: SortOrder;
+  };
+
+  export type BillingEventMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    eventType?: SortOrder;
+    stripeEventId?: SortOrder;
+    createdAt?: SortOrder;
+    organizationId?: SortOrder;
+    subscriptionId?: SortOrder;
+  };
+
+  export type BillingEventMinOrderByAggregateInput = {
+    id?: SortOrder;
+    eventType?: SortOrder;
+    stripeEventId?: SortOrder;
+    createdAt?: SortOrder;
+    organizationId?: SortOrder;
+    subscriptionId?: SortOrder;
+  };
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<
+          Required<JsonWithAggregatesFilterBase<$PrismaModel>>,
+          Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>
+        >,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>;
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
+    path?: string[];
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>;
+    string_contains?: string | StringFieldRefInput<$PrismaModel>;
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>;
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>;
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _min?: NestedJsonFilter<$PrismaModel>;
+    _max?: NestedJsonFilter<$PrismaModel>;
   };
 
   export type EnumSubscriptionPlanFilter<$PrismaModel = never> = {
@@ -51030,32 +54259,6 @@ export namespace Prisma {
     statusCode?: SortOrder;
     responseTimeMs?: SortOrder;
   };
-  export type JsonFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<
-          Required<JsonFilterBase<$PrismaModel>>,
-          Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>
-        >,
-        Required<JsonFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>;
-
-  export type JsonFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
-    path?: string[];
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>;
-    string_contains?: string | StringFieldRefInput<$PrismaModel>;
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>;
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>;
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
-  };
 
   export type WorkflowExecutionListRelationFilter = {
     every?: WorkflowExecutionWhereInput;
@@ -51114,35 +54317,6 @@ export namespace Prisma {
 
   export type WorkflowSumOrderByAggregateInput = {
     runCount?: SortOrder;
-  };
-  export type JsonWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<
-          Required<JsonWithAggregatesFilterBase<$PrismaModel>>,
-          Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>
-        >,
-        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>;
-
-  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
-    path?: string[];
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>;
-    string_contains?: string | StringFieldRefInput<$PrismaModel>;
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>;
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>;
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
-    _count?: NestedIntFilter<$PrismaModel>;
-    _min?: NestedJsonFilter<$PrismaModel>;
-    _max?: NestedJsonFilter<$PrismaModel>;
   };
 
   export type EnumExecutionStatusFilter<$PrismaModel = never> = {
@@ -52392,6 +55566,21 @@ export namespace Prisma {
     connect?: RateLimitUsageWhereUniqueInput | RateLimitUsageWhereUniqueInput[];
   };
 
+  export type BillingEventCreateNestedManyWithoutOrganizationInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutOrganizationInput,
+          BillingEventUncheckedCreateWithoutOrganizationInput
+        >
+      | BillingEventCreateWithoutOrganizationInput[]
+      | BillingEventUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutOrganizationInput
+      | BillingEventCreateOrConnectWithoutOrganizationInput[];
+    createMany?: BillingEventCreateManyOrganizationInputEnvelope;
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+  };
+
   export type ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?:
       | XOR<
@@ -52663,6 +55852,21 @@ export namespace Prisma {
       | RateLimitUsageCreateOrConnectWithoutOrganizationInput[];
     createMany?: RateLimitUsageCreateManyOrganizationInputEnvelope;
     connect?: RateLimitUsageWhereUniqueInput | RateLimitUsageWhereUniqueInput[];
+  };
+
+  export type BillingEventUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutOrganizationInput,
+          BillingEventUncheckedCreateWithoutOrganizationInput
+        >
+      | BillingEventCreateWithoutOrganizationInput[]
+      | BillingEventUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutOrganizationInput
+      | BillingEventCreateOrConnectWithoutOrganizationInput[];
+    createMany?: BillingEventCreateManyOrganizationInputEnvelope;
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
   };
 
   export type StringFieldUpdateOperationsInput = {
@@ -53215,6 +56419,34 @@ export namespace Prisma {
     deleteMany?: RateLimitUsageScalarWhereInput | RateLimitUsageScalarWhereInput[];
   };
 
+  export type BillingEventUpdateManyWithoutOrganizationNestedInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutOrganizationInput,
+          BillingEventUncheckedCreateWithoutOrganizationInput
+        >
+      | BillingEventCreateWithoutOrganizationInput[]
+      | BillingEventUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutOrganizationInput
+      | BillingEventCreateOrConnectWithoutOrganizationInput[];
+    upsert?:
+      | BillingEventUpsertWithWhereUniqueWithoutOrganizationInput
+      | BillingEventUpsertWithWhereUniqueWithoutOrganizationInput[];
+    createMany?: BillingEventCreateManyOrganizationInputEnvelope;
+    set?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    disconnect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    delete?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    update?:
+      | BillingEventUpdateWithWhereUniqueWithoutOrganizationInput
+      | BillingEventUpdateWithWhereUniqueWithoutOrganizationInput[];
+    updateMany?:
+      | BillingEventUpdateManyWithWhereWithoutOrganizationInput
+      | BillingEventUpdateManyWithWhereWithoutOrganizationInput[];
+    deleteMany?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
+  };
+
   export type ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?:
       | XOR<
@@ -53743,6 +56975,34 @@ export namespace Prisma {
       | RateLimitUsageUpdateManyWithWhereWithoutOrganizationInput
       | RateLimitUsageUpdateManyWithWhereWithoutOrganizationInput[];
     deleteMany?: RateLimitUsageScalarWhereInput | RateLimitUsageScalarWhereInput[];
+  };
+
+  export type BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutOrganizationInput,
+          BillingEventUncheckedCreateWithoutOrganizationInput
+        >
+      | BillingEventCreateWithoutOrganizationInput[]
+      | BillingEventUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutOrganizationInput
+      | BillingEventCreateOrConnectWithoutOrganizationInput[];
+    upsert?:
+      | BillingEventUpsertWithWhereUniqueWithoutOrganizationInput
+      | BillingEventUpsertWithWhereUniqueWithoutOrganizationInput[];
+    createMany?: BillingEventCreateManyOrganizationInputEnvelope;
+    set?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    disconnect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    delete?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    update?:
+      | BillingEventUpdateWithWhereUniqueWithoutOrganizationInput
+      | BillingEventUpdateWithWhereUniqueWithoutOrganizationInput[];
+    updateMany?:
+      | BillingEventUpdateManyWithWhereWithoutOrganizationInput
+      | BillingEventUpdateManyWithWhereWithoutOrganizationInput[];
+    deleteMany?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
   };
 
   export type ApiActivityLogCreateNestedManyWithoutUserInput = {
@@ -55064,6 +58324,62 @@ export namespace Prisma {
     >;
   };
 
+  export type OrganizationCreateNestedOneWithoutBillingEventsInput = {
+    create?: XOR<
+      OrganizationCreateWithoutBillingEventsInput,
+      OrganizationUncheckedCreateWithoutBillingEventsInput
+    >;
+    connectOrCreate?: OrganizationCreateOrConnectWithoutBillingEventsInput;
+    connect?: OrganizationWhereUniqueInput;
+  };
+
+  export type SubscriptionCreateNestedOneWithoutBillingEventsInput = {
+    create?: XOR<
+      SubscriptionCreateWithoutBillingEventsInput,
+      SubscriptionUncheckedCreateWithoutBillingEventsInput
+    >;
+    connectOrCreate?: SubscriptionCreateOrConnectWithoutBillingEventsInput;
+    connect?: SubscriptionWhereUniqueInput;
+  };
+
+  export type OrganizationUpdateOneWithoutBillingEventsNestedInput = {
+    create?: XOR<
+      OrganizationCreateWithoutBillingEventsInput,
+      OrganizationUncheckedCreateWithoutBillingEventsInput
+    >;
+    connectOrCreate?: OrganizationCreateOrConnectWithoutBillingEventsInput;
+    upsert?: OrganizationUpsertWithoutBillingEventsInput;
+    disconnect?: OrganizationWhereInput | boolean;
+    delete?: OrganizationWhereInput | boolean;
+    connect?: OrganizationWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        OrganizationUpdateToOneWithWhereWithoutBillingEventsInput,
+        OrganizationUpdateWithoutBillingEventsInput
+      >,
+      OrganizationUncheckedUpdateWithoutBillingEventsInput
+    >;
+  };
+
+  export type SubscriptionUpdateOneWithoutBillingEventsNestedInput = {
+    create?: XOR<
+      SubscriptionCreateWithoutBillingEventsInput,
+      SubscriptionUncheckedCreateWithoutBillingEventsInput
+    >;
+    connectOrCreate?: SubscriptionCreateOrConnectWithoutBillingEventsInput;
+    upsert?: SubscriptionUpsertWithoutBillingEventsInput;
+    disconnect?: SubscriptionWhereInput | boolean;
+    delete?: SubscriptionWhereInput | boolean;
+    connect?: SubscriptionWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        SubscriptionUpdateToOneWithWhereWithoutBillingEventsInput,
+        SubscriptionUpdateWithoutBillingEventsInput
+      >,
+      SubscriptionUncheckedUpdateWithoutBillingEventsInput
+    >;
+  };
+
   export type InvoiceCreateNestedManyWithoutSubscriptionInput = {
     create?:
       | XOR<InvoiceCreateWithoutSubscriptionInput, InvoiceUncheckedCreateWithoutSubscriptionInput>
@@ -55074,6 +58390,21 @@ export namespace Prisma {
       | InvoiceCreateOrConnectWithoutSubscriptionInput[];
     createMany?: InvoiceCreateManySubscriptionInputEnvelope;
     connect?: InvoiceWhereUniqueInput | InvoiceWhereUniqueInput[];
+  };
+
+  export type BillingEventCreateNestedManyWithoutSubscriptionInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutSubscriptionInput,
+          BillingEventUncheckedCreateWithoutSubscriptionInput
+        >
+      | BillingEventCreateWithoutSubscriptionInput[]
+      | BillingEventUncheckedCreateWithoutSubscriptionInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutSubscriptionInput
+      | BillingEventCreateOrConnectWithoutSubscriptionInput[];
+    createMany?: BillingEventCreateManySubscriptionInputEnvelope;
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
   };
 
   export type OrganizationCreateNestedOneWithoutSubscriptionInput = {
@@ -55095,6 +58426,21 @@ export namespace Prisma {
       | InvoiceCreateOrConnectWithoutSubscriptionInput[];
     createMany?: InvoiceCreateManySubscriptionInputEnvelope;
     connect?: InvoiceWhereUniqueInput | InvoiceWhereUniqueInput[];
+  };
+
+  export type BillingEventUncheckedCreateNestedManyWithoutSubscriptionInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutSubscriptionInput,
+          BillingEventUncheckedCreateWithoutSubscriptionInput
+        >
+      | BillingEventCreateWithoutSubscriptionInput[]
+      | BillingEventUncheckedCreateWithoutSubscriptionInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutSubscriptionInput
+      | BillingEventCreateOrConnectWithoutSubscriptionInput[];
+    createMany?: BillingEventCreateManySubscriptionInputEnvelope;
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
   };
 
   export type EnumSubscriptionPlanFieldUpdateOperationsInput = {
@@ -55138,6 +58484,34 @@ export namespace Prisma {
     deleteMany?: InvoiceScalarWhereInput | InvoiceScalarWhereInput[];
   };
 
+  export type BillingEventUpdateManyWithoutSubscriptionNestedInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutSubscriptionInput,
+          BillingEventUncheckedCreateWithoutSubscriptionInput
+        >
+      | BillingEventCreateWithoutSubscriptionInput[]
+      | BillingEventUncheckedCreateWithoutSubscriptionInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutSubscriptionInput
+      | BillingEventCreateOrConnectWithoutSubscriptionInput[];
+    upsert?:
+      | BillingEventUpsertWithWhereUniqueWithoutSubscriptionInput
+      | BillingEventUpsertWithWhereUniqueWithoutSubscriptionInput[];
+    createMany?: BillingEventCreateManySubscriptionInputEnvelope;
+    set?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    disconnect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    delete?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    update?:
+      | BillingEventUpdateWithWhereUniqueWithoutSubscriptionInput
+      | BillingEventUpdateWithWhereUniqueWithoutSubscriptionInput[];
+    updateMany?:
+      | BillingEventUpdateManyWithWhereWithoutSubscriptionInput
+      | BillingEventUpdateManyWithWhereWithoutSubscriptionInput[];
+    deleteMany?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
+  };
+
   export type OrganizationUpdateOneRequiredWithoutSubscriptionNestedInput = {
     create?: XOR<
       OrganizationCreateWithoutSubscriptionInput,
@@ -55178,6 +58552,34 @@ export namespace Prisma {
       | InvoiceUpdateManyWithWhereWithoutSubscriptionInput
       | InvoiceUpdateManyWithWhereWithoutSubscriptionInput[];
     deleteMany?: InvoiceScalarWhereInput | InvoiceScalarWhereInput[];
+  };
+
+  export type BillingEventUncheckedUpdateManyWithoutSubscriptionNestedInput = {
+    create?:
+      | XOR<
+          BillingEventCreateWithoutSubscriptionInput,
+          BillingEventUncheckedCreateWithoutSubscriptionInput
+        >
+      | BillingEventCreateWithoutSubscriptionInput[]
+      | BillingEventUncheckedCreateWithoutSubscriptionInput[];
+    connectOrCreate?:
+      | BillingEventCreateOrConnectWithoutSubscriptionInput
+      | BillingEventCreateOrConnectWithoutSubscriptionInput[];
+    upsert?:
+      | BillingEventUpsertWithWhereUniqueWithoutSubscriptionInput
+      | BillingEventUpsertWithWhereUniqueWithoutSubscriptionInput[];
+    createMany?: BillingEventCreateManySubscriptionInputEnvelope;
+    set?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    disconnect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    delete?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+    update?:
+      | BillingEventUpdateWithWhereUniqueWithoutSubscriptionInput
+      | BillingEventUpdateWithWhereUniqueWithoutSubscriptionInput[];
+    updateMany?:
+      | BillingEventUpdateManyWithWhereWithoutSubscriptionInput
+      | BillingEventUpdateManyWithWhereWithoutSubscriptionInput[];
+    deleteMany?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
   };
 
   export type SubscriptionCreateNestedOneWithoutInvoicesInput = {
@@ -57839,6 +61241,32 @@ export namespace Prisma {
     _min?: NestedEnumMemberRoleFilter<$PrismaModel>;
     _max?: NestedEnumMemberRoleFilter<$PrismaModel>;
   };
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<
+          Required<NestedJsonFilterBase<$PrismaModel>>,
+          Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>
+        >,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>;
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
+    path?: string[];
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>;
+    string_contains?: string | StringFieldRefInput<$PrismaModel>;
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>;
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>;
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
+  };
 
   export type NestedEnumSubscriptionPlanFilter<$PrismaModel = never> = {
     equals?: $Enums.SubscriptionPlan | EnumSubscriptionPlanFieldRefInput<$PrismaModel>;
@@ -58007,32 +61435,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedEnumHttpMethodFilter<$PrismaModel>;
     _max?: NestedEnumHttpMethodFilter<$PrismaModel>;
-  };
-  export type NestedJsonFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<
-          Required<NestedJsonFilterBase<$PrismaModel>>,
-          Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>
-        >,
-        Required<NestedJsonFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>;
-
-  export type NestedJsonFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
-    path?: string[];
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>;
-    string_contains?: string | StringFieldRefInput<$PrismaModel>;
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>;
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>;
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null;
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>;
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter;
   };
 
   export type NestedEnumExecutionStatusFilter<$PrismaModel = never> = {
@@ -58789,6 +62191,7 @@ export namespace Prisma {
     maxUsersPerOrg?: number;
     maxWorkflows?: number;
     invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutSubscriptionInput;
   };
 
   export type SubscriptionUncheckedCreateWithoutOrganizationInput = {
@@ -58809,6 +62212,7 @@ export namespace Prisma {
     maxUsersPerOrg?: number;
     maxWorkflows?: number;
     invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutSubscriptionInput;
   };
 
   export type SubscriptionCreateOrConnectWithoutOrganizationInput = {
@@ -59054,6 +62458,37 @@ export namespace Prisma {
 
   export type RateLimitUsageCreateManyOrganizationInputEnvelope = {
     data: RateLimitUsageCreateManyOrganizationInput | RateLimitUsageCreateManyOrganizationInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type BillingEventCreateWithoutOrganizationInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    subscription?: SubscriptionCreateNestedOneWithoutBillingEventsInput;
+  };
+
+  export type BillingEventUncheckedCreateWithoutOrganizationInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    subscriptionId?: string | null;
+  };
+
+  export type BillingEventCreateOrConnectWithoutOrganizationInput = {
+    where: BillingEventWhereUniqueInput;
+    create: XOR<
+      BillingEventCreateWithoutOrganizationInput,
+      BillingEventUncheckedCreateWithoutOrganizationInput
+    >;
+  };
+
+  export type BillingEventCreateManyOrganizationInputEnvelope = {
+    data: BillingEventCreateManyOrganizationInput | BillingEventCreateManyOrganizationInput[];
     skipDuplicates?: boolean;
   };
 
@@ -59680,6 +63115,7 @@ export namespace Prisma {
     maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
     maxWorkflows?: IntFieldUpdateOperationsInput | number;
     invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutSubscriptionNestedInput;
   };
 
   export type SubscriptionUncheckedUpdateWithoutOrganizationInput = {
@@ -59700,6 +63136,7 @@ export namespace Prisma {
     maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
     maxWorkflows?: IntFieldUpdateOperationsInput | number;
     invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutSubscriptionNestedInput;
   };
 
   export type TermsAcceptanceUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -59965,6 +63402,47 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<'RateLimitUsage'> | Date | string;
     updatedAt?: DateTimeFilter<'RateLimitUsage'> | Date | string;
     organizationId?: StringFilter<'RateLimitUsage'> | string;
+  };
+
+  export type BillingEventUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: BillingEventWhereUniqueInput;
+    update: XOR<
+      BillingEventUpdateWithoutOrganizationInput,
+      BillingEventUncheckedUpdateWithoutOrganizationInput
+    >;
+    create: XOR<
+      BillingEventCreateWithoutOrganizationInput,
+      BillingEventUncheckedCreateWithoutOrganizationInput
+    >;
+  };
+
+  export type BillingEventUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: BillingEventWhereUniqueInput;
+    data: XOR<
+      BillingEventUpdateWithoutOrganizationInput,
+      BillingEventUncheckedUpdateWithoutOrganizationInput
+    >;
+  };
+
+  export type BillingEventUpdateManyWithWhereWithoutOrganizationInput = {
+    where: BillingEventScalarWhereInput;
+    data: XOR<
+      BillingEventUpdateManyMutationInput,
+      BillingEventUncheckedUpdateManyWithoutOrganizationInput
+    >;
+  };
+
+  export type BillingEventScalarWhereInput = {
+    AND?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
+    OR?: BillingEventScalarWhereInput[];
+    NOT?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
+    id?: StringFilter<'BillingEvent'> | string;
+    eventType?: StringFilter<'BillingEvent'> | string;
+    stripeEventId?: StringFilter<'BillingEvent'> | string;
+    metadata?: JsonFilter<'BillingEvent'>;
+    createdAt?: DateTimeFilter<'BillingEvent'> | Date | string;
+    organizationId?: StringNullableFilter<'BillingEvent'> | string | null;
+    subscriptionId?: StringNullableFilter<'BillingEvent'> | string | null;
   };
 
   export type ApiActivityLogCreateWithoutUserInput = {
@@ -61057,6 +64535,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutMembershipsInput = {
@@ -61089,6 +64568,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutMembershipsInput = {
@@ -61224,6 +64704,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutMembershipsInput = {
@@ -61256,6 +64737,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -61447,6 +64929,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -61479,6 +64962,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -61629,6 +65113,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -61661,6 +65146,279 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type OrganizationCreateWithoutBillingEventsInput = {
+    id?: string;
+    name: string;
+    slug: string;
+    domain?: string | null;
+    logo?: string | null;
+    website?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    lastTermsPromptedAt?: Date | string | null;
+    requiresTermsAcceptance?: boolean;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
+    apiKeys?: ApiKeyCreateNestedManyWithoutOrganizationInput;
+    applications?: ApplicationCreateNestedManyWithoutOrganizationInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput;
+    databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
+    databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
+    endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    exposedEntities?: ExposedEntityCreateNestedManyWithoutOrganizationInput;
+    invitations?: InvitationCreateNestedManyWithoutOrganizationInput;
+    memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
+    notifications?: NotificationCreateNestedManyWithoutOrganizationInput;
+    roles?: RoleCreateNestedManyWithoutOrganizationInput;
+    services?: ServiceCreateNestedManyWithoutOrganizationInput;
+    subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
+    usageMetrics?: UsageMetricCreateNestedManyWithoutOrganizationInput;
+    webhooks?: WebhookCreateNestedManyWithoutOrganizationInput;
+    workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
+    rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
+    rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+  };
+
+  export type OrganizationUncheckedCreateWithoutBillingEventsInput = {
+    id?: string;
+    name: string;
+    slug: string;
+    domain?: string | null;
+    logo?: string | null;
+    website?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    lastTermsPromptedAt?: Date | string | null;
+    requiresTermsAcceptance?: boolean;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutOrganizationInput;
+    applications?: ApplicationUncheckedCreateNestedManyWithoutOrganizationInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput;
+    databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
+    databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
+    endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    exposedEntities?: ExposedEntityUncheckedCreateNestedManyWithoutOrganizationInput;
+    invitations?: InvitationUncheckedCreateNestedManyWithoutOrganizationInput;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput;
+    roles?: RoleUncheckedCreateNestedManyWithoutOrganizationInput;
+    services?: ServiceUncheckedCreateNestedManyWithoutOrganizationInput;
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
+    usageMetrics?: UsageMetricUncheckedCreateNestedManyWithoutOrganizationInput;
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutOrganizationInput;
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
+    rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
+    rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+  };
+
+  export type OrganizationCreateOrConnectWithoutBillingEventsInput = {
+    where: OrganizationWhereUniqueInput;
+    create: XOR<
+      OrganizationCreateWithoutBillingEventsInput,
+      OrganizationUncheckedCreateWithoutBillingEventsInput
+    >;
+  };
+
+  export type SubscriptionCreateWithoutBillingEventsInput = {
+    id?: string;
+    plan?: $Enums.SubscriptionPlan;
+    status?: $Enums.SubscriptionStatus;
+    trialEndsAt?: Date | string | null;
+    currentPeriodStart: Date | string;
+    currentPeriodEnd: Date | string;
+    canceledAt?: Date | string | null;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+    stripePriceId?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    maxDatabaseConnections?: number;
+    maxApiCallsPerMonth?: number;
+    maxUsersPerOrg?: number;
+    maxWorkflows?: number;
+    invoices?: InvoiceCreateNestedManyWithoutSubscriptionInput;
+    organization: OrganizationCreateNestedOneWithoutSubscriptionInput;
+  };
+
+  export type SubscriptionUncheckedCreateWithoutBillingEventsInput = {
+    id?: string;
+    plan?: $Enums.SubscriptionPlan;
+    status?: $Enums.SubscriptionStatus;
+    trialEndsAt?: Date | string | null;
+    currentPeriodStart: Date | string;
+    currentPeriodEnd: Date | string;
+    canceledAt?: Date | string | null;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+    stripePriceId?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    maxDatabaseConnections?: number;
+    maxApiCallsPerMonth?: number;
+    maxUsersPerOrg?: number;
+    maxWorkflows?: number;
+    organizationId: string;
+    invoices?: InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput;
+  };
+
+  export type SubscriptionCreateOrConnectWithoutBillingEventsInput = {
+    where: SubscriptionWhereUniqueInput;
+    create: XOR<
+      SubscriptionCreateWithoutBillingEventsInput,
+      SubscriptionUncheckedCreateWithoutBillingEventsInput
+    >;
+  };
+
+  export type OrganizationUpsertWithoutBillingEventsInput = {
+    update: XOR<
+      OrganizationUpdateWithoutBillingEventsInput,
+      OrganizationUncheckedUpdateWithoutBillingEventsInput
+    >;
+    create: XOR<
+      OrganizationCreateWithoutBillingEventsInput,
+      OrganizationUncheckedCreateWithoutBillingEventsInput
+    >;
+    where?: OrganizationWhereInput;
+  };
+
+  export type OrganizationUpdateToOneWithWhereWithoutBillingEventsInput = {
+    where?: OrganizationWhereInput;
+    data: XOR<
+      OrganizationUpdateWithoutBillingEventsInput,
+      OrganizationUncheckedUpdateWithoutBillingEventsInput
+    >;
+  };
+
+  export type OrganizationUpdateWithoutBillingEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    name?: StringFieldUpdateOperationsInput | string;
+    slug?: StringFieldUpdateOperationsInput | string;
+    domain?: NullableStringFieldUpdateOperationsInput | string | null;
+    logo?: NullableStringFieldUpdateOperationsInput | string | null;
+    website?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
+    apiKeys?: ApiKeyUpdateManyWithoutOrganizationNestedInput;
+    applications?: ApplicationUpdateManyWithoutOrganizationNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput;
+    databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
+    databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
+    endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    exposedEntities?: ExposedEntityUpdateManyWithoutOrganizationNestedInput;
+    invitations?: InvitationUpdateManyWithoutOrganizationNestedInput;
+    memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
+    notifications?: NotificationUpdateManyWithoutOrganizationNestedInput;
+    roles?: RoleUpdateManyWithoutOrganizationNestedInput;
+    services?: ServiceUpdateManyWithoutOrganizationNestedInput;
+    subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
+    usageMetrics?: UsageMetricUpdateManyWithoutOrganizationNestedInput;
+    webhooks?: WebhookUpdateManyWithoutOrganizationNestedInput;
+    workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
+    rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
+    rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type OrganizationUncheckedUpdateWithoutBillingEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    name?: StringFieldUpdateOperationsInput | string;
+    slug?: StringFieldUpdateOperationsInput | string;
+    domain?: NullableStringFieldUpdateOperationsInput | string | null;
+    logo?: NullableStringFieldUpdateOperationsInput | string | null;
+    website?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput;
+    applications?: ApplicationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput;
+    databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
+    databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
+    endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    exposedEntities?: ExposedEntityUncheckedUpdateManyWithoutOrganizationNestedInput;
+    invitations?: InvitationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    roles?: RoleUncheckedUpdateManyWithoutOrganizationNestedInput;
+    services?: ServiceUncheckedUpdateManyWithoutOrganizationNestedInput;
+    subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
+    usageMetrics?: UsageMetricUncheckedUpdateManyWithoutOrganizationNestedInput;
+    webhooks?: WebhookUncheckedUpdateManyWithoutOrganizationNestedInput;
+    workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
+    rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
+    rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type SubscriptionUpsertWithoutBillingEventsInput = {
+    update: XOR<
+      SubscriptionUpdateWithoutBillingEventsInput,
+      SubscriptionUncheckedUpdateWithoutBillingEventsInput
+    >;
+    create: XOR<
+      SubscriptionCreateWithoutBillingEventsInput,
+      SubscriptionUncheckedCreateWithoutBillingEventsInput
+    >;
+    where?: SubscriptionWhereInput;
+  };
+
+  export type SubscriptionUpdateToOneWithWhereWithoutBillingEventsInput = {
+    where?: SubscriptionWhereInput;
+    data: XOR<
+      SubscriptionUpdateWithoutBillingEventsInput,
+      SubscriptionUncheckedUpdateWithoutBillingEventsInput
+    >;
+  };
+
+  export type SubscriptionUpdateWithoutBillingEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    plan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan;
+    status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus;
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    currentPeriodStart?: DateTimeFieldUpdateOperationsInput | Date | string;
+    currentPeriodEnd?: DateTimeFieldUpdateOperationsInput | Date | string;
+    canceledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
+    maxApiCallsPerMonth?: IntFieldUpdateOperationsInput | number;
+    maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
+    maxWorkflows?: IntFieldUpdateOperationsInput | number;
+    invoices?: InvoiceUpdateManyWithoutSubscriptionNestedInput;
+    organization?: OrganizationUpdateOneRequiredWithoutSubscriptionNestedInput;
+  };
+
+  export type SubscriptionUncheckedUpdateWithoutBillingEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    plan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan;
+    status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus;
+    trialEndsAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    currentPeriodStart?: DateTimeFieldUpdateOperationsInput | Date | string;
+    currentPeriodEnd?: DateTimeFieldUpdateOperationsInput | Date | string;
+    canceledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
+    stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
+    stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
+    maxApiCallsPerMonth?: IntFieldUpdateOperationsInput | number;
+    maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
+    maxWorkflows?: IntFieldUpdateOperationsInput | number;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    invoices?: InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput;
   };
 
   export type InvoiceCreateWithoutSubscriptionInput = {
@@ -61704,6 +65462,37 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
+  export type BillingEventCreateWithoutSubscriptionInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    organization?: OrganizationCreateNestedOneWithoutBillingEventsInput;
+  };
+
+  export type BillingEventUncheckedCreateWithoutSubscriptionInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    organizationId?: string | null;
+  };
+
+  export type BillingEventCreateOrConnectWithoutSubscriptionInput = {
+    where: BillingEventWhereUniqueInput;
+    create: XOR<
+      BillingEventCreateWithoutSubscriptionInput,
+      BillingEventUncheckedCreateWithoutSubscriptionInput
+    >;
+  };
+
+  export type BillingEventCreateManySubscriptionInputEnvelope = {
+    data: BillingEventCreateManySubscriptionInput | BillingEventCreateManySubscriptionInput[];
+    skipDuplicates?: boolean;
+  };
+
   export type OrganizationCreateWithoutSubscriptionInput = {
     id?: string;
     name: string;
@@ -61734,6 +65523,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutSubscriptionInput = {
@@ -61766,6 +65556,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutSubscriptionInput = {
@@ -61819,6 +65610,34 @@ export namespace Prisma {
     subscriptionId?: StringFilter<'Invoice'> | string;
   };
 
+  export type BillingEventUpsertWithWhereUniqueWithoutSubscriptionInput = {
+    where: BillingEventWhereUniqueInput;
+    update: XOR<
+      BillingEventUpdateWithoutSubscriptionInput,
+      BillingEventUncheckedUpdateWithoutSubscriptionInput
+    >;
+    create: XOR<
+      BillingEventCreateWithoutSubscriptionInput,
+      BillingEventUncheckedCreateWithoutSubscriptionInput
+    >;
+  };
+
+  export type BillingEventUpdateWithWhereUniqueWithoutSubscriptionInput = {
+    where: BillingEventWhereUniqueInput;
+    data: XOR<
+      BillingEventUpdateWithoutSubscriptionInput,
+      BillingEventUncheckedUpdateWithoutSubscriptionInput
+    >;
+  };
+
+  export type BillingEventUpdateManyWithWhereWithoutSubscriptionInput = {
+    where: BillingEventScalarWhereInput;
+    data: XOR<
+      BillingEventUpdateManyMutationInput,
+      BillingEventUncheckedUpdateManyWithoutSubscriptionInput
+    >;
+  };
+
   export type OrganizationUpsertWithoutSubscriptionInput = {
     update: XOR<
       OrganizationUpdateWithoutSubscriptionInput,
@@ -61869,6 +65688,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutSubscriptionInput = {
@@ -61901,6 +65721,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type SubscriptionCreateWithoutInvoicesInput = {
@@ -61920,6 +65741,7 @@ export namespace Prisma {
     maxApiCallsPerMonth?: number;
     maxUsersPerOrg?: number;
     maxWorkflows?: number;
+    billingEvents?: BillingEventCreateNestedManyWithoutSubscriptionInput;
     organization: OrganizationCreateNestedOneWithoutSubscriptionInput;
   };
 
@@ -61941,6 +65763,7 @@ export namespace Prisma {
     maxUsersPerOrg?: number;
     maxWorkflows?: number;
     organizationId: string;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutSubscriptionInput;
   };
 
   export type SubscriptionCreateOrConnectWithoutInvoicesInput = {
@@ -61988,6 +65811,7 @@ export namespace Prisma {
     maxApiCallsPerMonth?: IntFieldUpdateOperationsInput | number;
     maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
     maxWorkflows?: IntFieldUpdateOperationsInput | number;
+    billingEvents?: BillingEventUpdateManyWithoutSubscriptionNestedInput;
     organization?: OrganizationUpdateOneRequiredWithoutSubscriptionNestedInput;
   };
 
@@ -62009,6 +65833,7 @@ export namespace Prisma {
     maxUsersPerOrg?: IntFieldUpdateOperationsInput | number;
     maxWorkflows?: IntFieldUpdateOperationsInput | number;
     organizationId?: StringFieldUpdateOperationsInput | string;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutSubscriptionNestedInput;
   };
 
   export type UserCreateWithoutDatabaseConnectionsCreatedInput = {
@@ -62119,6 +65944,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutDatabaseConnectionsInput = {
@@ -62151,6 +65977,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutDatabaseConnectionsInput = {
@@ -62473,6 +66300,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutDatabaseConnectionsInput = {
@@ -62505,6 +66333,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type EndpointUpsertWithWhereUniqueWithoutConnectionInput = {
@@ -62786,6 +66615,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutEndpointsInput = {
@@ -62818,6 +66648,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutEndpointsInput = {
@@ -63060,6 +66891,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutEndpointsInput = {
@@ -63092,6 +66924,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutApiKeysCreatedInput = {
@@ -63202,6 +67035,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApiKeysInput = {
@@ -63234,6 +67068,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApiKeysInput = {
@@ -63411,6 +67246,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApiKeysInput = {
@@ -63443,6 +67279,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UsageMetricUpsertWithWhereUniqueWithoutApiKeyInput = {
@@ -63527,6 +67364,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutUsageMetricsInput = {
@@ -63559,6 +67397,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutUsageMetricsInput = {
@@ -63664,6 +67503,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutUsageMetricsInput = {
@@ -63696,6 +67536,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutWorkflowsCreatedInput = {
@@ -63806,6 +67647,7 @@ export namespace Prisma {
     webhooks?: WebhookCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutWorkflowsInput = {
@@ -63838,6 +67680,7 @@ export namespace Prisma {
     webhooks?: WebhookUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutWorkflowsInput = {
@@ -64019,6 +67862,7 @@ export namespace Prisma {
     webhooks?: WebhookUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutWorkflowsInput = {
@@ -64051,6 +67895,7 @@ export namespace Prisma {
     webhooks?: WebhookUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput = {
@@ -64209,6 +68054,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutWebhooksInput = {
@@ -64241,6 +68087,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutWebhooksInput = {
@@ -64301,6 +68148,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutWebhooksInput = {
@@ -64333,6 +68181,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -64365,6 +68214,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -64397,6 +68247,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -64532,6 +68383,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -64564,6 +68416,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -64947,6 +68800,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutServicesInput = {
@@ -64979,6 +68833,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutServicesInput = {
@@ -65265,6 +69120,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutServicesInput = {
@@ -65297,6 +69153,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutApplicationsCreatedInput = {
@@ -65442,6 +69299,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -65474,6 +69332,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -65665,6 +69524,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -65697,6 +69557,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ApplicationCreateWithoutDefaultRoleInput = {
@@ -65911,6 +69772,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRolesInput = {
@@ -65943,6 +69805,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRolesInput = {
@@ -66232,6 +70095,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRolesInput = {
@@ -66264,6 +70128,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutRolesInput = {
@@ -66351,6 +70216,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutNotificationsInput = {
@@ -66383,6 +70249,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutNotificationsInput = {
@@ -66518,6 +70385,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutNotificationsInput = {
@@ -66550,6 +70418,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutNotificationsInput = {
@@ -66710,6 +70579,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApiActivityLogsInput = {
@@ -66742,6 +70612,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApiActivityLogsInput = {
@@ -66933,6 +70804,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApiActivityLogsInput = {
@@ -66965,6 +70837,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutApiActivityLogsInput = {
@@ -67087,6 +70960,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutDatabaseObjectsInput = {
@@ -67119,6 +70993,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutDatabaseObjectsInput = {
@@ -67231,6 +71106,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutDatabaseObjectsInput = {
@@ -67263,6 +71139,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutDatabaseObjectsInput = {
@@ -67489,6 +71366,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutExposedEntitiesInput = {
@@ -67521,6 +71399,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutExposedEntitiesInput = {
@@ -67855,6 +71734,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutExposedEntitiesInput = {
@@ -67887,6 +71767,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutExposedEntitiesInput = {
@@ -68534,6 +72415,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutTermsAcceptancesInput = {
@@ -68566,6 +72448,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutTermsAcceptancesInput = {
@@ -68734,6 +72617,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutTermsAcceptancesInput = {
@@ -68766,6 +72650,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type TermsAndConditionsUpsertWithoutAcceptancesInput = {
@@ -68930,6 +72815,7 @@ export namespace Prisma {
     webhooks?: WebhookCreateNestedManyWithoutOrganizationInput;
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRateLimitConfigsInput = {
@@ -68962,6 +72848,7 @@ export namespace Prisma {
     webhooks?: WebhookUncheckedCreateNestedManyWithoutOrganizationInput;
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRateLimitConfigsInput = {
@@ -69178,6 +73065,7 @@ export namespace Prisma {
     webhooks?: WebhookUpdateManyWithoutOrganizationNestedInput;
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRateLimitConfigsInput = {
@@ -69210,6 +73098,7 @@ export namespace Prisma {
     webhooks?: WebhookUncheckedUpdateManyWithoutOrganizationNestedInput;
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutRateLimitCreatedInput = {
@@ -69422,6 +73311,7 @@ export namespace Prisma {
     webhooks?: WebhookCreateNestedManyWithoutOrganizationInput;
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRateLimitUsageInput = {
@@ -69454,6 +73344,7 @@ export namespace Prisma {
     webhooks?: WebhookUncheckedCreateNestedManyWithoutOrganizationInput;
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRateLimitUsageInput = {
@@ -69514,6 +73405,7 @@ export namespace Prisma {
     webhooks?: WebhookUpdateManyWithoutOrganizationNestedInput;
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRateLimitUsageInput = {
@@ -69546,6 +73438,7 @@ export namespace Prisma {
     webhooks?: WebhookUncheckedUpdateManyWithoutOrganizationNestedInput;
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ApiActivityLogCreateManyOrganizationInput = {
@@ -69821,6 +73714,15 @@ export namespace Prisma {
     blocked?: boolean;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+  };
+
+  export type BillingEventCreateManyOrganizationInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    subscriptionId?: string | null;
   };
 
   export type ApiActivityLogUpdateWithoutOrganizationInput = {
@@ -70674,6 +74576,33 @@ export namespace Prisma {
     blocked?: BoolFieldUpdateOperationsInput | boolean;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type BillingEventUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    subscription?: SubscriptionUpdateOneWithoutBillingEventsNestedInput;
+  };
+
+  export type BillingEventUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    subscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type BillingEventUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    subscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
   export type ApiActivityLogCreateManyUserInput = {
@@ -71722,6 +75651,15 @@ export namespace Prisma {
     createdAt?: Date | string;
   };
 
+  export type BillingEventCreateManySubscriptionInput = {
+    id?: string;
+    eventType: string;
+    stripeEventId: string;
+    metadata: JsonNullValueInput | InputJsonValue;
+    createdAt?: Date | string;
+    organizationId?: string | null;
+  };
+
   export type InvoiceUpdateWithoutSubscriptionInput = {
     id?: StringFieldUpdateOperationsInput | string;
     invoiceNumber?: StringFieldUpdateOperationsInput | string;
@@ -71762,6 +75700,33 @@ export namespace Prisma {
     stripePaymentIntentId?: NullableStringFieldUpdateOperationsInput | string | null;
     hostedInvoiceUrl?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type BillingEventUpdateWithoutSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    organization?: OrganizationUpdateOneWithoutBillingEventsNestedInput;
+  };
+
+  export type BillingEventUncheckedUpdateWithoutSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type BillingEventUncheckedUpdateManyWithoutSubscriptionInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    eventType?: StringFieldUpdateOperationsInput | string;
+    stripeEventId?: StringFieldUpdateOperationsInput | string;
+    metadata?: JsonNullValueInput | InputJsonValue;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
   export type EndpointCreateManyConnectionInput = {

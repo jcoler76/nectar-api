@@ -26,7 +26,6 @@ import WorkflowList from './features/workflows/WorkflowList';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 import MarketingRoutes from './marketing/MarketingRoutes';
 import './utils/cssOptimizer';
-import './utils/performanceValidator';
 import './utils/bundleSplitValidation';
 
 // Lazier routes to reduce initial bundle size
@@ -124,6 +123,7 @@ function App() {
               />
 
               <Route path="/setup-account" element={<SetupAccount />} />
+              <Route path="/verify-email" element={<SetupAccount />} />
               <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
               <Route

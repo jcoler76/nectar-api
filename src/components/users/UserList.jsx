@@ -1,31 +1,15 @@
-import { Tooltip } from '@mui/material';
-import {
-  AlertCircle,
-  CheckCircle,
-  Download,
-  Edit,
-  HelpCircle,
-  Info,
-  Plus,
-  Shield,
-  Trash2,
-  UserCheck,
-  UserX,
-} from 'lucide-react';
+import Tooltip from '@mui/material/Tooltip';
+import { Edit, HelpCircle, Info, Shield, Trash2, UserCheck, UserX } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
-import { useCsvExport } from '../../hooks/useCsvExport';
 import { useFormDialog } from '../../hooks/useFormDialog';
 import { useUsers } from '../../hooks/useUsers';
 import { formatTimestampEST } from '../../utils/dateUtils';
+import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
-import LoadingSpinner from '../common/LoadingSpinner';
+import FormDialog from '../common/FormDialog';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import { DataTable } from '../ui/data-table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
 import UserForm from './UserForm';
@@ -46,7 +30,6 @@ const UserList = () => {
 
   const { confirmState, openConfirm, closeConfirm, handleConfirm } = useConfirmDialog();
 
-  const { exportToCsv } = useCsvExport();
   const success = ''; // Keep for UI compatibility
 
   useEffect(() => {
@@ -249,98 +232,53 @@ const UserList = () => {
     [handleToggleActive, handleEdit, openConfirm, operationInProgress]
   );
 
-  if (loading) return <LoadingSpinner />;
-
   return (
-    <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Error and Success Messages */}
-      {error && (
-        <Card className="border-destructive/50 bg-destructive/10">
-          <CardContent className="flex items-center gap-2 p-4">
-            <AlertCircle className="h-4 w-4 text-destructive" />
-            <span className="text-destructive font-medium">{error}</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {success && (
-        <Card className="border-green-500/50 bg-green-50">
-          <CardContent className="flex items-center gap-2 p-4">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <span className="text-green-700 font-medium">{success}</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Header - Responsive */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="text-center sm:text-left">
-          <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">Users</h1>
-            <Tooltip title="User management allows you to create, edit, and manage user accounts across your system. Control user access, assign administrator privileges, and monitor user activity. Active users can log in and access features based on their assigned roles and permissions.">
-              <Info className="h-5 w-5 text-ocean-600 cursor-help" />
-            </Tooltip>
-          </div>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Manage user accounts and permissions
-          </p>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
-          <Tooltip title="Export all user accounts to CSV format for backup, reporting, or external analysis of user data and access patterns">
-            <Button
-              variant="ocean"
-              size="sm"
-              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              onClick={() => exportToCsv(prepareExportData(), 'users-list.csv')}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-          </Tooltip>
-          <Tooltip title="Create a new user account with custom permissions and access levels. New users will receive an invitation email to set up their password and access the system.">
-            <Button
-              size="sm"
-              className="flex-1 sm:flex-none bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-              onClick={() => handleAdd()}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="sm:hidden">Add</span>
-              <span className="hidden sm:inline">Add User</span>
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-
-      {/* Modern Data Table */}
-      <DataTable
+    <>
+      <BaseListView
+        title="Users"
+        description="Manage user accounts and permissions"
         data={users}
         columns={columns}
+        loading={loading}
+        error={error}
+        success={success}
+        onAdd={() => handleAdd()}
+        prepareExportData={prepareExportData}
+        exportFilename="users-list.csv"
         searchable={true}
         filterable={true}
-        exportable={false} // We handle export in header
-        loading={loading}
-      />
+        customActions={[
+          {
+            label: 'System Info',
+            icon: Info,
+            variant: 'ghost',
+            onClick: () => {},
+            tooltip:
+              'User management allows you to create, edit, and manage user accounts across your system. Control user access, assign administrator privileges, and monitor user activity.',
+            mobileHidden: true,
+          },
+        ]}
+      ></BaseListView>
 
-      <Dialog open={openForm} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editUser ? 'Edit User' : 'Add User'}</DialogTitle>
-            <DialogDescription>
-              {editUser
-                ? 'Edit user information and permissions'
-                : 'Create a new user account and send an invitation'}
-            </DialogDescription>
-          </DialogHeader>
-          <UserForm
-            user={editUser}
-            hideHeader={true}
-            onUserSubmitted={() => {
-              handleClose();
-              fetchUsers();
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={openForm}
+        onClose={handleClose}
+        title={editUser ? 'Edit User' : 'Add User'}
+        description={
+          editUser
+            ? 'Edit user information and permissions'
+            : 'Create a new user account and send an invitation'
+        }
+      >
+        <UserForm
+          user={editUser}
+          hideHeader={true}
+          onUserSubmitted={() => {
+            handleClose();
+            fetchUsers();
+          }}
+        />
+      </FormDialog>
 
       <ConfirmDialog
         open={confirmState.open}
@@ -349,7 +287,7 @@ const UserList = () => {
         onConfirm={() => handleConfirm(handleDelete)}
         onCancel={closeConfirm}
       />
-    </div>
+    </>
   );
 };
 

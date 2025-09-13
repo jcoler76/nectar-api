@@ -39,6 +39,7 @@ model Organization {
   workflows               Workflow[]
   rateLimitConfigs        RateLimitConfig[]
   rateLimitUsage          RateLimitUsage[]
+  billingEvents           BillingEvent[]
 
   @@index([slug])
   @@index([createdAt])
@@ -115,6 +116,34 @@ model Invitation {
   @@index([organizationId])
 }
 
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model BillingEvent {
+  id               String        @id @default(uuid())
+  eventType        String        // e.g., 'checkout.session.completed'
+  stripeEventId    String        @unique
+  metadata         Json          // Full Stripe event data
+  createdAt        DateTime      @default(now())
+  organizationId   String?
+  subscriptionId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription     Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([stripeEventId])
+  @@index([eventType])
+  @@index([organizationId])
+}
+
 model Subscription {
   id                     String             @id @default(uuid())
   plan                   SubscriptionPlan   @default(FREE)
@@ -134,6 +163,7 @@ model Subscription {
   maxWorkflows           Int                @default(5)
   organizationId         String             @unique
   invoices               Invoice[]
+  billingEvents          BillingEvent[]
   organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([status])

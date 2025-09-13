@@ -2,9 +2,11 @@ const Application = require('../models/Application');
 const Service = require('../models/Service');
 const Role = require('../models/Role');
 
+const { getConfiguredApiKey } = require('../utils/headerUtils');
+
 const apiKeyAuth = async (req, res, next) => {
   try {
-    const apiKey = req.headers['x-nectarstudio-api-key'];
+    const { apiKey } = getConfiguredApiKey(req);
 
     if (!apiKey) {
       return res.status(401).json({ message: 'API key required' });

@@ -7,13 +7,12 @@
 const { PrismaClient } = require('../../prisma/generated/client');
 const prisma = new PrismaClient();
 
+const { getConfiguredApiKey } = require('../../utils/headerUtils');
+
 const getApiKeyUser = async req => {
   try {
-    // Check for API key in headers (support legacy and current headers)
-    const apiKey =
-      req.headers['x-nectarstudio-api-key'] ||
-      req.headers['x-nectarstudio-string-api-key'] ||
-      req.headers['x-api-key'];
+    // Check for API key using configured headers
+    const { apiKey } = getConfiguredApiKey(req);
 
     if (!apiKey) return null;
 

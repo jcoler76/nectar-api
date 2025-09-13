@@ -169,6 +169,24 @@ exports.Prisma.InvitationScalarFieldEnum = {
   invitedById: 'invitedById',
 };
 
+exports.Prisma.EmailVerificationTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  email: 'email',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+};
+
+exports.Prisma.BillingEventScalarFieldEnum = {
+  id: 'id',
+  eventType: 'eventType',
+  stripeEventId: 'stripeEventId',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  organizationId: 'organizationId',
+  subscriptionId: 'subscriptionId',
+};
+
 exports.Prisma.SubscriptionScalarFieldEnum = {
   id: 'id',
   plan: 'plan',
@@ -525,12 +543,12 @@ exports.Prisma.SortOrder = {
   desc: 'desc',
 };
 
-exports.Prisma.NullableJsonNullValueInput = {
-  DbNull: Prisma.DbNull,
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull,
 };
 
-exports.Prisma.JsonNullValueInput = {
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
 };
 
@@ -654,6 +672,8 @@ exports.Prisma.ModelName = {
   User: 'User',
   Membership: 'Membership',
   Invitation: 'Invitation',
+  EmailVerificationToken: 'EmailVerificationToken',
+  BillingEvent: 'BillingEvent',
   Subscription: 'Subscription',
   Invoice: 'Invoice',
   DatabaseConnection: 'DatabaseConnection',

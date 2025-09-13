@@ -171,6 +171,39 @@ export const setupAccount = async (token, password) => {
   }
 };
 
+export const setPassword = async (token, password) => {
+  try {
+    const response = await api.post('/api/auth/set-password', { token, password });
+
+    // If successful, store the returned auth data
+    if (response.data && response.data.token) {
+      const userData = {
+        token: response.data.token,
+        ...response.data.user,
+        organizationId: response.data.organization?.id,
+        organizationSlug: response.data.organization?.slug,
+        role: response.data.membership?.role,
+        isAdmin: response.data.membership?.role === 'OWNER',
+      };
+
+      secureStorage.setItem(userData);
+    }
+
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+export const verifyEmailToken = async token => {
+  try {
+    const response = await api.get(`/api/auth/verify-email/${token}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
 export const verify2FA = async (email, token, trustDevice = false) => {
   try {
     const response = await api.post('/api/auth/2fa/verify', {
@@ -266,6 +299,8 @@ const authService = {
   verify2FASetup,
   requestOtp,
   setupAccount,
+  setPassword,
+  verifyEmailToken,
   isTokenExpired,
 };
 

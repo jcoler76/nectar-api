@@ -8,6 +8,7 @@ import {
   Search,
   Settings,
   Shield,
+  Key as KeyIcon,
   Users,
   X
 } from 'lucide-react'
@@ -86,7 +87,9 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
       children: [
         { title: 'Configuration', icon: Settings, url: '/system/config' },
         { title: 'Audit Logs', icon: Database, url: '/system/audit' },
-        { title: 'Announcements', icon: Database, url: '/system/announcements' }
+        { title: 'Announcements', icon: Database, url: '/system/announcements' },
+        { title: 'Security Settings', icon: Shield, url: '/system/security' },
+        { title: 'Application Keys', icon: KeyIcon, url: '/system/app-keys' }
       ]
     }
   ]), [currentPage])

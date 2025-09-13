@@ -1,4 +1,4 @@
-import get from 'lodash.get';
+import { get } from '../../../utils/objectUtils.js';
 import set from 'lodash/set.js';
 import { logger } from '../../../utils/logger.js';
 

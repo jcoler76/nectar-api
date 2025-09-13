@@ -1,7 +1,7 @@
 /**
- * Mirabel Connect API Authentication Proxy
+ * Nectar Studio API Authentication Proxy
  *
- * This script provides a simple proxy to authenticate with the Mirabel Connect API.
+ * This script provides a simple proxy to authenticate with the Nectar Studio API.
  * It can be called directly from other Node.js code.
  */
 
@@ -10,7 +10,7 @@ const https = require('https');
 require('dotenv').config();
 
 /**
- * Authenticate a user against the Mirabel Connect API
+ * Authenticate a user against the Nectar Studio API
  *
  * @param {string} username - The username to authenticate
  * @param {string} password - The password to authenticate

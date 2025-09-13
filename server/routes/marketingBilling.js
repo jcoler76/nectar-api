@@ -1,9 +1,197 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
+const crypto = require('crypto');
 
 // In-memory processed event cache (best-effort idempotency)
 const processedEvents = new Set();
+
+// Helper function to create user account from payment
+async function createUserAccountFromPayment({
+  email,
+  stripeCustomerId,
+  stripeSubscriptionId,
+  stripePriceId,
+  subscription,
+  statusEnum,
+  prisma,
+}) {
+  // Check if user already exists
+  let user = await prisma.user.findUnique({ where: { email } });
+
+  if (user) {
+    console.log(`User already exists for email: ${email}`);
+    return user;
+  }
+
+  // Extract name from email (fallback)
+  const emailParts = email.split('@')[0];
+  const firstName = emailParts.charAt(0).toUpperCase() + emailParts.slice(1);
+  const lastName = 'User';
+
+  // Create organization name from email domain
+  const domain = email.split('@')[1];
+  const orgName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const orgSlug = `${orgName.toLowerCase()}-${Date.now()}`;
+
+  try {
+    // Create user, organization, and subscription in a transaction
+    const result = await prisma.$transaction(async tx => {
+      // Create user (unverified initially)
+      const newUser = await tx.user.create({
+        data: {
+          email,
+          firstName,
+          lastName,
+          emailVerified: false, // Will be verified via email
+          passwordHash: null, // Will be set when user verifies email
+        },
+      });
+
+      // Create organization
+      const organization = await tx.organization.create({
+        data: {
+          name: orgName,
+          slug: orgSlug,
+        },
+      });
+
+      // Create membership (owner role)
+      await tx.membership.create({
+        data: {
+          userId: newUser.id,
+          organizationId: organization.id,
+          role: 'OWNER',
+        },
+      });
+
+      // Create subscription
+      const subscriptionData = {
+        organizationId: organization.id,
+        stripeCustomerId,
+        stripeSubscriptionId,
+        stripePriceId,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: !!subscription.cancel_at_period_end,
+        trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+      };
+
+      if (statusEnum) {
+        subscriptionData.status = statusEnum;
+      }
+
+      await tx.subscription.create({
+        data: subscriptionData,
+      });
+
+      // Create email verification token
+      const token = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await tx.emailVerificationToken.create({
+        data: {
+          token,
+          email,
+          expiresAt,
+        },
+      });
+
+      // Send welcome email with verification (we'll implement this next)
+      try {
+        await sendWelcomeEmail(email, token, firstName);
+      } catch (emailErr) {
+        console.error('Failed to send welcome email:', emailErr);
+        // Don't fail the transaction if email fails
+      }
+
+      return { user: newUser, organization };
+    });
+
+    console.log(`Created account for ${email} with organization ${orgName}`);
+    return result.user;
+  } catch (error) {
+    console.error('Account creation failed:', error);
+    throw error;
+  }
+}
+
+// Send welcome email with verification token using existing mailer
+async function sendWelcomeEmail(email, token, firstName) {
+  try {
+    const { sendEmail } = require('../utils/mailer');
+
+    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
+
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center; }
+          .content { background: white; padding: 30px; border: 1px solid #e1e1e1; border-radius: 0 0 8px 8px; }
+          .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; font-size: 14px; color: #666; }
+          .success-badge { display: inline-block; padding: 4px 12px; background: #10b981; color: white; border-radius: 12px; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Welcome to NectarStudio.ai!</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${firstName},</p>
+            <p>Thank you for subscribing to NectarStudio.ai! Your payment has been processed successfully.</p>
+
+            <div style="margin: 20px 0; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
+              <p style="margin: 0;"><strong>✅ Subscription Active</strong><br>
+              <span class="success-badge">Your account is ready to use!</span></p>
+            </div>
+
+            <p>To complete your account setup and start using your new features, please verify your email address:</p>
+
+            <div style="text-align: center;">
+              <a href="${verificationUrl}" class="button">Verify Email & Set Password</a>
+            </div>
+
+            <p><strong>What happens next?</strong></p>
+            <ol>
+              <li>Click the verification button above</li>
+              <li>Set your secure password</li>
+              <li>Start building amazing workflows and integrations!</li>
+            </ol>
+
+            <p style="color: #666; font-size: 14px;">This verification link will expire in 24 hours for security.</p>
+
+            <div class="footer">
+              <p><strong>Need help?</strong><br>
+              Our team is here to help you get started. Reply to this email or contact us at <a href="mailto:support@nectar.com">support@nectar.com</a>.</p>
+
+              <p style="color: #999; font-size: 12px;">
+                If you didn't create this account, please ignore this email or contact support.
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await sendEmail({
+      to: email,
+      subject: '🎉 Welcome to NectarStudio.ai - Verify your email to get started!',
+      html: emailHtml,
+    });
+
+    console.log(`Welcome email sent successfully to ${email}`);
+  } catch (error) {
+    console.error('Failed to send welcome email:', error);
+    throw error;
+  }
+}
 
 // Optionally verify CAPTCHA token (reCAPTCHA or hCaptcha)
 async function verifyCaptcha(token) {
@@ -179,11 +367,29 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         const session = event.data.object;
         const subId = session.subscription ? String(session.subscription) : null;
         const customerId = session.customer ? String(session.customer) : null;
-        if (subId) {
+        const customerEmail = session.customer_details?.email || session.customer_email;
+
+        if (subId && customerEmail) {
           // Fetch live subscription details from Stripe for accurate periods/status
           const stripeSub = await stripe.subscriptions.retrieve(subId);
           const priceId = stripeSub.items?.data?.[0]?.price?.id || null;
           const statusEnum = mapSubStatus(stripeSub.status);
+
+          // CREATE USER ACCOUNT AND ORGANIZATION
+          try {
+            await createUserAccountFromPayment({
+              email: customerEmail,
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subId,
+              stripePriceId: priceId,
+              subscription: stripeSub,
+              statusEnum,
+              prisma,
+            });
+          } catch (accountErr) {
+            console.error('Account creation error:', accountErr);
+            // Continue with subscription update even if account creation fails
+          }
 
           // Try to find Subscription by stripeSubscriptionId or stripeCustomerId
           let sub = await prisma.subscription.findFirst({ where: { stripeSubscriptionId: subId } });
