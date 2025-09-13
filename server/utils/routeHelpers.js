@@ -11,10 +11,10 @@ const { logger } = require('./logger');
  * @param {Object} req - Express request object
  * @returns {Object} - GraphQL context
  */
-const createGraphQLContext = (req) => {
+const createGraphQLContext = req => {
   // Create minimal dataloaders for compatibility
   const createDataLoaders = require('../graphql/dataloaders');
-  
+
   return {
     user: req.user,
     jwtUser: req.user,
@@ -34,49 +34,57 @@ const createGraphQLContext = (req) => {
 const handleGraphQLError = (res, error, operation = 'GraphQL operation') => {
   logger.error(`Route ${operation} error`, {
     error: error.message,
-    stack: error.stack
+    stack: error.stack,
   });
 
   // Check for specific GraphQL error types
   if (error.message.includes('Authentication required')) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required'
+      message: 'Authentication required',
     });
   }
 
   if (error.message.includes('Access denied') || error.message.includes('Forbidden')) {
     return res.status(403).json({
       success: false,
-      message: 'Access denied'
+      message: 'Access denied',
     });
   }
 
   if (error.message.includes('not found') || error.message.includes('Not found')) {
     return res.status(404).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 
   if (error.message.includes('already exists') || error.message.includes('unique')) {
     return res.status(409).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 
   if (error.message.includes('validation') || error.message.includes('Invalid')) {
     return res.status(400).json({
       success: false,
-      message: error.message
+      message: error.message,
+    });
+  }
+
+  // Handle dependency errors for cascade deletion
+  if (error.message.includes('dependent records') || error.message.includes('Cannot delete')) {
+    return res.status(409).json({
+      success: false,
+      message: error.message,
     });
   }
 
   // Default server error
   return res.status(500).json({
     success: false,
-    message: 'Internal server error'
+    message: 'Internal server error',
   });
 };
 
@@ -123,7 +131,7 @@ const executeGraphQLMutation = async (res, mutation, variables, context, operati
  * @param {Object} query - Express req.query object
  * @returns {Object} - { filters, pagination }
  */
-const parseQueryParams = (query) => {
+const parseQueryParams = query => {
   const {
     page = 1,
     limit = 20,
@@ -143,12 +151,12 @@ const parseQueryParams = (query) => {
     limit: limitNum,
     offset,
     sortBy,
-    sortOrder: sortOrder.toUpperCase() // Convert to uppercase for GraphQL enum
+    sortOrder: sortOrder.toUpperCase(), // Convert to uppercase for GraphQL enum
   };
 
   // Build filters
   const filters = {};
-  
+
   if (search) filters.search = search;
   if (isActive !== undefined) {
     filters.isActive = isActive === 'true' || isActive === true;
@@ -179,8 +187,8 @@ const transformPaginatedResponse = (graphqlResponse, pagination) => {
         limit: pagination.limit,
         total: 0,
         pages: 0,
-        hasMore: false
-      }
+        hasMore: false,
+      },
     };
   }
 
@@ -196,8 +204,8 @@ const transformPaginatedResponse = (graphqlResponse, pagination) => {
       limit: pagination.limit,
       total: pageInfo.totalCount,
       pages: totalPages,
-      hasMore: pageInfo.hasNextPage
-    }
+      hasMore: pageInfo.hasNextPage,
+    },
   };
 };
 
@@ -219,17 +227,17 @@ const createListHandler = (query, responseKey) => {
   return async (req, res) => {
     const { filters, pagination } = parseQueryParams(req.query);
     const context = createGraphQLContext(req);
-    
+
     const result = await executeGraphQLQuery(
-      res, 
-      query, 
-      { filters, pagination }, 
-      context, 
+      res,
+      query,
+      { filters, pagination },
+      context,
       `list ${responseKey}`
     );
-    
+
     if (!result) return; // Error already handled
-    
+
     const transformedResponse = transformPaginatedResponse(result[responseKey], pagination);
     // For backwards compatibility, some routes expect just the data array
     res.json(transformedResponse.data);
@@ -246,17 +254,11 @@ const createGetHandler = (query, responseKey) => {
   return async (req, res) => {
     const { id } = req.params;
     const context = createGraphQLContext(req);
-    
-    const result = await executeGraphQLQuery(
-      res, 
-      query, 
-      { id }, 
-      context, 
-      `get ${responseKey}`
-    );
-    
+
+    const result = await executeGraphQLQuery(res, query, { id }, context, `get ${responseKey}`);
+
     if (!result) return; // Error already handled
-    
+
     res.json(result[responseKey]);
   };
 };
@@ -271,17 +273,17 @@ const createCreateHandler = (mutation, responseKey) => {
   return async (req, res) => {
     const input = req.body;
     const context = createGraphQLContext(req);
-    
+
     const result = await executeGraphQLMutation(
-      res, 
-      mutation, 
-      { input }, 
-      context, 
+      res,
+      mutation,
+      { input },
+      context,
       `create ${responseKey}`
     );
-    
+
     if (!result) return; // Error already handled
-    
+
     res.status(201).json(result[responseKey]);
   };
 };
@@ -297,17 +299,17 @@ const createUpdateHandler = (mutation, responseKey) => {
     const { id } = req.params;
     const input = req.body;
     const context = createGraphQLContext(req);
-    
+
     const result = await executeGraphQLMutation(
-      res, 
-      mutation, 
-      { id, input }, 
-      context, 
+      res,
+      mutation,
+      { id, input },
+      context,
       `update ${responseKey}`
     );
-    
+
     if (!result) return; // Error already handled
-    
+
     res.json(result[responseKey]);
   };
 };
@@ -321,21 +323,28 @@ const createUpdateHandler = (mutation, responseKey) => {
 const createDeleteHandler = (mutation, responseKey) => {
   return async (req, res) => {
     const { id } = req.params;
+    const { force } = req.query; // Get force parameter from query string
     const context = createGraphQLContext(req);
-    
+
+    // Build variables object with optional force parameter
+    const variables = { id };
+    if (force !== undefined) {
+      variables.force = force === 'true'; // Convert string to boolean
+    }
+
     const result = await executeGraphQLMutation(
-      res, 
-      mutation, 
-      { id }, 
-      context, 
+      res,
+      mutation,
+      variables,
+      context,
       `delete ${responseKey}`
     );
-    
+
     if (!result) return; // Error already handled
-    
-    res.json({ 
+
+    res.json({
       success: result[responseKey],
-      message: result[responseKey] ? 'Resource deleted successfully' : 'Failed to delete resource'
+      message: result[responseKey] ? 'Resource deleted successfully' : 'Failed to delete resource',
     });
   };
 };
@@ -352,5 +361,5 @@ module.exports = {
   createGetHandler,
   createCreateHandler,
   createUpdateHandler,
-  createDeleteHandler
+  createDeleteHandler,
 };

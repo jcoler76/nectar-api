@@ -12,7 +12,7 @@ async function createAdminUser() {
     const firstName = 'Jestin';
     const lastName = 'Coler';
     const organizationName = 'Jestin Admin Organization';
-    
+
     console.log('🔧 Creating standard admin user...');
     console.log(`📧 Email: ${email}`);
     console.log(`👤 Name: ${firstName} ${lastName}`);
@@ -23,21 +23,23 @@ async function createAdminUser() {
     console.log('✅ Connected to PostgreSQL with Prisma');
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({ 
+    const existingUser = await prisma.user.findUnique({
       where: { email },
       include: {
         memberships: {
           include: {
-            organization: true
-          }
-        }
-      }
+            organization: true,
+          },
+        },
+      },
     });
 
     if (existingUser) {
       console.log(`⚠️  User with email ${email} already exists`);
       console.log(`   User ID: ${existingUser.id}`);
-      console.log(`   Organization: ${existingUser.memberships[0]?.organization?.name || 'No organization'}`);
+      console.log(
+        `   Organization: ${existingUser.memberships[0]?.organization?.name || 'No organization'}`
+      );
       console.log(`   Role: ${existingUser.memberships[0]?.role || 'No role'}`);
       process.exit(0);
     }
@@ -55,7 +57,7 @@ async function createAdminUser() {
       .replace(/^-+|-+$/g, '');
 
     // Create user, organization, subscription, and membership in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       console.log('🔄 Starting database transaction...');
 
       // Create organization first
@@ -124,30 +126,31 @@ async function createAdminUser() {
     console.log(`   Name: ${result.user.firstName} ${result.user.lastName}`);
     console.log(`   Active: ${result.user.isActive}`);
     console.log(`   Email Verified: ${result.user.emailVerified}`);
-    
+
     console.log('\n🏢 Organization Details:');
     console.log(`   Organization ID: ${result.organization.id}`);
     console.log(`   Name: ${result.organization.name}`);
     console.log(`   Slug: ${result.organization.slug}`);
-    
+
     console.log('\n💳 Subscription Details:');
     console.log(`   Plan: ${result.subscription.plan}`);
     console.log(`   Status: ${result.subscription.status}`);
     console.log(`   Max Connections: ${result.subscription.maxDatabaseConnections}`);
     console.log(`   Max API Calls/Month: ${result.subscription.maxApiCallsPerMonth}`);
-    
+
     console.log('\n👑 Access Details:');
     console.log(`   Role: ${result.membership.role}`);
-    console.log('   NavBar Access: Full Admin (All features including Rate Limits, Developer Endpoints)');
+    console.log(
+      '   NavBar Access: Full Admin (All features including Rate Limits, Developer Endpoints)'
+    );
     console.log('   Settings Access: Admin Settings (not User Settings)');
-    
+
     console.log('\n🔐 Login Credentials:');
     console.log(`   Email: ${email}`);
     console.log('   Password: [PROTECTED - Use the password you provided]');
 
     console.log('\n✅ You can now log in with full admin privileges!');
     process.exit(0);
-
   } catch (error) {
     console.error('❌ Error creating admin user:', error.message);
     if (error.code) {

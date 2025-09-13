@@ -136,7 +136,7 @@ class RealAuthTestHelper {
     const prisma = await prismaService.getClient();
 
     // Create user with organization in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       // Create organization first
       const organization = await tx.organization.create({
         data: {
@@ -258,7 +258,7 @@ class RealAuthTestHelper {
   async attemptLogin(email, password) {
     try {
       const prisma = await prismaService.getClient();
-      
+
       const user = await prisma.user.findUnique({
         where: { email },
         include: {
@@ -328,7 +328,7 @@ class RealAuthTestHelper {
     try {
       const decoded = this.jwt.verifyRefreshToken(refreshToken);
       const prisma = await prismaService.getClient();
-      
+
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
         include: {
@@ -384,7 +384,7 @@ class RealAuthTestHelper {
   async initiatePasswordReset(email) {
     try {
       const prisma = await prismaService.getClient();
-      
+
       const user = await prisma.user.findUnique({
         where: { email, isActive: true },
       });
@@ -423,7 +423,7 @@ class RealAuthTestHelper {
       }
 
       const prisma = await prismaService.getClient();
-      
+
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId, isActive: true },
       });
@@ -438,7 +438,7 @@ class RealAuthTestHelper {
       // Update user password
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
-        data: { 
+        data: {
           passwordHash: hashedPassword,
           updatedAt: new Date(),
         },

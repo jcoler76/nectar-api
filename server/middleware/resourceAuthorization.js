@@ -35,7 +35,7 @@ const verifyResourceOwnership = (modelName, ownerField = 'createdBy') => {
       // Get Prisma client and find the resource
       const prisma = await prismaService.getClient();
       const resource = await prisma[modelName].findUnique({
-        where: { id: resourceId }
+        where: { id: resourceId },
       });
 
       if (!resource) {
@@ -234,7 +234,7 @@ const verifyWorkflowAccess = () => {
 
       const workflow = await prisma.workflow.findUnique({
         where: { id: workflowId },
-        include: { organization: true }
+        include: { organization: true },
       });
 
       if (!workflow) {
@@ -504,7 +504,7 @@ const authorizeResource = (options = {}) => {
 // Organization-based authorization for multi-tenant resources
 const verifyOrganizationAccess = (modelName, options = {}) => {
   const { ownerField = 'createdBy', requireOwnership = false } = options;
-  
+
   return async (req, res, next) => {
     try {
       const resourceId = req.params.id || req.params.resourceId;
@@ -531,7 +531,7 @@ const verifyOrganizationAccess = (modelName, options = {}) => {
 
       const prisma = await prismaService.getClient();
       const resource = await prisma[modelName].findUnique({
-        where: { id: resourceId }
+        where: { id: resourceId },
       });
 
       if (!resource) {
@@ -545,7 +545,7 @@ const verifyOrganizationAccess = (modelName, options = {}) => {
 
       // Check organization membership first
       const hasOrganizationAccess = resource.organizationId === userOrganizationId;
-      
+
       if (!hasOrganizationAccess) {
         logger.warn('Cross-organization access attempt', {
           resourceId,

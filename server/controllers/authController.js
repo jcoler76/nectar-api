@@ -101,7 +101,7 @@ exports.setupAccount = async (req, res) => {
     //   accountSetupToken: tokenHash,
     //   accountSetupTokenExpires: { $gt: Date.now() },
     // });
-    // For now, skip user query to allow server startup  
+    // For now, skip user query to allow server startup
     const user = null;
 
     if (!user) {

@@ -124,13 +124,44 @@ const mountRoutes = app => {
   // Reports route - Updated for Prisma
   app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
   app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
-  // Temporarily disabled during MongoDB to Prisma migration - documentation route
-  // app.use(
-  //   '/api/documentation',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./documentation')
-  // );
+  // Blueprint auto-CRUD (read/list) with policy group and CSRF
+  const { applyPolicyGroup } = require('../middleware/policies');
+  app.use(
+    '/api/blueprints',
+    applyPolicyGroup('blueprints'),
+    csrfProtection(csrfOptions),
+    require('./blueprints')
+  );
+  // SDK generation endpoints (auth required); build SDKs from OpenAPI
+  app.use('/api/documentation/sdk', authMiddleware, csrfProtection(csrfOptions), require('./sdk'));
+  // API documentation & OpenAPI routes (enabled)
+  app.use(
+    '/api/documentation',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./documentation')
+  );
+  // Auto-REST OpenAPI (service-scoped)
+  app.use(
+    '/api/documentation/auto-rest',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./documentationAutoRest')
+  );
+  // Blueprints OpenAPI
+  app.use(
+    '/api/documentation/blueprints',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./documentationBlueprints')
+  );
+  // Swagger UI pages (Blueprints and role-based)
+  app.use(
+    '/api/documentation',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./swaggerUi')
+  );
   // Temporarily disabled during MongoDB to Prisma migration - imports/ai routes
   // app.use('/api/imports', authMiddleware, csrfProtection(csrfOptions), require('./imports'));
   // app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./ai'));
@@ -163,22 +194,13 @@ const mountRoutes = app => {
   //   csrfProtection(csrfOptions),
   //   require('./schemaSelection')
   // );
-  // Temporarily disabled during MongoDB to Prisma migration - admin routes
-  // app.use('/api/queue', authMiddleware, csrfProtection(csrfOptions), require('./queue'));
-  // app.use(
-  //   '/api/rate-limits',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./rateLimitManagement')
-  // );
-  //
-  // // Admin rate limit management routes
-  // app.use(
-  //   '/api/admin/rate-limits',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./rateLimitAdmin')
-  // );
+  // Admin rate limit management routes
+  app.use(
+    '/api/admin/rate-limits',
+    authMiddleware,
+    csrfProtection(csrfOptions),
+    require('./rateLimitAdmin')
+  );
   app.use(
     '/api/notifications',
     authMiddleware,
@@ -239,6 +261,8 @@ const mountRoutes = app => {
   // API key protected routes (no CSRF needed - uses API key auth)
   app.use('/api/v1', require('./api'));
   app.use('/api/v2', require('./publicApi'));
+  // Auto-generated REST for external databases (API-key auth)
+  app.use('/api/v2', require('./autoRest'));
 
   // Re-enabled for SILO C - webhooks route (MongoDB dependencies fixed)
   app.use(

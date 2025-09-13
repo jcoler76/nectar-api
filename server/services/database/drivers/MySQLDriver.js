@@ -37,7 +37,7 @@ class MySQLDriver extends IDatabaseDriver {
       database: database || this.connectionConfig.database,
       ssl: this.connectionConfig.sslEnabled ? { rejectUnauthorized: false } : false,
       connectTimeout: 30000,
-      charset: 'utf8mb4'
+      charset: 'utf8mb4',
     };
 
     return config;
@@ -49,10 +49,10 @@ class MySQLDriver extends IDatabaseDriver {
   async testConnection() {
     let connection;
     try {
-      logger.debug('Testing MySQL connection', { 
-        host: this.connectionConfig.host, 
+      logger.debug('Testing MySQL connection', {
+        host: this.connectionConfig.host,
         port: this.connectionConfig.port,
-        database: this.connectionConfig.database 
+        database: this.connectionConfig.database,
       });
 
       const config = this._createConfig();
@@ -105,7 +105,7 @@ class MySQLDriver extends IDatabaseDriver {
       paramArray = [];
       let processedQuery = query;
       let paramIndex = 0;
-      
+
       // Replace named parameters with ? placeholders
       for (const [key, value] of Object.entries(parameters)) {
         const placeholder = `:${key}`;
@@ -113,7 +113,7 @@ class MySQLDriver extends IDatabaseDriver {
         paramArray.push(value);
         paramIndex++;
       }
-      
+
       query = processedQuery;
     }
 
@@ -148,7 +148,7 @@ class MySQLDriver extends IDatabaseDriver {
     const query = `CALL ${procedureName}(${placeholders})`;
 
     const [rows] = await connection.execute(query, paramValues);
-    
+
     // MySQL stored procedures can return multiple result sets
     // Return the first result set (most common case)
     return Array.isArray(rows) && rows.length > 0 ? rows[0] : rows;
@@ -161,7 +161,9 @@ class MySQLDriver extends IDatabaseDriver {
     const [rows] = await connection.execute('SHOW DATABASES');
     return rows
       .map(row => row.Database)
-      .filter(dbName => !['information_schema', 'performance_schema', 'mysql', 'sys'].includes(dbName));
+      .filter(
+        dbName => !['information_schema', 'performance_schema', 'mysql', 'sys'].includes(dbName)
+      );
   }
 
   /**
@@ -177,8 +179,11 @@ class MySQLDriver extends IDatabaseDriver {
         await newConnection.end();
       }
     }
-    
-    return await this._getDatabaseObjectsFromConnection(connection, databaseName || connection.config.database);
+
+    return await this._getDatabaseObjectsFromConnection(
+      connection,
+      databaseName || connection.config.database
+    );
   }
 
   /**
@@ -190,7 +195,8 @@ class MySQLDriver extends IDatabaseDriver {
 
     try {
       // Get tables
-      const [tables] = await connection.execute(`
+      const [tables] = await connection.execute(
+        `
         SELECT 
           table_name as name,
           'BASE TABLE' as type_desc,
@@ -200,11 +206,14 @@ class MySQLDriver extends IDatabaseDriver {
         FROM information_schema.tables
         WHERE table_schema = ? AND table_type = 'BASE TABLE'
         ORDER BY table_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       results.push(...tables);
 
       // Get views
-      const [views] = await connection.execute(`
+      const [views] = await connection.execute(
+        `
         SELECT 
           table_name as name,
           'VIEW' as type_desc,
@@ -214,11 +223,14 @@ class MySQLDriver extends IDatabaseDriver {
         FROM information_schema.views
         WHERE table_schema = ?
         ORDER BY table_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       results.push(...views);
 
       // Get stored procedures
-      const [procedures] = await connection.execute(`
+      const [procedures] = await connection.execute(
+        `
         SELECT 
           routine_name as name,
           'PROCEDURE' as type_desc,
@@ -228,11 +240,14 @@ class MySQLDriver extends IDatabaseDriver {
         FROM information_schema.routines
         WHERE routine_schema = ? AND routine_type = 'PROCEDURE'
         ORDER BY routine_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       results.push(...procedures);
 
       // Get functions
-      const [functions] = await connection.execute(`
+      const [functions] = await connection.execute(
+        `
         SELECT 
           routine_name as name,
           'FUNCTION' as type_desc,
@@ -242,9 +257,10 @@ class MySQLDriver extends IDatabaseDriver {
         FROM information_schema.routines
         WHERE routine_schema = ? AND routine_type = 'FUNCTION'
         ORDER BY routine_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       results.push(...functions);
-
     } catch (error) {
       logger.error('Error fetching MySQL database objects:', error);
       throw error;
@@ -267,7 +283,8 @@ class MySQLDriver extends IDatabaseDriver {
     }
 
     try {
-      const [rows] = await workingConnection.execute(`
+      const [rows] = await workingConnection.execute(
+        `
         SELECT 
           column_name as name,
           data_type as dataType,
@@ -281,7 +298,9 @@ class MySQLDriver extends IDatabaseDriver {
         FROM information_schema.columns
         WHERE table_schema = ? AND table_name = ?
         ORDER BY ordinal_position
-      `, [databaseName, tableName]);
+      `,
+        [databaseName, tableName]
+      );
 
       return rows;
     } finally {
@@ -304,12 +323,15 @@ class MySQLDriver extends IDatabaseDriver {
     }
 
     try {
-      const [rows] = await workingConnection.execute(`
+      const [rows] = await workingConnection.execute(
+        `
         SELECT table_name as name
         FROM information_schema.views
         WHERE table_schema = ?
         ORDER BY table_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       return rows.map(row => row.name);
     } finally {
       if (shouldCloseConnection && workingConnection) {
@@ -331,12 +353,15 @@ class MySQLDriver extends IDatabaseDriver {
     }
 
     try {
-      const [rows] = await workingConnection.execute(`
+      const [rows] = await workingConnection.execute(
+        `
         SELECT routine_name as name
         FROM information_schema.routines
         WHERE routine_schema = ? AND routine_type IN ('PROCEDURE', 'FUNCTION')
         ORDER BY routine_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       return rows.map(row => row.name);
     } finally {
       if (shouldCloseConnection && workingConnection) {
@@ -358,12 +383,15 @@ class MySQLDriver extends IDatabaseDriver {
     }
 
     try {
-      const [rows] = await workingConnection.execute(`
+      const [rows] = await workingConnection.execute(
+        `
         SELECT table_name as name
         FROM information_schema.tables
         WHERE table_schema = ? AND table_type = 'BASE TABLE'
         ORDER BY table_name
-      `, [databaseName]);
+      `,
+        [databaseName]
+      );
       return rows.map(row => row.name);
     } finally {
       if (shouldCloseConnection && workingConnection) {
@@ -398,7 +426,7 @@ class MySQLDriver extends IDatabaseDriver {
       username: { required: true, type: 'string' },
       password: { required: true, type: 'string' },
       database: { required: false, type: 'string' },
-      sslEnabled: { required: false, type: 'boolean', default: false }
+      sslEnabled: { required: false, type: 'boolean', default: false },
     };
   }
 

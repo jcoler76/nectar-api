@@ -24,9 +24,11 @@ class DatabaseDriverFactory {
    */
   static createDriver(databaseType, connectionConfig) {
     const normalizedType = databaseType.toUpperCase();
-    
+
     if (!this.drivers.has(normalizedType)) {
-      throw new Error(`Unsupported database type: ${databaseType}. Supported types: ${Array.from(this.drivers.keys()).join(', ')}`);
+      throw new Error(
+        `Unsupported database type: ${databaseType}. Supported types: ${Array.from(this.drivers.keys()).join(', ')}`
+      );
     }
 
     const DriverClass = this.drivers.get(normalizedType);
@@ -40,7 +42,7 @@ class DatabaseDriverFactory {
    */
   static registerDriver(databaseType, DriverClass) {
     const normalizedType = databaseType.toUpperCase();
-    
+
     // Validate that the driver extends IDatabaseDriver
     const IDatabaseDriver = require('./interfaces/IDatabaseDriver');
     const testInstance = new DriverClass({});
@@ -76,7 +78,7 @@ class DatabaseDriverFactory {
    */
   static getDefaultPort(databaseType) {
     const normalizedType = databaseType.toUpperCase();
-    
+
     if (!this.drivers.has(normalizedType)) {
       throw new Error(`Unsupported database type: ${databaseType}`);
     }
@@ -92,7 +94,7 @@ class DatabaseDriverFactory {
    */
   static getValidationRules(databaseType) {
     const normalizedType = databaseType.toUpperCase();
-    
+
     if (!this.drivers.has(normalizedType)) {
       throw new Error(`Unsupported database type: ${databaseType}`);
     }
@@ -112,29 +114,29 @@ class DatabaseDriverFactory {
         displayName: 'Microsoft SQL Server',
         description: 'Microsoft SQL Server database',
         defaultPort: MSSQLDriver.getDefaultPort(),
-        icon: '🗄️'
+        icon: '🗄️',
       },
       {
-        type: 'POSTGRESQL', 
+        type: 'POSTGRESQL',
         displayName: 'PostgreSQL',
         description: 'PostgreSQL open-source relational database',
         defaultPort: PostgreSQLDriver.getDefaultPort(),
-        icon: '🐘'
+        icon: '🐘',
       },
       {
         type: 'MYSQL',
         displayName: 'MySQL',
         description: 'MySQL/MariaDB relational database',
         defaultPort: MySQLDriver.getDefaultPort(),
-        icon: '🐬'
+        icon: '🐬',
       },
       {
         type: 'MONGODB',
         displayName: 'MongoDB',
         description: 'MongoDB NoSQL document database',
         defaultPort: MongoDBDriver.getDefaultPort(),
-        icon: '🍃'
-      }
+        icon: '🍃',
+      },
     ];
   }
 
@@ -183,7 +185,7 @@ class DatabaseDriverFactory {
         } catch (error) {
           logger.error('Error closing connection:', error);
         }
-      }
+      },
     };
   }
 }

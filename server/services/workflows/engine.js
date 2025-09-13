@@ -22,7 +22,6 @@ const nodeRegistry = {
   'action:ftpUpload': require('./nodes/ftpUpload'),
   'action:logger': require('./nodes/logger'),
   'action:approval': require('./nodes/approval'),
-  'action:template20:procedure': require('./nodes/template20Procedure'),
   'action:graphql:execute': require('./nodes/graphqlExecute'),
   'action:transform': require('./nodes/transform'),
   'action:idempotency': require('./nodes/idempotency'),

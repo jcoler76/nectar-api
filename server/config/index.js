@@ -60,14 +60,17 @@ const getSessionConfig = () => {
 const initializeServices = async () => {
   // Temporarily skip MongoDB connection for PostgreSQL transition
   console.log('Skipping MongoDB connection - using PostgreSQL with Prisma');
-  
+
   // Initialize Prisma service
   const prismaService = require('../services/prismaService');
   try {
     await prismaService.initialize();
     console.log('Prisma service initialized successfully');
   } catch (error) {
-    console.warn('Prisma service initialization failed, continuing with container workaround mode:', error.message);
+    console.warn(
+      'Prisma service initialization failed, continuing with container workaround mode:',
+      error.message
+    );
   }
 
   // Skip session service for now (uses MongoDB)

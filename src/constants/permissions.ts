@@ -11,13 +11,13 @@ export interface CustomerPermissions {
   canManageServices: boolean;
   canManageApplications: boolean;
   canManageWorkflows: boolean;
-  
+
   // User management within organization
   canManageOrgUsers: boolean;
   canManageOrgSettings: boolean;
   canViewOrgReports: boolean;
   canManageOrgBilling: boolean;
-  
+
   // Data permissions
   canExportData: boolean;
   canImportData: boolean;

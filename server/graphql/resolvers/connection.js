@@ -301,7 +301,7 @@ const connectionResolvers = {
       }
     },
 
-    deleteConnection: async (_, { id }, { user: currentUser }) => {
+    deleteConnection: async (_, { id, force = false }, { user: currentUser }) => {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
@@ -311,28 +311,74 @@ const connectionResolvers = {
             id,
             organizationId: currentUser.organizationId,
           },
+          include: {
+            _count: {
+              select: {
+                services: true,
+                endpoints: true,
+              },
+            },
+          },
         });
 
         if (!existingConnection) {
           throw new UserInputError('Connection not found');
         }
 
-        // Check if any services depend on this connection
-        const dependentServices = await prisma.service.findMany({
-          where: { connectionId: id },
-          select: { id: true, name: true },
-        });
+        // Check for dependent records
+        const hasServices = existingConnection._count.services > 0;
+        const hasEndpoints = existingConnection._count.endpoints > 0;
+        const hasDependents = hasServices || hasEndpoints;
 
-        if (dependentServices.length > 0) {
+        if (hasDependents && !force) {
+          const dependencies = [];
+          if (hasServices) dependencies.push(`${existingConnection._count.services} service(s)`);
+          if (hasEndpoints) dependencies.push(`${existingConnection._count.endpoints} endpoint(s)`);
+
+          // Also get service names for better user feedback
+          const dependentServices = await prisma.service.findMany({
+            where: { connectionId: id },
+            select: { name: true },
+          });
+
+          const serviceNames =
+            dependentServices.length > 0
+              ? ` (${dependentServices.map(s => s.name).join(', ')})`
+              : '';
+
           throw new UserInputError(
-            `Cannot delete connection. ${dependentServices.length} service(s) depend on it: ${dependentServices.map(s => s.name).join(', ')}`
+            `Cannot delete connection: it has dependent records (${dependencies.join(', ')})${serviceNames}. Use force deletion to remove all dependent records.`
           );
         }
 
+        // If force deletion, delete dependent records first
+        if (force) {
+          // Delete all services that use this connection
+          // Services have cascade delete for roles and database objects
+          await prisma.service.deleteMany({
+            where: { connectionId: id },
+          });
+
+          // Delete all endpoints that use this connection
+          await prisma.endpoint.deleteMany({
+            where: { connectionId: id },
+          });
+
+          logger.info('Force deleting connection with dependencies', {
+            connectionId: id,
+            servicesDeleted: existingConnection._count.services,
+            endpointsDeleted: existingConnection._count.endpoints,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+        }
+
+        // Now delete the connection
         await prisma.databaseConnection.delete({ where: { id } });
 
         logger.info('Database connection deleted via GraphQL', {
           connectionId: id,
+          forced: force,
           userId: currentUser.userId,
           organizationId: currentUser.organizationId,
         });

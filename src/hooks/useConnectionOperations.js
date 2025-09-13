@@ -56,7 +56,7 @@ export const useConnectionOperations = () => {
   );
 
   const handleDelete = useCallback(
-    async connectionId => {
+    async (connectionId, force = false) => {
       // Prevent concurrent delete operations for the same connection
       if (operationInProgress[`delete-${connectionId}`]) {
         return { success: false, error: 'Delete operation already in progress' };
@@ -64,10 +64,30 @@ export const useConnectionOperations = () => {
 
       try {
         startOperation('delete', connectionId);
-        await deleteConnection(connectionId);
-        setConnections(prev => prev.filter(c => c._id !== connectionId));
-        showNotification('Connection deleted successfully.', 'success');
-        return { success: true };
+        const result = await deleteConnection(connectionId, force);
+
+        if (result.success) {
+          setConnections(prev => prev.filter(c => c._id !== connectionId));
+          showNotification(
+            force
+              ? 'Connection and all dependent records deleted successfully.'
+              : 'Connection deleted successfully.',
+            'success'
+          );
+          return { success: true };
+        } else if (result.hasDependencies) {
+          // Return dependency information for the UI to handle
+          return {
+            success: false,
+            hasDependencies: true,
+            dependencies: result.dependencies,
+            serviceNames: result.serviceNames,
+            message: result.message,
+          };
+        } else {
+          showNotification('Failed to delete connection.', 'error');
+          return { success: false, error: result.error || 'Delete operation failed' };
+        }
       } catch (err) {
         // Check if it's a 404 error (connection not found)
         if (err.response?.status === 404) {
@@ -182,13 +202,17 @@ export const useConnectionOperations = () => {
             service => service.connectionId === connectionId && service.isActive
           );
 
-          console.log('🔗 Connection dependency check:', {
-            connection: connection.name,
-            connectionId,
-            totalServices: services.length,
-            dependentServices: dependentServices.length,
-            serviceNames: dependentServices.map(s => s.name),
-          });
+          // Log dependency check in development only
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.log('🔗 Connection dependency check:', {
+              connection: connection.name,
+              connectionId,
+              totalServices: services.length,
+              dependentServices: dependentServices.length,
+              serviceNames: dependentServices.map(s => s.name),
+            });
+          }
 
           if (dependentServices.length > 0) {
             // Return information about dependent services for confirmation dialog

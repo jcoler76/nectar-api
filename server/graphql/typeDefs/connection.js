@@ -116,7 +116,7 @@ const connectionTypeDefs = gql`
   extend type Mutation {
     createConnection(input: CreateConnectionInput!): Connection!
     updateConnection(id: ID!, input: UpdateConnectionInput!): Connection!
-    deleteConnection(id: ID!): Boolean!
+    deleteConnection(id: ID!, force: Boolean = false): Boolean!
     testConnection(id: ID!): ConnectionTestResult!
     testConnectionTemp(input: TestConnectionInput!): ConnectionTestResult!
     refreshConnectionDatabases(id: ID!): Connection!

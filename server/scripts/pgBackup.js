@@ -31,7 +31,9 @@ class PostgresBackup {
     try {
       await execAsync('pg_dump --version');
     } catch (error) {
-      throw new Error('pg_dump is not installed or not in PATH. Please install PostgreSQL client tools.');
+      throw new Error(
+        'pg_dump is not installed or not in PATH. Please install PostgreSQL client tools.'
+      );
     }
 
     await fs.mkdir(this.backupDir, { recursive: true });
@@ -47,14 +49,7 @@ class PostgresBackup {
       });
 
       // pg_dump custom format (-Fc) with compression (-Z 9)
-      const pgDumpArgs = [
-        `--dbname=${this.databaseUrl}`,
-        '-Fc',
-        '-Z',
-        '9',
-        '-f',
-        archivePath,
-      ];
+      const pgDumpArgs = [`--dbname=${this.databaseUrl}`, '-Fc', '-Z', '9', '-f', archivePath];
 
       const backupProcess = spawn('pg_dump', pgDumpArgs, { stdio: ['inherit', 'pipe', 'pipe'] });
 
@@ -118,7 +113,9 @@ class PostgresBackup {
       logger.info('Starting PostgreSQL backup cleanup', { retentionDays: this.retentionDays });
 
       const files = await fs.readdir(this.backupDir);
-      const backupFiles = files.filter(file => file.startsWith('backup_') && file.endsWith('.dump'));
+      const backupFiles = files.filter(
+        file => file.startsWith('backup_') && file.endsWith('.dump')
+      );
 
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this.retentionDays);
@@ -158,7 +155,9 @@ class PostgresBackup {
   async listBackups() {
     try {
       const files = await fs.readdir(this.backupDir);
-      const backupFiles = files.filter(file => file.startsWith('backup_') && file.endsWith('.dump'));
+      const backupFiles = files.filter(
+        file => file.startsWith('backup_') && file.endsWith('.dump')
+      );
 
       const backups = [];
       for (const file of backupFiles) {
@@ -221,4 +220,3 @@ async function main() {
 main();
 
 module.exports = PostgresBackup;
-

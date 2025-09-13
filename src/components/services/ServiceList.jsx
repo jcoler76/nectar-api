@@ -10,13 +10,15 @@ import {
   RefreshCw,
   Trash2,
 } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnections } from '../../hooks/useConnections';
 import { useFormDialog } from '../../hooks/useFormDialog';
 import { useServices } from '../../hooks/useServices';
+import api from '../../services/api';
 import ConfirmDialog from '../common/ConfirmDialog';
+import DependencyWarningDialog from '../common/DependencyWarningDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -44,7 +46,45 @@ const ServiceList = () => {
 
   const { openForm, editItem: editService, handleAdd, handleEdit, handleClose } = useFormDialog();
 
-  const { confirmState, openConfirm, closeConfirm, handleConfirm } = useConfirmDialog();
+  const { confirmState, openConfirm, closeConfirm } = useConfirmDialog();
+
+  // State for dependency warning dialog
+  const [dependencyWarning, setDependencyWarning] = useState({
+    open: false,
+    serviceId: null,
+    serviceName: '',
+    dependencies: '',
+  });
+
+  // Swagger role selection state
+  const [swaggerDialog, setSwaggerDialog] = useState({
+    open: false,
+    roles: [],
+    selectedRoleId: '',
+  });
+
+  const openSwaggerDialog = useCallback(async () => {
+    try {
+      if (!swaggerDialog.roles.length) {
+        const res = await api.get('/api/roles');
+        setSwaggerDialog(prev => ({
+          ...prev,
+          roles: res.data,
+          selectedRoleId: res.data?.[0]?._id || '',
+        }));
+      }
+      setSwaggerDialog(prev => ({ ...prev, open: true }));
+    } catch (e) {
+      window.open('/api/documentation/blueprints/ui', '_blank');
+    }
+  }, [swaggerDialog.roles.length]);
+
+  const handleOpenSwaggerForRole = () => {
+    if (!swaggerDialog.selectedRoleId) return;
+    const url = `/api/documentation/openapi/${encodeURIComponent(swaggerDialog.selectedRoleId)}/ui`;
+    window.open(url, '_blank');
+    setSwaggerDialog(prev => ({ ...prev, open: false }));
+  };
 
   useEffect(() => {
     fetchServices();
@@ -209,6 +249,12 @@ const ServiceList = () => {
             onClick: service => handleEdit(service, fetchConnections),
           },
           {
+            label: 'Swagger',
+            icon: Info,
+            tooltip: 'Open Swagger UI for a selected role (or Blueprints UI if roles unavailable)',
+            onClick: () => openSwaggerDialog(),
+          },
+          {
             label: 'Refresh Schema',
             icon: RefreshCw,
             tooltip: 'Update database schema information to reflect recent structural changes',
@@ -225,16 +271,34 @@ const ServiceList = () => {
             icon: Trash2,
             tooltip:
               'Permanently remove this service - this action cannot be undone and will break any dependent workflows',
-            onClick: service => {
+            onClick: async service => {
               // Prevent multiple rapid clicks
               if (operationInProgress[`delete-${service.id}`]) {
                 return;
               }
-              openConfirm(service.id, {
-                title: 'Delete Service',
-                message:
-                  'Are you sure you want to delete this service? This action cannot be undone.',
-              });
+
+              // Try to delete first to check for dependencies
+              const result = await handleDelete(service.id);
+
+              if (result && result.hasDependencies) {
+                // Show dependency warning dialog directly
+                setDependencyWarning({
+                  open: true,
+                  serviceId: service.id,
+                  serviceName: service.name,
+                  dependencies: result.dependencies,
+                });
+              } else if (result && result.success) {
+                // Service deleted successfully (no dependencies)
+                // Nothing more to do, handleDelete already handled the UI updates
+              } else {
+                // Show regular confirmation for services without dependencies
+                openConfirm(service, {
+                  title: 'Delete Service',
+                  message:
+                    'Are you sure you want to delete this service? This action cannot be undone.',
+                });
+              }
             },
             destructive: true,
             separator: true,
@@ -246,7 +310,9 @@ const ServiceList = () => {
       handleToggleActive,
       handleEdit,
       handleRefreshSchema,
+      handleDelete,
       openConfirm,
+      openSwaggerDialog,
       fetchConnections,
       operationInProgress,
     ]
@@ -340,6 +406,49 @@ const ServiceList = () => {
         defaultSort={{ key: 'name', direction: 'asc' }}
       />
 
+      {/* Swagger Role Selection Dialog */}
+      <Dialog
+        open={swaggerDialog.open}
+        onOpenChange={open => setSwaggerDialog(prev => ({ ...prev, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Role for Swagger</DialogTitle>
+            <DialogDescription>
+              Choose a role to open its role-scoped Swagger UI. You can also use Blueprints UI if
+              you prefer model-level docs.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="block text-sm font-medium">Role</label>
+            <select
+              className="w-full border rounded px-3 py-2 bg-background"
+              value={swaggerDialog.selectedRoleId}
+              onChange={e =>
+                setSwaggerDialog(prev => ({ ...prev, selectedRoleId: e.target.value }))
+              }
+            >
+              {swaggerDialog.roles.map(role => (
+                <option key={role._id} value={role._id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+            <div className="flex gap-2 justify-end pt-2">
+              <Button
+                variant="outline"
+                onClick={() => window.open('/api/documentation/blueprints/ui', '_blank')}
+              >
+                Open Blueprints Docs
+              </Button>
+              <Button onClick={handleOpenSwaggerForRole} disabled={!swaggerDialog.selectedRoleId}>
+                Open Role Docs
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={openForm} onOpenChange={open => !open && handleClose()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -365,9 +474,32 @@ const ServiceList = () => {
         open={confirmState.open}
         title={confirmState.title}
         message={confirmState.message}
-        onConfirm={() => handleConfirm(handleDelete)}
+        onConfirm={async () => {
+          const service = confirmState.itemId; // This is the full service object
+          const result = await handleDelete(service.id);
+
+          if (result && result.success) {
+            closeConfirm();
+          }
+        }}
         onCancel={closeConfirm}
         aria-modal="true"
+      />
+
+      {/* Dependency Warning Dialog */}
+      <DependencyWarningDialog
+        open={dependencyWarning.open}
+        onClose={() => setDependencyWarning({ ...dependencyWarning, open: false })}
+        onConfirm={async () => {
+          const result = await handleDelete(dependencyWarning.serviceId, true);
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to delete service');
+          }
+        }}
+        resourceType="service"
+        resourceName={dependencyWarning.serviceName}
+        dependencies={dependencyWarning.dependencies}
+        additionalWarning="All associated roles and database objects will be permanently deleted."
       />
     </div>
   );

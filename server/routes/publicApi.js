@@ -4,6 +4,7 @@ const sql = require('mssql');
 
 const sqlManager = require('../config/sqlPool');
 const { consolidatedApiKeyMiddleware } = require('../middleware/consolidatedAuthMiddleware');
+const { getCacheService } = require('../services/cacheService');
 const { legacyFormatMiddleware } = require('../middleware/legacyFormatMiddleware');
 const { logger } = require('../middleware/logger');
 // MongoDB models replaced with Prisma for PostgreSQL migration
@@ -29,6 +30,9 @@ router.all(
   consolidatedApiKeyMiddleware,
   legacyFormatMiddleware,
   async (req, res) => {
+    const cache = getCacheService();
+    const cacheEnabled = (process.env.PUBLIC_API_CACHE_ENABLED || 'false').toLowerCase() === 'true';
+    const defaultTtl = parseInt(process.env.PUBLIC_API_CACHE_TTL_SECONDS || '30', 10);
     let pool;
     let resolveDedup, rejectDedup, dedupKey;
 
@@ -130,8 +134,8 @@ router.all(
 
       if (service.connectionId) {
         // Implement proper Prisma queries for connection lookup
-        const connection = await prisma.databaseConnection.findUnique({ 
-          where: { id: service.connectionId } 
+        const connection = await prisma.databaseConnection.findUnique({
+          where: { id: service.connectionId },
         });
         if (!connection) {
           throw new Error('The underlying connection for this service could not be found.');
@@ -199,8 +203,28 @@ router.all(
       // Validate and sanitize parameters
       const sanitizedParams = SQLSafetyValidator.validateParameters(params);
 
-      // Create request deduplication key (include environment to prevent cross-environment cache hits)
-      dedupKey = `${service._id}_${validatedProcedureName}_${environment}_${JSON.stringify(sanitizedParams)}`;
+      // Create request keys (include environment and legacy mode)
+      const keyBase = `${service._id || service.id}_${validatedProcedureName}_${environment}_${req.isLegacyClient ? 'legacy' : 'modern'}_${JSON.stringify(sanitizedParams)}`;
+      // Deduplication key (in-flight)
+      dedupKey = keyBase;
+
+      // Check response cache (GET only, or if explicitly allowed via query param)
+      const requestWantsCache = req.method === 'GET' || req.query.cache === 'true';
+      const ttlOverride = req.query.cache_ttl
+        ? Math.min(parseInt(req.query.cache_ttl, 10) || 0, 3600)
+        : null;
+      const effectiveTtl = ttlOverride != null ? ttlOverride : defaultTtl;
+
+      if (cacheEnabled && requestWantsCache && effectiveTtl > 0) {
+        const cacheKey = `proc:${keyBase}`;
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+          if (process.env.NODE_ENV !== 'production') {
+            logger.debug('Public API - cache hit', { cacheKey, ttl: effectiveTtl });
+          }
+          return res.json(cached);
+        }
+      }
 
       // Check if an identical request is already in progress
       if (pendingRequests.has(dedupKey)) {
@@ -432,31 +456,33 @@ router.all(
       // Save API usage asynchronously (non-blocking) using Prisma
       const organizationId = req.organization?.id || service.organizationId;
       if (organizationId) {
-        prisma.apiActivityLog.create({
-          data: {
-            requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: apiUsageData.timestamp,
-            method: apiUsageData.method,
-            url: apiUsageData.endpoint,
-            endpoint: apiUsageData.endpoint,
-            statusCode: apiUsageData.statusCode,
-            responseTime: Math.floor(Math.random() * 100) + 50,
-            category: 'api',
-            endpointType: 'public',
-            importance: 'high',
-            organizationId: organizationId,
-            userId: req.user?.id || null,
-            metadata: {
-              requestSize: apiUsageData.requestSize,
-              responseSize: apiUsageData.responseSize,
-              component: apiUsageData.component,
-              serviceId: service.id,
-              records: apiUsageData.records
-            }
-          }
-        }).catch(err => {
-          logger.error('Failed to save API activity log:', { error: err.message });
-        });
+        prisma.apiActivityLog
+          .create({
+            data: {
+              requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              timestamp: apiUsageData.timestamp,
+              method: apiUsageData.method,
+              url: apiUsageData.endpoint,
+              endpoint: apiUsageData.endpoint,
+              statusCode: apiUsageData.statusCode,
+              responseTime: Math.floor(Math.random() * 100) + 50,
+              category: 'api',
+              endpointType: 'public',
+              importance: 'high',
+              organizationId: organizationId,
+              userId: req.user?.id || null,
+              metadata: {
+                requestSize: apiUsageData.requestSize,
+                responseSize: apiUsageData.responseSize,
+                component: apiUsageData.component,
+                serviceId: service.id,
+                records: apiUsageData.records,
+              },
+            },
+          })
+          .catch(err => {
+            logger.error('Failed to save API activity log:', { error: err.message });
+          });
       }
 
       // Resolve deduplication promise for waiting requests
@@ -464,6 +490,18 @@ router.all(
         resolveDedup(cleanResponse);
         // Clean up after a short delay to allow waiting requests to get the result
         setTimeout(() => pendingRequests.delete(dedupKey), 100);
+      }
+
+      // Store in response cache (GET only or explicit cache=true)
+      if (
+        cacheEnabled &&
+        (req.method === 'GET' || req.query.cache === 'true') &&
+        effectiveTtl > 0
+      ) {
+        const cacheKey = `proc:${keyBase}`;
+        cache
+          .set(cacheKey, cleanResponse, effectiveTtl)
+          .catch?.(err => logger.warn('Public API - cache set error', { error: err?.message }));
       }
 
       res.json(cleanResponse);
@@ -490,31 +528,33 @@ router.all(
         // Save error API usage using Prisma
         const organizationId = req.organization?.id || req.service?.organizationId;
         if (organizationId) {
-          prisma.apiActivityLog.create({
-            data: {
-              requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              timestamp: new Date(),
-              method: req.method,
-              url: req.originalUrl,
-              endpoint: req.originalUrl,
-              statusCode: 500,
-              responseTime: null,
-              category: 'api',
-              endpointType: 'public',
-              importance: 'critical',
-              organizationId: organizationId,
-              userId: req.user?.id || null,
-              error: error.message,
-              metadata: {
-                requestSize: requestSize,
-                responseSize: responseSize,
-                component: req.params.procedureName,
-                serviceId: req.service?._id
-              }
-            }
-          }).catch(err => {
-            logger.error('Failed to save error API activity log:', { error: err.message });
-          });
+          prisma.apiActivityLog
+            .create({
+              data: {
+                requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: new Date(),
+                method: req.method,
+                url: req.originalUrl,
+                endpoint: req.originalUrl,
+                statusCode: 500,
+                responseTime: null,
+                category: 'api',
+                endpointType: 'public',
+                importance: 'critical',
+                organizationId: organizationId,
+                userId: req.user?.id || null,
+                error: error.message,
+                metadata: {
+                  requestSize: requestSize,
+                  responseSize: responseSize,
+                  component: req.params.procedureName,
+                  serviceId: req.service?._id,
+                },
+              },
+            })
+            .catch(err => {
+              logger.error('Failed to save error API activity log:', { error: err.message });
+            });
         }
       }
 

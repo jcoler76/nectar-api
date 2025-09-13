@@ -1,12 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const Template20Intelligence = require('../models/Template20Intelligence');
+// Template20Intelligence has been deprecated
+// const Template20Intelligence = require('../models/Template20Intelligence');
 const { body, validationResult } = require('express-validator');
 
 /**
  * Schema Selection Management Routes
  * Handles selective table/view/procedure selection for code generation
  */
+
+// Deprecation middleware for all routes
+router.use((req, res, next) => {
+  return res.status(501).json({
+    success: false,
+    message:
+      'Schema selection service has been deprecated. The template20 intelligence it relied on is no longer available.',
+    recommendation: 'Please use OpenAI SDK for AI-powered schema generation and selection.',
+  });
+});
 
 // Get all available database objects for selection
 router.get('/available', async (req, res) => {
@@ -515,27 +526,16 @@ router.post(
       const outputFiles = [];
 
       try {
-        if (generationType === 'graphql' || generationType === 'all') {
-          const GraphQLSchemaGenerator = require('../services/GraphQLSchemaGenerator');
-          const generator = new GraphQLSchemaGenerator();
-          const graphqlResult = await generator.generateSelectiveSchema(selection, options);
-          outputFiles.push(...graphqlResult.outputFiles);
-        }
+        // Schema generation services have been deprecated
+        // These relied on template20 intelligence which is no longer available
+        // Use OpenAI SDK for AI-powered schema generation instead
 
-        if (generationType === 'prisma' || generationType === 'all') {
-          const PrismaSchemaGenerator = require('../services/PrismaSchemaGenerator');
-          const generator = new PrismaSchemaGenerator();
-          const prismaResult = await generator.generateSelectiveSchema(selection, options);
-          outputFiles.push(...prismaResult.outputFiles);
-        }
-
-        if (generationType === 'documentation' || generationType === 'all') {
-          const AIDocumentationService = require('../services/AIDocumentationService');
-          const logger = require('../utils/logger');
-          const service = new AIDocumentationService();
-          const docResult = await service.generateSelectiveDocumentation(selection, options);
-          outputFiles.push(...docResult.outputFiles);
-        }
+        return res.status(501).json({
+          success: false,
+          message:
+            'Schema generation services have been deprecated. Please use OpenAI SDK for AI-powered schema generation.',
+          recommendation: 'Contact support for migration guidance',
+        });
 
         // Record successful generation
         intelligence.recordGeneration(

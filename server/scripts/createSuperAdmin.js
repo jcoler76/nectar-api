@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 /**
  * Create Super Admin User Script
- * 
+ *
  * This script creates a super admin user for the Nectar API application.
  * It handles the Docker networking issue by using direct SQL execution.
  */
@@ -12,7 +12,7 @@ const ADMIN_CREDENTIALS = {
   email: '<email>',
   password: '<password>',
   firstName: 'Jestin',
-  lastName: 'Coler'
+  lastName: 'Coler',
 };
 
 /**
@@ -33,14 +33,16 @@ async function createSuperAdminSQL() {
 
   try {
     console.log('🚀 Creating super admin user via Docker container...');
-    
+
     const passwordHash = await generatePasswordHash(ADMIN_CREDENTIALS.password);
     console.log('🔐 Password hash generated successfully');
 
     // Check if user already exists
     const checkUserSQL = `SELECT id FROM "User" WHERE email = '${ADMIN_CREDENTIALS.email}';`;
-    const checkResult = await execAsync(`docker exec nectar-postgres psql -U nectar_admin -d nectar_core -t -c "${checkUserSQL}"`);
-    
+    const checkResult = await execAsync(
+      `docker exec nectar-postgres psql -U nectar_admin -d nectar_core -t -c "${checkUserSQL}"`
+    );
+
     if (checkResult.stdout.trim()) {
       console.log('❌ Super admin user already exists!');
       console.log('📧 Email:', ADMIN_CREDENTIALS.email);
@@ -139,8 +141,10 @@ async function createSuperAdminSQL() {
 
     // Execute the SQL
     console.log('📝 Executing user creation SQL...');
-    const result = await execAsync(`docker exec -i nectar-postgres psql -U nectar_admin -d nectar_core -c "${insertSQL.replace(/\n/g, ' ').replace(/\s+/g, ' ')}"`);
-    
+    const result = await execAsync(
+      `docker exec -i nectar-postgres psql -U nectar_admin -d nectar_core -c "${insertSQL.replace(/\n/g, ' ').replace(/\s+/g, ' ')}"`
+    );
+
     console.log('✅ Super admin user created successfully!');
     console.log('📧 Email:', ADMIN_CREDENTIALS.email);
     console.log('🔑 Password:', ADMIN_CREDENTIALS.password);
@@ -149,14 +153,13 @@ async function createSuperAdminSQL() {
     console.log('💰 Subscription Plan: ENTERPRISE');
     console.log('');
     console.log('🔐 You can now login to the application with these credentials.');
-    
+
     return {
       userId,
       email: ADMIN_CREDENTIALS.email,
       organizationId: orgId,
-      subscriptionPlan: 'ENTERPRISE'
+      subscriptionPlan: 'ENTERPRISE',
     };
-
   } catch (error) {
     console.error('❌ Error creating super admin:', error.message);
     throw error;
@@ -175,7 +178,7 @@ async function createSuperAdminPrisma() {
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: ADMIN_CREDENTIALS.email }
+      where: { email: ADMIN_CREDENTIALS.email },
     });
 
     if (existingUser) {
@@ -187,7 +190,7 @@ async function createSuperAdminPrisma() {
     const passwordHash = await generatePasswordHash(ADMIN_CREDENTIALS.password);
 
     // Create the super admin user in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       // Create the user
       const user = await tx.user.create({
         data: {
@@ -251,7 +254,6 @@ async function createSuperAdminPrisma() {
     console.log('💰 Subscription Plan:', result.subscription.plan);
 
     return result;
-
   } catch (error) {
     console.error('❌ Error creating super admin via Prisma:', error.message);
     throw error;
@@ -271,7 +273,7 @@ async function createSuperAdmin() {
   } catch (prismaError) {
     console.log('⚠️  Prisma method failed, using Docker SQL workaround...');
     console.log('🐳 This is normal if you have Windows Docker networking issues');
-    
+
     try {
       return await createSuperAdminSQL();
     } catch (sqlError) {
@@ -293,7 +295,7 @@ async function verifySuperAdmin() {
 
   try {
     console.log('🔍 Verifying super admin user...');
-    
+
     const verifySQL = `
       SELECT 
         u.id, u.email, u."firstName", u."lastName", u."isActive", u."emailVerified",
@@ -305,8 +307,10 @@ async function verifySuperAdmin() {
       WHERE u.email = '${ADMIN_CREDENTIALS.email}';
     `;
 
-    const result = await execAsync(`docker exec nectar-postgres psql -U nectar_admin -d nectar_core -c "${verifySQL}"`);
-    
+    const result = await execAsync(
+      `docker exec nectar-postgres psql -U nectar_admin -d nectar_core -c "${verifySQL}"`
+    );
+
     if (result.stdout.includes(ADMIN_CREDENTIALS.email)) {
       console.log('✅ Super admin user verified successfully!');
       console.log(result.stdout);
@@ -315,7 +319,6 @@ async function verifySuperAdmin() {
       console.log('❌ Super admin user not found');
       return false;
     }
-    
   } catch (error) {
     console.error('❌ Error verifying super admin:', error.message);
     return false;

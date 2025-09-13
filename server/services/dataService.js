@@ -1,6 +1,6 @@
 /**
  * Unified Data Service Layer
- * 
+ *
  * This service provides a clean interface for all database operations,
  * replacing MongoDB models with Prisma-based operations.
  * Organized by domain for maintainability.
@@ -22,7 +22,7 @@ class DataService {
 
   async createService(organizationId, createdBy, serviceData) {
     const { password, ...otherData } = serviceData;
-    
+
     const data = {
       ...otherData,
       organizationId,
@@ -40,7 +40,7 @@ class DataService {
         organization: true,
         creator: true,
         connection: true,
-      }
+      },
     });
   }
 
@@ -54,17 +54,17 @@ class DataService {
       where,
       include: {
         creator: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         connection: true,
         roles: {
           where: { isActive: true },
           include: {
-            _count: { select: { applications: true } }
-          }
-        }
+            _count: { select: { applications: true } },
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -72,22 +72,22 @@ class DataService {
     return await this.prisma.service.findFirst({
       where: {
         id: serviceId,
-        organizationId
+        organizationId,
       },
       include: {
         creator: true,
         connection: true,
         roles: { include: { applications: true } },
         databaseObjects: true,
-      }
+      },
     });
   }
 
   async updateService(serviceId, organizationId, updateData) {
     const { password, ...otherData } = updateData;
-    
+
     const data = { ...otherData };
-    
+
     // Encrypt password if provided
     if (password) {
       data.passwordEncrypted = encryptDatabasePassword(password);
@@ -96,14 +96,14 @@ class DataService {
     return await this.prisma.service.update({
       where: {
         id: serviceId,
-        organizationId
+        organizationId,
       },
       data,
       include: {
         creator: true,
         connection: true,
         roles: true,
-      }
+      },
     });
   }
 
@@ -111,8 +111,8 @@ class DataService {
     return await this.prisma.service.delete({
       where: {
         id: serviceId,
-        organizationId
-      }
+        organizationId,
+      },
     });
   }
 
@@ -122,7 +122,7 @@ class DataService {
 
   async createApplication(organizationId, createdBy, applicationData) {
     const { apiKey, defaultRoleId, ...otherData } = applicationData;
-    
+
     // Generate API key components
     const apiKeyHash = await bcrypt.hash(apiKey, 12);
     const apiKeyPrefix = apiKey.substring(0, 8);
@@ -143,7 +143,7 @@ class DataService {
         organization: true,
         creator: true,
         defaultRole: true,
-      }
+      },
     });
   }
 
@@ -155,11 +155,11 @@ class DataService {
       },
       include: {
         creator: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         defaultRole: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -167,16 +167,16 @@ class DataService {
     return await this.prisma.application.findFirst({
       where: {
         id: applicationId,
-        organizationId
+        organizationId,
       },
       include: {
         creator: true,
         defaultRole: {
           include: {
             service: true,
-          }
+          },
         },
-      }
+      },
     });
   }
 
@@ -188,9 +188,9 @@ class DataService {
         defaultRole: {
           include: {
             service: true,
-          }
+          },
         },
-      }
+      },
     });
   }
 
@@ -208,7 +208,7 @@ class DataService {
       include: {
         organization: true,
         service: true,
-      }
+      },
     });
   }
 
@@ -222,9 +222,9 @@ class DataService {
       include: {
         service: true,
         applications: true,
-        _count: { select: { applications: true } }
+        _count: { select: { applications: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -232,12 +232,12 @@ class DataService {
     return await this.prisma.role.findFirst({
       where: {
         id: roleId,
-        organizationId
+        organizationId,
       },
       include: {
         service: true,
         applications: true,
-      }
+      },
     });
   }
 
@@ -254,15 +254,15 @@ class DataService {
       },
       include: {
         user: {
-          select: { id: true, email: true, firstName: true, lastName: true }
-        }
-      }
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
     });
   }
 
   async getNotificationsByUser(userId, organizationId, filters = {}) {
     const { page = 1, limit = 10, isRead } = filters;
-    
+
     const where = {
       userId,
       organizationId,
@@ -279,9 +279,9 @@ class DataService {
       take: limit,
       include: {
         user: {
-          select: { id: true, email: true, firstName: true, lastName: true }
-        }
-      }
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
     });
   }
 
@@ -289,12 +289,12 @@ class DataService {
     return await this.prisma.notification.update({
       where: {
         id: notificationId,
-        userId
+        userId,
       },
       data: {
         isRead: true,
         readAt: new Date(),
-      }
+      },
     });
   }
 
@@ -304,7 +304,7 @@ class DataService {
         userId,
         organizationId,
         isRead: false,
-      }
+      },
     });
   }
 
@@ -317,13 +317,13 @@ class DataService {
       data: {
         ...logData,
         organizationId,
-      }
+      },
     });
   }
 
   async getApiActivityLogs(organizationId, filters = {}) {
     const { page = 1, limit = 50, startDate, endDate, endpoint, statusCode } = filters;
-    
+
     const where = { organizationId };
 
     if (startDate || endDate) {
@@ -342,9 +342,9 @@ class DataService {
       take: limit,
       include: {
         user: {
-          select: { id: true, email: true, firstName: true, lastName: true }
-        }
-      }
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
+      },
     });
   }
 
@@ -361,7 +361,7 @@ class DataService {
       },
       include: {
         service: true,
-      }
+      },
     });
   }
 
@@ -375,10 +375,7 @@ class DataService {
       include: {
         service: true,
       },
-      orderBy: [
-        { schema: 'asc' },
-        { name: 'asc' }
-      ]
+      orderBy: [{ schema: 'asc' }, { name: 'asc' }],
     });
   }
 
@@ -388,47 +385,47 @@ class DataService {
 
   async getDashboardMetrics(organizationId, filters = {}) {
     const { days = 30 } = filters;
-    
+
     // Get counts in parallel
     const [
       servicesCount,
       applicationsCount,
       activeWorkflowsCount,
       totalApiCallsCount,
-      recentActivity
+      recentActivity,
     ] = await Promise.all([
       this.prisma.service.count({
-        where: { organizationId, isActive: true }
+        where: { organizationId, isActive: true },
       }),
       this.prisma.application.count({
-        where: { organizationId, isActive: true }
+        where: { organizationId, isActive: true },
       }),
       this.prisma.workflow.count({
-        where: { organizationId, isActive: true }
+        where: { organizationId, isActive: true },
       }),
       this.prisma.apiActivityLog.count({
         where: {
           organizationId,
           timestamp: {
-            gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-          }
-        }
+            gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000),
+          },
+        },
       }),
       this.prisma.apiActivityLog.findMany({
         where: {
           organizationId,
           timestamp: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-          }
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+          },
         },
         orderBy: { timestamp: 'desc' },
         take: 10,
         include: {
           user: {
-            select: { id: true, email: true, firstName: true, lastName: true }
-          }
-        }
-      })
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+        },
+      }),
     ]);
 
     return {

@@ -60,13 +60,22 @@ const RateLimitList = () => {
     try {
       setLoading(true);
 
+      // Check if rate limit endpoints are available
       const [configsResponse, analyticsResponse] = await Promise.all([
         rateLimitApi.getConfigs().catch(err => {
           console.error('RateLimitList: getConfigs failed:', err);
+          // Check if it's a 404 error (endpoints not available)
+          if (err.response?.status === 404) {
+            throw new Error('ENDPOINTS_NOT_AVAILABLE');
+          }
           throw err;
         }),
         rateLimitApi.getAnalytics().catch(err => {
           console.error('RateLimitList: getAnalytics failed:', err);
+          // Check if it's a 404 error (endpoints not available)
+          if (err.response?.status === 404) {
+            throw new Error('ENDPOINTS_NOT_AVAILABLE');
+          }
           throw err;
         }),
       ]);
@@ -81,8 +90,17 @@ const RateLimitList = () => {
     } catch (err) {
       console.error('RateLimitList: Critical error in fetchRateLimits:', err);
       console.error('RateLimitList: Error response:', err.response);
-      setError('Failed to fetch rate limit configurations');
-      showNotification('Failed to fetch rate limit configurations', 'error');
+
+      if (err.message === 'ENDPOINTS_NOT_AVAILABLE') {
+        setError('Rate limit management is temporarily unavailable during system migration');
+        showNotification(
+          'Rate limit management is temporarily unavailable during system migration',
+          'warning'
+        );
+      } else {
+        setError('Failed to fetch rate limit configurations');
+        showNotification('Failed to fetch rate limit configurations', 'error');
+      }
     } finally {
       setLoading(false);
     }

@@ -6,9 +6,9 @@ const jwt = require('jsonwebtoken');
 async function debugUserPermissions() {
   try {
     console.log('🔍 Debugging User Permissions Architecture\n');
-    
+
     const prisma = await prismaService.getClient();
-    
+
     // Find the admin user we created
     const adminUser = await prisma.user.findUnique({
       where: { email: 'me@jestincoler.com' },
@@ -35,7 +35,7 @@ async function debugUserPermissions() {
     console.log(`   Name: ${adminUser.firstName} ${adminUser.lastName}`);
     console.log(`   User ID: ${adminUser.id}`);
     console.log(`   Active: ${adminUser.isActive}`);
-    
+
     console.log('\n🏢 ORGANIZATION & MEMBERSHIP:');
     const membership = adminUser.memberships[0];
     if (membership) {
@@ -51,7 +51,7 @@ async function debugUserPermissions() {
     try {
       const loginResult = await authService.login('me@jestincoler.com', '<password>');
       const decodedToken = jwt.decode(loginResult.token);
-      
+
       console.log('   JWT Payload:');
       console.log(`     userId: ${decodedToken.userId}`);
       console.log(`     email: ${decodedToken.email}`);
@@ -59,7 +59,6 @@ async function debugUserPermissions() {
       console.log(`     role: ${decodedToken.role}`);
       console.log(`     isAdmin: ${decodedToken.isAdmin}`);
       console.log(`     type: ${decodedToken.type}`);
-      
     } catch (loginError) {
       console.log('   ❌ Login failed:', loginError.message);
     }
@@ -71,13 +70,13 @@ async function debugUserPermissions() {
     console.log('      - System-wide activity monitoring');
     console.log('      - Platform configuration');
     console.log('      - Should bypass organization restrictions');
-    
+
     console.log('   2. ADMIN (Organization Level):');
     console.log('      - Full access within organization');
     console.log('      - All NavBar items for their tenant');
     console.log('      - Manage connections, services, users');
     console.log('      - Cannot see other organizations');
-    
+
     console.log('   3. USER (Organization Member):');
     console.log('      - Limited access based on permissions');
     console.log('      - Configurable by admin');

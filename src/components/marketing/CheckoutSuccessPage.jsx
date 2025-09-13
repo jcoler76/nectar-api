@@ -50,9 +50,7 @@ const CheckoutSuccessPage = () => {
           </div>
 
           {/* Success Message */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to NectarStudio.ai!
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to NectarStudio.ai!</h1>
           <p className="text-lg text-gray-600 mb-8">
             {loading
               ? 'Confirming your subscription...'
@@ -77,14 +75,20 @@ const CheckoutSuccessPage = () => {
                   <Calendar className="w-4 h-4" />
                   <span>Billing</span>
                 </div>
-                <span className="font-medium text-gray-900 capitalize">{stateBilling || 'monthly'}</span>
+                <span className="font-medium text-gray-900 capitalize">
+                  {stateBilling || 'monthly'}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
                   <span>Amount</span>
                 </div>
                 <span className="font-medium text-gray-900">
-                  {sessionData?.amount_total ? `$${(sessionData.amount_total / 100).toFixed(2)}` : (stateAmount ? `$${stateAmount}` : '—')}
+                  {sessionData?.amount_total
+                    ? `$${(sessionData.amount_total / 100).toFixed(2)}`
+                    : stateAmount
+                      ? `$${stateAmount}`
+                      : '—'}
                 </span>
               </div>
             </div>
@@ -100,7 +104,9 @@ const CheckoutSuccessPage = () => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Check your email</p>
-                  <p className="text-gray-600 text-sm">We've sent you a welcome email with your account details</p>
+                  <p className="text-gray-600 text-sm">
+                    We've sent you a welcome email with your account details
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -109,7 +115,9 @@ const CheckoutSuccessPage = () => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Set up your workspace</p>
-                  <p className="text-gray-600 text-sm">Complete the onboarding process to get started</p>
+                  <p className="text-gray-600 text-sm">
+                    Complete the onboarding process to get started
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -118,7 +126,9 @@ const CheckoutSuccessPage = () => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Start automating</p>
-                  <p className="text-gray-600 text-sm">Create your first workflow and see the magic happen</p>
+                  <p className="text-gray-600 text-sm">
+                    Create your first workflow and see the magic happen
+                  </p>
                 </div>
               </div>
             </div>
@@ -131,7 +141,8 @@ const CheckoutSuccessPage = () => {
               <span className="font-semibold">14-Day Free Trial Active</span>
             </div>
             <p className="text-green-700 text-sm">
-              A confirmation has been sent to {sessionData?.customer_email || 'your email address'}. You can manage billing from your account settings.
+              A confirmation has been sent to {sessionData?.customer_email || 'your email address'}.
+              You can manage billing from your account settings.
             </p>
           </div>
 
@@ -155,22 +166,22 @@ const CheckoutSuccessPage = () => {
           <div className="text-center">
             <p className="text-gray-600 text-sm mb-2">Need help getting started?</p>
             <div className="flex items-center justify-center gap-4 text-sm">
-              <button 
-                onClick={() => window.location.href = 'mailto:support@nectar.com'}
+              <button
+                onClick={() => (window.location.href = 'mailto:support@nectar.com')}
                 className="text-blue-600 hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer"
               >
                 <Mail className="w-4 h-4" />
                 Contact Support
               </button>
               <span className="text-gray-400">•</span>
-              <button 
+              <button
                 onClick={() => {}}
                 className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
               >
                 Help Center
               </button>
               <span className="text-gray-400">•</span>
-              <button 
+              <button
                 onClick={() => {}}
                 className="text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
               >

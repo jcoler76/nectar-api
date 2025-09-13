@@ -1,6 +1,6 @@
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import ApplicationForm from './components/applications/ApplicationForm';
@@ -334,7 +334,9 @@ function App() {
                 element={
                   <ProtectedRoute requiredPermission="isAdmin">
                     <RateLimitErrorBoundary>
-                      <RateLimitList />
+                      <Suspense fallback={<div>Loading rate limits...</div>}>
+                        <RateLimitList />
+                      </Suspense>
                     </RateLimitErrorBoundary>
                   </ProtectedRoute>
                 }
@@ -344,7 +346,9 @@ function App() {
                 element={
                   <ProtectedRoute requiredPermission="isAdmin">
                     <RateLimitErrorBoundary>
-                      <RateLimitMonitor />
+                      <Suspense fallback={<div>Loading rate limit monitor...</div>}>
+                        <RateLimitMonitor />
+                      </Suspense>
                     </RateLimitErrorBoundary>
                   </ProtectedRoute>
                 }
@@ -354,7 +358,9 @@ function App() {
                 element={
                   <ProtectedRoute requiredPermission="isAdmin">
                     <RateLimitErrorBoundary>
-                      <RateLimitAnalytics />
+                      <Suspense fallback={<div>Loading rate limit analytics...</div>}>
+                        <RateLimitAnalytics />
+                      </Suspense>
                     </RateLimitErrorBoundary>
                   </ProtectedRoute>
                 }
@@ -364,7 +370,9 @@ function App() {
                 element={
                   <ProtectedRoute requiredPermission="isAdmin">
                     <RateLimitErrorBoundary>
-                      <RateLimitForm />
+                      <Suspense fallback={<div>Loading rate limit form...</div>}>
+                        <RateLimitForm />
+                      </Suspense>
                     </RateLimitErrorBoundary>
                   </ProtectedRoute>
                 }
@@ -374,7 +382,9 @@ function App() {
                 element={
                   <ProtectedRoute requiredPermission="isAdmin">
                     <RateLimitErrorBoundary>
-                      <RateLimitForm />
+                      <Suspense fallback={<div>Loading rate limit form...</div>}>
+                        <RateLimitForm />
+                      </Suspense>
                     </RateLimitErrorBoundary>
                   </ProtectedRoute>
                 }

@@ -10,9 +10,11 @@ const enrichWorkflowContext = async (req, res, next) => {
     // Only process workflow-related routes
     const path = req.originalUrl || req.url;
 
-    // Check if this is a workflow-specific route (has workflow ID in path) 
+    // Check if this is a workflow-specific route (has workflow ID in path)
     // Updated for UUID format instead of MongoDB ObjectId
-    const workflowIdMatch = path.match(/\/api\/workflows\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/);
+    const workflowIdMatch = path.match(
+      /\/api\/workflows\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/
+    );
 
     if (workflowIdMatch) {
       const workflowId = workflowIdMatch[1];
@@ -21,7 +23,7 @@ const enrichWorkflowContext = async (req, res, next) => {
         // Look up the workflow name using Prisma
         const workflow = await prisma.workflow.findUnique({
           where: { id: workflowId },
-          select: { id: true, name: true }
+          select: { id: true, name: true },
         });
 
         if (workflow) {

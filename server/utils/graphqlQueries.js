@@ -262,8 +262,8 @@ const SERVICE_QUERIES = {
   `,
 
   DELETE: `
-    mutation DeleteService($id: ID!) {
-      deleteService(id: $id)
+    mutation DeleteService($id: ID!, $force: Boolean) {
+      deleteService(id: $id, force: $force)
     }
   `,
 
@@ -602,8 +602,8 @@ const CONNECTION_QUERIES = {
   `,
 
   DELETE: `
-    mutation DeleteConnection($id: ID!) {
-      deleteConnection(id: $id)
+    mutation DeleteConnection($id: ID!, $force: Boolean) {
+      deleteConnection(id: $id, force: $force)
     }
   `,
 

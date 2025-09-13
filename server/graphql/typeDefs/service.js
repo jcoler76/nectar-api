@@ -84,7 +84,7 @@ const serviceTypeDefs = gql`
   extend type Mutation {
     createService(input: CreateServiceInput!): Service!
     updateService(id: ID!, input: UpdateServiceInput!): Service!
-    deleteService(id: ID!): Boolean!
+    deleteService(id: ID!, force: Boolean = false): Boolean!
     testService(id: ID!): ServiceTestResult!
   }
 `;

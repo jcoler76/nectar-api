@@ -10,7 +10,7 @@ async function createUser() {
     const password = '<password>';
     const firstName = 'Jestin';
     const lastName = 'Coler';
-    
+
     const mongoUri = process.env.MONGODB_URI;
     if (!mongoUri) {
       throw new Error('MONGODB_URI is not defined in the .env file');
@@ -33,11 +33,11 @@ async function createUser() {
       firstName,
       lastName,
       isActive: true,
-      isAdmin: true // Making this user an admin
+      isAdmin: true, // Making this user an admin
     });
 
     await user.save();
-    
+
     console.log('✅ User created successfully');
     console.log(`📧 Email: ${email}`);
     console.log(`👤 Name: ${firstName} ${lastName}`);

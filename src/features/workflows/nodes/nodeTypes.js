@@ -47,7 +47,6 @@ import SalesforceRecordTriggerPanel from './panels/SalesforceRecordTriggerPanel.
 import SchedulerTriggerPanel from './panels/SchedulerTriggerPanel';
 import SqlServerAdminPanel from './panels/SqlServerAdminPanel.tsx';
 import TeamsNotifyPanel from './panels/TeamsNotifyPanel.tsx';
-import Template20ProcedurePanel from './panels/Template20ProcedurePanel.tsx';
 import TransformPanel from './panels/TransformPanel.tsx';
 import WebhookTriggerPanel from './panels/WebhookTriggerPanel';
 import ZoomInfoContactDiscoveryPanel from './panels/ZoomInfoContactDiscoveryPanel';
@@ -479,23 +478,6 @@ export const NODE_TYPES = {
       label: 'AI Action',
       prompt: 'The following is data from a previous step: {{input.data}}. Please summarize it.',
       model: 'gpt-3.5-turbo',
-    },
-  },
-  'action:template20:procedure': {
-    type: 'action:template20:procedure',
-    name: 'Template20 Procedure',
-    description: 'Discover and execute a high-confidence stored procedure for an entity.',
-    category: 'actions',
-    icon: DescriptionIcon,
-    inputs: 1,
-    outputs: 1,
-    getPropertiesComponent: () => Template20ProcedurePanel,
-    defaultData: {
-      label: 'Run Template20 Procedure',
-      entityType: '',
-      serviceName: '',
-      minConfidence: 0.8,
-      parameters: '',
     },
   },
   'action:email': {

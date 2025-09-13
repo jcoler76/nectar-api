@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Role = require('../models/Role');
+const { PrismaClient } = require('../prisma/generated/client');
+
+const prisma = new PrismaClient();
 const { decryptDatabasePassword } = require('../utils/encryption');
 const { logger } = require('../middleware/logger');
 const { fetchSchemaFromDatabase } = require('../utils/schemaUtils');
@@ -11,14 +13,23 @@ const crypto = require('crypto');
 // Get documentation using stored schema
 router.get('/role/:roleId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
     // Check how many permissions lack schema information
-    const permissionsWithoutSchema = role.permissions.filter(p => p.serviceId && !p.schema);
+    const permissionsWithoutSchema = role.permissions.filter(p => p.service && !p.schema);
     let needsSchemaRefresh = permissionsWithoutSchema.length > 0;
 
     logger.info(
@@ -30,7 +41,6 @@ router.get('/role/:roleId', async (req, res) => {
       logger.info('Attempting automatic schema refresh for missing schemas');
       try {
         await refreshSchemasByService(role.permissions);
-        await role.save();
         logger.info('Automatic schema refresh completed');
       } catch (refreshError) {
         logger.warn(
@@ -42,7 +52,7 @@ router.get('/role/:roleId', async (req, res) => {
 
     // Transform all permissions into endpoints
     const endpoints = role.permissions
-      .filter(p => p.serviceId) // Only filter out ones without service
+      .filter(p => p.service) // Only filter out ones without service
       .map(perm => {
         // Get the allowed methods
         const allowedMethods = Object.entries(perm.actions || {})
@@ -88,9 +98,9 @@ router.get('/role/:roleId', async (req, res) => {
         // Add modern API documentation elements
         const apiDocumentation = {
           summary: `Execute ${perm.objectName.replace(/^.*\//, '')} stored procedure`,
-          description: `Executes the ${perm.objectName} stored procedure on ${perm.serviceId.name} service`,
+          description: `Executes the ${perm.objectName} stored procedure on ${perm.service.name} service`,
           operationId: `execute_${perm.objectName.replace(/[^a-zA-Z0-9]/g, '_')}`,
-          tags: [perm.serviceId.name],
+          tags: [perm.service.name],
           produces: ['application/json'],
           consumes: ['application/json'],
           security: [{ ApiKeyAuth: [] }],
@@ -111,7 +121,7 @@ router.get('/role/:roleId', async (req, res) => {
                     properties: {
                       executionTime: { type: 'string', example: '45ms' },
                       recordCount: { type: 'integer', example: 10 },
-                      service: { type: 'string', example: perm.serviceId.name },
+                      service: { type: 'string', example: perm.service.name },
                       procedure: { type: 'string', example: perm.objectName },
                     },
                   },
@@ -132,11 +142,11 @@ router.get('/role/:roleId', async (req, res) => {
         };
 
         return {
-          path: `https://mirabelconnect.mirabeltechnologies.com/api/v2/${perm.serviceId.name}${perm.objectName}`,
+          path: `https://mirabelconnect.mirabeltechnologies.com/api/v2/${perm.service.name}${perm.objectName}`,
           methods: allowedMethods,
           method: allowedMethods[0] || 'GET', // Keep for backward compatibility
           primaryMethod: allowedMethods[0] || 'GET',
-          service: perm.serviceId.name,
+          service: perm.service.name,
           objectName: perm.objectName,
           description: perm.procedureSchema?.procedure?.name
             ? `Execute ${perm.procedureSchema.procedure.name} stored procedure`
@@ -156,8 +166,8 @@ router.get('/role/:roleId', async (req, res) => {
                 hasDetailedSchema: false,
                 note: 'Click refresh to load detailed schema information',
               },
-          roleId: role._id,
-          permissionId: perm._id,
+          roleId: role.id,
+          permissionId: perm.id,
           actions: perm.actions,
           schemaStatus: schemaData ? 'loaded' : 'missing',
 
@@ -188,7 +198,7 @@ router.get('/role/:roleId', async (req, res) => {
           examples: {
             curl: generateCurlExample(perm, allowedMethods[0] || 'GET'),
             javascript: generateJavaScriptExample(perm, allowedMethods[0] || 'GET'),
-            postman: `/api/documentation/examples/${role._id}/${perm._id}`,
+            postman: `/api/documentation/examples/${role.id}/${perm.id}`,
           },
         };
       });
@@ -201,7 +211,7 @@ router.get('/role/:roleId', async (req, res) => {
     res.json({
       endpoints,
       role: {
-        id: role._id,
+        id: role.id,
         name: role.name,
         description: role.description,
         isActive: role.isActive,
@@ -217,19 +227,19 @@ router.get('/role/:roleId', async (req, res) => {
           endpoints.length > 0 ? Math.round((schemasLoaded / endpoints.length) * 100) : 0,
       },
       actions: {
-        refreshAll: `/api/documentation/refresh-schemas/${role._id}`,
-        openapi: `/api/documentation/openapi/${role._id}`,
-        postman: `/api/documentation/postman/${role._id}`,
-        comprehensive: `/api/documentation/comprehensive/${role._id}`,
+        refreshAll: `/api/documentation/refresh-schemas/${role.id}`,
+        openapi: `/api/documentation/openapi/${role.id}`,
+        postman: `/api/documentation/postman/${role.id}`,
+        comprehensive: `/api/documentation/comprehensive/${role.id}`,
         pdf: {
-          standard: `/api/documentation/pdf/${role._id}`,
-          info: `/api/documentation/pdf/${role._id}/info`,
+          standard: `/api/documentation/pdf/${role.id}`,
+          info: `/api/documentation/pdf/${role.id}/info`,
           custom: {
             method: 'POST',
-            url: `/api/documentation/pdf/${role._id}/custom`,
+            url: `/api/documentation/pdf/${role.id}/custom`,
           },
         },
-        aiEnhance: `/api/documentation/ai-enhance/${role._id}`,
+        aiEnhance: `/api/documentation/ai-enhance/${role.id}`,
       },
       recommendations:
         schemasMissing > 0
@@ -256,13 +266,22 @@ router.get('/role/:roleId', async (req, res) => {
 // Get usage examples for specific endpoint
 router.get('/examples/:roleId/:permissionId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
-    const permission = role.permissions.find(p => p._id.toString() === req.params.permissionId);
+    const permission = role.permissions.find(p => p.id === req.params.permissionId);
     if (!permission) {
       return res
         .status(404)
@@ -280,13 +299,22 @@ router.get('/examples/:roleId/:permissionId', async (req, res) => {
 // Generate AI-enhanced documentation for a specific endpoint
 router.get('/ai-enhance/:roleId/:permissionId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId');
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
-    const permission = role.permissions.find(p => p._id.toString() === req.params.permissionId);
+    const permission = role.permissions.find(p => p.id === req.params.permissionId);
     if (!permission) {
       return res
         .status(404)
@@ -300,12 +328,7 @@ router.get('/ai-enhance/:roleId/:permissionId', async (req, res) => {
 
     // Save cached results if generated fresh
     if (enhancedDoc.cacheInfo?.shouldSave) {
-      try {
-        await role.save();
-        logger.info(`Cached AI documentation for ${enhancedDoc.procedureName}`);
-      } catch (saveError) {
-        logger.warn('Failed to cache AI documentation', saveError);
-      }
+      logger.info(`AI documentation generated for ${enhancedDoc.procedureName}`);
     }
 
     res.json(enhancedDoc);
@@ -318,13 +341,22 @@ router.get('/ai-enhance/:roleId/:permissionId', async (req, res) => {
 // Refresh schema for a specific permission
 router.post('/refresh-schema/:roleId/:permissionId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId');
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
-    const permission = role.permissions.id(req.params.permissionId);
+    const permission = role.permissions.find(p => p.id === req.params.permissionId);
     if (!permission) {
       return res
         .status(404)
@@ -332,17 +364,22 @@ router.post('/refresh-schema/:roleId/:permissionId', async (req, res) => {
     }
 
     // Connect to database and get fresh schema
-    const schema = await fetchSchemaFromDatabase(permission.serviceId, permission.objectName);
+    const schema = await fetchSchemaFromDatabase(permission.service, permission.objectName);
 
     // Update stored schema in both fields for backward compatibility
     const schemaWithTimestamp = {
       lastUpdated: new Date(),
       ...schema,
     };
-    permission.procedureSchema = schemaWithTimestamp;
-    permission.schema = schemaWithTimestamp; // Keep for backward compatibility
 
-    await role.save();
+    // Update the permission using Prisma
+    await prisma.permission.update({
+      where: { id: permission.id },
+      data: {
+        procedureSchema: schemaWithTimestamp,
+        schema: schemaWithTimestamp,
+      },
+    });
 
     res.json({
       message: 'Schema refreshed successfully',
@@ -357,7 +394,16 @@ router.post('/refresh-schema/:roleId/:permissionId', async (req, res) => {
 // Refresh all schemas for a role
 router.post('/refresh-schemas/:roleId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId');
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
@@ -370,7 +416,6 @@ router.post('/refresh-schemas/:roleId', async (req, res) => {
 
     const startTime = Date.now();
     await refreshSchemasByService(role.permissions);
-    await role.save();
 
     logger.info('Bulk schema refresh completed', {
       roleId: req.params.roleId,
@@ -393,11 +438,11 @@ router.post('/refresh-schemas/:roleId', async (req, res) => {
 
 async function refreshSchemasByService(permissions) {
   const serviceGroups = permissions.reduce((acc, perm) => {
-    if (!perm.serviceId) return acc;
-    const key = `${perm.serviceId._id}`;
+    if (!perm.service) return acc;
+    const key = `${perm.service.id}`;
     if (!acc[key]) {
       acc[key] = {
-        service: perm.serviceId,
+        service: perm.service,
         permissions: [],
       };
     }
@@ -436,8 +481,15 @@ async function refreshSchemasByService(permissions) {
               lastUpdated: new Date(),
               ...schema,
             };
-            perm.procedureSchema = schemaWithTimestamp;
-            perm.schema = schemaWithTimestamp; // Keep for backward compatibility
+
+            // Update permission using Prisma
+            await prisma.permission.update({
+              where: { id: perm.id },
+              data: {
+                procedureSchema: schemaWithTimestamp,
+                schema: schemaWithTimestamp,
+              },
+            });
           }
         } catch (error) {
           logger.error('Failed to refresh schema', {
@@ -461,23 +513,32 @@ async function refreshSchemasByService(permissions) {
 // Generate OpenAPI 3.0 specification for a role
 router.get('/openapi/:roleId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
     const endpoints = role.permissions
-      .filter(p => p.serviceId)
+      .filter(p => p.service)
       .map(perm => {
         const allowedMethods = Object.entries(perm.actions || {})
           .filter(([_, allowed]) => allowed)
           .map(([method]) => method);
 
         return {
-          path: `/api/services/${perm.serviceId.name}/${perm.objectName}`,
+          path: `/api/services/${perm.service.name}/${perm.objectName}`,
           methods: allowedMethods,
-          service: perm.serviceId.name,
+          service: perm.service.name,
           objectName: perm.objectName,
           parameters: perm.procedureSchema?.parameters || [],
           procedureInfo: perm.procedureSchema?.procedure || null,
@@ -495,23 +556,32 @@ router.get('/openapi/:roleId', async (req, res) => {
 // Generate Postman collection for a role
 router.get('/postman/:roleId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
     const endpoints = role.permissions
-      .filter(p => p.serviceId)
+      .filter(p => p.service)
       .map(perm => {
         const allowedMethods = Object.entries(perm.actions || {})
           .filter(([_, allowed]) => allowed)
           .map(([method]) => method);
 
         return {
-          path: `/api/services/${perm.serviceId.name}/${perm.objectName}`,
+          path: `/api/services/${perm.service.name}/${perm.objectName}`,
           methods: allowedMethods,
-          service: perm.serviceId.name,
+          service: perm.service.name,
           objectName: perm.objectName,
           parameters: perm.procedureSchema?.parameters || [],
         };
@@ -528,7 +598,16 @@ router.get('/postman/:roleId', async (req, res) => {
 // Generate comprehensive documentation with AI enhancement
 router.get('/comprehensive/:roleId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
@@ -536,16 +615,16 @@ router.get('/comprehensive/:roleId', async (req, res) => {
 
     // Get basic endpoint information
     const endpoints = role.permissions
-      .filter(p => p.serviceId)
+      .filter(p => p.service)
       .map(perm => {
         const allowedMethods = Object.entries(perm.actions || {})
           .filter(([_, allowed]) => allowed)
           .map(([method]) => method);
 
         return {
-          path: `/api/services/${perm.serviceId.name}/${perm.objectName}`,
+          path: `/api/services/${perm.service.name}/${perm.objectName}`,
           methods: allowedMethods,
-          service: perm.serviceId.name,
+          service: perm.service.name,
           objectName: perm.objectName,
           parameters: perm.procedureSchema?.parameters || [],
           procedureInfo: perm.procedureSchema?.procedure || null,
@@ -569,24 +648,10 @@ router.get('/comprehensive/:roleId', async (req, res) => {
     // If AI Documentation Service is available, enhance with AI-generated docs
     let aiDocumentation = null;
     try {
-      const AIDocumentationService = require('../services/AIDocumentationService');
-      const aiService = new AIDocumentationService();
-
-      // Create a selection object for AI processing
-      const selection = {
-        selectionName: `${role.name}_API_Documentation`,
-        description: `API documentation for role: ${role.name}`,
-        selectedTables: [],
-        selectedViews: [],
-        selectedProcedures: endpoints.map(e => ({ procedureName: e.objectName })),
-      };
-
-      aiDocumentation = await aiService.generateSelectiveDocumentation(selection, {
-        includeEntityOverview: true,
-        includeBusinessContext: true,
-        includeUsageExamples: true,
-        generateMarkdown: true,
-      });
+      // AI Documentation Service has been deprecated
+      // It relied on template20 intelligence which is no longer available
+      // Use OpenAI SDK for AI-powered documentation generation instead
+      logger.info('AI Documentation Service is deprecated - skipping AI documentation generation');
     } catch (aiError) {
       logger.warn(
         'AI documentation enhancement failed, continuing with basic docs',
@@ -596,7 +661,7 @@ router.get('/comprehensive/:roleId', async (req, res) => {
 
     const comprehensiveDoc = {
       role: {
-        id: role._id,
+        id: role.id,
         name: role.name,
         description: role.description,
         createdAt: role.createdAt,
@@ -610,8 +675,8 @@ router.get('/comprehensive/:roleId', async (req, res) => {
         totalProcedures: endpoints.length,
       },
       apiSpecs: {
-        openapi: `/api/documentation/openapi/${role._id}`,
-        postman: `/api/documentation/postman/${role._id}`,
+        openapi: `/api/documentation/openapi/${role.id}`,
+        postman: `/api/documentation/postman/${role.id}`,
       },
       aiEnhancement: aiDocumentation
         ? {
@@ -824,7 +889,7 @@ function generatePostmanCollection(role, endpoints) {
 
 // Helper functions for inline examples
 function generateCurlExample(permission, method) {
-  const endpoint = `https://mirabelconnect.mirabeltechnologies.com/api/v2/${permission.serviceId.name}${permission.objectName}`;
+  const endpoint = `https://mirabelconnect.mirabeltechnologies.com/api/v2/${permission.service.name}${permission.objectName}`;
   let curlCommand = `curl -X ${method} "${endpoint}" \\
   -H "X-API-Key: YOUR_API_KEY"`;
 
@@ -845,7 +910,7 @@ function generateCurlExample(permission, method) {
 }
 
 function generateJavaScriptExample(permission, method) {
-  const endpoint = `https://mirabelconnect.mirabeltechnologies.com/api/v2/${permission.serviceId.name}${permission.objectName}`;
+  const endpoint = `https://mirabelconnect.mirabeltechnologies.com/api/v2/${permission.service.name}${permission.objectName}`;
   let jsExample = `const response = await fetch('${endpoint}', {
   method: '${method}',
   headers: {
@@ -883,7 +948,16 @@ console.log(data);`;
 // Generate PDF documentation for client sharing
 router.get('/pdf/:roleId', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
@@ -913,7 +987,16 @@ router.get('/pdf/:roleId', async (req, res) => {
 // Generate branded PDF with custom styling
 router.post('/pdf/:roleId/custom', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
@@ -951,13 +1034,22 @@ router.post('/pdf/:roleId/custom', async (req, res) => {
 // Get PDF generation preview/info
 router.get('/pdf/:roleId/info', async (req, res) => {
   try {
-    const role = await Role.findById(req.params.roleId).populate('permissions.serviceId').lean();
+    const role = await prisma.role.findUnique({
+      where: { id: req.params.roleId },
+      include: {
+        permissions: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
 
     if (!role) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
-    const validPermissions = role.permissions.filter(p => p.serviceId);
+    const validPermissions = role.permissions.filter(p => p.service);
     const estimatedPages = 2 + validPermissions.length; // Cover + TOC + one page per endpoint
 
     const pdfInfo = {
@@ -966,15 +1058,15 @@ router.get('/pdf/:roleId/info', async (req, res) => {
         description: role.description,
       },
       endpoints: validPermissions.length,
-      services: [...new Set(validPermissions.map(p => p.serviceId.name))],
+      services: [...new Set(validPermissions.map(p => p.service.name))],
       estimatedPages,
       downloadLinks: {
-        standard: `/api/documentation/pdf/${role._id}`,
-        withExamples: `/api/documentation/pdf/${role._id}?examples=true`,
-        withoutSchemas: `/api/documentation/pdf/${role._id}?schemas=false`,
+        standard: `/api/documentation/pdf/${role.id}`,
+        withExamples: `/api/documentation/pdf/${role.id}?examples=true`,
+        withoutSchemas: `/api/documentation/pdf/${role.id}?schemas=false`,
         custom: {
           method: 'POST',
-          url: `/api/documentation/pdf/${role._id}/custom`,
+          url: `/api/documentation/pdf/${role.id}/custom`,
           bodyExample: {
             clientName: 'Example Client',
             includeExamples: true,
@@ -1012,7 +1104,7 @@ router.get('/pdf/:roleId/info', async (req, res) => {
 
 // Helper function to generate usage examples
 function generateUsageExamples(permission, role) {
-  const serviceName = permission.serviceId.name;
+  const serviceName = permission.service.name;
   const objectName = permission.objectName;
   const allowedMethods = Object.entries(permission.actions || {})
     .filter(([_, allowed]) => allowed)
@@ -1156,7 +1248,7 @@ async function generateAIEnhancedDocumentation(permission, forceRefresh = false)
 
   try {
     const procedureName = permission.objectName.replace(/^.*\//, '');
-    const serviceName = permission.serviceId.name;
+    const serviceName = permission.service.name;
 
     // Generate hash of current schema to detect changes
     const crypto = require('crypto');
@@ -1424,7 +1516,7 @@ function generateBasicDocumentation(permission) {
 
   return {
     summary: `Execute ${procedureName} stored procedure`,
-    description: `Executes the ${procedureName} stored procedure on ${permission.serviceId.name} service`,
+    description: `Executes the ${procedureName} stored procedure on ${permission.service.name} service`,
     responseSchema: {
       type: 'object',
       properties: {
@@ -1599,7 +1691,7 @@ function generatePDFContent(doc, role, options) {
 
   currentY += 40;
 
-  const validPermissions = role.permissions.filter(p => p.serviceId);
+  const validPermissions = role.permissions.filter(p => p.service);
 
   doc.fontSize(12).fillColor('#333333');
 
@@ -1626,7 +1718,7 @@ function generatePDFContent(doc, role, options) {
     .text(`Description: ${role.description || 'No description provided'}`, 50, currentY + 20)
     .text(`Total Endpoints: ${validPermissions.length}`, 50, currentY + 40)
     .text(
-      `Services: ${[...new Set(validPermissions.map(p => p.serviceId.name))].join(', ')}`,
+      `Services: ${[...new Set(validPermissions.map(p => p.service.name))].join(', ')}`,
       50,
       currentY + 60
     );
@@ -1680,9 +1772,9 @@ function generatePDFContent(doc, role, options) {
     doc
       .fontSize(12)
       .fillColor('#333333')
-      .text(`Service: ${perm.serviceId.name}`, 50, currentY)
+      .text(`Service: ${perm.service.name}`, 50, currentY)
       .text(`Methods: ${allowedMethods.join(', ')}`, 50, currentY + 20)
-      .text(`Path: ${perm.serviceId.name}${perm.objectName}`, 50, currentY + 40);
+      .text(`Path: ${perm.service.name}${perm.objectName}`, 50, currentY + 40);
 
     currentY += 80;
 
@@ -1691,7 +1783,7 @@ function generatePDFContent(doc, role, options) {
       .fontSize(10)
       .fillColor('#666666')
       .text(
-        `Full URL: https://mirabelconnect.mirabeltechnologies.com/api/v2/${perm.serviceId.name}${perm.objectName}`,
+        `Full URL: https://mirabelconnect.mirabeltechnologies.com/api/v2/${perm.service.name}${perm.objectName}`,
         50,
         currentY
       );
@@ -1779,7 +1871,7 @@ function generatePDFContent(doc, role, options) {
           metadata: {
             executionTime: '45ms',
             recordCount: 1,
-            service: perm.serviceId.name,
+            service: perm.service.name,
             procedure: procedureName,
           },
         },
@@ -1808,3 +1900,5 @@ function generatePDFContent(doc, role, options) {
 }
 
 module.exports = router;
+// Also export generator for internal use (e.g., SDK tooling)
+module.exports.generateOpenAPISpec = generateOpenAPISpec;

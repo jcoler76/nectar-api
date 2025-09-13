@@ -15,7 +15,7 @@ const {
   executeGraphQLMutation,
   executeGraphQLQuery,
   createGraphQLContext,
-  handleGraphQLError
+  handleGraphQLError,
 } = require('../utils/routeHelpers');
 const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
@@ -31,26 +31,26 @@ router.get('/:id', createGetHandler(USER_QUERIES.GET_BY_ID, 'user'));
 router.post('/', validate(validationRules.user.create), async (req, res) => {
   const { email, firstName, lastName, password, isAdmin, isActive } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     USER_QUERIES.CREATE,
-    { 
+    {
       input: {
         email,
         firstName,
         lastName,
         password,
         isAdmin: isAdmin || false,
-        isActive: isActive !== false
-      }
+        isActive: isActive !== false,
+      },
     },
     context,
     'create user'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.status(201).json(result.createUser);
 });
 
@@ -59,26 +59,26 @@ router.put('/:id', validate(validationRules.user.update), async (req, res) => {
   const { id } = req.params;
   const { email, firstName, lastName, isAdmin, isActive } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const result = await executeGraphQLMutation(
     res,
     USER_QUERIES.UPDATE,
-    { 
+    {
       id,
       input: {
         email,
         firstName,
         lastName,
         isAdmin,
-        isActive
-      }
+        isActive,
+      },
     },
     context,
     'update user'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.updateUser);
 });
 
@@ -90,7 +90,7 @@ router.put('/:id/profile', async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, email } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const UPDATE_PROFILE = `
     mutation UpdateUserProfile($id: ID!, $input: UpdateUserInput!) {
       updateUser(id: $id, input: $input) {
@@ -103,20 +103,20 @@ router.put('/:id/profile', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLMutation(
     res,
     UPDATE_PROFILE,
-    { 
+    {
       id,
-      input: { firstName, lastName, email }
+      input: { firstName, lastName, email },
     },
     context,
     'update user profile'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.updateUser);
 });
 
@@ -125,7 +125,7 @@ router.put('/:id/password', async (req, res) => {
   const { id } = req.params;
   const { currentPassword, newPassword } = req.body;
   const context = createGraphQLContext(req);
-  
+
   const CHANGE_PASSWORD = `
     mutation ChangeUserPassword($id: ID!, $currentPassword: String!, $newPassword: String!) {
       changeUserPassword(id: $id, currentPassword: $currentPassword, newPassword: $newPassword) {
@@ -134,7 +134,7 @@ router.put('/:id/password', async (req, res) => {
       }
     }
   `;
-  
+
   const result = await executeGraphQLMutation(
     res,
     CHANGE_PASSWORD,
@@ -142,9 +142,9 @@ router.put('/:id/password', async (req, res) => {
     context,
     'change user password'
   );
-  
+
   if (!result) return; // Error already handled
-  
+
   res.json(result.changeUserPassword);
 });
 
@@ -152,47 +152,47 @@ router.put('/:id/password', async (req, res) => {
 router.post('/batch', async (req, res) => {
   const { operation, ids } = req.body;
   const context = createGraphQLContext(req);
-  
+
   if (!['activate', 'deactivate', 'delete'].includes(operation)) {
     return res.status(400).json({
       success: false,
-      message: 'Invalid batch operation. Allowed: activate, deactivate, delete'
+      message: 'Invalid batch operation. Allowed: activate, deactivate, delete',
     });
   }
-  
+
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({
       success: false,
-      message: 'IDs array is required for batch operations'
+      message: 'IDs array is required for batch operations',
     });
   }
-  
+
   const results = [];
   const errors = [];
-  
+
   for (const id of ids) {
     try {
       let result;
-      
+
       switch (operation) {
         case 'activate':
         case 'deactivate':
           result = await executeGraphQLMutation(
             null, // Don't send response yet
             USER_QUERIES.UPDATE,
-            { 
+            {
               id,
-              input: { isActive: operation === 'activate' }
+              input: { isActive: operation === 'activate' },
             },
             context,
             `batch ${operation}`
           );
           results.push({ id, success: true, data: result?.updateUser });
           break;
-          
+
         case 'delete':
           result = await executeGraphQLMutation(
-            null, // Don't send response yet  
+            null, // Don't send response yet
             USER_QUERIES.DELETE,
             { id },
             context,
@@ -205,7 +205,7 @@ router.post('/batch', async (req, res) => {
       errors.push({ id, error: error.message });
     }
   }
-  
+
   res.json({
     success: errors.length === 0,
     operation,
@@ -213,7 +213,7 @@ router.post('/batch', async (req, res) => {
     successful: results.filter(r => r.success).length,
     failed: errors.length,
     results,
-    errors
+    errors,
   });
 });
 
