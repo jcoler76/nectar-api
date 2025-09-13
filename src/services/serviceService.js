@@ -70,9 +70,11 @@ export const getService = async id => {
   }
 };
 
-export const deleteService = async id => {
+export const deleteService = async (id, force = false) => {
   try {
-    const response = await api.delete(`/api/services/${id}`);
+    const response = await api.delete(`/api/services/${id}`, {
+      params: { force },
+    });
     return {
       ...response.data,
       success: true,
@@ -86,6 +88,27 @@ export const deleteService = async id => {
         deletedId: id,
       };
     }
+
+    // Check if error is due to dependencies (409 status or message contains dependent records)
+    if (
+      error.response?.status === 409 ||
+      error.response?.data?.message?.includes('dependent records')
+    ) {
+      // Extract dependency information from error message
+      const match = error.response.data.message.match(/\(([^)]+)\)/);
+      const dependencies = match ? match[1] : 'dependent records';
+
+      const result = {
+        success: false,
+        hasDependencies: true,
+        dependencies,
+        message: error.response.data.message,
+        error: error.response.data.message,
+      };
+
+      return result;
+    }
+
     // Only log errors in development environment
     if (process.env.NODE_ENV === 'development') {
       console.error('Delete operation failed:', {

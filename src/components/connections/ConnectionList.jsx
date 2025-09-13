@@ -6,6 +6,7 @@ import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnectionOperations } from '../../hooks/useConnectionOperations';
 import { useFormDialog } from '../../hooks/useFormDialog';
 import ConfirmDialog from '../common/ConfirmDialog';
+import DependencyWarningDialog from '../common/DependencyWarningDialog';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -21,6 +22,15 @@ const ConnectionList = () => {
     connection: null,
     message: '',
     dependentServices: [],
+  });
+
+  // State for deletion dependency warning
+  const [deleteDependencyWarning, setDeleteDependencyWarning] = useState({
+    open: false,
+    connectionId: null,
+    connectionName: '',
+    dependencies: '',
+    serviceNames: '',
   });
 
   const {
@@ -45,7 +55,7 @@ const ConnectionList = () => {
     handleClose,
   } = useFormDialog();
 
-  const { confirmState, openConfirm, closeConfirm, handleConfirm } = useConfirmDialog();
+  const { confirmState, openConfirm, closeConfirm } = useConfirmDialog();
 
   useEffect(() => {
     fetchConnections();
@@ -200,12 +210,31 @@ const ConnectionList = () => {
             icon: Trash2,
             tooltip:
               'Permanently remove this connection - this will break any services that depend on it',
-            onClick: connection =>
-              openConfirm(connection.id, {
-                title: 'Delete Connection',
-                message:
-                  'Are you sure you want to delete this connection? This action cannot be undone.',
-              }),
+            onClick: async connection => {
+              // Try to delete first to check for dependencies
+              const result = await handleDelete(connection.id || connection._id);
+
+              if (result && result.hasDependencies) {
+                // Show dependency warning dialog directly
+                setDeleteDependencyWarning({
+                  open: true,
+                  connectionId: connection.id || connection._id,
+                  connectionName: connection.name,
+                  dependencies: result.dependencies,
+                  serviceNames: result.serviceNames,
+                });
+              } else if (result && result.success) {
+                // Connection deleted successfully (no dependencies)
+                // Nothing more to do, handleDelete already handled the UI updates
+              } else {
+                // Show regular confirmation for connections without dependencies
+                openConfirm(connection, {
+                  title: 'Delete Connection',
+                  message:
+                    'Are you sure you want to delete this connection? This action cannot be undone.',
+                });
+              }
+            },
             destructive: true,
           },
         ],
@@ -216,6 +245,7 @@ const ConnectionList = () => {
       handleToggleActive,
       handleRefreshDatabases,
       handleEdit,
+      handleDelete,
       openConfirm,
       operationInProgress,
     ]
@@ -336,8 +366,35 @@ const ConnectionList = () => {
         open={confirmState.open}
         title={confirmState.title}
         message={confirmState.message}
-        onConfirm={() => handleConfirm(handleDelete)}
+        onConfirm={async () => {
+          const connection = confirmState.itemId; // This is the full connection object
+          const result = await handleDelete(connection.id || connection._id);
+
+          if (result && result.success) {
+            closeConfirm();
+          }
+        }}
         onCancel={closeConfirm}
+      />
+
+      {/* Deletion Dependency Warning Dialog */}
+      <DependencyWarningDialog
+        open={deleteDependencyWarning.open}
+        onClose={() => setDeleteDependencyWarning({ ...deleteDependencyWarning, open: false })}
+        onConfirm={async () => {
+          const result = await handleDelete(deleteDependencyWarning.connectionId, true);
+          if (!result.success) {
+            throw new Error(result.error || 'Failed to delete connection');
+          }
+        }}
+        resourceType="connection"
+        resourceName={deleteDependencyWarning.connectionName}
+        dependencies={deleteDependencyWarning.dependencies}
+        additionalWarning={
+          deleteDependencyWarning.serviceNames
+            ? `Services to be deleted: ${deleteDependencyWarning.serviceNames}`
+            : 'All associated services and endpoints will be permanently deleted.'
+        }
       />
     </div>
   );

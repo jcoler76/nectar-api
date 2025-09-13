@@ -53,18 +53,22 @@ class SalesforceService {
   }
 
   async createRecord(object, data) {
+    this._validateSObjectName(object);
     const url = `/sobjects/${encodeURIComponent(object)}`;
     const res = await this.client.post(url, data);
     return this._handleResponse(res, 'createRecord');
   }
 
   async updateRecord(object, id, data) {
+    this._validateSObjectName(object);
     const url = `/sobjects/${encodeURIComponent(object)}/${encodeURIComponent(id)}`;
     const res = await this.client.patch(url, data);
     return this._handleResponse(res, 'updateRecord');
   }
 
   async upsertRecord(object, externalIdField, externalId, data) {
+    this._validateSObjectName(object);
+    this._validateFieldName(externalIdField);
     const url = `/sobjects/${encodeURIComponent(object)}/${encodeURIComponent(
       externalIdField
     )}/${encodeURIComponent(externalId)}`;
@@ -80,12 +84,23 @@ class SalesforceService {
 
   async findRecord(object, field, value) {
     if (!field) throw new Error('Search field is required');
-    const soql = `SELECT Id FROM ${object} WHERE ${field} = '${value.replace(/'/g, "\\'")}' LIMIT 1`;
+
+    // Validate object name to prevent SOQL injection
+    this._validateSObjectName(object);
+
+    // Validate field name to prevent SOQL injection
+    this._validateFieldName(field);
+
+    // Use proper escaping for the value
+    const escapedValue = this._escapeSoqlValue(value);
+
+    const soql = `SELECT Id FROM ${object} WHERE ${field} = '${escapedValue}' LIMIT 1`;
     const result = await this.querySOQL(soql);
     return result && result.records && result.records[0];
   }
 
   async findOrCreate(object, field, value, createData = {}, externalIdField) {
+    // Validation will be handled by findRecord and createRecord calls
     const found = await this.findRecord(object, field, value);
     if (found) return found;
     if (externalIdField && createData && createData[externalIdField] === undefined) {
@@ -169,6 +184,50 @@ class SalesforceService {
       : res.data?.message || JSON.stringify(res.data);
     logger.error(`Salesforce ${op} failed: ${res.status} ${message}`);
     throw new Error(message || `Salesforce ${op} failed with status ${res.status}`);
+  }
+
+  _validateSObjectName(objectName) {
+    if (!objectName || typeof objectName !== 'string') {
+      throw new Error('Object name must be a non-empty string');
+    }
+
+    // Salesforce object names can only contain alphanumeric characters, underscores, and must start with a letter
+    const validObjectNamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+    if (!validObjectNamePattern.test(objectName)) {
+      throw new Error(`Invalid Salesforce object name: ${objectName}`);
+    }
+
+    // Additional length validation (Salesforce has a 40 character limit for custom object names)
+    if (objectName.length > 40) {
+      throw new Error(`Object name too long: ${objectName}`);
+    }
+  }
+
+  _validateFieldName(fieldName) {
+    if (!fieldName || typeof fieldName !== 'string') {
+      throw new Error('Field name must be a non-empty string');
+    }
+
+    // Salesforce field names can only contain alphanumeric characters, underscores, and must start with a letter
+    const validFieldNamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+    if (!validFieldNamePattern.test(fieldName)) {
+      throw new Error(`Invalid Salesforce field name: ${fieldName}`);
+    }
+
+    // Additional length validation (Salesforce has a 40 character limit for custom field names)
+    if (fieldName.length > 40) {
+      throw new Error(`Field name too long: ${fieldName}`);
+    }
+  }
+
+  _escapeSoqlValue(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    // Convert to string and escape single quotes and backslashes
+    const stringValue = String(value);
+    return stringValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 }
 
