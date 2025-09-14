@@ -581,4 +581,54 @@ router.get('/health', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/auth/oauth/providers
+ * Get available OAuth providers
+ */
+router.get('/oauth/providers', (req, res) => {
+  try {
+    // Check which OAuth providers are configured
+    const providers = [];
+
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      providers.push({
+        name: 'google',
+        displayName: 'Google',
+        loginUrl: '/api/auth/oauth/google',
+      });
+    }
+
+    if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+      providers.push({
+        name: 'github',
+        displayName: 'GitHub',
+        loginUrl: '/api/auth/oauth/github',
+      });
+    }
+
+    if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
+      providers.push({
+        name: 'facebook',
+        displayName: 'Facebook',
+        loginUrl: '/api/auth/oauth/facebook',
+      });
+    }
+
+    res.json({
+      providers,
+      count: providers.length,
+      message:
+        providers.length > 0
+          ? 'OAuth providers configured and ready'
+          : 'No OAuth providers configured. Check environment variables.',
+    });
+  } catch (error) {
+    logger.error('Error getting OAuth providers:', error);
+    res.status(500).json({ error: 'Failed to load OAuth providers' });
+  }
+});
+
+// Mount full OAuth routes (will be available after server restart)
+router.use('/oauth', require('./oauth'));
+
 module.exports = router;

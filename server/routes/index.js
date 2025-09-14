@@ -23,6 +23,7 @@ const mountRoutes = app => {
       '/api/auth/login', // Login needs to work without CSRF
       '/api/auth/register', // Registration needs to work without CSRF
       '/api/auth/refresh', // Token refresh
+      '/api/auth/oauth', // OAuth callbacks
       '/api/v1', // Public API with API key auth
       '/api/v2', // Public API with API key auth
       '/api/webhooks/trigger', // Webhook triggers use signature validation

@@ -162,7 +162,7 @@ const ServiceStep = ({ data, onDataChange, onNext, setError }) => {
             </SelectTrigger>
             <SelectContent>
               {connections.map(connection => (
-                <SelectItem key={connection._id} value={connection._id}>
+                <SelectItem key={connection.id} value={connection.id}>
                   {connection.name}
                 </SelectItem>
               ))}

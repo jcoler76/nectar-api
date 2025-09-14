@@ -11,10 +11,11 @@ import {
   MoreHorizontal,
   Search,
 } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useTransition } from 'react';
 
 // eslint-disable-next-line import/order
 import { cn } from '../../lib/utils';
+import { VirtualizedDataTable } from './VirtualizedDataTable';
 import { Badge } from './badge';
 import { Button } from './button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
@@ -44,11 +45,14 @@ const DataTableComponent = ({
   onRowClick,
   defaultSort = null,
   loading = false,
+  enableVirtualization = false, // New prop to enable virtual scrolling
+  virtualizeThreshold = 100, // Auto-virtualize for datasets larger than this
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState(defaultSort || { key: null, direction: 'asc' });
   const [filters] = useState({});
+  const [isPending, startTransition] = useTransition();
 
   // Filter and search data
   const filteredData = useMemo(() => {
@@ -109,7 +113,7 @@ const DataTableComponent = ({
     });
   }, [filteredData, sortConfig]);
 
-  // Paginate data
+  // Paginate data - always define this hook before any conditional returns
   const paginatedData = useMemo(() => {
     if (!pagination) return sortedData;
 
@@ -117,13 +121,42 @@ const DataTableComponent = ({
     return sortedData.slice(startIndex, startIndex + pageSize);
   }, [sortedData, currentPage, pageSize, pagination]);
 
+  // Check if we should use virtualization
+  const shouldUseVirtualization =
+    enableVirtualization || (sortedData.length >= virtualizeThreshold && !searchQuery);
+
+  // If virtualization is enabled, use the VirtualizedDataTable component
+  if (shouldUseVirtualization) {
+    return (
+      <VirtualizedDataTable
+        data={data}
+        columns={columns}
+        title={title}
+        description={description}
+        headerExtra={headerExtra}
+        searchable={searchable}
+        filterable={filterable}
+        exportable={exportable}
+        pagination={pagination}
+        pageSize={pageSize}
+        className={className}
+        onRowClick={onRowClick}
+        defaultSort={defaultSort}
+        loading={loading}
+        virtualizeThreshold={virtualizeThreshold}
+      />
+    );
+  }
+
   const totalPages = Math.ceil(sortedData.length / pageSize);
 
   const handleSort = key => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
-    }));
+    startTransition(() => {
+      setSortConfig(prev => ({
+        key,
+        direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+      }));
+    });
   };
 
   const getSortIcon = key => {
@@ -308,7 +341,11 @@ const DataTableComponent = ({
                   id="table-search"
                   placeholder="Search..."
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={e => {
+                    startTransition(() => {
+                      setSearchQuery(e.target.value);
+                    });
+                  }}
                   className="pl-8 bg-background/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all duration-200 ease-smooth w-full"
                   aria-describedby="search-results-count"
                 />
@@ -369,7 +406,12 @@ const DataTableComponent = ({
         </div>
 
         {/* Table - Responsive structure */}
-        <div className="data-table-container rounded-lg border bg-gradient-card overflow-x-auto shadow-medium hover:shadow-large transition-shadow duration-300 ease-smooth relative">
+        <div
+          className={cn(
+            'data-table-container rounded-lg border bg-gradient-card overflow-x-auto shadow-medium hover:shadow-large transition-shadow duration-300 ease-smooth relative',
+            isPending && 'opacity-70 pointer-events-none'
+          )}
+        >
           <Table className="w-full" role="table" aria-label={title || 'Data table'}>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/50">

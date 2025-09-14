@@ -260,6 +260,7 @@ const ConnectionList = () => {
         onAdd={() => handleAdd()}
         searchable={true}
         filterable={true}
+        enableVirtualization={true} // Enable virtual scrolling for large connection lists
       >
         {/* Connection Form */}
         <ConnectionForm

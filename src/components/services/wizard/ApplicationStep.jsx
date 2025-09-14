@@ -62,7 +62,7 @@ const ApplicationStep = ({ roleData, data, onDataChange, onComplete, setError })
         const applicationData = {
           name: formData.name,
           description: formData.description,
-          defaultRole: roleData._id,
+          defaultRole: roleData.id,
           isActive: formData.isActive,
         };
 

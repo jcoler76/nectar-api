@@ -1,8 +1,10 @@
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import ApiBuilderWizard from './components/apiBuilder/ApiBuilderWizard';
 import ApplicationForm from './components/applications/ApplicationForm';
 import ApplicationList from './components/applications/ApplicationList';
 import AcceptInvitation from './components/auth/AcceptInvitation';
@@ -12,6 +14,7 @@ import TermsGate from './components/auth/TermsGate';
 import LazyRoute from './components/common/LazyRoute';
 import RateLimitErrorBoundary from './components/common/RateLimitErrorBoundary';
 import EndpointList from './components/endpoints/EndpointList';
+import IntegrationsPanel from './components/integrations/IntegrationsPanel';
 import ModernLayout from './components/layout/ModernLayout';
 import ChatWidget from './components/marketing/ChatWidget';
 import CreateRole from './components/roles/CreateRole';
@@ -80,6 +83,28 @@ const ProtectedRoute = ({ children, requiredPermission }) => {
   return <ProtectedLayout>{children}</ProtectedLayout>;
 };
 
+// Create QueryClient instance with optimized configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      cacheTime: 1000 * 60 * 10, // 10 minutes
+      refetchOnWindowFocus: false,
+      refetchOnMount: 'always',
+      retry: (failureCount, error) => {
+        // Don't retry if it's a 401 (auth issue) or 403 (permission issue)
+        if (error?.response?.status === 401 || error?.response?.status === 403) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
+
 function App() {
   const { user } = useAuth();
   const isAuthenticated = !!user;
@@ -89,312 +114,330 @@ function App() {
   useSessionTimeout();
 
   return (
-    <LocalizationProvider dateAdapter={AdapterMoment}>
-      <BreadcrumbProvider>
-        <SelectionProvider>
-          <NotificationProvider>
-            {/* Marketing chat widget on public marketing pages */}
-            {[
-              '/home',
-              '/pricing',
-              '/free-signup',
-              '/checkout',
-              '/checkout/success',
-              '/contact',
-            ].some(p => location.pathname.startsWith(p)) && <ChatWidget />}
-            <Routes>
-              {/* Marketing Site Routes - Public */}
-              {MarketingRoutes}
+    <QueryClientProvider client={queryClient}>
+      <LocalizationProvider dateAdapter={AdapterMoment}>
+        <BreadcrumbProvider>
+          <SelectionProvider>
+            <NotificationProvider>
+              {/* Marketing chat widget on public marketing pages */}
+              {[
+                '/home',
+                '/pricing',
+                '/free-signup',
+                '/checkout',
+                '/checkout/success',
+                '/contact',
+              ].some(p => location.pathname.startsWith(p)) && <ChatWidget />}
+              <Routes>
+                {/* Marketing Site Routes - Public */}
+                {MarketingRoutes}
 
-              <Route
-                path="/"
-                element={
-                  isAuthenticated ? (
-                    <Navigate to="/dashboard" replace />
-                  ) : (
-                    <Navigate to="/home" replace />
-                  )
-                }
-              />
+                <Route
+                  path="/"
+                  element={
+                    isAuthenticated ? (
+                      <Navigate to="/dashboard" replace />
+                    ) : (
+                      <Navigate to="/home" replace />
+                    )
+                  }
+                />
 
-              <Route
-                path="/login"
-                element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
-              />
+                <Route
+                  path="/login"
+                  element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+                />
 
-              <Route path="/setup-account" element={<SetupAccount />} />
-              <Route path="/verify-email" element={<SetupAccount />} />
-              <Route path="/accept-invitation" element={<AcceptInvitation />} />
+                <Route path="/setup-account" element={<SetupAccount />} />
+                <Route path="/verify-email" element={<SetupAccount />} />
+                <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={Dashboard} routeName="Dashboard" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/connections"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ConnectionList} routeName="Connections" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/services"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ServiceList} routeName="Services" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/services/wizard"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={EndpointWizard} routeName="Endpoint Wizard" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/services/new"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ServiceForm} routeName="New Service" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/services/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ServiceForm} routeName="Edit Service" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/users"
-                element={
-                  <ProtectedRoute>
-                    <UserList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/roles"
-                element={
-                  <ProtectedRoute>
-                    <RoleList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/roles/create"
-                element={
-                  <ProtectedRoute>
-                    <CreateRole mode="create" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/roles/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <RoleEdit />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/applications"
-                element={
-                  <ProtectedRoute>
-                    <ApplicationList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/applications/new"
-                element={
-                  <ProtectedRoute>
-                    <ApplicationForm />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/applications/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <ApplicationForm />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/workflows"
-                element={
-                  <ProtectedRoute>
-                    <WorkflowList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/workflows/edit/:id"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={WorkflowBuilder} routeName="Workflow Builder" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/documentation"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ApiDocViewer} routeName="API Documentation" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports/api-usage"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ApiUsageReport} routeName="API Usage Report" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports/workflow-executions"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute
-                      component={WorkflowExecutionReport}
-                      routeName="Workflow Execution Report"
-                    />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports/activity-logs"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={ActivityLogsReport} routeName="Activity Logs Report" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/endpoints"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <EndpointList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/user-settings"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={UserSettings} routeName="User Settings" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/billing"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={BillingPage} routeName="Billing" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/team/:organizationId"
-                element={
-                  <ProtectedRoute>
-                    <LazyRoute component={TeamManagement} routeName="Team Management" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-settings"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <LazyRoute component={AdminSettings} routeName="Admin Settings" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/terms"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <LazyRoute component={TermsManagement} routeName="Terms Management" />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/rate-limits"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <RateLimitErrorBoundary>
-                      <Suspense fallback={<div>Loading rate limits...</div>}>
-                        <RateLimitList />
-                      </Suspense>
-                    </RateLimitErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/rate-limits/monitor"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <RateLimitErrorBoundary>
-                      <Suspense fallback={<div>Loading rate limit monitor...</div>}>
-                        <RateLimitMonitor />
-                      </Suspense>
-                    </RateLimitErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/rate-limits/analytics"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <RateLimitErrorBoundary>
-                      <Suspense fallback={<div>Loading rate limit analytics...</div>}>
-                        <RateLimitAnalytics />
-                      </Suspense>
-                    </RateLimitErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/rate-limits/create"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <RateLimitErrorBoundary>
-                      <Suspense fallback={<div>Loading rate limit form...</div>}>
-                        <RateLimitForm />
-                      </Suspense>
-                    </RateLimitErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/rate-limits/:id/edit"
-                element={
-                  <ProtectedRoute requiredPermission="isAdmin">
-                    <RateLimitErrorBoundary>
-                      <Suspense fallback={<div>Loading rate limit form...</div>}>
-                        <RateLimitForm />
-                      </Suspense>
-                    </RateLimitErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </NotificationProvider>
-        </SelectionProvider>
-      </BreadcrumbProvider>
-    </LocalizationProvider>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={Dashboard} routeName="Dashboard" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/connections"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ConnectionList} routeName="Connections" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/services"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ServiceList} routeName="Services" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/services/wizard"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={EndpointWizard} routeName="Endpoint Wizard" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/services/new"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ServiceForm} routeName="New Service" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/services/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ServiceForm} routeName="Edit Service" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/api-builder"
+                  element={
+                    <ProtectedRoute requiredPermission="canManageServices">
+                      <ApiBuilderWizard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <ProtectedRoute>
+                      <UserList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/integrations"
+                  element={
+                    <ProtectedRoute>
+                      <IntegrationsPanel />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/roles"
+                  element={
+                    <ProtectedRoute>
+                      <RoleList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/roles/create"
+                  element={
+                    <ProtectedRoute>
+                      <CreateRole mode="create" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/roles/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <RoleEdit />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/applications"
+                  element={
+                    <ProtectedRoute>
+                      <ApplicationList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/applications/new"
+                  element={
+                    <ProtectedRoute>
+                      <ApplicationForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/applications/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ApplicationForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workflows"
+                  element={
+                    <ProtectedRoute>
+                      <WorkflowList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workflows/edit/:id"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={WorkflowBuilder} routeName="Workflow Builder" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/documentation"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ApiDocViewer} routeName="API Documentation" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports/api-usage"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ApiUsageReport} routeName="API Usage Report" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports/workflow-executions"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute
+                        component={WorkflowExecutionReport}
+                        routeName="Workflow Execution Report"
+                      />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports/activity-logs"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ActivityLogsReport} routeName="Activity Logs Report" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/endpoints"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <EndpointList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/user-settings"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={UserSettings} routeName="User Settings" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/billing"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={BillingPage} routeName="Billing" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/team/:organizationId"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={TeamManagement} routeName="Team Management" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-settings"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <LazyRoute component={AdminSettings} routeName="Admin Settings" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/terms"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <LazyRoute component={TermsManagement} routeName="Terms Management" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rate-limits"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <RateLimitErrorBoundary>
+                        <Suspense fallback={<div>Loading rate limits...</div>}>
+                          <RateLimitList />
+                        </Suspense>
+                      </RateLimitErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rate-limits/monitor"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <RateLimitErrorBoundary>
+                        <Suspense fallback={<div>Loading rate limit monitor...</div>}>
+                          <RateLimitMonitor />
+                        </Suspense>
+                      </RateLimitErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rate-limits/analytics"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <RateLimitErrorBoundary>
+                        <Suspense fallback={<div>Loading rate limit analytics...</div>}>
+                          <RateLimitAnalytics />
+                        </Suspense>
+                      </RateLimitErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rate-limits/create"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <RateLimitErrorBoundary>
+                        <Suspense fallback={<div>Loading rate limit form...</div>}>
+                          <RateLimitForm />
+                        </Suspense>
+                      </RateLimitErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rate-limits/:id/edit"
+                  element={
+                    <ProtectedRoute requiredPermission="isAdmin">
+                      <RateLimitErrorBoundary>
+                        <Suspense fallback={<div>Loading rate limit form...</div>}>
+                          <RateLimitForm />
+                        </Suspense>
+                      </RateLimitErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </NotificationProvider>
+          </SelectionProvider>
+        </BreadcrumbProvider>
+      </LocalizationProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -31,6 +31,25 @@ const configureApp = () => {
   app.use(express.json());
   app.use(require('cookie-parser')());
 
+  // Session middleware for Passport OAuth
+  const session = require('express-session');
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'fallback-secret-for-development',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      },
+    })
+  );
+
+  // Initialize Passport for OAuth
+  const { passport } = require('./config/passport');
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   // Add request logging middleware (development only)
   app.use((req, res, next) => {
     if (process.env.NODE_ENV === 'development') {

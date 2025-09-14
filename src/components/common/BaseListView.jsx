@@ -39,6 +39,7 @@ const BaseListViewComponent = ({
   children,
   customActions = [],
   emptyState,
+  enableVirtualization = false, // Enable virtual scrolling for large datasets
   ...tableProps
 }) => {
   const { exportToCsv } = useCsvExport();
@@ -151,6 +152,7 @@ const BaseListViewComponent = ({
           filterable={true}
           exportable={false} // We handle export in header
           loading={loading}
+          enableVirtualization={enableVirtualization}
           {...tableProps}
         />
       )}

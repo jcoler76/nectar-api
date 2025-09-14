@@ -79,6 +79,7 @@ model User {
   workflowsCreated           Workflow[]
   rateLimitCreated           RateLimitConfig[] @relation("RateLimitCreator")
   rateLimitUpdated           RateLimitConfig[] @relation("RateLimitUpdater")
+  socialAccounts             SocialAccount[]
 
   @@index([email])
   @@index([createdAt])
@@ -744,6 +745,28 @@ enum NotificationPriority {
   HIGH
   MEDIUM
   LOW
+}
+
+model SocialAccount {
+  id           String   @id @default(uuid())
+  userId       String
+  provider     String   // 'google', 'github', 'facebook', etc.
+  providerId   String   // The user's ID from the OAuth provider
+  email        String?
+  name         String?
+  profileUrl   String?
+  avatarUrl    String?
+  accessToken  String?
+  refreshToken String?
+  profileData  String?  // JSON string of full profile data
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
 }
 
 enum AcceptanceMethod {

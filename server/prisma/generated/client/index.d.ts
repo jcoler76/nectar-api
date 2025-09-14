@@ -157,6 +157,11 @@ export type RateLimitConfig = $Result.DefaultSelection<Prisma.$RateLimitConfigPa
  *
  */
 export type RateLimitUsage = $Result.DefaultSelection<Prisma.$RateLimitUsagePayload>;
+/**
+ * Model SocialAccount
+ *
+ */
+export type SocialAccount = $Result.DefaultSelection<Prisma.$SocialAccountPayload>;
 
 /**
  * Enums
@@ -779,6 +784,16 @@ export class PrismaClient<
    * ```
    */
   get rateLimitUsage(): Prisma.RateLimitUsageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.socialAccount`: Exposes CRUD operations for the **SocialAccount** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more SocialAccounts
+   * const socialAccounts = await prisma.socialAccount.findMany()
+   * ```
+   */
+  get socialAccount(): Prisma.SocialAccountDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1242,6 +1257,7 @@ export namespace Prisma {
     TermsAcceptance: 'TermsAcceptance';
     RateLimitConfig: 'RateLimitConfig';
     RateLimitUsage: 'RateLimitUsage';
+    SocialAccount: 'SocialAccount';
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -1295,7 +1311,8 @@ export namespace Prisma {
         | 'termsAndConditions'
         | 'termsAcceptance'
         | 'rateLimitConfig'
-        | 'rateLimitUsage';
+        | 'rateLimitUsage'
+        | 'socialAccount';
       txIsolationLevel: Prisma.TransactionIsolationLevel;
     };
     model: {
@@ -3445,6 +3462,80 @@ export namespace Prisma {
           };
         };
       };
+      SocialAccount: {
+        payload: Prisma.$SocialAccountPayload<ExtArgs>;
+        fields: Prisma.SocialAccountFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.SocialAccountFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.SocialAccountFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>;
+          };
+          findFirst: {
+            args: Prisma.SocialAccountFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.SocialAccountFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>;
+          };
+          findMany: {
+            args: Prisma.SocialAccountFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>[];
+          };
+          create: {
+            args: Prisma.SocialAccountCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>;
+          };
+          createMany: {
+            args: Prisma.SocialAccountCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.SocialAccountCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>[];
+          };
+          delete: {
+            args: Prisma.SocialAccountDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>;
+          };
+          update: {
+            args: Prisma.SocialAccountUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>;
+          };
+          deleteMany: {
+            args: Prisma.SocialAccountDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.SocialAccountUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.SocialAccountUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>[];
+          };
+          upsert: {
+            args: Prisma.SocialAccountUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$SocialAccountPayload>;
+          };
+          aggregate: {
+            args: Prisma.SocialAccountAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateSocialAccount>;
+          };
+          groupBy: {
+            args: Prisma.SocialAccountGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<SocialAccountGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.SocialAccountCountArgs<ExtArgs>;
+            result: $Utils.Optional<SocialAccountCountAggregateOutputType> | number;
+          };
+        };
+      };
     };
   } & {
     other: {
@@ -3570,6 +3661,7 @@ export namespace Prisma {
     termsAcceptance?: TermsAcceptanceOmit;
     rateLimitConfig?: RateLimitConfigOmit;
     rateLimitUsage?: RateLimitUsageOmit;
+    socialAccount?: SocialAccountOmit;
   };
 
   /* Types for Logging */
@@ -3906,6 +3998,7 @@ export namespace Prisma {
     workflowsCreated: number;
     rateLimitCreated: number;
     rateLimitUpdated: number;
+    socialAccounts: number;
   };
 
   export type UserCountOutputTypeSelect<
@@ -3927,6 +4020,7 @@ export namespace Prisma {
     workflowsCreated?: boolean | UserCountOutputTypeCountWorkflowsCreatedArgs;
     rateLimitCreated?: boolean | UserCountOutputTypeCountRateLimitCreatedArgs;
     rateLimitUpdated?: boolean | UserCountOutputTypeCountRateLimitUpdatedArgs;
+    socialAccounts?: boolean | UserCountOutputTypeCountSocialAccountsArgs;
   };
 
   // Custom InputTypes
@@ -4084,6 +4178,15 @@ export namespace Prisma {
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     where?: RateLimitConfigWhereInput;
+  };
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSocialAccountsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: SocialAccountWhereInput;
   };
 
   /**
@@ -6799,6 +6902,7 @@ export namespace Prisma {
         workflowsCreated?: boolean | User$workflowsCreatedArgs<ExtArgs>;
         rateLimitCreated?: boolean | User$rateLimitCreatedArgs<ExtArgs>;
         rateLimitUpdated?: boolean | User$rateLimitUpdatedArgs<ExtArgs>;
+        socialAccounts?: boolean | User$socialAccountsArgs<ExtArgs>;
         _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>;
       },
       ExtArgs['result']['user']
@@ -6912,6 +7016,7 @@ export namespace Prisma {
     workflowsCreated?: boolean | User$workflowsCreatedArgs<ExtArgs>;
     rateLimitCreated?: boolean | User$rateLimitCreatedArgs<ExtArgs>;
     rateLimitUpdated?: boolean | User$rateLimitUpdatedArgs<ExtArgs>;
+    socialAccounts?: boolean | User$socialAccountsArgs<ExtArgs>;
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>;
   };
   export type UserIncludeCreateManyAndReturn<
@@ -6940,6 +7045,7 @@ export namespace Prisma {
       workflowsCreated: Prisma.$WorkflowPayload<ExtArgs>[];
       rateLimitCreated: Prisma.$RateLimitConfigPayload<ExtArgs>[];
       rateLimitUpdated: Prisma.$RateLimitConfigPayload<ExtArgs>[];
+      socialAccounts: Prisma.$SocialAccountPayload<ExtArgs>[];
     };
     scalars: $Extensions.GetPayloadResult<
       {
@@ -7529,6 +7635,12 @@ export namespace Prisma {
       args?: Subset<T, User$rateLimitUpdatedArgs<ExtArgs>>
     ): Prisma.PrismaPromise<
       | $Result.GetResult<Prisma.$RateLimitConfigPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    socialAccounts<T extends User$socialAccountsArgs<ExtArgs> = {}>(
+      args?: Subset<T, User$socialAccountsArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
       | Null
     >;
     /**
@@ -8400,6 +8512,32 @@ export namespace Prisma {
     take?: number;
     skip?: number;
     distinct?: RateLimitConfigScalarFieldEnum | RateLimitConfigScalarFieldEnum[];
+  };
+
+  /**
+   * User.socialAccounts
+   */
+  export type User$socialAccountsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    where?: SocialAccountWhereInput;
+    orderBy?: SocialAccountOrderByWithRelationInput | SocialAccountOrderByWithRelationInput[];
+    cursor?: SocialAccountWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: SocialAccountScalarFieldEnum | SocialAccountScalarFieldEnum[];
   };
 
   /**
@@ -46087,6 +46225,1360 @@ export namespace Prisma {
   };
 
   /**
+   * Model SocialAccount
+   */
+
+  export type AggregateSocialAccount = {
+    _count: SocialAccountCountAggregateOutputType | null;
+    _min: SocialAccountMinAggregateOutputType | null;
+    _max: SocialAccountMaxAggregateOutputType | null;
+  };
+
+  export type SocialAccountMinAggregateOutputType = {
+    id: string | null;
+    userId: string | null;
+    provider: string | null;
+    providerId: string | null;
+    email: string | null;
+    name: string | null;
+    profileUrl: string | null;
+    avatarUrl: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    profileData: string | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
+  };
+
+  export type SocialAccountMaxAggregateOutputType = {
+    id: string | null;
+    userId: string | null;
+    provider: string | null;
+    providerId: string | null;
+    email: string | null;
+    name: string | null;
+    profileUrl: string | null;
+    avatarUrl: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    profileData: string | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
+  };
+
+  export type SocialAccountCountAggregateOutputType = {
+    id: number;
+    userId: number;
+    provider: number;
+    providerId: number;
+    email: number;
+    name: number;
+    profileUrl: number;
+    avatarUrl: number;
+    accessToken: number;
+    refreshToken: number;
+    profileData: number;
+    createdAt: number;
+    updatedAt: number;
+    _all: number;
+  };
+
+  export type SocialAccountMinAggregateInputType = {
+    id?: true;
+    userId?: true;
+    provider?: true;
+    providerId?: true;
+    email?: true;
+    name?: true;
+    profileUrl?: true;
+    avatarUrl?: true;
+    accessToken?: true;
+    refreshToken?: true;
+    profileData?: true;
+    createdAt?: true;
+    updatedAt?: true;
+  };
+
+  export type SocialAccountMaxAggregateInputType = {
+    id?: true;
+    userId?: true;
+    provider?: true;
+    providerId?: true;
+    email?: true;
+    name?: true;
+    profileUrl?: true;
+    avatarUrl?: true;
+    accessToken?: true;
+    refreshToken?: true;
+    profileData?: true;
+    createdAt?: true;
+    updatedAt?: true;
+  };
+
+  export type SocialAccountCountAggregateInputType = {
+    id?: true;
+    userId?: true;
+    provider?: true;
+    providerId?: true;
+    email?: true;
+    name?: true;
+    profileUrl?: true;
+    avatarUrl?: true;
+    accessToken?: true;
+    refreshToken?: true;
+    profileData?: true;
+    createdAt?: true;
+    updatedAt?: true;
+    _all?: true;
+  };
+
+  export type SocialAccountAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which SocialAccount to aggregate.
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of SocialAccounts to fetch.
+     */
+    orderBy?: SocialAccountOrderByWithRelationInput | SocialAccountOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: SocialAccountWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` SocialAccounts from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` SocialAccounts.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned SocialAccounts
+     **/
+    _count?: true | SocialAccountCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: SocialAccountMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: SocialAccountMaxAggregateInputType;
+  };
+
+  export type GetSocialAccountAggregateType<T extends SocialAccountAggregateArgs> = {
+    [P in keyof T & keyof AggregateSocialAccount]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSocialAccount[P]>
+      : GetScalarType<T[P], AggregateSocialAccount[P]>;
+  };
+
+  export type SocialAccountGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: SocialAccountWhereInput;
+    orderBy?: SocialAccountOrderByWithAggregationInput | SocialAccountOrderByWithAggregationInput[];
+    by: SocialAccountScalarFieldEnum[] | SocialAccountScalarFieldEnum;
+    having?: SocialAccountScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: SocialAccountCountAggregateInputType | true;
+    _min?: SocialAccountMinAggregateInputType;
+    _max?: SocialAccountMaxAggregateInputType;
+  };
+
+  export type SocialAccountGroupByOutputType = {
+    id: string;
+    userId: string;
+    provider: string;
+    providerId: string;
+    email: string | null;
+    name: string | null;
+    profileUrl: string | null;
+    avatarUrl: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    profileData: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    _count: SocialAccountCountAggregateOutputType | null;
+    _min: SocialAccountMinAggregateOutputType | null;
+    _max: SocialAccountMaxAggregateOutputType | null;
+  };
+
+  type GetSocialAccountGroupByPayload<T extends SocialAccountGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SocialAccountGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof SocialAccountGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], SocialAccountGroupByOutputType[P]>
+          : GetScalarType<T[P], SocialAccountGroupByOutputType[P]>;
+      }
+    >
+  >;
+
+  export type SocialAccountSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      userId?: boolean;
+      provider?: boolean;
+      providerId?: boolean;
+      email?: boolean;
+      name?: boolean;
+      profileUrl?: boolean;
+      avatarUrl?: boolean;
+      accessToken?: boolean;
+      refreshToken?: boolean;
+      profileData?: boolean;
+      createdAt?: boolean;
+      updatedAt?: boolean;
+      user?: boolean | UserDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['socialAccount']
+  >;
+
+  export type SocialAccountSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      userId?: boolean;
+      provider?: boolean;
+      providerId?: boolean;
+      email?: boolean;
+      name?: boolean;
+      profileUrl?: boolean;
+      avatarUrl?: boolean;
+      accessToken?: boolean;
+      refreshToken?: boolean;
+      profileData?: boolean;
+      createdAt?: boolean;
+      updatedAt?: boolean;
+      user?: boolean | UserDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['socialAccount']
+  >;
+
+  export type SocialAccountSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      userId?: boolean;
+      provider?: boolean;
+      providerId?: boolean;
+      email?: boolean;
+      name?: boolean;
+      profileUrl?: boolean;
+      avatarUrl?: boolean;
+      accessToken?: boolean;
+      refreshToken?: boolean;
+      profileData?: boolean;
+      createdAt?: boolean;
+      updatedAt?: boolean;
+      user?: boolean | UserDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['socialAccount']
+  >;
+
+  export type SocialAccountSelectScalar = {
+    id?: boolean;
+    userId?: boolean;
+    provider?: boolean;
+    providerId?: boolean;
+    email?: boolean;
+    name?: boolean;
+    profileUrl?: boolean;
+    avatarUrl?: boolean;
+    accessToken?: boolean;
+    refreshToken?: boolean;
+    profileData?: boolean;
+    createdAt?: boolean;
+    updatedAt?: boolean;
+  };
+
+  export type SocialAccountOmit<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetOmit<
+    | 'id'
+    | 'userId'
+    | 'provider'
+    | 'providerId'
+    | 'email'
+    | 'name'
+    | 'profileUrl'
+    | 'avatarUrl'
+    | 'accessToken'
+    | 'refreshToken'
+    | 'profileData'
+    | 'createdAt'
+    | 'updatedAt',
+    ExtArgs['result']['socialAccount']
+  >;
+  export type SocialAccountInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    user?: boolean | UserDefaultArgs<ExtArgs>;
+  };
+  export type SocialAccountIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    user?: boolean | UserDefaultArgs<ExtArgs>;
+  };
+  export type SocialAccountIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    user?: boolean | UserDefaultArgs<ExtArgs>;
+  };
+
+  export type $SocialAccountPayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'SocialAccount';
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>;
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        userId: string;
+        provider: string;
+        providerId: string;
+        email: string | null;
+        name: string | null;
+        profileUrl: string | null;
+        avatarUrl: string | null;
+        accessToken: string | null;
+        refreshToken: string | null;
+        profileData: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      },
+      ExtArgs['result']['socialAccount']
+    >;
+    composites: {};
+  };
+
+  type SocialAccountGetPayload<S extends boolean | null | undefined | SocialAccountDefaultArgs> =
+    $Result.GetResult<Prisma.$SocialAccountPayload, S>;
+
+  type SocialAccountCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SocialAccountFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SocialAccountCountAggregateInputType | true;
+    };
+
+  export interface SocialAccountDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['SocialAccount'];
+      meta: { name: 'SocialAccount' };
+    };
+    /**
+     * Find zero or one SocialAccount that matches the filter.
+     * @param {SocialAccountFindUniqueArgs} args - Arguments to find a SocialAccount
+     * @example
+     * // Get one SocialAccount
+     * const socialAccount = await prisma.socialAccount.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SocialAccountFindUniqueArgs>(
+      args: SelectSubset<T, SocialAccountFindUniqueArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<
+        Prisma.$SocialAccountPayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one SocialAccount that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SocialAccountFindUniqueOrThrowArgs} args - Arguments to find a SocialAccount
+     * @example
+     * // Get one SocialAccount
+     * const socialAccount = await prisma.socialAccount.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SocialAccountFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, SocialAccountFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<
+        Prisma.$SocialAccountPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first SocialAccount that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountFindFirstArgs} args - Arguments to find a SocialAccount
+     * @example
+     * // Get one SocialAccount
+     * const socialAccount = await prisma.socialAccount.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SocialAccountFindFirstArgs>(
+      args?: SelectSubset<T, SocialAccountFindFirstArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<
+        Prisma.$SocialAccountPayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first SocialAccount that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountFindFirstOrThrowArgs} args - Arguments to find a SocialAccount
+     * @example
+     * // Get one SocialAccount
+     * const socialAccount = await prisma.socialAccount.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SocialAccountFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, SocialAccountFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<
+        Prisma.$SocialAccountPayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more SocialAccounts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SocialAccounts
+     * const socialAccounts = await prisma.socialAccount.findMany()
+     *
+     * // Get first 10 SocialAccounts
+     * const socialAccounts = await prisma.socialAccount.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const socialAccountWithIdOnly = await prisma.socialAccount.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends SocialAccountFindManyArgs>(
+      args?: SelectSubset<T, SocialAccountFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a SocialAccount.
+     * @param {SocialAccountCreateArgs} args - Arguments to create a SocialAccount.
+     * @example
+     * // Create one SocialAccount
+     * const SocialAccount = await prisma.socialAccount.create({
+     *   data: {
+     *     // ... data to create a SocialAccount
+     *   }
+     * })
+     *
+     */
+    create<T extends SocialAccountCreateArgs>(
+      args: SelectSubset<T, SocialAccountCreateArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many SocialAccounts.
+     * @param {SocialAccountCreateManyArgs} args - Arguments to create many SocialAccounts.
+     * @example
+     * // Create many SocialAccounts
+     * const socialAccount = await prisma.socialAccount.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends SocialAccountCreateManyArgs>(
+      args?: SelectSubset<T, SocialAccountCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many SocialAccounts and returns the data saved in the database.
+     * @param {SocialAccountCreateManyAndReturnArgs} args - Arguments to create many SocialAccounts.
+     * @example
+     * // Create many SocialAccounts
+     * const socialAccount = await prisma.socialAccount.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many SocialAccounts and only return the `id`
+     * const socialAccountWithIdOnly = await prisma.socialAccount.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends SocialAccountCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, SocialAccountCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$SocialAccountPayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a SocialAccount.
+     * @param {SocialAccountDeleteArgs} args - Arguments to delete one SocialAccount.
+     * @example
+     * // Delete one SocialAccount
+     * const SocialAccount = await prisma.socialAccount.delete({
+     *   where: {
+     *     // ... filter to delete one SocialAccount
+     *   }
+     * })
+     *
+     */
+    delete<T extends SocialAccountDeleteArgs>(
+      args: SelectSubset<T, SocialAccountDeleteArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one SocialAccount.
+     * @param {SocialAccountUpdateArgs} args - Arguments to update one SocialAccount.
+     * @example
+     * // Update one SocialAccount
+     * const socialAccount = await prisma.socialAccount.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends SocialAccountUpdateArgs>(
+      args: SelectSubset<T, SocialAccountUpdateArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more SocialAccounts.
+     * @param {SocialAccountDeleteManyArgs} args - Arguments to filter SocialAccounts to delete.
+     * @example
+     * // Delete a few SocialAccounts
+     * const { count } = await prisma.socialAccount.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends SocialAccountDeleteManyArgs>(
+      args?: SelectSubset<T, SocialAccountDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more SocialAccounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SocialAccounts
+     * const socialAccount = await prisma.socialAccount.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends SocialAccountUpdateManyArgs>(
+      args: SelectSubset<T, SocialAccountUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more SocialAccounts and returns the data updated in the database.
+     * @param {SocialAccountUpdateManyAndReturnArgs} args - Arguments to update many SocialAccounts.
+     * @example
+     * // Update many SocialAccounts
+     * const socialAccount = await prisma.socialAccount.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more SocialAccounts and only return the `id`
+     * const socialAccountWithIdOnly = await prisma.socialAccount.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends SocialAccountUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, SocialAccountUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$SocialAccountPayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one SocialAccount.
+     * @param {SocialAccountUpsertArgs} args - Arguments to update or create a SocialAccount.
+     * @example
+     * // Update or create a SocialAccount
+     * const socialAccount = await prisma.socialAccount.upsert({
+     *   create: {
+     *     // ... data to create a SocialAccount
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SocialAccount we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SocialAccountUpsertArgs>(
+      args: SelectSubset<T, SocialAccountUpsertArgs<ExtArgs>>
+    ): Prisma__SocialAccountClient<
+      $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of SocialAccounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountCountArgs} args - Arguments to filter SocialAccounts to count.
+     * @example
+     * // Count the number of SocialAccounts
+     * const count = await prisma.socialAccount.count({
+     *   where: {
+     *     // ... the filter for the SocialAccounts we want to count
+     *   }
+     * })
+     **/
+    count<T extends SocialAccountCountArgs>(
+      args?: Subset<T, SocialAccountCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SocialAccountCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a SocialAccount.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends SocialAccountAggregateArgs>(
+      args: Subset<T, SocialAccountAggregateArgs>
+    ): Prisma.PrismaPromise<GetSocialAccountAggregateType<T>>;
+
+    /**
+     * Group by SocialAccount.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SocialAccountGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends SocialAccountGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SocialAccountGroupByArgs['orderBy'] }
+        : { orderBy?: SocialAccountGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, SocialAccountGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors
+      ? GetSocialAccountGroupByPayload<T>
+      : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the SocialAccount model
+     */
+    readonly fields: SocialAccountFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SocialAccount.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SocialAccountClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, UserDefaultArgs<ExtArgs>>
+    ): Prisma__UserClient<
+      | $Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the SocialAccount model
+   */
+  interface SocialAccountFieldRefs {
+    readonly id: FieldRef<'SocialAccount', 'String'>;
+    readonly userId: FieldRef<'SocialAccount', 'String'>;
+    readonly provider: FieldRef<'SocialAccount', 'String'>;
+    readonly providerId: FieldRef<'SocialAccount', 'String'>;
+    readonly email: FieldRef<'SocialAccount', 'String'>;
+    readonly name: FieldRef<'SocialAccount', 'String'>;
+    readonly profileUrl: FieldRef<'SocialAccount', 'String'>;
+    readonly avatarUrl: FieldRef<'SocialAccount', 'String'>;
+    readonly accessToken: FieldRef<'SocialAccount', 'String'>;
+    readonly refreshToken: FieldRef<'SocialAccount', 'String'>;
+    readonly profileData: FieldRef<'SocialAccount', 'String'>;
+    readonly createdAt: FieldRef<'SocialAccount', 'DateTime'>;
+    readonly updatedAt: FieldRef<'SocialAccount', 'DateTime'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * SocialAccount findUnique
+   */
+  export type SocialAccountFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * Filter, which SocialAccount to fetch.
+     */
+    where: SocialAccountWhereUniqueInput;
+  };
+
+  /**
+   * SocialAccount findUniqueOrThrow
+   */
+  export type SocialAccountFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * Filter, which SocialAccount to fetch.
+     */
+    where: SocialAccountWhereUniqueInput;
+  };
+
+  /**
+   * SocialAccount findFirst
+   */
+  export type SocialAccountFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * Filter, which SocialAccount to fetch.
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of SocialAccounts to fetch.
+     */
+    orderBy?: SocialAccountOrderByWithRelationInput | SocialAccountOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for SocialAccounts.
+     */
+    cursor?: SocialAccountWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` SocialAccounts from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` SocialAccounts.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of SocialAccounts.
+     */
+    distinct?: SocialAccountScalarFieldEnum | SocialAccountScalarFieldEnum[];
+  };
+
+  /**
+   * SocialAccount findFirstOrThrow
+   */
+  export type SocialAccountFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * Filter, which SocialAccount to fetch.
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of SocialAccounts to fetch.
+     */
+    orderBy?: SocialAccountOrderByWithRelationInput | SocialAccountOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for SocialAccounts.
+     */
+    cursor?: SocialAccountWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` SocialAccounts from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` SocialAccounts.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of SocialAccounts.
+     */
+    distinct?: SocialAccountScalarFieldEnum | SocialAccountScalarFieldEnum[];
+  };
+
+  /**
+   * SocialAccount findMany
+   */
+  export type SocialAccountFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * Filter, which SocialAccounts to fetch.
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of SocialAccounts to fetch.
+     */
+    orderBy?: SocialAccountOrderByWithRelationInput | SocialAccountOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing SocialAccounts.
+     */
+    cursor?: SocialAccountWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` SocialAccounts from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` SocialAccounts.
+     */
+    skip?: number;
+    distinct?: SocialAccountScalarFieldEnum | SocialAccountScalarFieldEnum[];
+  };
+
+  /**
+   * SocialAccount create
+   */
+  export type SocialAccountCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a SocialAccount.
+     */
+    data: XOR<SocialAccountCreateInput, SocialAccountUncheckedCreateInput>;
+  };
+
+  /**
+   * SocialAccount createMany
+   */
+  export type SocialAccountCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many SocialAccounts.
+     */
+    data: SocialAccountCreateManyInput | SocialAccountCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * SocialAccount createManyAndReturn
+   */
+  export type SocialAccountCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * The data used to create many SocialAccounts.
+     */
+    data: SocialAccountCreateManyInput | SocialAccountCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * SocialAccount update
+   */
+  export type SocialAccountUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a SocialAccount.
+     */
+    data: XOR<SocialAccountUpdateInput, SocialAccountUncheckedUpdateInput>;
+    /**
+     * Choose, which SocialAccount to update.
+     */
+    where: SocialAccountWhereUniqueInput;
+  };
+
+  /**
+   * SocialAccount updateMany
+   */
+  export type SocialAccountUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update SocialAccounts.
+     */
+    data: XOR<SocialAccountUpdateManyMutationInput, SocialAccountUncheckedUpdateManyInput>;
+    /**
+     * Filter which SocialAccounts to update
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * Limit how many SocialAccounts to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * SocialAccount updateManyAndReturn
+   */
+  export type SocialAccountUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * The data used to update SocialAccounts.
+     */
+    data: XOR<SocialAccountUpdateManyMutationInput, SocialAccountUncheckedUpdateManyInput>;
+    /**
+     * Filter which SocialAccounts to update
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * Limit how many SocialAccounts to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * SocialAccount upsert
+   */
+  export type SocialAccountUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the SocialAccount to update in case it exists.
+     */
+    where: SocialAccountWhereUniqueInput;
+    /**
+     * In case the SocialAccount found by the `where` argument doesn't exist, create a new SocialAccount with this data.
+     */
+    create: XOR<SocialAccountCreateInput, SocialAccountUncheckedCreateInput>;
+    /**
+     * In case the SocialAccount was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SocialAccountUpdateInput, SocialAccountUncheckedUpdateInput>;
+  };
+
+  /**
+   * SocialAccount delete
+   */
+  export type SocialAccountDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+    /**
+     * Filter which SocialAccount to delete.
+     */
+    where: SocialAccountWhereUniqueInput;
+  };
+
+  /**
+   * SocialAccount deleteMany
+   */
+  export type SocialAccountDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which SocialAccounts to delete
+     */
+    where?: SocialAccountWhereInput;
+    /**
+     * Limit how many SocialAccounts to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * SocialAccount without action
+   */
+  export type SocialAccountDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the SocialAccount
+     */
+    select?: SocialAccountSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the SocialAccount
+     */
+    omit?: SocialAccountOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SocialAccountInclude<ExtArgs> | null;
+  };
+
+  /**
    * Enums
    */
 
@@ -46607,6 +48099,25 @@ export namespace Prisma {
   export type RateLimitUsageScalarFieldEnum =
     (typeof RateLimitUsageScalarFieldEnum)[keyof typeof RateLimitUsageScalarFieldEnum];
 
+  export const SocialAccountScalarFieldEnum: {
+    id: 'id';
+    userId: 'userId';
+    provider: 'provider';
+    providerId: 'providerId';
+    email: 'email';
+    name: 'name';
+    profileUrl: 'profileUrl';
+    avatarUrl: 'avatarUrl';
+    accessToken: 'accessToken';
+    refreshToken: 'refreshToken';
+    profileData: 'profileData';
+    createdAt: 'createdAt';
+    updatedAt: 'updatedAt';
+  };
+
+  export type SocialAccountScalarFieldEnum =
+    (typeof SocialAccountScalarFieldEnum)[keyof typeof SocialAccountScalarFieldEnum];
+
   export const SortOrder: {
     asc: 'asc';
     desc: 'desc';
@@ -47111,6 +48622,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowListRelationFilter;
     rateLimitCreated?: RateLimitConfigListRelationFilter;
     rateLimitUpdated?: RateLimitConfigListRelationFilter;
+    socialAccounts?: SocialAccountListRelationFilter;
   };
 
   export type UserOrderByWithRelationInput = {
@@ -47147,6 +48659,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowOrderByRelationAggregateInput;
     rateLimitCreated?: RateLimitConfigOrderByRelationAggregateInput;
     rateLimitUpdated?: RateLimitConfigOrderByRelationAggregateInput;
+    socialAccounts?: SocialAccountOrderByRelationAggregateInput;
   };
 
   export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -47187,6 +48700,7 @@ export namespace Prisma {
       workflowsCreated?: WorkflowListRelationFilter;
       rateLimitCreated?: RateLimitConfigListRelationFilter;
       rateLimitUpdated?: RateLimitConfigListRelationFilter;
+      socialAccounts?: SocialAccountListRelationFilter;
     },
     'id' | 'email'
   >;
@@ -49903,6 +51417,109 @@ export namespace Prisma {
     organizationId?: StringWithAggregatesFilter<'RateLimitUsage'> | string;
   };
 
+  export type SocialAccountWhereInput = {
+    AND?: SocialAccountWhereInput | SocialAccountWhereInput[];
+    OR?: SocialAccountWhereInput[];
+    NOT?: SocialAccountWhereInput | SocialAccountWhereInput[];
+    id?: StringFilter<'SocialAccount'> | string;
+    userId?: StringFilter<'SocialAccount'> | string;
+    provider?: StringFilter<'SocialAccount'> | string;
+    providerId?: StringFilter<'SocialAccount'> | string;
+    email?: StringNullableFilter<'SocialAccount'> | string | null;
+    name?: StringNullableFilter<'SocialAccount'> | string | null;
+    profileUrl?: StringNullableFilter<'SocialAccount'> | string | null;
+    avatarUrl?: StringNullableFilter<'SocialAccount'> | string | null;
+    accessToken?: StringNullableFilter<'SocialAccount'> | string | null;
+    refreshToken?: StringNullableFilter<'SocialAccount'> | string | null;
+    profileData?: StringNullableFilter<'SocialAccount'> | string | null;
+    createdAt?: DateTimeFilter<'SocialAccount'> | Date | string;
+    updatedAt?: DateTimeFilter<'SocialAccount'> | Date | string;
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>;
+  };
+
+  export type SocialAccountOrderByWithRelationInput = {
+    id?: SortOrder;
+    userId?: SortOrder;
+    provider?: SortOrder;
+    providerId?: SortOrder;
+    email?: SortOrderInput | SortOrder;
+    name?: SortOrderInput | SortOrder;
+    profileUrl?: SortOrderInput | SortOrder;
+    avatarUrl?: SortOrderInput | SortOrder;
+    accessToken?: SortOrderInput | SortOrder;
+    refreshToken?: SortOrderInput | SortOrder;
+    profileData?: SortOrderInput | SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+    user?: UserOrderByWithRelationInput;
+  };
+
+  export type SocialAccountWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      provider_providerId?: SocialAccountProviderProviderIdCompoundUniqueInput;
+      AND?: SocialAccountWhereInput | SocialAccountWhereInput[];
+      OR?: SocialAccountWhereInput[];
+      NOT?: SocialAccountWhereInput | SocialAccountWhereInput[];
+      userId?: StringFilter<'SocialAccount'> | string;
+      provider?: StringFilter<'SocialAccount'> | string;
+      providerId?: StringFilter<'SocialAccount'> | string;
+      email?: StringNullableFilter<'SocialAccount'> | string | null;
+      name?: StringNullableFilter<'SocialAccount'> | string | null;
+      profileUrl?: StringNullableFilter<'SocialAccount'> | string | null;
+      avatarUrl?: StringNullableFilter<'SocialAccount'> | string | null;
+      accessToken?: StringNullableFilter<'SocialAccount'> | string | null;
+      refreshToken?: StringNullableFilter<'SocialAccount'> | string | null;
+      profileData?: StringNullableFilter<'SocialAccount'> | string | null;
+      createdAt?: DateTimeFilter<'SocialAccount'> | Date | string;
+      updatedAt?: DateTimeFilter<'SocialAccount'> | Date | string;
+      user?: XOR<UserScalarRelationFilter, UserWhereInput>;
+    },
+    'id' | 'provider_providerId'
+  >;
+
+  export type SocialAccountOrderByWithAggregationInput = {
+    id?: SortOrder;
+    userId?: SortOrder;
+    provider?: SortOrder;
+    providerId?: SortOrder;
+    email?: SortOrderInput | SortOrder;
+    name?: SortOrderInput | SortOrder;
+    profileUrl?: SortOrderInput | SortOrder;
+    avatarUrl?: SortOrderInput | SortOrder;
+    accessToken?: SortOrderInput | SortOrder;
+    refreshToken?: SortOrderInput | SortOrder;
+    profileData?: SortOrderInput | SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+    _count?: SocialAccountCountOrderByAggregateInput;
+    _max?: SocialAccountMaxOrderByAggregateInput;
+    _min?: SocialAccountMinOrderByAggregateInput;
+  };
+
+  export type SocialAccountScalarWhereWithAggregatesInput = {
+    AND?:
+      | SocialAccountScalarWhereWithAggregatesInput
+      | SocialAccountScalarWhereWithAggregatesInput[];
+    OR?: SocialAccountScalarWhereWithAggregatesInput[];
+    NOT?:
+      | SocialAccountScalarWhereWithAggregatesInput
+      | SocialAccountScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'SocialAccount'> | string;
+    userId?: StringWithAggregatesFilter<'SocialAccount'> | string;
+    provider?: StringWithAggregatesFilter<'SocialAccount'> | string;
+    providerId?: StringWithAggregatesFilter<'SocialAccount'> | string;
+    email?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    name?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    profileUrl?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    avatarUrl?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    accessToken?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    refreshToken?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    profileData?: StringNullableWithAggregatesFilter<'SocialAccount'> | string | null;
+    createdAt?: DateTimeWithAggregatesFilter<'SocialAccount'> | Date | string;
+    updatedAt?: DateTimeWithAggregatesFilter<'SocialAccount'> | Date | string;
+  };
+
   export type OrganizationCreateInput = {
     id?: string;
     name: string;
@@ -50112,6 +51729,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateInput = {
@@ -50148,6 +51766,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserUpdateInput = {
@@ -50184,6 +51803,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateInput = {
@@ -50220,6 +51840,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type UserCreateManyInput = {
@@ -53019,6 +54640,117 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string;
   };
 
+  export type SocialAccountCreateInput = {
+    id?: string;
+    provider: string;
+    providerId: string;
+    email?: string | null;
+    name?: string | null;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    profileData?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    user: UserCreateNestedOneWithoutSocialAccountsInput;
+  };
+
+  export type SocialAccountUncheckedCreateInput = {
+    id?: string;
+    userId: string;
+    provider: string;
+    providerId: string;
+    email?: string | null;
+    name?: string | null;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    profileData?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type SocialAccountUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    user?: UserUpdateOneRequiredWithoutSocialAccountsNestedInput;
+  };
+
+  export type SocialAccountUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    userId?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type SocialAccountCreateManyInput = {
+    id?: string;
+    userId: string;
+    provider: string;
+    providerId: string;
+    email?: string | null;
+    name?: string | null;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    profileData?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type SocialAccountUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type SocialAccountUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    userId?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
     in?: string[] | ListStringFieldRefInput<$PrismaModel>;
@@ -53395,6 +55127,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedBoolFilter<$PrismaModel>;
     _max?: NestedBoolFilter<$PrismaModel>;
+  };
+
+  export type SocialAccountListRelationFilter = {
+    every?: SocialAccountWhereInput;
+    some?: SocialAccountWhereInput;
+    none?: SocialAccountWhereInput;
+  };
+
+  export type SocialAccountOrderByRelationAggregateInput = {
+    _count?: SortOrder;
   };
 
   export type UserCountOrderByAggregateInput = {
@@ -55291,6 +57033,59 @@ export namespace Prisma {
 
   export type RateLimitUsageSumOrderByAggregateInput = {
     currentCount?: SortOrder;
+  };
+
+  export type SocialAccountProviderProviderIdCompoundUniqueInput = {
+    provider: string;
+    providerId: string;
+  };
+
+  export type SocialAccountCountOrderByAggregateInput = {
+    id?: SortOrder;
+    userId?: SortOrder;
+    provider?: SortOrder;
+    providerId?: SortOrder;
+    email?: SortOrder;
+    name?: SortOrder;
+    profileUrl?: SortOrder;
+    avatarUrl?: SortOrder;
+    accessToken?: SortOrder;
+    refreshToken?: SortOrder;
+    profileData?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+  };
+
+  export type SocialAccountMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    userId?: SortOrder;
+    provider?: SortOrder;
+    providerId?: SortOrder;
+    email?: SortOrder;
+    name?: SortOrder;
+    profileUrl?: SortOrder;
+    avatarUrl?: SortOrder;
+    accessToken?: SortOrder;
+    refreshToken?: SortOrder;
+    profileData?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
+  };
+
+  export type SocialAccountMinOrderByAggregateInput = {
+    id?: SortOrder;
+    userId?: SortOrder;
+    provider?: SortOrder;
+    providerId?: SortOrder;
+    email?: SortOrder;
+    name?: SortOrder;
+    profileUrl?: SortOrder;
+    avatarUrl?: SortOrder;
+    accessToken?: SortOrder;
+    refreshToken?: SortOrder;
+    profileData?: SortOrder;
+    createdAt?: SortOrder;
+    updatedAt?: SortOrder;
   };
 
   export type ApiActivityLogCreateNestedManyWithoutOrganizationInput = {
@@ -57206,6 +59001,18 @@ export namespace Prisma {
     connect?: RateLimitConfigWhereUniqueInput | RateLimitConfigWhereUniqueInput[];
   };
 
+  export type SocialAccountCreateNestedManyWithoutUserInput = {
+    create?:
+      | XOR<SocialAccountCreateWithoutUserInput, SocialAccountUncheckedCreateWithoutUserInput>
+      | SocialAccountCreateWithoutUserInput[]
+      | SocialAccountUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | SocialAccountCreateOrConnectWithoutUserInput
+      | SocialAccountCreateOrConnectWithoutUserInput[];
+    createMany?: SocialAccountCreateManyUserInputEnvelope;
+    connect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+  };
+
   export type ApiActivityLogUncheckedCreateNestedManyWithoutUserInput = {
     create?:
       | XOR<ApiActivityLogCreateWithoutUserInput, ApiActivityLogUncheckedCreateWithoutUserInput>
@@ -57405,6 +59212,18 @@ export namespace Prisma {
       | RateLimitConfigCreateOrConnectWithoutUpdaterInput[];
     createMany?: RateLimitConfigCreateManyUpdaterInputEnvelope;
     connect?: RateLimitConfigWhereUniqueInput | RateLimitConfigWhereUniqueInput[];
+  };
+
+  export type SocialAccountUncheckedCreateNestedManyWithoutUserInput = {
+    create?:
+      | XOR<SocialAccountCreateWithoutUserInput, SocialAccountUncheckedCreateWithoutUserInput>
+      | SocialAccountCreateWithoutUserInput[]
+      | SocialAccountUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | SocialAccountCreateOrConnectWithoutUserInput
+      | SocialAccountCreateOrConnectWithoutUserInput[];
+    createMany?: SocialAccountCreateManyUserInputEnvelope;
+    connect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
   };
 
   export type ApiActivityLogUpdateManyWithoutUserNestedInput = {
@@ -57816,6 +59635,31 @@ export namespace Prisma {
     deleteMany?: RateLimitConfigScalarWhereInput | RateLimitConfigScalarWhereInput[];
   };
 
+  export type SocialAccountUpdateManyWithoutUserNestedInput = {
+    create?:
+      | XOR<SocialAccountCreateWithoutUserInput, SocialAccountUncheckedCreateWithoutUserInput>
+      | SocialAccountCreateWithoutUserInput[]
+      | SocialAccountUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | SocialAccountCreateOrConnectWithoutUserInput
+      | SocialAccountCreateOrConnectWithoutUserInput[];
+    upsert?:
+      | SocialAccountUpsertWithWhereUniqueWithoutUserInput
+      | SocialAccountUpsertWithWhereUniqueWithoutUserInput[];
+    createMany?: SocialAccountCreateManyUserInputEnvelope;
+    set?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    disconnect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    delete?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    connect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    update?:
+      | SocialAccountUpdateWithWhereUniqueWithoutUserInput
+      | SocialAccountUpdateWithWhereUniqueWithoutUserInput[];
+    updateMany?:
+      | SocialAccountUpdateManyWithWhereWithoutUserInput
+      | SocialAccountUpdateManyWithWhereWithoutUserInput[];
+    deleteMany?: SocialAccountScalarWhereInput | SocialAccountScalarWhereInput[];
+  };
+
   export type ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput = {
     create?:
       | XOR<ApiActivityLogCreateWithoutUserInput, ApiActivityLogUncheckedCreateWithoutUserInput>
@@ -58223,6 +60067,31 @@ export namespace Prisma {
       | RateLimitConfigUpdateManyWithWhereWithoutUpdaterInput
       | RateLimitConfigUpdateManyWithWhereWithoutUpdaterInput[];
     deleteMany?: RateLimitConfigScalarWhereInput | RateLimitConfigScalarWhereInput[];
+  };
+
+  export type SocialAccountUncheckedUpdateManyWithoutUserNestedInput = {
+    create?:
+      | XOR<SocialAccountCreateWithoutUserInput, SocialAccountUncheckedCreateWithoutUserInput>
+      | SocialAccountCreateWithoutUserInput[]
+      | SocialAccountUncheckedCreateWithoutUserInput[];
+    connectOrCreate?:
+      | SocialAccountCreateOrConnectWithoutUserInput
+      | SocialAccountCreateOrConnectWithoutUserInput[];
+    upsert?:
+      | SocialAccountUpsertWithWhereUniqueWithoutUserInput
+      | SocialAccountUpsertWithWhereUniqueWithoutUserInput[];
+    createMany?: SocialAccountCreateManyUserInputEnvelope;
+    set?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    disconnect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    delete?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    connect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+    update?:
+      | SocialAccountUpdateWithWhereUniqueWithoutUserInput
+      | SocialAccountUpdateWithWhereUniqueWithoutUserInput[];
+    updateMany?:
+      | SocialAccountUpdateManyWithWhereWithoutUserInput
+      | SocialAccountUpdateManyWithWhereWithoutUserInput[];
+    deleteMany?: SocialAccountScalarWhereInput | SocialAccountScalarWhereInput[];
   };
 
   export type OrganizationCreateNestedOneWithoutMembershipsInput = {
@@ -61075,6 +62944,29 @@ export namespace Prisma {
         OrganizationUpdateWithoutRateLimitUsageInput
       >,
       OrganizationUncheckedUpdateWithoutRateLimitUsageInput
+    >;
+  };
+
+  export type UserCreateNestedOneWithoutSocialAccountsInput = {
+    create?: XOR<
+      UserCreateWithoutSocialAccountsInput,
+      UserUncheckedCreateWithoutSocialAccountsInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutSocialAccountsInput;
+    connect?: UserWhereUniqueInput;
+  };
+
+  export type UserUpdateOneRequiredWithoutSocialAccountsNestedInput = {
+    create?: XOR<
+      UserCreateWithoutSocialAccountsInput,
+      UserUncheckedCreateWithoutSocialAccountsInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutSocialAccountsInput;
+    upsert?: UserUpsertWithoutSocialAccountsInput;
+    connect?: UserWhereUniqueInput;
+    update?: XOR<
+      XOR<UserUpdateToOneWithWhereWithoutSocialAccountsInput, UserUpdateWithoutSocialAccountsInput>,
+      UserUncheckedUpdateWithoutSocialAccountsInput
     >;
   };
 
@@ -64159,6 +66051,46 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
+  export type SocialAccountCreateWithoutUserInput = {
+    id?: string;
+    provider: string;
+    providerId: string;
+    email?: string | null;
+    name?: string | null;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    profileData?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type SocialAccountUncheckedCreateWithoutUserInput = {
+    id?: string;
+    provider: string;
+    providerId: string;
+    email?: string | null;
+    name?: string | null;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    profileData?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
+  export type SocialAccountCreateOrConnectWithoutUserInput = {
+    where: SocialAccountWhereUniqueInput;
+    create: XOR<SocialAccountCreateWithoutUserInput, SocialAccountUncheckedCreateWithoutUserInput>;
+  };
+
+  export type SocialAccountCreateManyUserInputEnvelope = {
+    data: SocialAccountCreateManyUserInput | SocialAccountCreateManyUserInput[];
+    skipDuplicates?: boolean;
+  };
+
   export type ApiActivityLogUpsertWithWhereUniqueWithoutUserInput = {
     where: ApiActivityLogWhereUniqueInput;
     update: XOR<
@@ -64505,6 +66437,44 @@ export namespace Prisma {
     >;
   };
 
+  export type SocialAccountUpsertWithWhereUniqueWithoutUserInput = {
+    where: SocialAccountWhereUniqueInput;
+    update: XOR<SocialAccountUpdateWithoutUserInput, SocialAccountUncheckedUpdateWithoutUserInput>;
+    create: XOR<SocialAccountCreateWithoutUserInput, SocialAccountUncheckedCreateWithoutUserInput>;
+  };
+
+  export type SocialAccountUpdateWithWhereUniqueWithoutUserInput = {
+    where: SocialAccountWhereUniqueInput;
+    data: XOR<SocialAccountUpdateWithoutUserInput, SocialAccountUncheckedUpdateWithoutUserInput>;
+  };
+
+  export type SocialAccountUpdateManyWithWhereWithoutUserInput = {
+    where: SocialAccountScalarWhereInput;
+    data: XOR<
+      SocialAccountUpdateManyMutationInput,
+      SocialAccountUncheckedUpdateManyWithoutUserInput
+    >;
+  };
+
+  export type SocialAccountScalarWhereInput = {
+    AND?: SocialAccountScalarWhereInput | SocialAccountScalarWhereInput[];
+    OR?: SocialAccountScalarWhereInput[];
+    NOT?: SocialAccountScalarWhereInput | SocialAccountScalarWhereInput[];
+    id?: StringFilter<'SocialAccount'> | string;
+    userId?: StringFilter<'SocialAccount'> | string;
+    provider?: StringFilter<'SocialAccount'> | string;
+    providerId?: StringFilter<'SocialAccount'> | string;
+    email?: StringNullableFilter<'SocialAccount'> | string | null;
+    name?: StringNullableFilter<'SocialAccount'> | string | null;
+    profileUrl?: StringNullableFilter<'SocialAccount'> | string | null;
+    avatarUrl?: StringNullableFilter<'SocialAccount'> | string | null;
+    accessToken?: StringNullableFilter<'SocialAccount'> | string | null;
+    refreshToken?: StringNullableFilter<'SocialAccount'> | string | null;
+    profileData?: StringNullableFilter<'SocialAccount'> | string | null;
+    createdAt?: DateTimeFilter<'SocialAccount'> | Date | string;
+    updatedAt?: DateTimeFilter<'SocialAccount'> | Date | string;
+  };
+
   export type OrganizationCreateWithoutMembershipsInput = {
     id?: string;
     name: string;
@@ -64612,6 +66582,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -64647,6 +66618,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -64784,6 +66756,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -64819,6 +66792,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type UserCreateWithoutInvitationsSentInput = {
@@ -64854,6 +66828,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutInvitationsSentInput = {
@@ -64889,6 +66864,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutInvitationsSentInput = {
@@ -65026,6 +67002,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutInvitationsSentInput = {
@@ -65061,6 +67038,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutInvitationsInput = {
@@ -65869,6 +67847,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutDatabaseConnectionsCreatedInput = {
@@ -65904,6 +67883,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutDatabaseConnectionsCreatedInput = {
@@ -66213,6 +68193,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutDatabaseConnectionsCreatedInput = {
@@ -66248,6 +68229,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutDatabaseConnectionsInput = {
@@ -66540,6 +68522,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutEndpointsCreatedInput = {
@@ -66575,6 +68558,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutEndpointsCreatedInput = {
@@ -66804,6 +68788,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutEndpointsCreatedInput = {
@@ -66839,6 +68824,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutEndpointsInput = {
@@ -66960,6 +68946,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutApiKeysCreatedInput = {
@@ -66995,6 +68982,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutApiKeysCreatedInput = {
@@ -67159,6 +69147,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApiKeysCreatedInput = {
@@ -67194,6 +69183,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutApiKeysInput = {
@@ -67572,6 +69562,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutWorkflowsCreatedInput = {
@@ -67607,6 +69598,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutWorkflowsCreatedInput = {
@@ -67775,6 +69767,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutWorkflowsCreatedInput = {
@@ -67810,6 +69803,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutWorkflowsInput = {
@@ -68291,6 +70285,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -68326,6 +70321,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -68463,6 +70459,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -68498,6 +70495,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type DatabaseObjectCreateWithoutServiceInput = {
@@ -68725,6 +70723,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutServicesCreatedInput = {
@@ -68760,6 +70759,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutServicesCreatedInput = {
@@ -69033,6 +71033,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutServicesCreatedInput = {
@@ -69068,6 +71069,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutServicesInput = {
@@ -69189,6 +71191,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutApplicationsCreatedInput = {
@@ -69224,6 +71227,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutApplicationsCreatedInput = {
@@ -69396,6 +71400,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApplicationsCreatedInput = {
@@ -69431,6 +71436,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type RoleUpsertWithoutApplicationsInput = {
@@ -69700,6 +71706,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutRolesCreatedInput = {
@@ -69735,6 +71742,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutRolesCreatedInput = {
@@ -70017,6 +72025,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRolesCreatedInput = {
@@ -70052,6 +72061,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutRolesInput = {
@@ -70293,6 +72303,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -70328,6 +72339,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -70465,6 +72477,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -70500,6 +72513,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type EndpointCreateWithoutUsageLogsInput = {
@@ -70656,6 +72670,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutApiActivityLogsInput = {
@@ -70691,6 +72706,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutApiActivityLogsInput = {
@@ -70893,6 +72909,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApiActivityLogsInput = {
@@ -70928,6 +72945,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationCreateWithoutDatabaseObjectsInput = {
@@ -71291,6 +73309,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutExposedEntitiesCreatedInput = {
@@ -71326,6 +73345,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutExposedEntitiesCreatedInput = {
@@ -71647,6 +73667,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutExposedEntitiesCreatedInput = {
@@ -71682,6 +73703,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationUpsertWithoutExposedEntitiesInput = {
@@ -72522,6 +74544,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutTermsAcceptancesInput = {
@@ -72557,6 +74580,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutTermsAcceptancesInput = {
@@ -72748,6 +74772,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutTermsAcceptancesInput = {
@@ -72783,6 +74808,7 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationCreateWithoutRateLimitConfigsInput = {
@@ -72892,6 +74918,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutRateLimitCreatedInput = {
@@ -72927,6 +74954,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutRateLimitCreatedInput = {
@@ -72970,6 +74998,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
   };
 
   export type UserUncheckedCreateWithoutRateLimitUpdatedInput = {
@@ -73005,6 +75034,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
   };
 
   export type UserCreateOrConnectWithoutRateLimitUpdatedInput = {
@@ -73154,6 +75184,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRateLimitCreatedInput = {
@@ -73189,6 +75220,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUpsertWithoutRateLimitUpdatedInput = {
@@ -73244,6 +75276,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRateLimitUpdatedInput = {
@@ -73279,6 +75312,7 @@ export namespace Prisma {
     termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
   };
 
   export type OrganizationCreateWithoutRateLimitUsageInput = {
@@ -73439,6 +75473,175 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type UserCreateWithoutSocialAccountsInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipCreateNestedManyWithoutUserInput;
+    notifications?: NotificationCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+  };
+
+  export type UserUncheckedCreateWithoutSocialAccountsInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationUncheckedCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutUserInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleUncheckedCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+  };
+
+  export type UserCreateOrConnectWithoutSocialAccountsInput = {
+    where: UserWhereUniqueInput;
+    create: XOR<
+      UserCreateWithoutSocialAccountsInput,
+      UserUncheckedCreateWithoutSocialAccountsInput
+    >;
+  };
+
+  export type UserUpsertWithoutSocialAccountsInput = {
+    update: XOR<
+      UserUpdateWithoutSocialAccountsInput,
+      UserUncheckedUpdateWithoutSocialAccountsInput
+    >;
+    create: XOR<
+      UserCreateWithoutSocialAccountsInput,
+      UserUncheckedCreateWithoutSocialAccountsInput
+    >;
+    where?: UserWhereInput;
+  };
+
+  export type UserUpdateToOneWithWhereWithoutSocialAccountsInput = {
+    where?: UserWhereInput;
+    data: XOR<UserUpdateWithoutSocialAccountsInput, UserUncheckedUpdateWithoutSocialAccountsInput>;
+  };
+
+  export type UserUpdateWithoutSocialAccountsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+  };
+
+  export type UserUncheckedUpdateWithoutSocialAccountsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUncheckedUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUncheckedUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUncheckedUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
   };
 
   export type ApiActivityLogCreateManyOrganizationInput = {
@@ -74856,6 +77059,21 @@ export namespace Prisma {
     createdBy: string;
   };
 
+  export type SocialAccountCreateManyUserInput = {
+    id?: string;
+    provider: string;
+    providerId: string;
+    email?: string | null;
+    name?: string | null;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    profileData?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+  };
+
   export type ApiActivityLogUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string;
     requestId?: StringFieldUpdateOperationsInput | string;
@@ -75635,6 +77853,51 @@ export namespace Prisma {
     changeReason?: NullableStringFieldUpdateOperationsInput | string | null;
     organizationId?: StringFieldUpdateOperationsInput | string;
     createdBy?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type SocialAccountUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type SocialAccountUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type SocialAccountUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    provider?: StringFieldUpdateOperationsInput | string;
+    providerId?: StringFieldUpdateOperationsInput | string;
+    email?: NullableStringFieldUpdateOperationsInput | string | null;
+    name?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null;
+    profileData?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
   export type InvoiceCreateManySubscriptionInput = {
