@@ -25,7 +25,7 @@ import { DataTable } from '../ui/data-table';
  * @param {Array} props.customActions - Additional header buttons
  * @param {React.ReactNode} props.emptyState - Custom empty state component
  */
-export const BaseListView = ({
+const BaseListViewComponent = ({
   title,
   description,
   data = [],
@@ -158,4 +158,19 @@ export const BaseListView = ({
   );
 };
 
+// Custom comparison function for React.memo
+// Only re-render if data, columns, loading, error, or success changes
+const arePropsEqual = (prevProps, nextProps) => {
+  return (
+    prevProps.data === nextProps.data &&
+    prevProps.columns === nextProps.columns &&
+    prevProps.loading === nextProps.loading &&
+    prevProps.error === nextProps.error &&
+    prevProps.success === nextProps.success &&
+    prevProps.title === nextProps.title &&
+    prevProps.description === nextProps.description
+  );
+};
+
+export const BaseListView = React.memo(BaseListViewComponent, arePropsEqual);
 export default BaseListView;

@@ -29,7 +29,7 @@ import { Input } from './input';
 import { Switch } from './switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 
-const DataTable = ({
+const DataTableComponent = ({
   data = [],
   columns = [],
   title,
@@ -571,5 +571,19 @@ const DataTable = ({
     </Card>
   );
 };
+
+// Custom comparison function for React.memo
+// Re-render only when data, columns, or loading state changes
+const areDataTablePropsEqual = (prevProps, nextProps) => {
+  return (
+    prevProps.data === nextProps.data &&
+    prevProps.columns === nextProps.columns &&
+    prevProps.loading === nextProps.loading &&
+    prevProps.title === nextProps.title &&
+    prevProps.description === nextProps.description
+  );
+};
+
+const DataTable = React.memo(DataTableComponent, areDataTablePropsEqual);
 
 export { DataTable };

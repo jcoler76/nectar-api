@@ -3,6 +3,9 @@ const DatabaseDriverFactory = require('../database/DatabaseDriverFactory');
 const { logger } = require('../../utils/logger');
 const { parseFilter, sanitizeFields, parseSort } = require('./filterParser');
 const pg = require('./dialects/postgres');
+const mssql = require('./dialects/mssql');
+const mysql = require('./dialects/mysql');
+const mongodb = require('./dialects/mongodb');
 
 const prisma = new PrismaClient();
 
@@ -106,24 +109,128 @@ async function getColumns(connectionConfig, database, schema, table) {
   return { raw: cols, columns };
 }
 
-async function executeList({ connectionConfig, entity, policy, query }) {
-  if (String(connectionConfig.type).toUpperCase() !== 'POSTGRESQL') {
-    throw new Error('Only POSTGRESQL is supported in Phase 1');
-  }
-  const driver = DatabaseDriverFactory.createDriver('POSTGRESQL', connectionConfig);
+async function executeListMongoDB({ connectionConfig, entity, query }) {
+  // MongoDB execution would use MongoDB driver
+  const driver = DatabaseDriverFactory.createDriver('MONGODB', connectionConfig);
   const conn = await driver.createConnection(connectionConfig.database);
+
   try {
-    const { dataSql, countSql, params } = pg.buildListQuery(
-      { schema: entity.schema || 'public', name: entity.name },
+    const queryObj = mongodb.buildListQuery(
+      { schema: entity.schema, name: entity.name },
       query.fields,
       query.ast,
       query.sort,
       query.page,
       query.pageSize
     );
+
+    // Execute MongoDB query
+    const dataRows = await driver.executeQuery(conn, queryObj.collection, {
+      filter: queryObj.filter,
+      projection: queryObj.projection,
+      sort: queryObj.sort,
+      skip: queryObj.skip,
+      limit: queryObj.limit,
+    });
+
+    // Get count
+    const total = await driver.executeQuery(conn, queryObj.collection, {
+      filter: queryObj.filter,
+      count: true,
+    });
+
+    return { data: dataRows, total: total || 0 };
+  } finally {
+    await driver.closeConnection(conn);
+  }
+}
+
+async function executeByIdMongoDB({ connectionConfig, entity, fields, id }) {
+  const driver = DatabaseDriverFactory.createDriver('MONGODB', connectionConfig);
+  const conn = await driver.createConnection(connectionConfig.database);
+
+  try {
+    const queryObj = mongodb.buildByIdQuery(
+      { schema: entity.schema, name: entity.name },
+      fields,
+      entity.primaryKey || '_id',
+      id
+    );
+
+    const result = await driver.executeQuery(conn, queryObj.collection, {
+      filter: queryObj.filter,
+      projection: queryObj.projection,
+      limit: 1,
+    });
+
+    return result && result[0] ? result[0] : null;
+  } finally {
+    await driver.closeConnection(conn);
+  }
+}
+
+async function executeList({ connectionConfig, entity, policy, query }) {
+  const dbType = String(connectionConfig.type).toUpperCase();
+  const supportedTypes = ['POSTGRESQL', 'MSSQL', 'MYSQL', 'MONGODB'];
+
+  if (!supportedTypes.includes(dbType)) {
+    throw new Error(
+      `Database type ${dbType} not supported. Supported types: ${supportedTypes.join(', ')}`
+    );
+  }
+
+  // Handle MongoDB differently
+  if (dbType === 'MONGODB') {
+    return executeListMongoDB({ connectionConfig, entity, query });
+  }
+
+  const driver = DatabaseDriverFactory.createDriver(dbType, connectionConfig);
+  const conn = await driver.createConnection(connectionConfig.database);
+
+  try {
+    let dataSql, countSql, params;
+    const defaultSchema = {
+      POSTGRESQL: 'public',
+      MSSQL: 'dbo',
+      MYSQL: null,
+    }[dbType];
+
+    const dialectMap = {
+      POSTGRESQL: pg,
+      MSSQL: mssql,
+      MYSQL: mysql,
+    };
+
+    const dialect = dialectMap[dbType];
+    ({ dataSql, countSql, params } = dialect.buildListQuery(
+      { schema: entity.schema || defaultSchema, name: entity.name },
+      query.fields,
+      query.ast,
+      query.sort,
+      query.page,
+      query.pageSize
+    ));
+
     const dataRows = await driver.executeQuery(conn, dataSql, params);
-    const countRows = await driver.executeQuery(conn, countSql, params.slice(0, params.length - 2));
+
+    // For count query, exclude pagination parameters
+    let countParams;
+    if (dbType === 'POSTGRESQL' || dbType === 'MYSQL') {
+      countParams = params.slice(0, params.length - 2);
+    } else if (dbType === 'MSSQL') {
+      // For MSSQL, params is an object. Remove pagination parameters
+      countParams = { ...params };
+      const paramKeys = Object.keys(countParams);
+      // Remove the last two parameters (offset and limit)
+      if (paramKeys.length >= 2) {
+        delete countParams[paramKeys[paramKeys.length - 1]]; // limit
+        delete countParams[paramKeys[paramKeys.length - 2]]; // offset
+      }
+    }
+
+    const countRows = await driver.executeQuery(conn, countSql, countParams);
     const total = (countRows && countRows[0] && (countRows[0].cnt || countRows[0].count)) || 0;
+
     return { data: dataRows, total };
   } finally {
     await driver.closeConnection(conn);
@@ -131,18 +238,44 @@ async function executeList({ connectionConfig, entity, policy, query }) {
 }
 
 async function executeById({ connectionConfig, entity, fields, id }) {
-  if (String(connectionConfig.type).toUpperCase() !== 'POSTGRESQL') {
-    throw new Error('Only POSTGRESQL is supported in Phase 1');
+  const dbType = String(connectionConfig.type).toUpperCase();
+  const supportedTypes = ['POSTGRESQL', 'MSSQL', 'MYSQL', 'MONGODB'];
+
+  if (!supportedTypes.includes(dbType)) {
+    throw new Error(
+      `Database type ${dbType} not supported. Supported types: ${supportedTypes.join(', ')}`
+    );
   }
-  const driver = DatabaseDriverFactory.createDriver('POSTGRESQL', connectionConfig);
+
+  // Handle MongoDB differently
+  if (dbType === 'MONGODB') {
+    return executeByIdMongoDB({ connectionConfig, entity, fields, id });
+  }
+
+  const driver = DatabaseDriverFactory.createDriver(dbType, connectionConfig);
   const conn = await driver.createConnection(connectionConfig.database);
+
   try {
-    const { dataSql, params } = pg.buildByIdQuery(
-      { schema: entity.schema || 'public', name: entity.name },
+    const defaultSchema = {
+      POSTGRESQL: 'public',
+      MSSQL: 'dbo',
+      MYSQL: null,
+    }[dbType];
+
+    const dialectMap = {
+      POSTGRESQL: pg,
+      MSSQL: mssql,
+      MYSQL: mysql,
+    };
+
+    const dialect = dialectMap[dbType];
+    const { dataSql, params } = dialect.buildByIdQuery(
+      { schema: entity.schema || defaultSchema, name: entity.name },
       fields,
       entity.primaryKey || 'id',
       id
     );
+
     const rows = await driver.executeQuery(conn, dataSql, params);
     return rows && rows[0] ? rows[0] : null;
   } finally {
@@ -251,9 +384,119 @@ async function handleById({ req, serviceName, entityParam, id, fieldsParam }) {
   return row;
 }
 
+async function discoverTables({ connectionConfig, serviceId }) {
+  const dbType = String(connectionConfig.type).toUpperCase();
+  const supportedTypes = ['POSTGRESQL', 'MSSQL', 'MYSQL', 'MONGODB'];
+
+  if (!supportedTypes.includes(dbType)) {
+    throw new Error(`Database discovery not supported for ${dbType}`);
+  }
+
+  if (dbType === 'MONGODB') {
+    return discoverMongoDBCollections({ connectionConfig, serviceId });
+  }
+
+  const driver = DatabaseDriverFactory.createDriver(dbType, connectionConfig);
+  const conn = await driver.createConnection(connectionConfig.database);
+
+  try {
+    let query,
+      params = {};
+
+    if (dbType === 'POSTGRESQL') {
+      query = `
+        SELECT table_name, table_type, table_schema
+        FROM information_schema.tables
+        WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
+        AND table_type IN ('BASE TABLE', 'VIEW')
+        ORDER BY table_name`;
+    } else if (dbType === 'MSSQL') {
+      query = `
+        SELECT
+          TABLE_NAME as table_name,
+          TABLE_TYPE as table_type,
+          TABLE_SCHEMA as table_schema
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_TYPE IN ('BASE TABLE', 'VIEW')
+        AND TABLE_SCHEMA NOT IN ('sys', 'INFORMATION_SCHEMA')
+        ORDER BY TABLE_NAME`;
+    } else if (dbType === 'MYSQL') {
+      query = `
+        SELECT
+          TABLE_NAME as table_name,
+          TABLE_TYPE as table_type,
+          TABLE_SCHEMA as table_schema
+        FROM information_schema.TABLES
+        WHERE TABLE_TYPE IN ('BASE TABLE', 'VIEW')
+        AND TABLE_SCHEMA = ?
+        ORDER BY TABLE_NAME`;
+      params = [connectionConfig.database];
+    }
+
+    const tables = await driver.executeQuery(conn, query, params);
+
+    // Check which tables are already exposed
+    const exposedEntities = await listExposedEntities(serviceId);
+    const exposedNames = new Set(exposedEntities.map(e => e.name));
+
+    return tables.map(table => ({
+      name: table.table_name,
+      schema: table.table_schema,
+      type: table.table_type === 'BASE TABLE' ? 'TABLE' : 'VIEW',
+      isExposed: exposedNames.has(table.table_name),
+      suggestedPathSlug: table.table_name
+        .toLowerCase()
+        .replace(/^(gs|tbl)_?/, '') // Remove common prefixes
+        .replace(/_/g, '-'), // Replace underscores with hyphens for URLs
+    }));
+  } finally {
+    await driver.closeConnection(conn);
+  }
+}
+
+async function discoverMongoDBCollections({ connectionConfig, serviceId }) {
+  // MongoDB collection discovery would be implemented here
+  // For now, return empty array as MongoDB driver implementation varies
+  return [];
+}
+
+async function autoExposeTable({
+  serviceId,
+  organizationId,
+  connectionId,
+  database,
+  tableName,
+  schema,
+  type,
+  pathSlug,
+}) {
+  // Create ExposedEntity automatically
+  const exposedEntity = await prisma.exposedEntity.create({
+    data: {
+      organizationId,
+      serviceId,
+      connectionId,
+      database: database,
+      schema: schema || null,
+      name: tableName,
+      type: type || 'TABLE',
+      primaryKey: 'id', // Default, can be updated later
+      allowRead: true,
+      allowCreate: false,
+      allowUpdate: false,
+      allowDelete: false,
+      pathSlug: pathSlug || tableName.toLowerCase(),
+    },
+  });
+
+  return exposedEntity;
+}
+
 module.exports = {
   listExposedEntities,
   handleList,
   handleById,
   getServiceAndConnection,
+  discoverTables,
+  autoExposeTable,
 };

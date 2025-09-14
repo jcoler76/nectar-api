@@ -6,6 +6,111 @@ const { logger } = require('../middleware/logger');
 const Auto = require('../services/autoRest/autoRestService');
 const DatabaseService = require('../services/database/DatabaseService');
 
+// Discover all tables/collections in database
+router.get('/:serviceName/_discover', apiKeyServiceMiddleware, async (req, res) => {
+  try {
+    const { service, connectionConfig } = await Auto.getServiceAndConnection(
+      req.params.serviceName,
+      req.application.organizationId
+    );
+
+    const tables = await Auto.discoverTables({
+      connectionConfig,
+      serviceId: service.id,
+    });
+
+    res.json({
+      data: tables,
+      total: tables.length,
+      exposed: tables.filter(t => t.isExposed).length,
+      _meta: {
+        apiVersion: 'v1',
+        timestamp: new Date().toISOString(),
+        message: 'Use POST /:serviceName/_expose to auto-expose tables',
+        supportedDatabases: ['POSTGRESQL', 'MSSQL', 'MYSQL', 'MONGODB'],
+      },
+    });
+  } catch (e) {
+    logger.error('auto-rest discover error', { error: e.message });
+    res.status(500).json({ error: { code: 'SERVER_ERROR', message: e.message } });
+  }
+});
+
+// Auto-expose tables (make them available via REST API)
+router.post('/:serviceName/_expose', apiKeyServiceMiddleware, async (req, res) => {
+  try {
+    const { tables } = req.body; // Array of table names to expose
+    const { service, connectionConfig } = await Auto.getServiceAndConnection(
+      req.params.serviceName,
+      req.application.organizationId
+    );
+
+    if (!Array.isArray(tables) || tables.length === 0) {
+      return res.status(400).json({
+        error: { code: 'INVALID_REQUEST', message: 'tables array is required' },
+      });
+    }
+
+    // Discover all available tables first
+    const discoveredTables = await Auto.discoverTables({
+      connectionConfig,
+      serviceId: service.id,
+    });
+
+    const exposedEntities = [];
+    const errors = [];
+
+    for (const tableName of tables) {
+      try {
+        const tableInfo = discoveredTables.find(t => t.name === tableName);
+        if (!tableInfo) {
+          errors.push(`Table '${tableName}' not found`);
+          continue;
+        }
+
+        if (tableInfo.isExposed) {
+          errors.push(`Table '${tableName}' is already exposed`);
+          continue;
+        }
+
+        const entity = await Auto.autoExposeTable({
+          serviceId: service.id,
+          organizationId: req.application.organizationId,
+          connectionId: service.connectionId,
+          database: connectionConfig.database,
+          tableName: tableInfo.name,
+          schema: tableInfo.schema,
+          type: tableInfo.type,
+          pathSlug: tableInfo.suggestedPathSlug,
+        });
+
+        exposedEntities.push({
+          id: entity.id,
+          name: entity.name,
+          pathSlug: entity.pathSlug,
+          endpoint: `/api/v2/${req.params.serviceName}/_table/${entity.pathSlug}`,
+        });
+      } catch (error) {
+        errors.push(`Failed to expose '${tableName}': ${error.message}`);
+      }
+    }
+
+    res.json({
+      exposed: exposedEntities,
+      errors: errors,
+      total: exposedEntities.length,
+      _meta: {
+        apiVersion: 'v1',
+        timestamp: new Date().toISOString(),
+        message: `${exposedEntities.length} tables exposed successfully`,
+      },
+    });
+  } catch (e) {
+    logger.error('auto-rest expose error', { error: e.message });
+    res.status(500).json({ error: { code: 'SERVER_ERROR', message: e.message } });
+  }
+});
+
 // List exposed entities
 router.get('/:serviceName/_table', apiKeyServiceMiddleware, async (req, res) => {
   try {
