@@ -81,8 +81,8 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
       title: 'API Builder',
       url: '/api-builder',
       icon: Sparkles,
-      permission: 'canManageServices',
-      badge: 'New',
+      permission: null,
+      badge: null,
     },
     { title: 'Roles', url: '/roles', icon: Shield, permission: 'canManageServices', badge: null },
     {
