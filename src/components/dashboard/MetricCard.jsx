@@ -1,4 +1,5 @@
 import { Activity, Database, Shield, Users } from 'lucide-react';
+import React from 'react';
 
 import { Card, CardContent } from '../ui/card';
 
@@ -10,7 +11,7 @@ const iconMap = {
   applications: Users,
 };
 
-const MetricCard = ({ title, value, icon, onClick }) => {
+const MetricCardComponent = ({ title, value, icon, onClick }) => {
   const IconComponent = iconMap[icon] || Activity;
 
   return (
@@ -49,5 +50,8 @@ const MetricCard = ({ title, value, icon, onClick }) => {
     </Card>
   );
 };
+
+// Memoize MetricCard to prevent unnecessary re-renders
+const MetricCard = React.memo(MetricCardComponent);
 
 export default MetricCard;

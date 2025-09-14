@@ -1,9 +1,10 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
+import React from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
-const TrendBadge = ({ trendPercent }) => {
+const TrendBadgeComponent = ({ trendPercent }) => {
   if (trendPercent === undefined || trendPercent === null || isNaN(trendPercent)) {
     return null;
   }
@@ -22,7 +23,7 @@ const TrendBadge = ({ trendPercent }) => {
   );
 };
 
-const Sparkline = ({ data = [], dataKey = 'value', color = 'hsl(var(--primary))' }) => {
+const SparklineComponent = ({ data = [], dataKey = 'value', color = 'hsl(var(--primary))' }) => {
   if (!data || data.length === 0) return null;
   return (
     <div className="h-12 w-full">
@@ -47,7 +48,26 @@ const Sparkline = ({ data = [], dataKey = 'value', color = 'hsl(var(--primary))'
   );
 };
 
-const KpiCard = ({ title, value, icon: Icon, trendPercent, sparklineData, sparklineKey }) => {
+// Memoize TrendBadge to prevent re-renders when trend doesn't change
+const TrendBadge = React.memo(TrendBadgeComponent);
+
+// Memoize Sparkline with custom comparison to prevent re-renders
+const Sparkline = React.memo(SparklineComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.data === nextProps.data &&
+    prevProps.dataKey === nextProps.dataKey &&
+    prevProps.color === nextProps.color
+  );
+});
+
+const KpiCardComponent = ({
+  title,
+  value,
+  icon: Icon,
+  trendPercent,
+  sparklineData,
+  sparklineKey,
+}) => {
   return (
     <Card gradient className="relative overflow-hidden card-interactive hover-glow group">
       <CardHeader className="pb-2">
@@ -72,5 +92,8 @@ const KpiCard = ({ title, value, icon: Icon, trendPercent, sparklineData, sparkl
     </Card>
   );
 };
+
+// Memoize KpiCard to prevent unnecessary re-renders
+const KpiCard = React.memo(KpiCardComponent);
 
 export default KpiCard;
