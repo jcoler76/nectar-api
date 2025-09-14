@@ -330,6 +330,7 @@ const ServiceList = () => {
         ]}
         searchable={true}
         filterable={true}
+        enableVirtualization={true} // Enable virtual scrolling for large service lists
         defaultSort={{ key: 'name', direction: 'asc' }}
       />
 

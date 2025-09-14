@@ -27,7 +27,7 @@ const SchemaStep = ({ serviceData, onComplete, setError }) => {
 
       // Create the service only if we don't already have one
       let service;
-      if (serviceData._id) {
+      if (serviceData.id) {
         // Service already exists, skip creation
         service = serviceData;
         setProgress(40);
@@ -49,7 +49,7 @@ const SchemaStep = ({ serviceData, onComplete, setError }) => {
 
       try {
         // First trigger the schema refresh
-        await refreshServiceSchema(service._id);
+        await refreshServiceSchema(service.id);
       } catch (refreshError) {}
 
       // Poll for schema completion
@@ -154,7 +154,7 @@ const SchemaStep = ({ serviceData, onComplete, setError }) => {
         poll();
       };
 
-      await pollForSchemaCompletion(service._id);
+      await pollForSchemaCompletion(service.id);
     } catch (err) {
       console.error('Error creating service or retrieving schema:', err);
       setStatus('error');

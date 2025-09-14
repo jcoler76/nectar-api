@@ -347,13 +347,24 @@ async function handleList({
     query: { fields, sort, ast, page, pageSize },
   });
 
-  return {
+  const response = {
     data,
     page: Number(page) || 1,
     pageSize: Math.max(1, Math.min(Number(pageSize) || 25, 200)),
     total,
     hasNext: ((Number(page) || 1) - 1) * (Number(pageSize) || 25) + data.length < total,
   };
+
+  // Add real-time info if requested
+  if (req.query.realtime === 'true') {
+    const realtimeService = require('../realtimeService');
+    response.realtime = realtimeService.getRealtimeInfo(
+      serviceName,
+      entity.pathSlug || entity.name
+    );
+  }
+
+  return response;
 }
 
 async function handleById({ req, serviceName, entityParam, id, fieldsParam }) {

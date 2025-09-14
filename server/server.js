@@ -12,6 +12,7 @@ const { app, configureApp, addProductionMiddleware } = require('./app');
 const { initializeGraphQL, initializeSubscriptions } = require('./graphql');
 const { logger } = require('./middleware/logger');
 const { initializeScheduler } = require('./services/scheduler');
+const realtimeService = require('./services/realtimeService');
 const githubIssuePoller = require('./services/githubIssuePoller');
 const { createServer } = require('http');
 
@@ -81,6 +82,10 @@ const startServer = async () => {
 
     // Create HTTP server for WebSocket support
     httpServer = createServer(app);
+
+    // Initialize real-time service (Socket.IO)
+    realtimeService.initialize(httpServer);
+
     // Initialize WebSocket subscriptions if GraphQL is enabled
     subscriptionServer = null;
     if (graphqlEnabled) {

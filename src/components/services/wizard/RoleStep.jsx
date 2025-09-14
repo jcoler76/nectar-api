@@ -83,30 +83,30 @@ const RoleStep = ({ serviceData, data, onDataChange, onNext, setError }) => {
 
   const fetchServiceComponents = useCallback(
     async (forceRefresh = false) => {
-      if (!serviceData?._id) return;
+      if (!serviceData?.id) return;
 
       setLoadingComponents(true);
 
       try {
         if (forceRefresh) {
           // Clear cache before fetching
-          clearServiceComponentsCache(serviceData._id);
+          clearServiceComponentsCache(serviceData.id);
         }
 
-        const components = await getServiceComponents(serviceData._id);
+        const components = await getServiceComponents(serviceData.id);
 
         // If no components returned and we haven't tried refresh yet, attempt schema refresh
         if ((!components || components.length === 0) && !hasTriedRefresh && !forceRefresh) {
           try {
             setError('Database schema is being analyzed. This may take a moment...');
-            await refreshServiceSchema(serviceData._id);
+            await refreshServiceSchema(serviceData.id);
             setHasTriedRefresh(true);
 
             // Wait a bit for the refresh to complete
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Try fetching components again
-            const refreshedComponents = await getServiceComponents(serviceData._id);
+            const refreshedComponents = await getServiceComponents(serviceData.id);
             setServiceComponents(refreshedComponents || []);
           } catch (refreshErr) {
             console.warn('Schema refresh attempt failed:', refreshErr);
@@ -147,11 +147,11 @@ const RoleStep = ({ serviceData, data, onDataChange, onNext, setError }) => {
         setLoadingComponents(false);
       }
     },
-    [serviceData?._id, hasTriedRefresh, setError]
+    [serviceData?.id, hasTriedRefresh, setError]
   );
 
   useEffect(() => {
-    if (serviceData?._id) {
+    if (serviceData?.id) {
       fetchServiceComponents();
     }
   }, [serviceData, fetchServiceComponents]);
@@ -184,7 +184,7 @@ const RoleStep = ({ serviceData, data, onDataChange, onNext, setError }) => {
     }
 
     const newPermission = {
-      serviceId: serviceData._id,
+      serviceId: serviceData.id,
       objectName: newComponent.objectName,
       actions: { ...newComponent.actions },
     };
@@ -231,7 +231,7 @@ const RoleStep = ({ serviceData, data, onDataChange, onNext, setError }) => {
         const roleData = {
           name: formData.name,
           description: formData.description,
-          serviceId: serviceData._id,
+          serviceId: serviceData.id,
           permissions: formData.permissions,
           isActive: formData.isActive,
         };
@@ -239,7 +239,7 @@ const RoleStep = ({ serviceData, data, onDataChange, onNext, setError }) => {
         const createdRole = await createRole(roleData);
 
         // Update wizard data and proceed
-        onDataChange({ ...formData, _id: createdRole._id });
+        onDataChange({ ...formData, id: createdRole.id });
         onNext();
       } catch (err) {
         console.error('Error creating role:', err);

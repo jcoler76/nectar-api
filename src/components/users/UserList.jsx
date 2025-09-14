@@ -247,6 +247,7 @@ const UserList = () => {
         exportFilename="users-list.csv"
         searchable={true}
         filterable={true}
+        enableVirtualization={true} // Enable virtual scrolling for large user lists
         customActions={[
           {
             label: 'System Info',

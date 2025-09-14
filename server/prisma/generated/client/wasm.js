@@ -538,6 +538,22 @@ exports.Prisma.RateLimitUsageScalarFieldEnum = {
   organizationId: 'organizationId',
 };
 
+exports.Prisma.SocialAccountScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  providerId: 'providerId',
+  email: 'email',
+  name: 'name',
+  profileUrl: 'profileUrl',
+  avatarUrl: 'avatarUrl',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  profileData: 'profileData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc',
@@ -697,6 +713,7 @@ exports.Prisma.ModelName = {
   TermsAcceptance: 'TermsAcceptance',
   RateLimitConfig: 'RateLimitConfig',
   RateLimitUsage: 'RateLimitUsage',
+  SocialAccount: 'SocialAccount',
 };
 
 /**

@@ -15,6 +15,7 @@ import {
   Search,
   Settings,
   Shield,
+  Sparkles,
   Timer,
   TrendingUp,
   Users,
@@ -75,6 +76,13 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
       icon: Database,
       permission: 'canManageServices',
       badge: null,
+    },
+    {
+      title: 'API Builder',
+      url: '/api-builder',
+      icon: Sparkles,
+      permission: 'canManageServices',
+      badge: 'New',
     },
     { title: 'Roles', url: '/roles', icon: Shield, permission: 'canManageServices', badge: null },
     {

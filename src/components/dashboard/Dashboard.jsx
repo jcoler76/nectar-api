@@ -4,30 +4,33 @@ import {
   CheckCircle,
   Clock,
   Database,
+  RefreshCw,
   Server,
   Shield,
   Users,
   XCircle,
 } from 'lucide-react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useMemo, useState, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import api from '../../services/api';
-import { getDashboardMetrics } from '../../services/dashboardService';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { useDashboardData } from '../../hooks/useDashboardData';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
-import ActivityChart from './ActivityChart';
-import MetricCard from './MetricCard';
+import {
+  MetricCardSkeleton,
+  ServiceHealthSkeleton,
+  StatisticsCardSkeleton,
+} from './DashboardSkeleton';
+import IntersectionChart from './IntersectionChart';
 import ServiceHealthList from './ServiceHealthList';
 
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState(null);
-  const [statistics, setStatistics] = useState(null);
   const [dateRange, setDateRange] = useState('30d');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();
+
+  const { metrics, statistics, metricsLoading, statisticsLoading, hasError, error, refetchAll } =
+    useDashboardData(dateRange);
 
   const handleTileClick = tileType => {
     switch (tileType) {
@@ -53,34 +56,12 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        setError(null);
-        const data = await getDashboardMetrics(parseInt(dateRange));
-        // Use data as-is; backend provides categorical `time` labels
-        setMetrics(data);
-
-        // Fetch activity logs statistics based on selected date range
-        const timeframeMap = { '7d': '7d', '30d': '30d', '90d': '90d' };
-        const response = await api.get('/api/activity-logs/statistics', {
-          params: {
-            timeframe: timeframeMap[dateRange] || '30d',
-            onlyImportant: true, // Only show important API calls
-            _t: new Date().getTime(), // Cache-busting parameter
-          },
-        });
-        setStatistics(response.data.data);
-      } catch (error) {
-        console.error('Failed to fetch dashboard metrics:', error);
-        setError('Failed to load dashboard data. Please try refreshing the page.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMetrics();
-  }, [dateRange]);
+  // Handle refresh action
+  const handleRefresh = () => {
+    startTransition(() => {
+      refetchAll();
+    });
+  };
 
   const filteredActivityData = useMemo(() => {
     const raw = metrics?.activityData || [];
@@ -89,75 +70,60 @@ const Dashboard = () => {
     return raw.slice(-rangeDays);
   }, [metrics, dateRange]);
 
-  if (loading) return <LoadingSpinner />;
-
-  if (error) {
-    return (
-      <div className="flex flex-col h-full p-6 space-y-6 bg-gradient-subtle min-h-screen">
-        <div className="max-w-7xl mx-auto w-full space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-ocean-800">Dashboard</h1>
-            <p className="text-muted-foreground">Monitor your system metrics and activity</p>
-          </div>
-
-          {/* Error Message */}
-          <Card className="border-destructive/50 bg-destructive/10">
-            <CardContent className="flex items-center gap-2 p-4">
-              <AlertCircle className="h-4 w-4 text-destructive" />
-              <span className="text-destructive font-medium">{error}</span>
-            </CardContent>
-          </Card>
-
-          {/* Metric Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricCard
-              title="Services"
-              value="--"
-              icon="services"
-              onClick={() => handleTileClick('services')}
-            />
-            <MetricCard
-              title="Applications"
-              value="--"
-              icon="apps"
-              onClick={() => handleTileClick('applications')}
-            />
-            <MetricCard
-              title="Roles"
-              value="--"
-              icon="roles"
-              onClick={() => handleTileClick('roles')}
-            />
-            <MetricCard
-              title="API Calls Today"
-              value="--"
-              icon="api"
-              onClick={() => handleTileClick('api')}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Dashboard shell renders immediately
+  const showFullError = hasError && !metricsLoading && !statisticsLoading;
 
   return (
     <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6 bg-gradient-subtle min-h-screen">
       <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
         <header className="text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Monitor your system metrics and activity
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
+                Dashboard
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Monitor your system metrics and activity
+              </p>
+            </div>
+            {/* Refresh button */}
+            <button
+              onClick={handleRefresh}
+              disabled={metricsLoading || statisticsLoading || isPending}
+              className="p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+              title="Refresh dashboard data"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${metricsLoading || statisticsLoading || isPending ? 'animate-spin' : ''}`}
+              />
+            </button>
+          </div>
+
+          {/* Global error message */}
+          {showFullError && (
+            <Card className="border-destructive/50 bg-destructive/10 mt-4">
+              <CardContent className="flex items-center gap-2 p-4">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <span className="text-destructive font-medium">
+                  {error?.message || 'Failed to load some dashboard data. Please try refreshing.'}
+                </span>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Time range selector */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {['7d', '30d', '90d'].map(range => (
               <button
                 key={range}
-                onClick={() => setDateRange(range)}
+                onClick={() => {
+                  startTransition(() => {
+                    setDateRange(range);
+                  });
+                }}
                 className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${dateRange === range ? 'bg-ocean-600 text-white border-ocean-600 hover:bg-ocean-700' : 'bg-background text-foreground hover:bg-muted border-border'}`}
                 aria-pressed={dateRange === range}
+                disabled={isPending}
               >
                 {range.toUpperCase()}
               </button>
@@ -166,184 +132,194 @@ const Dashboard = () => {
         </header>
 
         {/* API Activity Statistics Cards */}
-        {statistics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Activity className="h-4 w-4 text-blue-500" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
-                    <p className="text-2xl font-bold">
-                      {statistics.summary.totalRequests.toLocaleString()}
-                    </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {statisticsLoading ? (
+            <>
+              <StatisticsCardSkeleton />
+              <StatisticsCardSkeleton />
+              <StatisticsCardSkeleton />
+              <StatisticsCardSkeleton />
+            </>
+          ) : statistics ? (
+            <>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-4 w-4 text-blue-500" />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Requests</p>
+                      <p className="text-2xl font-bold">
+                        {statistics.summary.totalRequests.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
-                    <p className="text-2xl font-bold">
-                      {statistics.summary.totalRequests > 0
-                        ? (
-                            (statistics.summary.successfulRequests /
-                              statistics.summary.totalRequests) *
-                            100
-                          ).toFixed(1)
-                        : 0}
-                      %
-                    </p>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
+                      <p className="text-2xl font-bold">
+                        {statistics.summary.totalRequests > 0
+                          ? (
+                              (statistics.summary.successfulRequests /
+                                statistics.summary.totalRequests) *
+                              100
+                            ).toFixed(1)
+                          : 0}
+                        %
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-orange-500" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Avg Response Time</p>
-                    <p className="text-2xl font-bold">
-                      {statistics.summary.averageResponseTime
-                        ? statistics.summary.averageResponseTime < 1000
-                          ? `${Math.round(statistics.summary.averageResponseTime)}ms`
-                          : `${(statistics.summary.averageResponseTime / 1000).toFixed(2)}s`
-                        : '0ms'}
-                    </p>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-orange-500" />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Avg Response Time</p>
+                      <p className="text-2xl font-bold">
+                        {statistics.summary.averageResponseTime
+                          ? statistics.summary.averageResponseTime < 1000
+                            ? `${Math.round(statistics.summary.averageResponseTime)}ms`
+                            : `${(statistics.summary.averageResponseTime / 1000).toFixed(2)}s`
+                          : '0ms'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <XCircle className="h-4 w-4 text-red-500" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Failed Requests</p>
-                    <p className="text-2xl font-bold">
-                      {statistics.summary.failedRequests.toLocaleString()}
-                    </p>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <XCircle className="h-4 w-4 text-red-500" />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Failed Requests</p>
+                      <p className="text-2xl font-bold">
+                        {statistics.summary.failedRequests.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                </CardContent>
+              </Card>
+            </>
+          ) : null}
+        </div>
 
         {/* Metric Cards Grid - Responsive */}
         <section aria-label="System metrics overview">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Database className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Services</p>
-                    <p className="text-2xl font-bold">{metrics?.services || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {metricsLoading ? (
+              <>
+                <MetricCardSkeleton />
+                <MetricCardSkeleton />
+                <MetricCardSkeleton />
+                <MetricCardSkeleton />
+              </>
+            ) : (
+              <>
+                <Card
+                  onClick={() => handleTileClick('services')}
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Database className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Services</p>
+                        <p className="text-2xl font-bold">{metrics?.services || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Applications</p>
-                    <p className="text-2xl font-bold">{metrics?.applications || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <Card
+                  onClick={() => handleTileClick('applications')}
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Applications</p>
+                        <p className="text-2xl font-bold">{metrics?.applications || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Roles</p>
-                    <p className="text-2xl font-bold">{metrics?.roles || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <Card
+                  onClick={() => handleTileClick('roles')}
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Roles</p>
+                        <p className="text-2xl font-bold">{metrics?.roles || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">API Calls Today</p>
-                    <p className="text-2xl font-bold">{metrics?.apiCalls || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <Card
+                  onClick={() => handleTileClick('api')}
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">API Calls Today</p>
+                        <p className="text-2xl font-bold">{metrics?.apiCalls || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         </section>
 
-        {/* Activity Chart - Full Width with responsive padding */}
-        <section aria-label="Activity charts">
+        {/* Activity Charts - Lazy loaded with intersection observer */}
+        <section aria-label="Activity charts" className={isPending ? 'opacity-70' : ''}>
           <div className="grid grid-cols-1 gap-6">
-            <Card gradient className="w-full">
-              <CardHeader className="pb-3 sm:pb-6">
-                <CardTitle className="text-lg sm:text-xl">API Calls</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                <div className="w-full overflow-x-auto">
-                  <ActivityChart
-                    data={filteredActivityData}
-                    xKey="time"
-                    yKey="calls"
-                    height={320}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-            <Card gradient className="w-full">
-              <CardHeader className="pb-3 sm:pb-6">
-                <CardTitle className="text-lg sm:text-xl">Records Processed</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                <div className="w-full overflow-x-auto">
-                  <ActivityChart
-                    data={filteredActivityData}
-                    xKey="time"
-                    yKey="totalRecords"
-                    height={320}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-            <Card gradient className="w-full">
-              <CardHeader className="pb-3 sm:pb-6">
-                <CardTitle className="text-lg sm:text-xl">Failed Requests</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                <div className="w-full overflow-x-auto">
-                  <ActivityChart
-                    data={filteredActivityData}
-                    xKey="time"
-                    yKey="failures"
-                    height={320}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <IntersectionChart
+              title="API Calls"
+              data={filteredActivityData}
+              xKey="time"
+              yKey="calls"
+              height={320}
+            />
+            <IntersectionChart
+              title="Records Processed"
+              data={filteredActivityData}
+              xKey="time"
+              yKey="totalRecords"
+              height={320}
+            />
+            <IntersectionChart
+              title="Failed Requests"
+              data={filteredActivityData}
+              xKey="time"
+              yKey="failures"
+              height={320}
+            />
           </div>
         </section>
 
-        {/* Optional: Service health panel if data available */}
-        {Array.isArray(metrics?.servicesList) && metrics.servicesList.length > 0 && (
-          <section aria-label="Service health" className="mt-6">
+        {/* Service health panel */}
+        <section aria-label="Service health" className="mt-6">
+          {metricsLoading ? (
+            <ServiceHealthSkeleton />
+          ) : Array.isArray(metrics?.servicesList) && metrics.servicesList.length > 0 ? (
             <Card gradient className="w-full">
               <CardHeader className="pb-3 sm:pb-6">
                 <div className="flex items-center gap-2">
@@ -355,8 +331,8 @@ const Dashboard = () => {
                 <ServiceHealthList services={metrics.servicesList} />
               </CardContent>
             </Card>
-          </section>
-        )}
+          ) : null}
+        </section>
       </div>
     </div>
   );

@@ -369,6 +369,43 @@ router.get('/:id/health', async (req, res) => {
   }
 });
 
+// Get service database objects
+router.get('/:id/objects', async (req, res) => {
+  const { id } = req.params;
+  const context = createGraphQLContext(req);
+
+  try {
+    const result = await executeGraphQLQuery(
+      res,
+      SERVICE_QUERIES.GET_BY_ID,
+      { id },
+      context,
+      'get service objects'
+    );
+
+    if (!result) return; // Error already handled
+
+    const service = result.service;
+
+    // Parse objects from stored JSON
+    let objects = [];
+    if (service.objects) {
+      try {
+        objects = JSON.parse(service.objects);
+      } catch (parseError) {
+        logger.warn('Failed to parse service objects JSON', {
+          serviceId: service.id,
+          error: parseError.message,
+        });
+      }
+    }
+
+    res.json(objects);
+  } catch (error) {
+    handleGraphQLError(res, error, 'get service objects');
+  }
+});
+
 // Get service schemas/database objects
 router.get('/:id/schemas', async (req, res) => {
   const { id } = req.params;
