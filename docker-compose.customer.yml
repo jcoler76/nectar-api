@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: nectar-database
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nectar}
+      POSTGRES_USER: ${POSTGRES_USER:-nectar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - nectar-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nectar} -d ${POSTGRES_DB:-nectar}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Customer Application (Backend + Frontend served together)
+  nectar-app:
+    build: .
+    container_name: nectar-customer-app
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nectar}:${POSTGRES_PASSWORD:-your_secure_password}@postgres:5432/${POSTGRES_DB:-nectar}
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_change_in_production}
+      SESSION_SECRET: ${SESSION_SECRET:-your_session_secret_change_in_production}
+      # OAuth Configuration (optional)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      # Email Configuration (optional)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      # Application Configuration
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:3001/api}
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    networks:
+      - nectar-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').request('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).end()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  nectar-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

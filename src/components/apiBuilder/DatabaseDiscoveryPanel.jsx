@@ -1,6 +1,8 @@
 import { CheckCircle, Database, Eye, Loader2, RefreshCw, Table, Zap } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
+import api from '../../services/api';
+import { getServices } from '../../services/serviceService';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -24,9 +26,7 @@ const DatabaseDiscoveryPanel = ({ onApiGenerated }) => {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch('/api/services');
-      if (!response.ok) throw new Error('Failed to fetch services');
-      const data = await response.json();
+      const data = await getServices();
       setServices(data.filter(service => service.isActive));
     } catch (err) {
       setError('Failed to load services: ' + err.message);
@@ -42,16 +42,12 @@ const DatabaseDiscoveryPanel = ({ onApiGenerated }) => {
     setSelectedTables(new Set());
 
     try {
-      const response = await fetch(`/api/v2/${selectedService}/_discover`, {
+      const response = await api.get(`/api/v2/${selectedService}/_discover`, {
         headers: {
           'X-API-Key': localStorage.getItem('apiKey') || '',
         },
       });
-
-      if (!response.ok) throw new Error('Failed to discover tables');
-
-      const data = await response.json();
-      setDiscoveredTables(data.data || []);
+      setDiscoveredTables(response.data.data || []);
     } catch (err) {
       setError('Failed to discover tables: ' + err.message);
     } finally {
@@ -86,20 +82,19 @@ const DatabaseDiscoveryPanel = ({ onApiGenerated }) => {
     setSuccess('');
 
     try {
-      const response = await fetch(`/api/v2/${selectedService}/_expose`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': localStorage.getItem('apiKey') || '',
-        },
-        body: JSON.stringify({
+      const response = await api.post(
+        `/api/v2/${selectedService}/_expose`,
+        {
           tables: Array.from(selectedTables),
-        }),
-      });
+        },
+        {
+          headers: {
+            'X-API-Key': localStorage.getItem('apiKey') || '',
+          },
+        }
+      );
 
-      if (!response.ok) throw new Error('Failed to generate APIs');
-
-      const data = await response.json();
+      const data = response.data;
 
       if (data.errors && data.errors.length > 0) {
         setError(`Some APIs failed to generate: ${data.errors.join(', ')}`);

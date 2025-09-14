@@ -129,16 +129,7 @@ const ApiBuilderWizard = () => {
 
         {/* Progress Stepper */}
         <div className="mb-8">
-          <Stepper
-            steps={steps.map((step, index) => ({
-              title: step.title,
-              description: step.description,
-              icon: step.icon,
-              status:
-                index < currentStep ? 'complete' : index === currentStep ? 'current' : 'upcoming',
-            }))}
-            currentStep={currentStep}
-          />
+          <Stepper steps={steps.map(step => step?.title || 'Step')} activeStep={currentStep} />
         </div>
 
         {/* Step Content */}

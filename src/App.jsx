@@ -203,7 +203,7 @@ function App() {
                 <Route
                   path="/api-builder"
                   element={
-                    <ProtectedRoute requiredPermission="canManageServices">
+                    <ProtectedRoute>
                       <ApiBuilderWizard />
                     </ProtectedRoute>
                   }

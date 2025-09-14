@@ -10,6 +10,7 @@ const defaultAllowedHeaders = [
   'Content-Type',
   'Authorization',
   'x-nectarstudio-api-key',
+  'x-api-key',
   'x-csrf-token',
 ];
 

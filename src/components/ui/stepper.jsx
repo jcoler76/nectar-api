@@ -35,7 +35,9 @@ const Stepper = ({ steps, activeStep, className }) => {
                     !isActive && 'text-muted-foreground'
                   )}
                 >
-                  <p className="text-sm font-medium truncate">{step}</p>
+                  <p className="text-sm font-medium truncate">
+                    {typeof step === 'string' ? step : step.title || 'Step'}
+                  </p>
                 </div>
               </div>
               {!isLast && (

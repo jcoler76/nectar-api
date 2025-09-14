@@ -60,9 +60,10 @@ const mountRoutes = app => {
   // API information endpoints (no auth required for basic info)
   app.use('/api', require('./apiInfo'));
 
+  // Marketing billing routes moved to marketing-site/backend
   // Marketing billing (public): Stripe checkout + webhook
   // No auth or CSRF; webhook uses signature verification
-  app.use('/api/checkout', (req, res, next) => next(), require('./marketingBilling'));
+  // app.use('/api/checkout', (req, res, next) => next(), require('./marketingBilling'));
 
   // Public routes (no auth required) - apply stricter rate limiting
   app.use('/api/auth', authLimiter, require('./auth'));

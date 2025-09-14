@@ -1,0 +1,2 @@
+-- This migration baselines the current database state to resolve drift
+-- These changes already exist in the database

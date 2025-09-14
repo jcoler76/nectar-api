@@ -14,6 +14,10 @@ function getApiKeyHeaderNames() {
   if (!aliases.includes('x-nectarstudio-string-api-key')) {
     aliases.push('x-nectarstudio-string-api-key');
   }
+  // Add x-api-key as a standard alias for compatibility
+  if (!aliases.includes('x-api-key')) {
+    aliases.push('x-api-key');
+  }
   // Ensure uniqueness and preserve order: primary first
   const set = new Set([primary, ...aliases]);
   return Array.from(set);
