@@ -26,6 +26,7 @@ import { useBreadcrumbs } from '../../contexts/BreadcrumbContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import { cn } from '../../lib/utils';
 import InstallPromptBanner from '../pwa/InstallPromptBanner';
+import HelpMenu from '../help/HelpMenu';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -237,6 +238,9 @@ const ModernTopBar = ({ sidebarCollapsed, onSidebarToggle }) => {
               <span className="text-sm">Endpoint Wizard</span>
             </Button>
           )}
+
+          {/* Help Menu */}
+          <HelpMenu />
 
           {/* Theme Toggle */}
           <Button

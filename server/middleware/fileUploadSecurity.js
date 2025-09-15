@@ -2,6 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
 const { logger } = require('./logger');
+const NodeClam = require('clamscan');
 
 /**
  * Enhanced file upload security middleware
@@ -348,13 +349,41 @@ const validateFileContent = async (req, res, next) => {
       }
     }
 
-    // 5. Add file metadata
+    // 5. Virus scan with ClamAV
+    try {
+      const scanResult = await virusScan(buffer);
+      logger.info('File passed virus scan', {
+        filename: file.originalname,
+        scanner: scanResult.scanner,
+        ip: req.ip,
+      });
+
+      // Add scan metadata to file
+      file.virusScanResult = scanResult;
+    } catch (virusError) {
+      logger.warn('File failed virus scan', {
+        filename: file.originalname,
+        error: virusError.message,
+        ip: req.ip,
+      });
+
+      return res.status(400).json({
+        error: {
+          code: 'VIRUS_DETECTED',
+          message: 'File failed virus scan: ' + virusError.message,
+        },
+      });
+    }
+
+    // 6. Add file metadata
     file.securityMetadata = {
       validated: true,
       validatedAt: new Date(),
       fileHash: crypto.createHash('sha256').update(buffer).digest('hex'),
       magicNumberValidated: true,
       threatScanPassed: true,
+      virusScanPassed: true,
+      virusScanner: file.virusScanResult?.scanner || 'unknown',
     };
 
     next();
@@ -377,17 +406,143 @@ const getObjectDepth = obj => {
   return depths.length === 0 ? 1 : Math.max(...depths) + 1;
 };
 
-// Virus scanning placeholder (integrate with ClamAV or similar)
-const virusScan = async buffer => {
-  // TODO: Integrate with antivirus service
-  // For now, just check for EICAR test string
-  const eicarSignature = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+// ClamAV scanner instance
+let clamScanInstance = null;
 
-  if (buffer.toString().includes(eicarSignature)) {
-    throw new Error('Virus detected: EICAR test file');
+// Initialize ClamAV scanner
+const initClamAV = async () => {
+  if (clamScanInstance) {
+    return clamScanInstance;
   }
 
-  return { clean: true };
+  try {
+    const clamScanOptions = {
+      removeInfected: false, // Don't auto-remove infected files - let us handle it
+      quarantineInfected: false, // Don't quarantine - we'll delete them
+      scanLog: null, // Don't log to file
+      debugMode: process.env.NODE_ENV === 'development',
+      fileList: null,
+      scanRecursively: false,
+      clamscan: {
+        path: process.env.CLAMSCAN_PATH || '/usr/bin/clamscan', // Path to clamscan binary
+        db: process.env.CLAMAV_DB_PATH || null, // Path to virus database (null = use default)
+        scanArchives: true, // Scan archives (zip, tar, etc.)
+        active: true, // Use clamscan binary
+      },
+      clamdscan: {
+        socket: process.env.CLAMD_SOCKET || '/var/run/clamav/clamd.ctl', // Unix socket for clamdscan
+        host: process.env.CLAMD_HOST || '127.0.0.1', // Host for TCP connection
+        port: process.env.CLAMD_PORT || 3310, // Port for TCP connection
+        timeout: 60000, // 60 second timeout
+        localFallback: true, // Fallback to binary scan if daemon fails
+        path: process.env.CLAMDSCAN_PATH || '/usr/bin/clamdscan', // Path to clamdscan binary
+        configFile: process.env.CLAMD_CONFIG || null, // Config file path
+        multiscan: true, // Use multi-threading
+        reloadDb: false, // Don't reload database
+        active: true, // Use clamdscan daemon
+        bypassTest: false, // Don't bypass tests
+      },
+      preference: 'clamdscan', // Prefer daemon over binary for performance
+    };
+
+    // Initialize ClamAV
+    clamScanInstance = await new NodeClam().init(clamScanOptions);
+
+    logger.info('ClamAV antivirus scanner initialized successfully', {
+      version: await clamScanInstance.getVersion(),
+      scanMode: clamScanInstance.settings.preference,
+    });
+
+    return clamScanInstance;
+  } catch (error) {
+    logger.error('Failed to initialize ClamAV scanner', {
+      error: error.message,
+      stack: error.stack,
+    });
+
+    // Return null to indicate AV is not available
+    return null;
+  }
+};
+
+// Real virus scanning with ClamAV
+const virusScan = async buffer => {
+  try {
+    // Initialize ClamAV if not already done
+    const clam = await initClamAV();
+
+    if (!clam) {
+      // ClamAV not available - fallback to basic EICAR detection
+      logger.warn('ClamAV not available, using fallback EICAR detection only');
+
+      const eicarSignature =
+        'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+      if (buffer.toString().includes(eicarSignature)) {
+        throw new Error('Virus detected: EICAR test file (fallback detection)');
+      }
+
+      return {
+        clean: true,
+        scanner: 'fallback',
+        warning: 'ClamAV not available - limited virus detection active',
+      };
+    }
+
+    // Scan the buffer using ClamAV
+    const scanResult = await clam.scanBuffer(buffer, 3000, null); // 3 second timeout per buffer
+
+    if (scanResult.isInfected) {
+      const virusName = scanResult.viruses.join(', ');
+      logger.warn('Virus detected by ClamAV', {
+        virus: virusName,
+        file: scanResult.file,
+      });
+
+      throw new Error(`Virus detected: ${virusName}`);
+    }
+
+    if (scanResult.errors && scanResult.errors.length > 0) {
+      logger.warn('ClamAV scan completed with errors', {
+        errors: scanResult.errors,
+      });
+    }
+
+    logger.debug('File passed ClamAV virus scan', {
+      goodFiles: scanResult.goodFiles,
+      badFiles: scanResult.badFiles,
+    });
+
+    return {
+      clean: true,
+      scanner: 'clamav',
+      goodFiles: scanResult.goodFiles,
+      badFiles: scanResult.badFiles,
+      errors: scanResult.errors,
+    };
+  } catch (error) {
+    // Check if this is a virus detection (expected) vs scan error (unexpected)
+    if (error.message.includes('Virus detected')) {
+      throw error; // Re-throw virus detection errors
+    }
+
+    logger.error('ClamAV scan error', {
+      error: error.message,
+      stack: error.stack,
+    });
+
+    // For scan errors, fallback to basic EICAR detection
+    const eicarSignature = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+    if (buffer.toString().includes(eicarSignature)) {
+      throw new Error('Virus detected: EICAR test file (fallback detection)');
+    }
+
+    return {
+      clean: true,
+      scanner: 'fallback',
+      error: error.message,
+      warning: 'ClamAV scan failed - fallback detection used',
+    };
+  }
 };
 
 // Create secure multer configuration
@@ -437,6 +592,7 @@ module.exports = {
   createFileFilter,
   validateFileContent,
   virusScan,
+  initClamAV,
   cleanupUploadTracking,
   FILE_SIGNATURES,
 

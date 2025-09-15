@@ -55,6 +55,10 @@ const BillingPage = lazy(() => import('./components/settings/BillingPage'));
 const TeamManagement = lazy(() => import('./components/settings/TeamManagement'));
 const TermsManagement = lazy(() => import('./components/settings/TermsManagement'));
 
+// Help & Documentation components
+const DocumentationViewer = lazy(() => import('./components/help/DocumentationViewer'));
+const HelpSearch = lazy(() => import('./components/help/HelpSearch'));
+
 const ProtectedLayout = ({ children }) => {
   return (
     <TermsGate>
@@ -280,6 +284,38 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <LazyRoute component={ApiDocViewer} routeName="API Documentation" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/help/docs"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={DocumentationViewer} routeName="Help Documentation" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/help/docs/:docId"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={DocumentationViewer} routeName="Help Documentation" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/help/search"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={HelpSearch} routeName="Help Search" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/help/api"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={ApiDocViewer} routeName="API Reference" />
                     </ProtectedRoute>
                   }
                 />

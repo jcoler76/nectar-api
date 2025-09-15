@@ -1,0 +1,235 @@
+// License Server Database Schema
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  companyName       String?
+  contactName       String?
+  phone             String?
+  address           String?
+  country           String?
+
+  // Stripe Integration
+  stripeCustomerId  String?   @unique
+
+  // Metadata
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  isActive          Boolean   @default(true)
+
+  // Relations
+  licenses          License[]
+  usageRecords      UsageRecord[]
+  auditLogs         AuditLog[]
+
+  @@map("customers")
+}
+
+model License {
+  id                String      @id @default(cuid())
+  customerId        String
+
+  // License Details
+  licenseKey        String      @unique
+  licenseType       LicenseType @default(STANDARD)
+  plan              Plan        @default(STARTER)
+
+  // Validity
+  issuedAt          DateTime    @default(now())
+  expiresAt         DateTime?
+  isActive          Boolean     @default(true)
+  isSuspended       Boolean     @default(false)
+
+  // Features & Limits
+  maxUsers          Int?
+  maxWorkflows      Int?
+  maxIntegrations   Int?
+  features          String[]    // JSON array of enabled features
+
+  // Deployment Info
+  deploymentId      String?     @unique
+  instanceUrl       String?
+  lastHeartbeat     DateTime?
+  version           String?
+
+  // Billing
+  billingCycle      BillingCycle @default(MONTHLY)
+  amount            Decimal?
+  currency          String?     @default("USD")
+
+  // Relations
+  customer          Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  usageRecords      UsageRecord[]
+  validationLogs    ValidationLog[]
+  auditLogs         AuditLog[]
+
+  @@map("licenses")
+}
+
+model UsageRecord {
+  id              String    @id @default(cuid())
+  customerId      String
+  licenseId       String
+
+  // Usage Metrics
+  recordDate      DateTime  @default(now())
+  activeUsers     Int       @default(0)
+  workflowRuns    Int       @default(0)
+  apiCalls        Int       @default(0)
+  storageUsed     BigInt    @default(0) // bytes
+
+  // Feature Usage
+  integrationsUsed Int      @default(0)
+  dataProcessed   BigInt    @default(0) // bytes
+
+  // Relations
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  license         License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@unique([licenseId, recordDate])
+  @@map("usage_records")
+}
+
+model ValidationLog {
+  id              String      @id @default(cuid())
+  licenseId       String
+
+  // Validation Details
+  validatedAt     DateTime    @default(now())
+  isValid         Boolean
+  errorCode       String?
+  errorMessage    String?
+
+  // Request Info
+  clientIp        String?
+  userAgent       String?
+  instanceVersion String?
+
+  // Relations
+  license         License     @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@map("validation_logs")
+}
+
+model AuditLog {
+  id              String      @id @default(cuid())
+  customerId      String?
+  licenseId       String?
+
+  // Event Details
+  event           AuditEvent
+  description     String
+  timestamp       DateTime    @default(now())
+
+  // Actor Info
+  actorType       ActorType   @default(SYSTEM)
+  actorId         String?
+  actorEmail      String?
+
+  // Request Info
+  ipAddress       String?
+  userAgent       String?
+
+  // Additional Data
+  metadata        Json?
+
+  // Relations
+  customer        Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  license         License?    @relation(fields: [licenseId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model ApiKey {
+  id              String      @id @default(cuid())
+  name            String
+  keyHash         String      @unique
+
+  // Permissions
+  permissions     String[]    // Array of permissions
+  isActive        Boolean     @default(true)
+
+  // Expiry
+  expiresAt       DateTime?
+  lastUsedAt      DateTime?
+
+  // Usage Tracking
+  usageCount      Int         @default(0)
+  rateLimitCount  Int         @default(0)
+
+  // Metadata
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdBy       String?
+
+  @@map("api_keys")
+}
+
+model SystemConfiguration {
+  id              String      @id @default(cuid())
+  key             String      @unique
+  value           String
+  description     String?
+
+  // Metadata
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  updatedBy       String?
+
+  @@map("system_configuration")
+}
+
+// Enums
+enum LicenseType {
+  TRIAL
+  STANDARD
+  ENTERPRISE
+  CUSTOM
+}
+
+enum Plan {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  CUSTOM
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  LIFETIME
+}
+
+enum AuditEvent {
+  LICENSE_CREATED
+  LICENSE_ACTIVATED
+  LICENSE_SUSPENDED
+  LICENSE_RENEWED
+  LICENSE_EXPIRED
+  LICENSE_VALIDATED
+  USAGE_RECORDED
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  CONFIGURATION_CHANGED
+  API_KEY_CREATED
+  API_KEY_REVOKED
+  SYSTEM_ERROR
+}
+
+enum ActorType {
+  SYSTEM
+  ADMIN
+  CUSTOMER
+  API
+  WEBHOOK
+}

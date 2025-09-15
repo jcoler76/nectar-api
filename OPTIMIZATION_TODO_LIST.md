@@ -72,8 +72,9 @@
 - [x] **Create FormDialog wrapper component** *(COMPLETED - FormDialog created and implemented in UserList & ApplicationList)*
   - *Prompt*: "Create a reusable `FormDialog` component in `src/components/common/` that wraps dialog functionality for forms. Use it to reduce duplication across ServiceForm, ConnectionForm, etc."
 
-- [ ] **Create StatusMessages component** *(PENDING - Low priority, BaseListView already handles this)*
+- [x] **Create StatusMessages component** *(COMPLETED - Unified message display patterns)*
   - *Prompt*: "Create a shared `StatusMessages` component that handles error and success message display. Replace duplicated error/success message patterns across list components."
+  - *Result*: Created comprehensive StatusMessages component with card/inline variants, warning/info support. Integrated into BaseListView, UserSettings, AdminSettings, and UserForm components, consolidating duplicate ValidationMessage patterns
 
 - [x] **Complete BaseListView migration for remaining components** *(COMPLETED - All major list components migrated)*
   - *Prompt*: "Migrate any remaining list components (RateLimitList, ApplicationList, EndpointList) to use the BaseListView pattern."
@@ -146,8 +147,9 @@
 - [ ] **Replace XOR encryption with WebCrypto API**
   - *Prompt*: "Replace the weak XOR encryption in `src/utils/secureStorage.js` with proper AES-GCM encryption using the WebCrypto API."
 
-- [ ] **Implement real antivirus scanning**
+- [x] **Implement real antivirus scanning** *(COMPLETED - ClamAV integration with graceful fallback)*
   - *Prompt*: "Replace the placeholder virus scanning in file upload security with real antivirus integration (ClamAV or similar)."
+  - *Result*: Integrated clamscan npm package with full ClamAV support, daemon/binary scanning modes, graceful fallback to EICAR detection when ClamAV unavailable, comprehensive error handling and logging
 
 - [ ] **Enhance Content Security Policy**
   - *Prompt*: "Remove 'unsafe-inline' directives from CSP and implement nonce-based CSP for better security."

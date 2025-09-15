@@ -230,11 +230,49 @@ Nested zip files ❌
 <root>&xxe;</root> ❌
 ```
 
+### 7. Real-time Virus Scanning
+- **ClamAV Integration**: Real antivirus scanning with clamscan package
+- **Graceful Fallback**: EICAR detection when ClamAV unavailable
+- **Multiple Scan Methods**: Daemon (clamdscan) and binary (clamscan) support
+- **Error Handling**: Comprehensive error handling and logging
+- **Performance Optimized**: Configurable timeouts and multithreading
+
+#### ClamAV Configuration
+```javascript
+// Environment variables for ClamAV
+CLAMSCAN_PATH=/usr/bin/clamscan           // Path to clamscan binary
+CLAMDSCAN_PATH=/usr/bin/clamdscan         // Path to clamdscan binary
+CLAMD_SOCKET=/var/run/clamav/clamd.ctl    // Unix socket for daemon
+CLAMD_HOST=127.0.0.1                      // TCP host for daemon
+CLAMD_PORT=3310                           // TCP port for daemon
+CLAMAV_DB_PATH=/var/lib/clamav            // Virus database path
+CLAMD_CONFIG=/etc/clamav/clamd.conf       // Daemon config file
+```
+
+#### Virus Scan Results
+```javascript
+// Successful scan result
+{
+  clean: true,
+  scanner: 'clamav', // or 'fallback'
+  goodFiles: 1,
+  badFiles: 0,
+  errors: []
+}
+
+// Fallback mode result
+{
+  clean: true,
+  scanner: 'fallback',
+  warning: 'ClamAV not available - limited virus detection active'
+}
+```
+
 ## Future Enhancements
 
-1. **Antivirus Integration**: ClamAV or cloud-based scanning
-2. **Image Processing**: Resize/reformat to remove metadata
-3. **Document Sanitization**: PDF/Office macro removal
-4. **Machine Learning**: Anomaly detection for uploads
-5. **CDN Integration**: Direct uploads to cloud storage
-6. **Watermarking**: Add tracking to uploaded files
+1. **Image Processing**: Resize/reformat to remove metadata
+2. **Document Sanitization**: PDF/Office macro removal
+3. **Machine Learning**: Anomaly detection for uploads
+4. **CDN Integration**: Direct uploads to cloud storage
+5. **Watermarking**: Add tracking to uploaded files
+6. **Cloud AV Integration**: Additional cloud-based scanning services

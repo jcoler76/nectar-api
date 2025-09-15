@@ -10,7 +10,10 @@ import {
   Shield,
   Key as KeyIcon,
   Users,
-  X
+  X,
+  FileText,
+  Activity,
+  CheckCircle
 } from 'lucide-react'
 import { useState, useMemo } from 'react'
 
@@ -78,6 +81,18 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
         { title: 'Overview', icon: BarChart3, url: '/billing/overview' },
         { title: 'Transactions', icon: DollarSign, url: '/billing/transactions' },
         { title: 'Stripe Config', icon: Settings, url: '/billing/stripe' }
+      ]
+    },
+    {
+      title: 'Licensing',
+      icon: FileText,
+      url: '/licensing',
+      children: [
+        { title: 'License Overview', icon: BarChart3, url: '/licensing/overview' },
+        { title: 'All Licenses', icon: FileText, url: '/licensing/licenses' },
+        { title: 'Customer Licenses', icon: Users, url: '/licensing/customers' },
+        { title: 'Usage Analytics', icon: Activity, url: '/licensing/usage' },
+        { title: 'System Health', icon: CheckCircle, url: '/licensing/health' }
       ]
     },
     {

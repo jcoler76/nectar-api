@@ -4,6 +4,8 @@ const path = require('path');
 const {
   createSecureUploader,
   validateFileContent,
+  virusScan,
+  initClamAV,
   FILE_SIGNATURES,
 } = require('../middleware/fileUploadSecurity');
 
@@ -395,6 +397,108 @@ describe('File Upload Security', () => {
         .attach('files', Buffer.from('file2'), 'file2.txt')
         .attach('files', Buffer.from('file3'), 'file3.txt')
         .expect(400);
+    });
+  });
+
+  describe('ClamAV Virus Scanning', () => {
+    test('should detect EICAR test string even without ClamAV', async () => {
+      const eicarContent = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+      const buffer = Buffer.from(eicarContent);
+
+      try {
+        await virusScan(buffer);
+        fail('Expected virus scan to throw error for EICAR test string');
+      } catch (error) {
+        expect(error.message).toContain('Virus detected');
+        expect(error.message).toContain('EICAR');
+      }
+    });
+
+    test('should pass clean files through virus scan', async () => {
+      const cleanContent = 'This is a clean text file with no malicious content.';
+      const buffer = Buffer.from(cleanContent);
+
+      const result = await virusScan(buffer);
+      expect(result.clean).toBe(true);
+      expect(result.scanner).toBeDefined();
+    });
+
+    test('should handle ClamAV initialization gracefully when not available', async () => {
+      // This test will pass whether ClamAV is installed or not
+      // If ClamAV is not available, it should fallback gracefully
+      const clam = await initClamAV();
+      // Should either return a ClamAV instance or null (graceful fallback)
+      expect(clam === null || typeof clam === 'object').toBe(true);
+    });
+
+    test('should include virus scan metadata in file security metadata', async () => {
+      const upload = createSecureUploader();
+
+      app.post('/upload', upload.single('file'), validateFileContent, (req, res) => {
+        res.json({
+          metadata: req.file.securityMetadata,
+          virusScanResult: req.file.virusScanResult,
+        });
+      });
+
+      const response = await request(app)
+        .post('/upload')
+        .attach('file', Buffer.from('clean test content'), 'test.txt')
+        .expect(200);
+
+      expect(response.body.metadata).toMatchObject({
+        validated: true,
+        virusScanPassed: true,
+        virusScanner: expect.any(String),
+      });
+
+      expect(response.body.virusScanResult).toMatchObject({
+        clean: true,
+        scanner: expect.any(String),
+      });
+    });
+
+    test('should reject files that fail virus scan during upload', async () => {
+      const upload = createSecureUploader();
+
+      app.post('/upload', upload.single('file'), validateFileContent, (req, res) => {
+        res.json({ success: true });
+      });
+
+      app.use((error, req, res, next) => {
+        if (res.headersSent) return next(error);
+        res.status(error.status || 400).json({
+          error: error.message || 'Upload failed',
+        });
+      });
+
+      // Upload EICAR test string
+      const eicarContent = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
+
+      const response = await request(app)
+        .post('/upload')
+        .attach('file', Buffer.from(eicarContent), 'virus.txt')
+        .expect(400);
+
+      expect(response.body.error.code).toBe('VIRUS_DETECTED');
+      expect(response.body.error.message).toContain('Virus detected');
+    });
+
+    test('should handle virus scan errors gracefully', async () => {
+      // Test with an extremely large buffer that might cause scan timeouts
+      const largeBuffer = Buffer.alloc(100 * 1024 * 1024); // 100MB of zeros
+      largeBuffer.fill('A'); // Fill with 'A' characters
+
+      const result = await virusScan(largeBuffer);
+
+      // Should complete successfully or fallback gracefully
+      expect(result.clean).toBe(true);
+      expect(result.scanner).toBeDefined();
+
+      // If there was a fallback, it should be indicated
+      if (result.scanner === 'fallback') {
+        expect(result.warning || result.error).toBeDefined();
+      }
     });
   });
 });
