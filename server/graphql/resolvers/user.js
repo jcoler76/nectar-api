@@ -15,18 +15,27 @@ const userResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      if (currentUser.userId !== id && !currentUser.isAdmin) {
+      if (currentUser.userId !== id && !currentUser.isSuperAdmin) {
         throw new ForbiddenError('Forbidden');
       }
 
       const whereClause = currentUser.organizationId
-        ? { id, organizationId: currentUser.organizationId }
+        ? {
+            id,
+            memberships: {
+              some: {
+                organizationId: currentUser.organizationId,
+              },
+            },
+          }
         : { id };
       const user = await prisma.user.findFirst({
         where: whereClause,
         include: {
-          roles: {
-            where: { isActive: true },
+          memberships: {
+            include: {
+              organization: true,
+            },
           },
         },
       });
@@ -48,18 +57,22 @@ const userResolvers = {
         throw new ForbiddenError('Client API keys cannot access user management');
       }
 
-      if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
+      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
 
       const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'asc' } = pagination;
 
       // Build where clause for filters
       const where = {};
       if (currentUser.organizationId) {
-        where.organizationId = currentUser.organizationId;
+        where.memberships = {
+          some: {
+            organizationId: currentUser.organizationId,
+          },
+        };
       }
 
       if (filters.isActive !== undefined) where.isActive = filters.isActive;
-      if (filters.isAdmin !== undefined) where.isAdmin = filters.isAdmin;
+      if (filters.isSuperAdmin !== undefined) where.isSuperAdmin = filters.isSuperAdmin;
 
       if (filters.search) {
         where.OR = [
@@ -79,9 +92,10 @@ const userResolvers = {
         take: limit,
         orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
         include: {
-          roles: {
-            where: { isActive: true },
-            select: { id: true, name: true },
+          memberships: {
+            include: {
+              organization: true,
+            },
           },
         },
       });
@@ -115,9 +129,10 @@ const userResolvers = {
       const user = await prisma.user.findUnique({
         where: { id: currentUser.userId },
         include: {
-          organization: true,
-          roles: {
-            where: { isActive: true },
+          memberships: {
+            include: {
+              organization: true,
+            },
           },
         },
       });
@@ -132,10 +147,10 @@ const userResolvers = {
 
   Mutation: {
     createUser: async (_, { input }, { user: currentUser }) => {
-      if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
+      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
 
       try {
-        const { roles: roleIds, ...userData } = input;
+        const userData = input;
 
         const user = await prisma.user.create({
           data: {
@@ -145,7 +160,11 @@ const userResolvers = {
             isActive: userData.isActive ?? true,
           },
           include: {
-            roles: { where: { isActive: true } },
+            memberships: {
+              include: {
+                organization: true,
+              },
+            },
           },
         });
 
@@ -166,7 +185,7 @@ const userResolvers = {
     },
 
     updateUser: async (_, { id, input }, { user: currentUser }) => {
-      if (currentUser.userId !== id && !currentUser.isAdmin) {
+      if (currentUser.userId !== id && !currentUser.isSuperAdmin) {
         throw new ForbiddenError('Forbidden');
       }
 
@@ -178,20 +197,20 @@ const userResolvers = {
           throw new UserInputError('User not found');
         }
 
-        const { roles: roleIds, ...updateData } = input;
-        let roleUpdate = {};
-        if (roleIds !== undefined) {
-          // Simplified: replace roles by ids (no org validation here)
-          roleUpdate = { set: roleIds.map(id => ({ id })) };
-        }
+        const updateData = input;
 
         const user = await prisma.user.update({
           where: { id },
           data: {
             ...updateData,
-            ...(Object.keys(roleUpdate).length ? { roles: roleUpdate } : {}),
           },
-          include: { roles: { where: { isActive: true } } },
+          include: {
+            memberships: {
+              include: {
+                organization: true,
+              },
+            },
+          },
         });
 
         logger.info('User updated via GraphQL', {
@@ -211,13 +230,20 @@ const userResolvers = {
     },
 
     deleteUser: async (_, { id }, { user: currentUser }) => {
-      if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
+      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
 
       try {
         // Verify user exists and belongs to organization
         const existingUser = await prisma.user.findFirst({
           where: currentUser.organizationId
-            ? { id, organizationId: currentUser.organizationId }
+            ? {
+                id,
+                memberships: {
+                  some: {
+                    organizationId: currentUser.organizationId,
+                  },
+                },
+              }
             : { id },
         });
 
@@ -251,7 +277,7 @@ const userResolvers = {
     },
 
     inviteUser: async (_, { email, firstName, lastName }, { user: currentUser, req, res }) => {
-      if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
+      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
 
       try {
         // Create a mock request object for the existing controller
@@ -288,22 +314,11 @@ const userResolvers = {
   User: {
     fullName: user => `${user.firstName} ${user.lastName}`,
 
-    // Resolver for roles field - ensures role info is populated
+    // Resolver for roles field - based on schema, roles are not directly associated with users
     roles: async user => {
-      if (user.roles) return user.roles;
-
-      if (!user.id) return [];
-
-      const userWithRoles = await prisma.user.findUnique({
-        where: { id: user.id },
-        include: {
-          roles: {
-            where: { isActive: true },
-          },
-        },
-      });
-
-      return userWithRoles?.roles || [];
+      // In this schema, users don't have direct roles
+      // Roles are associated with applications and services
+      return [];
     },
     memberships: async user => {
       if (!user?.id) return [];

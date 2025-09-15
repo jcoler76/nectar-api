@@ -3,6 +3,7 @@
  * Consolidates all route mounting logic with appropriate middleware
  */
 
+const express = require('express');
 const { authMiddleware } = require('../middleware/auth');
 const { csrfProtection, getCSRFToken } = require('../middleware/csrf');
 const {
