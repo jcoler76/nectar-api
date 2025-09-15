@@ -6,7 +6,39 @@ const prisma = new PrismaClient();
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    // Skip authentication for static assets in documentation routes
+    if (
+      (req.path.includes('/api/documentation') || req.originalUrl.includes('/api/documentation')) &&
+      req.path.match(/\.(css|js|png|jpg|gif|ico|woff|woff2|ttf|eot|svg)$/i)
+    ) {
+      return next();
+    }
+
+    // Check for token in Authorization header only
+    let token = req.headers.authorization?.split(' ')[1];
+
+    // For documentation routes, also allow session-based authentication
+    if (
+      !token &&
+      (req.path.includes('/api/documentation') || req.originalUrl.includes('/api/documentation'))
+    ) {
+      if (req.session?.user) {
+        // Create a temporary user object for documentation access
+        req.user = {
+          userId: req.session.user.id,
+          email: req.session.user.email,
+          isAdmin: req.session.user.isAdmin,
+          organizationId: req.session.user.organizationId,
+          sessionAuth: true, // Flag to indicate session-based auth
+        };
+        logger.debug('Documentation access via session', {
+          userId: req.user.userId,
+          email: req.user.email,
+          path: req.path,
+        });
+        return next();
+      }
+    }
 
     if (!token) {
       logger.warn('Authentication failed: No token provided', {
