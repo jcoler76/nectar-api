@@ -516,11 +516,8 @@ router.get('/openapi/:roleId', async (req, res) => {
     const role = await prisma.role.findUnique({
       where: { id: req.params.roleId },
       include: {
-        permissions: {
-          include: {
-            service: true,
-          },
-        },
+        service: true,
+        organization: true,
       },
     });
 
@@ -528,22 +525,26 @@ router.get('/openapi/:roleId', async (req, res) => {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
-    const endpoints = role.permissions
-      .filter(p => p.service)
-      .map(perm => {
-        const allowedMethods = Object.entries(perm.actions || {})
-          .filter(([_, allowed]) => allowed)
-          .map(([method]) => method);
+    // Handle permissions as JSON field
+    const permissions = role.permissions || [];
+    const endpoints = Array.isArray(permissions)
+      ? permissions
+          .filter(p => p.serviceName) // Use serviceName instead of service relation
+          .map(perm => {
+            const allowedMethods = Object.entries(perm.actions || {})
+              .filter(([_, allowed]) => allowed)
+              .map(([method]) => method);
 
-        return {
-          path: `/api/services/${perm.service.name}/${perm.objectName}`,
-          methods: allowedMethods,
-          service: perm.service.name,
-          objectName: perm.objectName,
-          parameters: perm.procedureSchema?.parameters || [],
-          procedureInfo: perm.procedureSchema?.procedure || null,
-        };
-      });
+            return {
+              path: `/api/services/${perm.serviceName}/${perm.objectName}`,
+              methods: allowedMethods,
+              service: perm.serviceName,
+              objectName: perm.objectName,
+              parameters: perm.procedureSchema?.parameters || [],
+              procedureInfo: perm.procedureSchema?.procedure || null,
+            };
+          })
+      : [];
 
     const openApiSpec = generateOpenAPISpec(role, endpoints);
     res.json(openApiSpec);

@@ -11,6 +11,21 @@ const { apiVersioning, addVersionInfo } = require('./apiVersioning');
 const buildCorsOptions = require('../config/corsOptions');
 
 /**
+ * Get allowed origins for frame-ancestors (same as CORS origins)
+ */
+const getAllowedFrameAncestors = () => {
+  const envOrigins = (process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
+  const defaultOrigins = ['http://localhost:3000', 'http://localhost:8000'];
+  const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins;
+
+  return ["'self'", ...allowedOrigins];
+};
+
+/**
  * Apply all security middleware to the Express app
  * @param {Express} app - Express application instance
  */
@@ -54,7 +69,7 @@ const applySecurityMiddleware = app => {
           // Additional CSP directives for better security
           baseUri: ["'self'"],
           formAction: ["'self'"],
-          frameAncestors: ["'none'"],
+          frameAncestors: getAllowedFrameAncestors(),
           objectSrc: ["'none'"],
           upgradeInsecureRequests: [],
         },

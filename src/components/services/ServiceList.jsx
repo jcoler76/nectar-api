@@ -1,17 +1,15 @@
 import Tooltip from '@mui/material/Tooltip';
-import { Edit, HelpCircle, Info, RefreshCw, Trash2 } from 'lucide-react';
+import { Edit, HelpCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useConnections } from '../../hooks/useConnections';
 import { useFormDialog } from '../../hooks/useFormDialog';
 import { useServices } from '../../hooks/useServices';
-import api from '../../services/api';
 import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DependencyWarningDialog from '../common/DependencyWarningDialog';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
@@ -43,36 +41,6 @@ const ServiceList = () => {
     serviceName: '',
     dependencies: '',
   });
-
-  // Swagger role selection state
-  const [swaggerDialog, setSwaggerDialog] = useState({
-    open: false,
-    roles: [],
-    selectedRoleId: '',
-  });
-
-  const openSwaggerDialog = useCallback(async () => {
-    try {
-      if (!swaggerDialog.roles.length) {
-        const res = await api.get('/api/roles');
-        setSwaggerDialog(prev => ({
-          ...prev,
-          roles: res.data,
-          selectedRoleId: res.data?.[0]?._id || '',
-        }));
-      }
-      setSwaggerDialog(prev => ({ ...prev, open: true }));
-    } catch (e) {
-      window.open('/api/documentation/blueprints/ui', '_blank');
-    }
-  }, [swaggerDialog.roles.length]);
-
-  const handleOpenSwaggerForRole = () => {
-    if (!swaggerDialog.selectedRoleId) return;
-    const url = `/api/documentation/openapi/${encodeURIComponent(swaggerDialog.selectedRoleId)}/ui`;
-    window.open(url, '_blank');
-    setSwaggerDialog(prev => ({ ...prev, open: false }));
-  };
 
   useEffect(() => {
     fetchServices();
@@ -237,12 +205,6 @@ const ServiceList = () => {
             onClick: service => handleEdit(service, fetchConnections),
           },
           {
-            label: 'Swagger',
-            icon: Info,
-            tooltip: 'Open Swagger UI for a selected role (or Blueprints UI if roles unavailable)',
-            onClick: () => openSwaggerDialog(),
-          },
-          {
             label: 'Refresh Schema',
             icon: RefreshCw,
             tooltip: 'Update database schema information to reflect recent structural changes',
@@ -300,7 +262,6 @@ const ServiceList = () => {
       handleRefreshSchema,
       handleDelete,
       openConfirm,
-      openSwaggerDialog,
       fetchConnections,
       operationInProgress,
     ]
@@ -319,63 +280,12 @@ const ServiceList = () => {
         onAdd={() => handleAdd(fetchConnections)}
         prepareExportData={prepareExportData}
         exportFilename="services-list.csv"
-        customActions={[
-          {
-            label: 'Swagger',
-            onClick: openSwaggerDialog,
-            icon: Info,
-            variant: 'outline',
-            mobileHidden: true,
-          },
-        ]}
+        customActions={[]}
         searchable={true}
         filterable={true}
         enableVirtualization={true} // Enable virtual scrolling for large service lists
         defaultSort={{ key: 'name', direction: 'asc' }}
       />
-
-      {/* Swagger Role Selection Dialog */}
-      <Dialog
-        open={swaggerDialog.open}
-        onOpenChange={open => setSwaggerDialog(prev => ({ ...prev, open }))}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Role for Swagger</DialogTitle>
-            <DialogDescription>
-              Choose a role to open its role-scoped Swagger UI. You can also use Blueprints UI if
-              you prefer model-level docs.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium">Role</label>
-            <select
-              className="w-full border rounded px-3 py-2 bg-background"
-              value={swaggerDialog.selectedRoleId}
-              onChange={e =>
-                setSwaggerDialog(prev => ({ ...prev, selectedRoleId: e.target.value }))
-              }
-            >
-              {swaggerDialog.roles.map(role => (
-                <option key={role._id} value={role._id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-2 justify-end pt-2">
-              <Button
-                variant="outline"
-                onClick={() => window.open('/api/documentation/blueprints/ui', '_blank')}
-              >
-                Open Blueprints Docs
-              </Button>
-              <Button onClick={handleOpenSwaggerForRole} disabled={!swaggerDialog.selectedRoleId}>
-                Open Role Docs
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={openForm} onOpenChange={open => !open && handleClose()}>
         <DialogContent className="sm:max-w-md">
