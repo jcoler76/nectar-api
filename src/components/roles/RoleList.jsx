@@ -1,13 +1,31 @@
 import Tooltip from '@mui/material/Tooltip';
 import { Edit, HelpCircle, Info, Trash2 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useRoles } from '../../hooks/useRoles';
+import { getToken } from '../../services/authService';
 import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Switch } from '../ui/switch';
+
+// Get API URL from environment, same logic as api.js
+const getApiUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL;
+  if (!envUrl || envUrl.trim() === '') {
+    return 'http://localhost:3001';
+  }
+  try {
+    new URL(envUrl);
+    return envUrl.trim();
+  } catch (error) {
+    console.warn('Invalid REACT_APP_API_URL, falling back to localhost:', envUrl);
+    return 'http://localhost:3001';
+  }
+};
 
 const RoleList = () => {
   const {
@@ -24,6 +42,48 @@ const RoleList = () => {
   } = useRoles();
 
   const { confirmState, openConfirm, closeConfirm, handleConfirm } = useConfirmDialog();
+
+  // Swagger dialog state
+  const [swaggerDialog, setSwaggerDialog] = useState({
+    open: false,
+    selectedRole: null,
+  });
+
+  const openSwaggerDialog = useCallback(role => {
+    setSwaggerDialog({
+      open: true,
+      selectedRole: role,
+    });
+  }, []);
+
+  // Documentation viewer state
+  const [docViewer, setDocViewer] = useState({
+    open: false,
+    url: '',
+    title: '',
+  });
+
+  const handleOpenSwaggerForRole = () => {
+    if (!swaggerDialog.selectedRole?.id) return;
+    const apiUrl = getApiUrl();
+    const url = `${apiUrl}/api/documentation/openapi/${encodeURIComponent(swaggerDialog.selectedRole.id)}/ui`;
+    setDocViewer({
+      open: true,
+      url,
+      title: `Swagger Documentation - ${swaggerDialog.selectedRole.name}`,
+    });
+    setSwaggerDialog(prev => ({ ...prev, open: false }));
+  };
+
+  const handleOpenBlueprintsDoc = () => {
+    const apiUrl = getApiUrl();
+    setDocViewer({
+      open: true,
+      url: `${apiUrl}/api/documentation/blueprints/ui`,
+      title: 'Blueprints Documentation',
+    });
+    setSwaggerDialog(prev => ({ ...prev, open: false }));
+  };
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -131,6 +191,12 @@ const RoleList = () => {
             onClick: handleEdit,
           },
           {
+            label: 'Swagger',
+            icon: Info,
+            tooltip: 'Open Swagger UI documentation for this role or view Blueprints documentation',
+            onClick: role => openSwaggerDialog(role),
+          },
+          {
             label: 'Delete Role',
             icon: Trash2,
             tooltip:
@@ -151,7 +217,7 @@ const RoleList = () => {
         ],
       },
     ],
-    [handleToggleActive, handleEdit, openConfirm, operationInProgress]
+    [handleToggleActive, handleEdit, openConfirm, openSwaggerDialog, operationInProgress]
   );
 
   return (
@@ -180,6 +246,56 @@ const RoleList = () => {
           },
         ]}
       ></BaseListView>
+
+      {/* Swagger Role Documentation Dialog */}
+      <Dialog
+        open={swaggerDialog.open}
+        onOpenChange={open => setSwaggerDialog(prev => ({ ...prev, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Role Documentation</DialogTitle>
+            <DialogDescription>
+              Access documentation for the "{swaggerDialog.selectedRole?.name}" role. Documentation
+              will be embedded below using session-based authentication.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex gap-2 justify-end pt-2">
+              <Button variant="outline" onClick={handleOpenBlueprintsDoc}>
+                Open Blueprints Docs
+              </Button>
+              <Button onClick={handleOpenSwaggerForRole} disabled={!swaggerDialog.selectedRole?.id}>
+                Open Role Swagger
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Embedded Documentation Viewer */}
+      <Dialog
+        open={docViewer.open}
+        onOpenChange={open => setDocViewer(prev => ({ ...prev, open }))}
+        className="max-w-7xl w-full h-[90vh]"
+      >
+        <DialogContent className="max-w-7xl w-full h-[90vh] p-0">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle>{docViewer.title}</DialogTitle>
+            <DialogDescription>
+              Interactive API documentation using session-based authentication.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 w-full h-full min-h-[70vh]">
+            <iframe
+              src={docViewer.url}
+              className="w-full h-full border-0 rounded-b-lg"
+              title={docViewer.title}
+              style={{ minHeight: '70vh' }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={confirmState.open}

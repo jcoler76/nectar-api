@@ -97,6 +97,15 @@ router.post('/login', loginValidation, handleValidationErrors, async (req, res) 
 
     const result = await authService.login(email, password, ipAddress, userAgent);
 
+    // Store user info in session for documentation access
+    req.session.user = {
+      id: result.user.id,
+      email: result.user.email,
+      isAdmin: result.user.isAdmin,
+      organizationId: result.organization?.id,
+      loginTime: new Date().toISOString(),
+    };
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -306,11 +315,15 @@ router.post(
  */
 router.post('/logout', AuthFactory.createJWTMiddleware(), async (req, res) => {
   try {
-    // In a full implementation, we would:
-    // 1. Add token to blacklist
-    // 2. Clear session data
-    // 3. Log the logout event
+    // 1. Clear session data for documentation access
+    req.session.destroy(err => {
+      if (err) {
+        logger.error('Session destruction failed', { error: err.message });
+      }
+    });
 
+    // 2. Add token to blacklist (if implemented)
+    // 3. Log the logout event
     logger.info('User logged out', { userId: req.user.userId });
 
     res.json({

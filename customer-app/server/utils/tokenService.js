@@ -80,7 +80,7 @@ const generateTokens = (payload, fingerprint = null) => {
     expiresIn: '1d', // 1 day access token
     jwtid: accessTokenId,
     issuer: 'nectar-api',
-    audience: 'mirabel-client',
+    audience: 'nectar-client',
   });
 
   const refreshToken = jwt.sign(refreshPayload, secret, {
@@ -88,7 +88,7 @@ const generateTokens = (payload, fingerprint = null) => {
     expiresIn: '7d', // Longer-lived refresh token
     jwtid: refreshTokenId,
     issuer: 'nectar-api',
-    audience: 'mirabel-client',
+    audience: 'nectar-client',
   });
 
   return {
@@ -110,7 +110,7 @@ const validateToken = async token => {
     const decoded = jwt.verify(token, secret, {
       algorithms: ['HS256'], // Only allow HS256 algorithm
       issuer: 'nectar-api',
-      audience: 'nectar-users', // Match JWT_AUDIENCE in .env
+      audience: 'nectar-client', // Standardized nectar audience
     });
 
     // Check if token is blacklisted (Redis or in-memory)
