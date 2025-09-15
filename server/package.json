@@ -16,6 +16,7 @@
     "basic-ftp": "^5.0.5",
     "bcryptjs": "^2.4.3",
     "bull": "^4.16.5",
+    "clamscan": "^2.4.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",

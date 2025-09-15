@@ -310,8 +310,8 @@ const ApiUsageReport = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Components</SelectItem>
-                {components.map(component => (
-                  <SelectItem key={component} value={component}>
+                {components.map((component, index) => (
+                  <SelectItem key={`component-${index}-${component}`} value={component}>
                     {component}
                   </SelectItem>
                 ))}

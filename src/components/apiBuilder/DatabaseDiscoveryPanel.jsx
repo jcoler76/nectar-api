@@ -34,7 +34,10 @@ const DatabaseDiscoveryPanel = ({ onApiGenerated }) => {
   };
 
   const discoverTables = async () => {
-    if (!selectedService) return;
+    if (!selectedService) {
+      setError('Please select a service first');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -42,14 +45,19 @@ const DatabaseDiscoveryPanel = ({ onApiGenerated }) => {
     setSelectedTables(new Set());
 
     try {
-      const response = await api.get(`/api/v2/${selectedService}/_discover`, {
-        headers: {
-          'X-API-Key': localStorage.getItem('apiKey') || '',
-        },
-      });
-      setDiscoveredTables(response.data.data || []);
+      const response = await api.get(`/api/v2/${selectedService}/_discover`);
+
+      const tables = response.data.data || [];
+
+      setDiscoveredTables(tables);
+
+      if (tables.length === 0) {
+        setError(
+          'No tables found for this service. Make sure the service has been properly configured with database schema information.'
+        );
+      }
     } catch (err) {
-      setError('Failed to discover tables: ' + err.message);
+      setError('Failed to discover tables: ' + (err.response?.data?.error?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -82,17 +90,9 @@ const DatabaseDiscoveryPanel = ({ onApiGenerated }) => {
     setSuccess('');
 
     try {
-      const response = await api.post(
-        `/api/v2/${selectedService}/_expose`,
-        {
-          tables: Array.from(selectedTables),
-        },
-        {
-          headers: {
-            'X-API-Key': localStorage.getItem('apiKey') || '',
-          },
-        }
-      );
+      const response = await api.post(`/api/v2/${selectedService}/_expose`, {
+        tables: Array.from(selectedTables),
+      });
 
       const data = response.data;
 

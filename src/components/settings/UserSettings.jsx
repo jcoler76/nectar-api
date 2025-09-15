@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { StatusMessages } from '../common/StatusMessages';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import {
@@ -24,7 +25,6 @@ import {
   FormHint,
   FormSection,
 } from '../ui/form-layout';
-import { ValidationMessage } from '../ui/form-validation';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
@@ -278,13 +278,11 @@ const UserSettings = () => {
           </CardHeader>
           <CardContent>
             <FormContainer>
-              {notificationError && (
-                <ValidationMessage type="error">{notificationError}</ValidationMessage>
-              )}
-
-              {notificationSuccess && (
-                <ValidationMessage type="success">{notificationSuccess}</ValidationMessage>
-              )}
+              <StatusMessages
+                error={notificationError}
+                success={notificationSuccess}
+                variant="inline"
+              />
 
               <div className="space-y-6">
                 {/* Notification Types Table */}
@@ -406,9 +404,7 @@ const UserSettings = () => {
           <CardContent>
             <FormContainer>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {error && <ValidationMessage type="error">{error}</ValidationMessage>}
-
-                {success && <ValidationMessage type="success">{success}</ValidationMessage>}
+                <StatusMessages error={error} success={success} variant="inline" />
 
                 <FormSection>
                   <FormFieldGroup>

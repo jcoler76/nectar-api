@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 
 import { useAuth } from '../../context/AuthContext';
 import { formatTimestampEST } from '../../utils/dateUtils';
+import { StatusMessages } from '../common/StatusMessages';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
@@ -27,9 +28,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
-// Removed FormContainer; using a single DataTable card to avoid nested cards
-import { ValidationMessage } from '../ui/form-validation';
 import { Switch } from '../ui/switch';
+// Removed FormContainer; using a single DataTable card to avoid nested cards
 
 const AdminSettings = () => {
   const [users, setUsers] = useState([]);
@@ -301,8 +301,7 @@ const AdminSettings = () => {
         </div>
 
         {/* User Management - Single card via DataTable */}
-        {error && <ValidationMessage type="error">{error}</ValidationMessage>}
-        {success && <ValidationMessage type="success">{success}</ValidationMessage>}
+        <StatusMessages error={error} success={success} />
         <DataTable
           data={users}
           columns={columns}

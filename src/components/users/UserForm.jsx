@@ -3,6 +3,7 @@ import { Eye, EyeOff, HelpCircle, Loader2, Lock, Mail, Shield, User } from 'luci
 import { useState } from 'react';
 
 import { inviteUser, updateUser } from '../../services/userService';
+import { StatusMessages } from '../common/StatusMessages';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -14,7 +15,6 @@ import {
   FormHint,
   FormSection,
 } from '../ui/form-layout';
-import { ValidationMessage } from '../ui/form-validation';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 
@@ -91,7 +91,7 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
       <CardContent className={hideHeader ? 'p-0' : 'p-0'}>
         <FormContainer>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <ValidationMessage type="error">{error}</ValidationMessage>}
+            <StatusMessages error={error} variant="inline" />
 
             <FormSection
               title="Personal Information"

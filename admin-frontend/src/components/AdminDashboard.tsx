@@ -22,6 +22,10 @@ import SubscriptionManagement from './users/SubscriptionManagement'
 import BillingDashboard from './billing/BillingDashboard'
 import StripeConfiguration from './billing/StripeConfiguration'
 import TransactionReport from './billing/TransactionReport'
+import LicenseOverview from './licensing/LicenseOverview'
+import LicenseList from './licensing/LicenseList'
+import UsageAnalytics from './licensing/UsageAnalytics'
+import SystemHealth from './licensing/SystemHealth'
 
 interface DashboardStats {
   totalUsers: number
@@ -133,6 +137,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case '/system/config': return 'System Configuration'
       case '/system/audit': return 'Audit Logs'
       case '/system/announcements': return 'Announcements'
+      case '/licensing': return 'Licensing'
+      case '/licensing/overview': return 'License Overview'
+      case '/licensing/licenses': return 'All Licenses'
+      case '/licensing/customers': return 'Customer Licenses'
+      case '/licensing/usage': return 'Usage Analytics'
+      case '/licensing/health': return 'System Health'
       default: return 'Dashboard'
     }
   }
@@ -152,6 +162,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
              currentPage.startsWith('/analytics') ? 'Revenue and usage analytics' :
              currentPage.startsWith('/users') ? 'User and organization management' :
              currentPage.startsWith('/billing') ? 'Billing and subscription management' :
+             currentPage.startsWith('/licensing') ? 'License management and monitoring' :
              currentPage.startsWith('/system') ? 'System configuration and maintenance' :
              'Admin portal navigation'}
           </p>
@@ -272,8 +283,15 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         {currentPage === '/system/security' && <SecuritySettings />}
         {currentPage === '/system/app-keys' && <ApplicationKeyManager />}
 
+        {/* Licensing Pages */}
+        {currentPage === '/licensing/overview' && <LicenseOverview />}
+        {currentPage === '/licensing/licenses' && <LicenseList />}
+        {currentPage === '/licensing/customers' && <LicenseList />}
+        {currentPage === '/licensing/usage' && <UsageAnalytics />}
+        {currentPage === '/licensing/health' && <SystemHealth />}
+
         {/* Other Pages */}
-        {currentPage !== '/dashboard' && 
+        {currentPage !== '/dashboard' &&
          currentPage !== '/analytics/revenue' &&
          currentPage !== '/analytics/users' &&
          currentPage !== '/analytics/churn' &&
@@ -284,7 +302,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
          currentPage !== '/billing/transactions' &&
          currentPage !== '/billing/stripe' &&
          currentPage !== '/system/security' &&
-         currentPage !== '/system/app-keys' && (
+         currentPage !== '/system/app-keys' &&
+         currentPage !== '/licensing/overview' &&
+         currentPage !== '/licensing/licenses' &&
+         currentPage !== '/licensing/customers' &&
+         currentPage !== '/licensing/usage' &&
+         currentPage !== '/licensing/health' && (
           <div className="bg-white rounded-lg shadow p-8">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">{getPageTitle()}</h2>
@@ -294,7 +317,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-blue-700 font-medium">Current Route: {currentPage}</p>
                 <p className="text-blue-600 text-sm mt-1">
-                  Multiple sections are now available: Analytics (Revenue, Users, Churn), User Management (Users, Organizations, Subscriptions), and Billing Overview!
+                  Multiple sections are now available: Analytics (Revenue, Users, Churn), User Management (Users, Organizations, Subscriptions), Billing Overview, and Licensing Management!
                 </p>
               </div>
             </div>
