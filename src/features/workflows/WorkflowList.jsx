@@ -192,10 +192,7 @@ const WorkflowList = () => {
           </p>
         </div>
         <Tooltip title="Create your first workflow to start automating business processes and data operations across your connected systems">
-          <Button
-            onClick={() => handleAdd()}
-            className="mt-2 bg-ocean-500 text-white hover:bg-ocean-600 border-ocean-500"
-          >
+          <Button onClick={() => handleAdd()} variant="ocean" className="mt-2">
             <Plus className="mr-2 h-4 w-4" />
             Add Workflow
           </Button>

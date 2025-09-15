@@ -1,10 +1,12 @@
-import { AlertCircle, CheckCircle, Download } from 'lucide-react';
+import { AlertCircle, Download } from 'lucide-react';
 import React from 'react';
 
 import { useCsvExport } from '../../hooks/useCsvExport';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { DataTable } from '../ui/data-table';
+
+import { StatusMessages } from './StatusMessages';
 
 /**
  * Reusable base component for list views
@@ -53,24 +55,8 @@ const BaseListViewComponent = ({
 
   return (
     <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Error and Success Messages */}
-      {error && (
-        <Card className="border-destructive/50 bg-destructive/10">
-          <CardContent className="flex items-center gap-2 p-4">
-            <AlertCircle className="h-4 w-4 text-destructive" />
-            <span className="text-destructive font-medium">{error}</span>
-          </CardContent>
-        </Card>
-      )}
-
-      {success && (
-        <Card className="border-green-500/50 bg-green-50">
-          <CardContent className="flex items-center gap-2 p-4">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <span className="text-green-700 font-medium">{success}</span>
-          </CardContent>
-        </Card>
-      )}
+      {/* Status Messages */}
+      <StatusMessages error={error} success={success} />
 
       {/* Header - Responsive */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -112,7 +98,7 @@ const BaseListViewComponent = ({
 
           {/* Add Button */}
           {onAdd && (
-            <Button size="sm" className="flex-1 sm:flex-none" onClick={onAdd}>
+            <Button size="sm" variant="ocean" className="flex-1 sm:flex-none" onClick={onAdd}>
               <span className="sm:hidden">Add</span>
               <span className="hidden sm:inline">Add {title.slice(0, -1)}</span>
             </Button>
@@ -137,7 +123,7 @@ const BaseListViewComponent = ({
                 </p>
               </div>
               {onAdd && (
-                <Button onClick={onAdd} className="mt-2">
+                <Button onClick={onAdd} variant="ocean" className="mt-2">
                   Add {title.slice(0, -1)}
                 </Button>
               )}

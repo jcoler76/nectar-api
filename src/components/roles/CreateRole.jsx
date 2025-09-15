@@ -1,5 +1,5 @@
 import { Plus, Trash2, Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,11 +18,15 @@ import { Switch } from '../ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Textarea } from '../ui/textarea';
 
-const steps = ['Basic Information', 'Component Permissions'];
+import ApiBuilderWelcome from './ApiBuilderWelcome';
+import BulkHttpVerbConfig from './BulkHttpVerbConfig';
+import BulkTableSelection from './BulkTableSelection';
+
+const steps = ['Welcome', 'Basic Information', 'Table Selection', 'Permissions Configuration'];
 
 const CreateRole = ({ mode = 'create', existingRole = null }) => {
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(mode === 'edit' ? 1 : 0);
   const [role, setRole] = useState({
     name: '',
     description: '',
@@ -53,6 +57,10 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleItems, setVisibleItems] = useState(50);
   const [sortedComponents, setSortedComponents] = useState([]);
+
+  // New bulk selection state
+  const [selectedTables, setSelectedTables] = useState([]);
+  const [bulkPermissions, setBulkPermissions] = useState([]);
 
   const form = useForm({
     defaultValues: {
@@ -138,6 +146,12 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
 
   const handleNext = async () => {
     if (activeStep === 0) {
+      // Welcome step - just proceed to next step
+      setActiveStep(prevStep => prevStep + 1);
+      return;
+    }
+
+    if (activeStep === 1) {
       const formData = form.getValues();
       if (!formData.name) {
         setError('Please enter a role name');
@@ -154,7 +168,7 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
         isActive: formData.isActive,
       }));
 
-      if (mode === 'edit' && activeStep === 0) {
+      if (mode === 'edit' && activeStep === 1) {
         try {
           if (
             formData.name !== existingRole.name ||
@@ -184,6 +198,34 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
       }
     }
 
+    if (activeStep === 2) {
+      // Table selection step - validate that tables are selected
+      if (selectedTables.length === 0) {
+        setError('Please select at least one table');
+        return;
+      }
+      setError('');
+    }
+
+    if (activeStep === 3) {
+      // Permissions configuration step - validate that permissions are set
+      if (bulkPermissions.length === 0) {
+        setError('Please configure permissions for the selected tables');
+        return;
+      }
+
+      const hasValidPermissions = bulkPermissions.some(permission =>
+        Object.values(permission.actions).some(enabled => enabled)
+      );
+
+      if (!hasValidPermissions) {
+        setError('Please select at least one HTTP method for the tables');
+        return;
+      }
+
+      setError('');
+    }
+
     setActiveStep(prevStep => prevStep + 1);
   };
 
@@ -198,11 +240,19 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
         return;
       }
 
+      // Convert service name to service ID if needed
+      let serviceId = selectedService || role.serviceId;
+      if (typeof serviceId === 'string' && isNaN(serviceId)) {
+        // selectedService is a service name, find the corresponding ID
+        const service = services.find(s => s.name === serviceId);
+        serviceId = service ? service.id : null;
+      }
+
       const roleData = {
         name: role.name,
         description: role.description,
-        serviceId: selectedService || role.serviceId,
-        permissions: role.permissions || [],
+        serviceId: serviceId,
+        permissions: bulkPermissions.length > 0 ? bulkPermissions : role.permissions || [],
         isActive: role.isActive,
       };
 
@@ -304,6 +354,16 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
   const handleCancel = () => {
     navigate('/roles');
   };
+
+  // Bulk selection callbacks
+  const handleTablesSelected = (tables, serviceId) => {
+    setSelectedTables(tables);
+    setRole(prev => ({ ...prev, serviceId }));
+  };
+
+  const handlePermissionsChange = useCallback(permissions => {
+    setBulkPermissions(permissions);
+  }, []);
 
   const filteredComponents = sortedComponents
     .filter(item => item.name?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -520,29 +580,46 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
 
       <Card>
         <CardContent className="pt-6">
-          {activeStep === 0 ? renderBasicInfo() : renderComponentPermissions()}
+          {activeStep === 0 && <ApiBuilderWelcome onNext={handleNext} />}
+          {activeStep === 1 && renderBasicInfo()}
+          {activeStep === 2 && (
+            <BulkTableSelection
+              onTablesSelected={handleTablesSelected}
+              selectedService={selectedService}
+              setSelectedService={setSelectedService}
+            />
+          )}
+          {activeStep === 3 && (
+            <BulkHttpVerbConfig
+              selectedTables={selectedTables}
+              selectedService={selectedService}
+              onPermissionsChange={handlePermissionsChange}
+            />
+          )}
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse sm:flex-row justify-end mt-6 gap-2">
-        <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
-          Cancel
-        </Button>
-        {activeStep > 0 && (
-          <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
-            Back
+      {activeStep > 0 && (
+        <div className="flex flex-col-reverse sm:flex-row justify-end mt-6 gap-2">
+          <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
+            Cancel
           </Button>
-        )}
-        {activeStep === steps.length - 1 ? (
-          <Button onClick={handleSubmit} variant="ocean" className="w-full sm:w-auto">
-            {mode === 'edit' ? 'Update' : 'Create'} Role
-          </Button>
-        ) : (
-          <Button onClick={handleNext} variant="ocean" className="w-full sm:w-auto">
-            Next
-          </Button>
-        )}
-      </div>
+          {activeStep > 0 && (
+            <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
+              Back
+            </Button>
+          )}
+          {activeStep === steps.length - 1 ? (
+            <Button onClick={handleSubmit} variant="ocean" className="w-full sm:w-auto">
+              {mode === 'edit' ? 'Update' : 'Create'} Role
+            </Button>
+          ) : (
+            <Button onClick={handleNext} variant="ocean" className="w-full sm:w-auto">
+              Next
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
