@@ -2,31 +2,119 @@ const express = require('express');
 const router = express.Router();
 
 const { apiKeyServiceMiddleware } = require('../middleware/apiKeyServiceMiddleware');
+const { authMiddleware } = require('../middleware/auth');
 const { logger } = require('../middleware/logger');
 const Auto = require('../services/autoRest/autoRestService');
 const DatabaseService = require('../services/database/DatabaseService');
 
-// Discover all tables/collections in database
-router.get('/:serviceName/_discover', apiKeyServiceMiddleware, async (req, res) => {
+// Discover all tables/collections in database (from stored schema data) - for UI use
+router.get('/:serviceName/_discover', authMiddleware, async (req, res) => {
   try {
-    const { service, connectionConfig } = await Auto.getServiceAndConnection(
-      req.params.serviceName,
-      req.application.organizationId
+    logger.info(
+      `🔍 Discover tables request for service: ${req.params.serviceName}, org: ${req.user.organizationId}`
     );
 
-    const tables = await Auto.discoverTables({
-      connectionConfig,
-      serviceId: service.id,
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+
+    // Find the service by name for this organization
+    const service = await prisma.service.findFirst({
+      where: {
+        name: req.params.serviceName,
+        organizationId: req.user.organizationId,
+        isActive: true,
+      },
     });
 
+    logger.info(`📋 Service found:`, service ? { id: service.id, name: service.name } : 'null');
+
+    if (!service) {
+      return res.status(404).json({
+        error: { code: 'SERVICE_NOT_FOUND', message: 'Service not found or inactive' },
+      });
+    }
+
+    // Get stored database objects for this service
+    const databaseObjects = await prisma.databaseObject.findMany({
+      where: {
+        serviceId: service.id,
+        organizationId: req.user.organizationId,
+        // Get all types: tables, views, procedures
+      },
+      select: {
+        name: true,
+        schema: true,
+        type: true,
+        metadata: true,
+      },
+    });
+
+    logger.info(
+      `📊 Found ${databaseObjects.length} database objects:`,
+      databaseObjects.slice(0, 5)
+    );
+
+    // Get exposed entities to mark which tables are already exposed
+    const exposedEntities = await prisma.exposedEntity.findMany({
+      where: {
+        serviceId: service.id,
+        organizationId: req.user.organizationId,
+      },
+      select: {
+        name: true,
+        schema: true,
+      },
+    });
+
+    logger.info(
+      `✅ Found ${exposedEntities.length} exposed entities:`,
+      exposedEntities.slice(0, 5)
+    );
+
+    // Create exposed lookup for quick checking
+    const exposedLookup = new Set();
+    exposedEntities.forEach(e => {
+      const key = e.schema ? `${e.schema}.${e.name}` : e.name;
+      exposedLookup.add(key);
+    });
+
+    // Format the response to match the expected structure
+    const objects = databaseObjects.map(obj => {
+      const key = obj.schema ? `${obj.schema}.${obj.name}` : obj.name;
+      return {
+        name: obj.name,
+        schema: obj.schema,
+        type: obj.type.toUpperCase(),
+        isExposed: exposedLookup.has(key),
+        metadata: obj.metadata || {},
+        suggestedPathSlug: obj.name
+          .toLowerCase()
+          .replace(/^(gs|tbl|sp_|fn_)_?/, '') // Remove common prefixes
+          .replace(/_/g, '-'), // Replace underscores with hyphens for URLs
+      };
+    });
+
+    // Group by type for easier frontend handling
+    const groupedObjects = {
+      tables: objects.filter(obj => obj.type === 'TABLE'),
+      views: objects.filter(obj => obj.type === 'VIEW'),
+      procedures: objects.filter(obj => obj.type === 'PROCEDURE'),
+    };
+
     res.json({
-      data: tables,
-      total: tables.length,
-      exposed: tables.filter(t => t.isExposed).length,
+      data: groupedObjects,
+      total: objects.length,
+      exposed: objects.filter(obj => obj.isExposed).length,
+      counts: {
+        tables: groupedObjects.tables.length,
+        views: groupedObjects.views.length,
+        procedures: groupedObjects.procedures.length,
+      },
       _meta: {
         apiVersion: 'v1',
         timestamp: new Date().toISOString(),
-        message: 'Use POST /:serviceName/_expose to auto-expose tables',
+        message: 'Use POST /:serviceName/_expose to auto-expose database objects',
+        source: 'stored_schema_data', // Indicate this comes from stored data, not live discovery
         supportedDatabases: ['POSTGRESQL', 'MSSQL', 'MYSQL', 'MONGODB'],
       },
     });
@@ -36,13 +124,13 @@ router.get('/:serviceName/_discover', apiKeyServiceMiddleware, async (req, res) 
   }
 });
 
-// Auto-expose tables (make them available via REST API)
-router.post('/:serviceName/_expose', apiKeyServiceMiddleware, async (req, res) => {
+// Auto-expose tables (make them available via REST API) - for UI use
+router.post('/:serviceName/_expose', authMiddleware, async (req, res) => {
   try {
     const { tables } = req.body; // Array of table names to expose
     const { service, connectionConfig } = await Auto.getServiceAndConnection(
       req.params.serviceName,
-      req.application.organizationId
+      req.user.organizationId
     );
 
     if (!Array.isArray(tables) || tables.length === 0) {
