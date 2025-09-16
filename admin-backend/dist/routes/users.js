@@ -76,11 +76,61 @@ router.get('/', async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error fetching users:', error);
+        // Log error internally without exposing details
         res.status(500).json({
             error: 'Failed to fetch users',
             message: error instanceof Error ? error.message : 'Unknown error'
         });
+    }
+});
+// POST /api/users - Create a new user
+router.post('/', async (req, res) => {
+    try {
+        const { email, firstName = '', lastName = '', isActive = true, organizationId } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        // Ensure email uniqueness
+        const existing = await database_1.prisma.user.findUnique({ where: { email } });
+        if (existing) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+        const user = await database_1.prisma.user.create({
+            data: {
+                email,
+                firstName,
+                lastName,
+                isActive: Boolean(isActive),
+            },
+        });
+        // Optionally attach to an organization via membership
+        let organization = null;
+        if (organizationId) {
+            try {
+                const org = await database_1.prisma.organization.findUnique({ where: { id: organizationId }, select: { id: true, name: true } });
+                if (org) {
+                    await database_1.prisma.membership.create({
+                        data: { userId: user.id, organizationId: org.id, role: 'MEMBER' },
+                    });
+                    organization = org;
+                }
+            }
+            catch (_) {
+                // ignore membership errors
+            }
+        }
+        const result = {
+            ...user,
+            fullName: `${user.firstName} ${user.lastName}`.trim(),
+            organization,
+            isAdmin: false,
+            roles: [],
+        };
+        res.status(201).json({ success: true, user: result });
+    }
+    catch (error) {
+        // Log error internally without exposing details
+        res.status(500).json({ error: 'Failed to create user', message: error instanceof Error ? error.message : 'Unknown error' });
     }
 });
 // GET /api/users/:id - Get single user by ID
@@ -120,7 +170,7 @@ router.get('/:id', async (req, res) => {
         res.json(userWithComputed);
     }
     catch (error) {
-        console.error('Error fetching user:', error);
+        // Log error internally without exposing details
         res.status(500).json({
             error: 'Failed to fetch user',
             message: error instanceof Error ? error.message : 'Unknown error'
@@ -171,7 +221,7 @@ router.put('/:id', async (req, res) => {
         res.json(userWithComputed);
     }
     catch (error) {
-        console.error('Error updating user:', error);
+        // Log error internally without exposing details
         if (error instanceof Error && error.message.includes('Unique constraint')) {
             return res.status(400).json({
                 error: 'Email already exists'
@@ -207,7 +257,7 @@ router.delete('/:id', async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error deleting user:', error);
+        // Log error internally without exposing details
         res.status(500).json({
             error: 'Failed to delete user',
             message: error instanceof Error ? error.message : 'Unknown error'

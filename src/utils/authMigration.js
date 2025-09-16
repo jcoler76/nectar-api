@@ -71,6 +71,21 @@ export const validateToken = token => {
     // Add buffer but be more conservative about clearing tokens
     const isExpired = payload.exp && payload.exp < currentTime - 60; // Only clear if expired by more than 1 minute
 
+    // Reject tokens minted for a different app/audience or issuer
+    const expectedAud = 'nectar-client';
+    const expectedIss = 'nectar-api';
+    const wrongAudience = payload.aud && payload.aud !== expectedAud;
+    const wrongIssuer = payload.iss && payload.iss !== expectedIss;
+
+    if (wrongAudience || wrongIssuer) {
+      console.warn('Token issuer/audience mismatch, clearing auth data', {
+        aud: payload.aud,
+        iss: payload.iss,
+      });
+      clearAllAuthData();
+      return false;
+    }
+
     if (isExpired) {
       console.warn('Token expired, clearing auth data');
       clearAllAuthData();

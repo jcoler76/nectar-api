@@ -20,11 +20,16 @@ export const authenticateAdmin = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const authHeader = req.header('Authorization')
-    const token = authHeader?.replace('Bearer ', '')
-    
+    // Check for token in httpOnly cookie first, then fallback to Authorization header for backwards compatibility
+    let token = req.cookies?.adminToken
+
     if (!token) {
-      res.status(401).json({ 
+      const authHeader = req.header('Authorization')
+      token = authHeader?.replace('Bearer ', '')
+    }
+
+    if (!token) {
+      res.status(401).json({
         error: 'Access token required',
         code: 'NO_TOKEN'
       })

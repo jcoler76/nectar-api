@@ -13,7 +13,10 @@ try {
 
 class MessageQueueService {
   constructor() {
-    this.useRedis = !!Bull && !!redis;
+    const redisDisabled =
+      process.env.REDIS_DISABLED === 'true' ||
+      (process.env.NODE_ENV === 'development' && !process.env.REDIS_HOST);
+    this.useRedis = !!Bull && !!redis && !redisDisabled;
 
     if (this.useRedis) {
       this.redisConfig = {

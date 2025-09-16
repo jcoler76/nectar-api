@@ -40,6 +40,7 @@ model Organization {
   rateLimitConfigs        RateLimitConfig[]
   rateLimitUsage          RateLimitUsage[]
   billingEvents           BillingEvent[]
+  fileStorages            FileStorage[]
 
   @@index([slug])
   @@index([createdAt])
@@ -80,6 +81,9 @@ model User {
   rateLimitCreated           RateLimitConfig[] @relation("RateLimitCreator")
   rateLimitUpdated           RateLimitConfig[] @relation("RateLimitUpdater")
   socialAccounts             SocialAccount[]
+  uploadedFiles              FileStorage[]
+  fileVersionsCreated        FileVersion[]
+  fileSharesCreated          FileShare[]
 
   @@index([email])
   @@index([createdAt])
@@ -156,6 +160,7 @@ model Subscription {
   stripeCustomerId       String?            @unique
   stripeSubscriptionId   String?            @unique
   stripePriceId          String?
+  monthlyRevenue         Decimal?           @db.Decimal(10,2)
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   maxDatabaseConnections Int                @default(1)
@@ -790,4 +795,108 @@ enum RateLimitKeyStrategy {
   API_KEY
   SESSION
   CUSTOM
+}
+
+// File Storage & CDN Models
+model FileStorage {
+  id               String            @id @default(uuid())
+  filename         String            // Original filename
+  storageKey       String            @unique // S3 key or storage path
+  mimeType         String
+  fileSize         BigInt            // File size in bytes
+  checksum         String            // SHA-256 hash for integrity
+  storageProvider  StorageProvider   @default(S3)
+  bucketName       String?           // S3 bucket name
+  cdnUrl           String?           // CDN URL if available
+  isPublic         Boolean           @default(false)
+  isActive         Boolean           @default(true)
+  uploadedAt       DateTime          @default(now())
+  lastAccessedAt   DateTime?
+  expiresAt        DateTime?         // Optional expiration
+  organizationId   String
+  uploadedBy       String?
+
+  // Metadata
+  metadata         String?           // JSON metadata (dimensions, etc.)
+  tags             String[]          // Searchable tags
+  description      String?
+
+  // Relationships
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploader         User?             @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  // File versions and thumbnails
+  versions         FileVersion[]
+  thumbnails       FileThumbnail[]
+  shares           FileShare[]
+
+  @@index([organizationId])
+  @@index([uploadedBy])
+  @@index([storageKey])
+  @@index([uploadedAt])
+  @@index([mimeType])
+  @@index([isPublic])
+}
+
+model FileVersion {
+  id             String      @id @default(uuid())
+  fileId         String
+  versionNumber  Int         @default(1)
+  storageKey     String      @unique
+  fileSize       BigInt
+  checksum       String
+  uploadedAt     DateTime    @default(now())
+  uploadedBy     String?
+  changelog      String?     // Version description
+
+  file           FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  uploader       User?       @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  @@unique([fileId, versionNumber])
+  @@index([fileId])
+}
+
+model FileThumbnail {
+  id           String      @id @default(uuid())
+  fileId       String
+  size         String      // e.g., "150x150", "300x300"
+  storageKey   String      @unique
+  fileSize     BigInt
+  mimeType     String
+  cdnUrl       String?
+  createdAt    DateTime    @default(now())
+
+  file         FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, size])
+  @@index([fileId])
+}
+
+model FileShare {
+  id             String      @id @default(uuid())
+  fileId         String
+  shareToken     String      @unique
+  isPublic       Boolean     @default(false)
+  allowDownload  Boolean     @default(true)
+  allowPreview   Boolean     @default(true)
+  expiresAt      DateTime?
+  maxDownloads   Int?
+  downloadCount  Int         @default(0)
+  password       String?     // Hashed password for protected shares
+  createdAt      DateTime    @default(now())
+  createdBy      String
+
+  file           FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator        User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([shareToken])
+  @@index([fileId])
+  @@index([createdBy])
+}
+
+enum StorageProvider {
+  S3
+  LOCAL
+  AZURE_BLOB
+  GOOGLE_CLOUD
 }

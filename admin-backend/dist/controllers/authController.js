@@ -60,7 +60,7 @@ class AuthController {
             });
         }
         catch (error) {
-            console.error('Login error:', error);
+            // Log error internally without exposing details
             res.status(500).json({
                 error: 'Internal server error',
                 code: 'INTERNAL_ERROR'
@@ -86,7 +86,7 @@ class AuthController {
             });
         }
         catch (error) {
-            console.error('Logout error:', error);
+            // Log error internally without exposing details
             res.status(500).json({
                 error: 'Internal server error',
                 code: 'INTERNAL_ERROR'
@@ -121,7 +121,7 @@ class AuthController {
             });
         }
         catch (error) {
-            console.error('Profile error:', error);
+            // Log error internally without exposing details
             res.status(500).json({
                 error: 'Internal server error',
                 code: 'INTERNAL_ERROR'
@@ -189,7 +189,7 @@ class AuthController {
             });
         }
         catch (error) {
-            console.error('Change password error:', error);
+            // Log error internally without exposing details
             res.status(500).json({
                 error: 'Internal server error',
                 code: 'INTERNAL_ERROR'

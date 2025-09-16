@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140" role="img" aria-labelledby="title desc">
+  <title id="title">NectarSolutions.ai — Logo (Mono Dark)</title>
+  <desc id="desc">Single-color dark logo for light backgrounds. Transparent background.</desc>
+  <g fill="#0B1021" stroke="#0B1021" stroke-width="2">
+    <path d="M100,20 160,55 160,115 100,150 40,115 40,55 Z"/>
+    <g transform="translate(100,88)" fill="#0B1021" stroke="none">
+      <path d="M0,-24 C8,-24 14,-17 14,-9 C14,3 0,18 0,18 C0,18 -14,3 -14,-9 C-14,-17 -8,-24 0,-24 Z"/>
+    </g>
+  </g>
+  <g transform="translate(200,35)" fill="#0B1021">
+    <text x="0" y="40" font-family="Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="38" font-weight="800">NectarSolutions.ai</text>
+  </g>
+</svg>
+

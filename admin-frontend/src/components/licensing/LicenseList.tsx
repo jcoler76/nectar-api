@@ -11,16 +11,23 @@ import {
   Calendar,
   User,
   Building,
-  Activity
+  Activity,
+  CheckSquare
 } from 'lucide-react';
 import { LazyDataTable } from '../ui/LazyDataTable';
-import { licenseService, LicenseData } from '../../services/licenseService';
+import { licenseService, type LicenseData } from '../../services/licenseService';
+import LicenseDetails from './LicenseDetails';
+import LicenseWizard from './LicenseWizard';
 
 export default function LicenseList() {
   const [licenses, setLicenses] = useState<LicenseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLicenses, setSelectedLicenses] = useState<string[]>([]);
+  const [selectedLicenseId, setSelectedLicenseId] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [filters, setFilters] = useState({
     plan: '',
     licenseType: '',
@@ -86,6 +93,64 @@ export default function LicenseList() {
     }
   };
 
+  const handleViewDetails = (licenseId: string) => {
+    setSelectedLicenseId(licenseId);
+    setShowDetails(true);
+  };
+
+  const handleSelectLicense = (licenseId: string) => {
+    setSelectedLicenses(prev =>
+      prev.includes(licenseId)
+        ? prev.filter(id => id !== licenseId)
+        : [...prev, licenseId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedLicenses.length === licenses.length) {
+      setSelectedLicenses([]);
+    } else {
+      setSelectedLicenses(licenses.map(l => l.id));
+    }
+  };
+
+  const handleBulkSuspend = async () => {
+    if (selectedLicenses.length === 0) return;
+
+    const reason = prompt('Reason for bulk suspension (optional):');
+    if (reason === null) return;
+
+    try {
+      setLoading(true);
+      await Promise.all(
+        selectedLicenses.map(id => licenseService.suspendLicense(id, reason))
+      );
+      setSelectedLicenses([]);
+      loadLicenses();
+    } catch (err) {
+      alert('Failed to suspend licenses: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkReactivate = async () => {
+    if (selectedLicenses.length === 0) return;
+
+    try {
+      setLoading(true);
+      await Promise.all(
+        selectedLicenses.map(id => licenseService.reactivateLicense(id))
+      );
+      setSelectedLicenses([]);
+      loadLicenses();
+    } catch (err) {
+      alert('Failed to reactivate licenses: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusBadge = (license: LicenseData) => {
     const status = licenseService.getLicenseStatus(license);
     const colorClasses = {
@@ -116,6 +181,25 @@ export default function LicenseList() {
   };
 
   const columns = [
+    {
+      key: 'select',
+      label: (
+        <input
+          type="checkbox"
+          checked={selectedLicenses.length === licenses.length && licenses.length > 0}
+          onChange={handleSelectAll}
+          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      ),
+      render: (license: LicenseData) => (
+        <input
+          type="checkbox"
+          checked={selectedLicenses.includes(license.id)}
+          onChange={() => handleSelectLicense(license.id)}
+          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      ),
+    },
     {
       key: 'customer',
       label: 'Customer',
@@ -197,6 +281,7 @@ export default function LicenseList() {
       render: (license: LicenseData) => (
         <div className="flex items-center space-x-2">
           <button
+            onClick={() => handleViewDetails(license.id)}
             className="text-blue-600 hover:text-blue-900"
             title="View Details"
           >
@@ -240,10 +325,33 @@ export default function LicenseList() {
             Manage and monitor all customer licenses
           </p>
         </div>
-        <button className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-          <Plus className="h-4 w-4 mr-2" />
-          Create License
-        </button>
+        <div className="mt-4 sm:mt-0 flex space-x-3">
+          {selectedLicenses.length > 0 && (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleBulkSuspend}
+                className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50"
+              >
+                <Pause className="h-4 w-4 mr-2" />
+                Suspend ({selectedLicenses.length})
+              </button>
+              <button
+                onClick={handleBulkReactivate}
+                className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md shadow-sm text-sm font-medium text-green-700 bg-white hover:bg-green-50"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Reactivate ({selectedLicenses.length})
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => setShowWizard(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create License
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -366,6 +474,27 @@ export default function LicenseList() {
           </div>
         </div>
       </div>
+
+      {/* License Details Modal */}
+      <LicenseDetails
+        licenseId={selectedLicenseId}
+        isOpen={showDetails}
+        onClose={() => {
+          setShowDetails(false);
+          setSelectedLicenseId(null);
+        }}
+        onLicenseUpdated={loadLicenses}
+      />
+
+      {/* License Creation Wizard */}
+      <LicenseWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onLicenseCreated={() => {
+          setShowWizard(false);
+          loadLicenses();
+        }}
+      />
     </div>
   );
 }

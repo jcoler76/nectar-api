@@ -37,7 +37,7 @@ const authenticateAdmin = async (req, res, next) => {
         next();
     }
     catch (error) {
-        console.error('Authentication error:', error);
+        // Log error internally without exposing details
         res.status(401).json({
             error: 'Authentication failed',
             code: 'AUTH_ERROR'

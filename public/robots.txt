@@ -1,3 +1,64 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Allow all major AI crawlers for better discoverability
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /user-settings
+Disallow: /billing
+Disallow: /team/
+Disallow: /rate-limits
+Disallow: /applications
+Disallow: /connections
+Disallow: /services
+Disallow: /workflows
+Disallow: /endpoints
+Disallow: /users
+Disallow: /roles
+Disallow: /integrations
+Disallow: /reports/
+
+# Allow marketing and public pages for AI discovery
+Allow: /home
+Allow: /pricing
+Allow: /security
+Allow: /contact
+Allow: /free-signup
+Allow: /privacy
+Allow: /checkout
+Allow: /checkout/success
+
+# Sitemap location
+Sitemap: https://nectarstudio.ai/sitemap.xml

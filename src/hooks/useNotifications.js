@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { useNotification } from '../context/NotificationContext';
 import NotificationService from '../services/notificationService';
+import SecureSessionStorage from '../utils/secureStorage';
 
 /**
  * Custom hook for managing notifications
@@ -23,6 +24,14 @@ export const useNotifications = (options = {}) => {
 
   const { showNotification } = useNotification();
   const refreshIntervalRef = useRef(null);
+  const hasToken = (() => {
+    try {
+      const s = new SecureSessionStorage();
+      return !!s.getItem()?.token;
+    } catch (_) {
+      return false;
+    }
+  })();
 
   /**
    * Fetch notifications from the API
@@ -214,7 +223,7 @@ export const useNotifications = (options = {}) => {
 
   // Set up auto-refresh interval
   useEffect(() => {
-    if (autoRefresh && refreshInterval > 0) {
+    if (hasToken && autoRefresh && refreshInterval > 0) {
       refreshIntervalRef.current = setInterval(() => {
         fetchUnreadCount(); // Only fetch count for badge updates
       }, refreshInterval);
@@ -225,12 +234,14 @@ export const useNotifications = (options = {}) => {
         }
       };
     }
-  }, [autoRefresh, refreshInterval, fetchUnreadCount]);
+  }, [hasToken, autoRefresh, refreshInterval, fetchUnreadCount]);
 
   // Initial fetch
   useEffect(() => {
-    fetchNotifications(1, true);
-  }, [fetchNotifications]);
+    if (hasToken) {
+      fetchNotifications(1, true);
+    }
+  }, [fetchNotifications, hasToken]);
 
   // Cleanup interval on unmount
   useEffect(() => {

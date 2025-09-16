@@ -2,6 +2,10 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+// Validate environment configuration before starting application
+import { EnvironmentValidator } from '@/utils/envValidation'
+EnvironmentValidator.validateOrExit()
+
 import compression from 'compression'
 import cors from 'cors'
 import express, { Application, Request, Response } from 'express'
@@ -13,6 +17,7 @@ import { apiRateLimiter } from '@/middleware/rateLimiter'
 // Import routes
 import authRoutes from '@/routes/auth'
 import usersRoutes from '@/routes/users'
+import licenseRoutes from '@/routes/licenses'
 // Disabled Stripe-related routes until schema alignment
 // import analyticsRoutes from '@/routes/analytics'
 // import stripeConfigRoutes from '@/routes/stripeConfig'
@@ -45,8 +50,8 @@ app.use(helmet({
 // CORS configuration - strict for production
 const isDevelopment = process.env.NODE_ENV === 'development'
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || (
-  isDevelopment 
-    ? ['http://localhost:3002', 'http://localhost:3000']
+  isDevelopment
+    ? ['http://localhost:4000', 'http://localhost:3000']
     : ['https://admin.nectarstudio.ai']
 )
 
@@ -106,6 +111,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', usersRoutes)
+app.use('/api/licenses', licenseRoutes)
 // Disabled Stripe-related routes until schema alignment
 // app.use('/api/analytics', analyticsRoutes)
 // app.use('/api/stripe', stripeConfigRoutes)

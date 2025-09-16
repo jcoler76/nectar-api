@@ -26,6 +26,9 @@ import LicenseOverview from './licensing/LicenseOverview'
 import LicenseList from './licensing/LicenseList'
 import UsageAnalytics from './licensing/UsageAnalytics'
 import SystemHealth from './licensing/SystemHealth'
+import CustomerManagement from './licensing/CustomerManagement'
+import AdvancedAnalytics from './licensing/AdvancedAnalytics'
+import LicenseLifecycle from './licensing/LicenseLifecycle'
 
 interface DashboardStats {
   totalUsers: number
@@ -142,6 +145,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case '/licensing/licenses': return 'All Licenses'
       case '/licensing/customers': return 'Customer Licenses'
       case '/licensing/usage': return 'Usage Analytics'
+      case '/licensing/analytics': return 'Advanced Analytics'
+      case '/licensing/lifecycle': return 'License Lifecycle'
       case '/licensing/health': return 'System Health'
       default: return 'Dashboard'
     }
@@ -286,8 +291,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         {/* Licensing Pages */}
         {currentPage === '/licensing/overview' && <LicenseOverview />}
         {currentPage === '/licensing/licenses' && <LicenseList />}
-        {currentPage === '/licensing/customers' && <LicenseList />}
+        {currentPage === '/licensing/customers' && <CustomerManagement />}
         {currentPage === '/licensing/usage' && <UsageAnalytics />}
+        {currentPage === '/licensing/analytics' && <AdvancedAnalytics />}
+        {currentPage === '/licensing/lifecycle' && <LicenseLifecycle />}
         {currentPage === '/licensing/health' && <SystemHealth />}
 
         {/* Other Pages */}
@@ -307,6 +314,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
          currentPage !== '/licensing/licenses' &&
          currentPage !== '/licensing/customers' &&
          currentPage !== '/licensing/usage' &&
+         currentPage !== '/licensing/analytics' &&
+         currentPage !== '/licensing/lifecycle' &&
          currentPage !== '/licensing/health' && (
           <div className="bg-white rounded-lg shadow p-8">
             <div className="text-center">

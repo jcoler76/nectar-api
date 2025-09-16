@@ -14,7 +14,7 @@ class RedisService {
       // Skip Redis in development if REDIS_DISABLED is set
       if (
         process.env.REDIS_DISABLED === 'true' ||
-        (process.env.NODE_ENV === 'development' && process.env.REDIS_HOST === undefined)
+        (process.env.NODE_ENV === 'development' && !process.env.REDIS_HOST)
       ) {
         logger.info('Redis disabled or not configured, skipping connection');
         this.isConnected = false;
@@ -217,6 +217,14 @@ class RedisService {
 let redisService = null;
 
 const getRedisService = async () => {
+  const redisDisabled =
+    process.env.REDIS_DISABLED === 'true' ||
+    (process.env.NODE_ENV === 'development' && !process.env.REDIS_HOST);
+
+  if (redisDisabled) {
+    return null;
+  }
+
   if (!redisService) {
     redisService = new RedisService();
     try {

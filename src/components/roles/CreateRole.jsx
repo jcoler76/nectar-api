@@ -418,6 +418,7 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
     </div>
   );
 
+  // eslint-disable-next-line no-unused-vars
   const renderComponentPermissions = () => (
     <div className="space-y-4">
       <Card>

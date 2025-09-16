@@ -4,7 +4,8 @@
   "private": true,
   "main": "server.js",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.855.0",
+    "@aws-sdk/client-s3": "^3.888.0",
+    "@aws-sdk/s3-request-presigner": "^3.888.0",
     "@azure/identity": "^4.10.2",
     "@azure/msal-node": "^3.6.4",
     "@graphql-tools/merge": "^9.0.24",
@@ -63,6 +64,7 @@
     "pg": "^8.16.3",
     "prisma": "^6.15.0",
     "qrcode": "^1.5.4",
+    "sharp": "^0.34.3",
     "socket.io": "^4.8.1",
     "ssh2-sftp-client": "^12.0.1",
     "stripe": "^18.5.0",

@@ -36,19 +36,16 @@ class AdminAuthService {
      */
     static async validateAdmin(email, password) {
         // Use regular users table and check if user is admin
-        console.log('Validating admin:', email);
         const user = await database_1.prisma.user.findFirst({
             where: { email, isActive: true, isSuperAdmin: true },
         });
-        console.log('Found user:', user ? 'Yes' : 'No');
         if (!user) {
             return null;
         }
-        // Note: For development, accept any password for super admin users
-        // In production, you should properly hash and compare passwords
-        // if (!await bcrypt.compare(password, user.passwordHash)) {
-        //   return null
-        // }
+        // Verify password - critical security check
+        if (!user.passwordHash || !await bcryptjs_1.default.compare(password, user.passwordHash)) {
+            return null;
+        }
         // Update last login timestamp
         await database_1.prisma.user.update({
             where: { id: user.id },
@@ -155,7 +152,13 @@ class AdminAuthService {
     }
 }
 exports.AdminAuthService = AdminAuthService;
-AdminAuthService.JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'fallback-secret';
+AdminAuthService.JWT_SECRET = (() => {
+    const secret = process.env.ADMIN_JWT_SECRET;
+    if (!secret || secret.length < 32) {
+        throw new Error('ADMIN_JWT_SECRET must be set and at least 32 characters long for security');
+    }
+    return secret;
+})();
 AdminAuthService.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 AdminAuthService.BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12');
 //# sourceMappingURL=adminAuth.js.map

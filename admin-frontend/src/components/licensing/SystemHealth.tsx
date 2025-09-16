@@ -10,7 +10,7 @@ import {
   Clock,
   TrendingUp
 } from 'lucide-react';
-import { licenseService, SystemHealth as SystemHealthData } from '../../services/licenseService';
+import { licenseService, type SystemHealth as SystemHealthData } from '../../services/licenseService';
 
 interface HealthMetric {
   name: string;

@@ -29,7 +29,7 @@ class AuthFactory {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET, {
           issuer: process.env.JWT_ISSUER || 'nectar-api',
-          audience: process.env.JWT_AUDIENCE || 'mirabel-users',
+          audience: process.env.JWT_AUDIENCE || 'nectar-client',
         });
 
         if (requireUser) {

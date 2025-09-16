@@ -198,6 +198,7 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   stripeSubscriptionId: 'stripeSubscriptionId',
   stripePriceId: 'stripePriceId',
+  monthlyRevenue: 'monthlyRevenue',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   maxDatabaseConnections: 'maxDatabaseConnections',
@@ -554,6 +555,66 @@ exports.Prisma.SocialAccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
 };
 
+exports.Prisma.FileStorageScalarFieldEnum = {
+  id: 'id',
+  filename: 'filename',
+  storageKey: 'storageKey',
+  mimeType: 'mimeType',
+  fileSize: 'fileSize',
+  checksum: 'checksum',
+  storageProvider: 'storageProvider',
+  bucketName: 'bucketName',
+  cdnUrl: 'cdnUrl',
+  isPublic: 'isPublic',
+  isActive: 'isActive',
+  uploadedAt: 'uploadedAt',
+  lastAccessedAt: 'lastAccessedAt',
+  expiresAt: 'expiresAt',
+  organizationId: 'organizationId',
+  uploadedBy: 'uploadedBy',
+  metadata: 'metadata',
+  tags: 'tags',
+  description: 'description',
+};
+
+exports.Prisma.FileVersionScalarFieldEnum = {
+  id: 'id',
+  fileId: 'fileId',
+  versionNumber: 'versionNumber',
+  storageKey: 'storageKey',
+  fileSize: 'fileSize',
+  checksum: 'checksum',
+  uploadedAt: 'uploadedAt',
+  uploadedBy: 'uploadedBy',
+  changelog: 'changelog',
+};
+
+exports.Prisma.FileThumbnailScalarFieldEnum = {
+  id: 'id',
+  fileId: 'fileId',
+  size: 'size',
+  storageKey: 'storageKey',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  cdnUrl: 'cdnUrl',
+  createdAt: 'createdAt',
+};
+
+exports.Prisma.FileShareScalarFieldEnum = {
+  id: 'id',
+  fileId: 'fileId',
+  shareToken: 'shareToken',
+  isPublic: 'isPublic',
+  allowDownload: 'allowDownload',
+  allowPreview: 'allowPreview',
+  expiresAt: 'expiresAt',
+  maxDownloads: 'maxDownloads',
+  downloadCount: 'downloadCount',
+  password: 'password',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc',
@@ -683,6 +744,13 @@ exports.RateLimitKeyStrategy = exports.$Enums.RateLimitKeyStrategy = {
   CUSTOM: 'CUSTOM',
 };
 
+exports.StorageProvider = exports.$Enums.StorageProvider = {
+  S3: 'S3',
+  LOCAL: 'LOCAL',
+  AZURE_BLOB: 'AZURE_BLOB',
+  GOOGLE_CLOUD: 'GOOGLE_CLOUD',
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
@@ -714,6 +782,10 @@ exports.Prisma.ModelName = {
   RateLimitConfig: 'RateLimitConfig',
   RateLimitUsage: 'RateLimitUsage',
   SocialAccount: 'SocialAccount',
+  FileStorage: 'FileStorage',
+  FileVersion: 'FileVersion',
+  FileThumbnail: 'FileThumbnail',
+  FileShare: 'FileShare',
 };
 
 /**

@@ -31,6 +31,14 @@ const initializeEnvironment = () => {
   const envValidator = EnvironmentValidator.createDefaultValidator();
   envValidator.validateAndExit();
 
+  // Ensure Redis is disabled by default in development unless explicitly configured
+  if (process.env.NODE_ENV === 'development') {
+    const hasRedisHost = !!(process.env.REDIS_HOST && process.env.REDIS_HOST.trim().length > 0);
+    if (!hasRedisHost) {
+      process.env.REDIS_DISABLED = 'true';
+    }
+  }
+
   // Override console methods in production to prevent sensitive data leakage
   const { overrideConsole } = require('../utils/consoleOverride');
   overrideConsole();
