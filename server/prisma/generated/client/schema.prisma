@@ -40,6 +40,9 @@ model Organization {
   rateLimitConfigs        RateLimitConfig[]
   rateLimitUsage          RateLimitUsage[]
   billingEvents           BillingEvent[]
+  fileStorages            FileStorage[]
+  // RBAC Relations
+  roleChangeLogs          RoleChangeLog[]
 
   @@index([slug])
   @@index([createdAt])
@@ -79,8 +82,39 @@ model User {
   workflowsCreated           Workflow[]
   rateLimitCreated           RateLimitConfig[]    @relation("RateLimitCreator")
   rateLimitUpdated           RateLimitConfig[]    @relation("RateLimitUpdater")
+  socialAccounts             SocialAccount[]
+  uploadedFiles              FileStorage[]
+  fileVersionsCreated        FileVersion[]
+  fileSharesCreated          FileShare[]
+  // RBAC Audit Relations
+  targetedRoleChanges        RoleChangeLog[]      @relation("TargetedRoleChanges")
+  performedRoleChanges       RoleChangeLog[]      @relation("PerformedRoleChanges")
+  approvedRoleChanges        RoleChangeLog[]      @relation("ApprovedRoleChanges")
 
   @@index([email])
+  @@index([createdAt])
+}
+
+model AdminUser {
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  role                 AdminRole       @default(SUPPORT_AGENT)
+  isActive             Boolean         @default(true)
+  lastLoginAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  createdBy            String? // ID of admin who created this user
+  notes                String? // Internal notes about this admin user
+  // RBAC Audit Relations
+  auditLogs            AuditLog[]
+  targetedRoleChanges  RoleChangeLog[] @relation("TargetedAdminRoleChanges")
+  performedRoleChanges RoleChangeLog[] @relation("AdminPerformedRoleChanges")
+
+  @@index([email])
+  @@index([role])
   @@index([createdAt])
 }
 
@@ -155,6 +189,7 @@ model Subscription {
   stripeCustomerId       String?            @unique
   stripeSubscriptionId   String?            @unique
   stripePriceId          String?
+  monthlyRevenue         Decimal?           @db.Decimal(10, 2)
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   maxDatabaseConnections Int                @default(1)
@@ -339,21 +374,27 @@ model Webhook {
 }
 
 model AuditLog {
-  id             String       @id @default(uuid())
-  action         String
-  entityType     String
-  entityId       String
-  metadata       Json?
-  ipAddress      String?
-  userAgent      String?
-  timestamp      DateTime     @default(now())
-  organizationId String
-  userId         String?
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User?        @relation(fields: [userId], references: [id])
+  id                 String       @id @default(uuid())
+  action             String
+  entityType         String
+  entityId           String
+  metadata           Json?
+  ipAddress          String?
+  userAgent          String?
+  timestamp          DateTime     @default(now())
+  organizationId     String
+  userId             String?
+  // Enhanced RBAC fields
+  adminPerformedById String?
+  adminPerformedBy   AdminUser?   @relation(fields: [adminPerformedById], references: [id])
+  oldValues          Json?
+  newValues          Json?
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user               User?        @relation(fields: [userId], references: [id])
 
   @@index([organizationId, timestamp])
   @@index([userId])
+  @@index([adminPerformedById])
   @@index([entityType, entityId])
   @@index([timestamp])
 }
@@ -675,10 +716,25 @@ enum ExposedEntityType {
 }
 
 enum MemberRole {
+  // Existing values (keep temporarily)
   OWNER
   ADMIN
   MEMBER
   VIEWER
+
+  // New enhanced roles (will migrate to these)
+  SUPER_ADMIN // Platform-level access (you)
+  ORGANIZATION_OWNER // Organization owner (maps from OWNER)
+  ORGANIZATION_ADMIN // Organization administrator (maps from ADMIN)
+  DEVELOPER // Technical team members with API access
+}
+
+enum AdminRole {
+  SUPER_ADMIN // Platform owner with full access
+  ADMIN // Senior customer success/operations staff
+  SUPPORT_AGENT // Customer support representatives
+  BILLING_ADMIN // Finance/accounting staff
+  ANALYST // Business intelligence/data team
 }
 
 enum SubscriptionPlan {
@@ -746,6 +802,28 @@ enum NotificationPriority {
   LOW
 }
 
+model SocialAccount {
+  id           String   @id @default(uuid())
+  userId       String
+  provider     String // 'google', 'github', 'facebook', etc.
+  providerId   String // The user's ID from the OAuth provider
+  email        String?
+  name         String?
+  profileUrl   String?
+  avatarUrl    String?
+  accessToken  String?
+  refreshToken String?
+  profileData  String? // JSON string of full profile data
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+}
+
 enum AcceptanceMethod {
   CLICK
   SCROLL
@@ -767,4 +845,175 @@ enum RateLimitKeyStrategy {
   API_KEY
   SESSION
   CUSTOM
+}
+
+// File Storage & CDN Models
+model FileStorage {
+  id              String          @id @default(uuid())
+  filename        String // Original filename
+  storageKey      String          @unique // S3 key or storage path
+  mimeType        String
+  fileSize        BigInt // File size in bytes
+  checksum        String // SHA-256 hash for integrity
+  storageProvider StorageProvider @default(S3)
+  bucketName      String? // S3 bucket name
+  cdnUrl          String? // CDN URL if available
+  isPublic        Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  uploadedAt      DateTime        @default(now())
+  lastAccessedAt  DateTime?
+  expiresAt       DateTime? // Optional expiration
+  organizationId  String
+  uploadedBy      String?
+
+  // Metadata
+  metadata    String? // JSON metadata (dimensions, etc.)
+  tags        String[] // Searchable tags
+  description String?
+
+  // Relationships
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploader     User?        @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  // File versions and thumbnails
+  versions   FileVersion[]
+  thumbnails FileThumbnail[]
+  shares     FileShare[]
+
+  @@index([organizationId])
+  @@index([uploadedBy])
+  @@index([storageKey])
+  @@index([uploadedAt])
+  @@index([mimeType])
+  @@index([isPublic])
+}
+
+model FileVersion {
+  id            String   @id @default(uuid())
+  fileId        String
+  versionNumber Int      @default(1)
+  storageKey    String   @unique
+  fileSize      BigInt
+  checksum      String
+  uploadedAt    DateTime @default(now())
+  uploadedBy    String?
+  changelog     String? // Version description
+
+  file     FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  uploader User?       @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  @@unique([fileId, versionNumber])
+  @@index([fileId])
+}
+
+model FileThumbnail {
+  id         String   @id @default(uuid())
+  fileId     String
+  size       String // e.g., "150x150", "300x300"
+  storageKey String   @unique
+  fileSize   BigInt
+  mimeType   String
+  cdnUrl     String?
+  createdAt  DateTime @default(now())
+
+  file FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, size])
+  @@index([fileId])
+}
+
+model FileShare {
+  id            String    @id @default(uuid())
+  fileId        String
+  shareToken    String    @unique
+  isPublic      Boolean   @default(false)
+  allowDownload Boolean   @default(true)
+  allowPreview  Boolean   @default(true)
+  expiresAt     DateTime?
+  maxDownloads  Int?
+  downloadCount Int       @default(0)
+  password      String? // Hashed password for protected shares
+  createdAt     DateTime  @default(now())
+  createdBy     String
+
+  file    FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([shareToken])
+  @@index([fileId])
+  @@index([createdBy])
+}
+
+enum StorageProvider {
+  S3
+  LOCAL
+  AZURE_BLOB
+  GOOGLE_CLOUD
+}
+
+// Enhanced RBAC Models
+
+model RoleChangeLog {
+  id                 String           @id @default(uuid())
+  targetUserId       String?
+  targetUser         User?            @relation("TargetedRoleChanges", fields: [targetUserId], references: [id])
+  targetAdminId      String?
+  targetAdmin        AdminUser?       @relation("TargetedAdminRoleChanges", fields: [targetAdminId], references: [id])
+  organizationId     String?
+  organization       Organization?    @relation(fields: [organizationId], references: [id])
+  oldRole            String
+  newRole            String
+  reason             String?
+  performedById      String?
+  performedBy        User?            @relation("PerformedRoleChanges", fields: [performedById], references: [id])
+  adminPerformedById String?
+  adminPerformedBy   AdminUser?       @relation("AdminPerformedRoleChanges", fields: [adminPerformedById], references: [id])
+  approvedById       String?
+  approvedBy         User?            @relation("ApprovedRoleChanges", fields: [approvedById], references: [id])
+  status             RoleChangeStatus @default(COMPLETED)
+  ipAddress          String?
+  userAgent          String?
+  createdAt          DateTime         @default(now())
+
+  @@index([targetUserId])
+  @@index([targetAdminId])
+  @@index([organizationId])
+  @@index([performedById])
+  @@index([adminPerformedById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  ROLE_CHANGE
+  PERMISSION_GRANT
+  PERMISSION_REVOKE
+  INVITE_SENT
+  INVITE_ACCEPTED
+  PASSWORD_RESET
+  API_KEY_CREATED
+  API_KEY_REVOKED
+}
+
+enum EntityType {
+  USER
+  ADMIN_USER
+  ORGANIZATION
+  MEMBERSHIP
+  API_KEY
+  SERVICE
+  ENDPOINT
+  ROLE
+}
+
+enum RoleChangeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
 }

@@ -41,6 +41,8 @@ model Organization {
   rateLimitUsage          RateLimitUsage[]
   billingEvents           BillingEvent[]
   fileStorages            FileStorage[]
+  // RBAC Relations
+  roleChangeLogs          RoleChangeLog[]
 
   @@index([slug])
   @@index([createdAt])
@@ -84,8 +86,35 @@ model User {
   uploadedFiles              FileStorage[]
   fileVersionsCreated        FileVersion[]
   fileSharesCreated          FileShare[]
+  // RBAC Audit Relations
+  targetedRoleChanges        RoleChangeLog[] @relation("TargetedRoleChanges")
+  performedRoleChanges       RoleChangeLog[] @relation("PerformedRoleChanges")
+  approvedRoleChanges        RoleChangeLog[] @relation("ApprovedRoleChanges")
 
   @@index([email])
+  @@index([createdAt])
+}
+
+model AdminUser {
+  id              String      @id @default(uuid())
+  email           String      @unique
+  passwordHash    String
+  firstName       String
+  lastName        String
+  role            AdminRole   @default(SUPPORT_AGENT)
+  isActive        Boolean     @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdBy       String?     // ID of admin who created this user
+  notes           String?     // Internal notes about this admin user
+  // RBAC Audit Relations
+  auditLogs       AuditLog[]
+  targetedRoleChanges   RoleChangeLog[] @relation("TargetedAdminRoleChanges")
+  performedRoleChanges  RoleChangeLog[] @relation("AdminPerformedRoleChanges")
+
+  @@index([email])
+  @@index([role])
   @@index([createdAt])
 }
 
@@ -355,11 +384,17 @@ model AuditLog {
   timestamp      DateTime     @default(now())
   organizationId String
   userId         String?
+  // Enhanced RBAC fields
+  adminPerformedById String?
+  adminPerformedBy   AdminUser? @relation(fields: [adminPerformedById], references: [id])
+  oldValues      Json?
+  newValues      Json?
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user           User?        @relation(fields: [userId], references: [id])
 
   @@index([organizationId, timestamp])
   @@index([userId])
+  @@index([adminPerformedById])
   @@index([entityType, entityId])
   @@index([timestamp])
 }
@@ -681,10 +716,25 @@ enum ExposedEntityType {
 }
 
 enum MemberRole {
+  // Existing values (keep temporarily)
   OWNER
   ADMIN
   MEMBER
   VIEWER
+
+  // New enhanced roles (will migrate to these)
+  SUPER_ADMIN          // Platform-level access (you)
+  ORGANIZATION_OWNER   // Organization owner (maps from OWNER)
+  ORGANIZATION_ADMIN   // Organization administrator (maps from ADMIN)
+  DEVELOPER           // Technical team members with API access
+}
+
+enum AdminRole {
+  SUPER_ADMIN          // Platform owner with full access
+  ADMIN               // Senior customer success/operations staff
+  SUPPORT_AGENT       // Customer support representatives
+  BILLING_ADMIN       // Finance/accounting staff
+  ANALYST             // Business intelligence/data team
 }
 
 enum SubscriptionPlan {
@@ -899,4 +949,71 @@ enum StorageProvider {
   LOCAL
   AZURE_BLOB
   GOOGLE_CLOUD
+}
+
+// Enhanced RBAC Models
+
+model RoleChangeLog {
+  id              String      @id @default(uuid())
+  targetUserId    String?
+  targetUser      User?       @relation("TargetedRoleChanges", fields: [targetUserId], references: [id])
+  targetAdminId   String?
+  targetAdmin     AdminUser?  @relation("TargetedAdminRoleChanges", fields: [targetAdminId], references: [id])
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+  oldRole         String
+  newRole         String
+  reason          String?
+  performedById   String?
+  performedBy     User?       @relation("PerformedRoleChanges", fields: [performedById], references: [id])
+  adminPerformedById String?
+  adminPerformedBy   AdminUser? @relation("AdminPerformedRoleChanges", fields: [adminPerformedById], references: [id])
+  approvedById    String?
+  approvedBy      User?       @relation("ApprovedRoleChanges", fields: [approvedById], references: [id])
+  status          RoleChangeStatus @default(COMPLETED)
+  ipAddress       String?
+  userAgent       String?
+  createdAt       DateTime    @default(now())
+
+  @@index([targetUserId])
+  @@index([targetAdminId])
+  @@index([organizationId])
+  @@index([performedById])
+  @@index([adminPerformedById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  ROLE_CHANGE
+  PERMISSION_GRANT
+  PERMISSION_REVOKE
+  INVITE_SENT
+  INVITE_ACCEPTED
+  PASSWORD_RESET
+  API_KEY_CREATED
+  API_KEY_REVOKED
+}
+
+enum EntityType {
+  USER
+  ADMIN_USER
+  ORGANIZATION
+  MEMBERSHIP
+  API_KEY
+  SERVICE
+  ENDPOINT
+  ROLE
+}
+
+enum RoleChangeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
 }

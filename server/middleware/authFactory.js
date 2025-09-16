@@ -48,11 +48,20 @@ class AuthFactory {
             logger.warn('Failed to update last login time:', error);
           }
 
+          // Enhanced role detection for new RBAC system
+          const hasOwnerRole = user.memberships?.some(m => m.role === 'OWNER') || false;
+          const hasSuperAdminRole = user.memberships?.some(m => m.role === 'SUPER_ADMIN') || false;
+          const hasOrgAdminRole = user.memberships?.some(m =>
+            ['ADMIN', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(m.role)
+          ) || false;
+
           req.user = {
             ...user,
             userId: user.id, // Add userId for compatibility with existing code
-            isAdmin: user.memberships?.some(m => m.role === 'OWNER') || false, // Check if user is owner of any org
-            isSuperAdmin: user.isSuperAdmin || false, // Platform-level access
+            isAdmin: hasOwnerRole || hasSuperAdminRole || hasOrgAdminRole, // Legacy compatibility
+            isSuperAdmin: user.isSuperAdmin || hasSuperAdminRole, // Platform-level access
+            roles: user.memberships?.map(m => m.role) || [], // All user roles
+            permissions: this.calculateUserPermissions(user), // Calculate permissions based on roles
           };
         }
 
@@ -259,15 +268,144 @@ class AuthFactory {
   }
 
   static requireAdmin() {
-    return this.createJWTMiddleware().concat((req, res, next) => {
-      if (!req.user?.isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Admin access required',
-        });
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        if (!req.user?.isAdmin) {
+          return res.status(403).json({
+            success: false,
+            message: 'Admin access required',
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireSuperAdmin() {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        if (!req.user?.isSuperAdmin) {
+          return res.status(403).json({
+            success: false,
+            message: 'Super admin access required',
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireRole(...roles) {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        const userRoles = req.user?.roles || [];
+        const hasRequiredRole = roles.some(role => userRoles.includes(role));
+
+        if (!hasRequiredRole) {
+          return res.status(403).json({
+            success: false,
+            message: `Required roles: ${roles.join(', ')}`,
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireOrganizationAccess(allowedRoles = []) {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        const organizationId = req.params.organizationId || req.body.organizationId;
+        if (!organizationId) {
+          return res.status(400).json({
+            success: false,
+            message: 'Organization ID required',
+          });
+        }
+
+        // Super admins have access to all organizations
+        if (req.user?.isSuperAdmin) {
+          return next();
+        }
+
+        // Check if user has membership in the organization with allowed roles
+        const orgMembership = req.user?.memberships?.find(m =>
+          m.organizationId === organizationId
+        );
+
+        if (!orgMembership) {
+          return res.status(403).json({
+            success: false,
+            message: 'No access to this organization',
+          });
+        }
+
+        if (allowedRoles.length > 0 && !allowedRoles.includes(orgMembership.role)) {
+          return res.status(403).json({
+            success: false,
+            message: `Required organization roles: ${allowedRoles.join(', ')}`,
+          });
+        }
+
+        next();
+      });
+    };
+  }
+
+  static calculateUserPermissions(user) {
+    const permissions = new Set();
+
+    // Platform-level permissions for super admins
+    if (user.isSuperAdmin || user.memberships?.some(m => m.role === 'SUPER_ADMIN')) {
+      permissions.add('platform:admin');
+      permissions.add('organization:create');
+      permissions.add('organization:delete');
+      permissions.add('user:manage');
+      permissions.add('billing:manage');
+      permissions.add('system:admin');
+    }
+
+    // Organization-level permissions
+    user.memberships?.forEach(membership => {
+      switch (membership.role) {
+        case 'OWNER':
+        case 'ORGANIZATION_OWNER':
+          permissions.add('organization:admin');
+          permissions.add('organization:settings');
+          permissions.add('member:invite');
+          permissions.add('member:remove');
+          permissions.add('api:manage');
+          permissions.add('billing:view');
+          break;
+        case 'ADMIN':
+        case 'ORGANIZATION_ADMIN':
+          permissions.add('organization:settings');
+          permissions.add('member:invite');
+          permissions.add('api:manage');
+          permissions.add('billing:view');
+          break;
+        case 'DEVELOPER':
+          permissions.add('api:manage');
+          permissions.add('api:keys');
+          break;
+        case 'MEMBER':
+          permissions.add('api:use');
+          break;
+        case 'VIEWER':
+          permissions.add('api:view');
+          break;
       }
-      next();
     });
+
+    return Array.from(permissions);
   }
 
   static optional(middleware) {
@@ -275,6 +413,149 @@ class AuthFactory {
       middleware(req, res, err => {
         if (err) {
           logger.debug('Optional auth failed:', err.message);
+        }
+        next();
+      });
+    };
+  }
+
+  // Role-specific middleware methods
+  static requireOrganizationOwner() {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        // Super admins have all permissions
+        if (req.user?.isSuperAdmin) {
+          return next();
+        }
+
+        // Check if user has ORGANIZATION_OWNER or OWNER role in any organization
+        const hasOwnerRole = req.user?.memberships?.some(m =>
+          m.role === 'ORGANIZATION_OWNER' || m.role === 'OWNER'
+        );
+
+        if (!hasOwnerRole) {
+          return res.status(403).json({
+            success: false,
+            message: 'Organization owner access required',
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireOrganizationAdmin() {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        // Super admins have all permissions
+        if (req.user?.isSuperAdmin) {
+          return next();
+        }
+
+        // Check if user has admin level access (ORGANIZATION_ADMIN, ORGANIZATION_OWNER, ADMIN, OWNER)
+        const hasAdminRole = req.user?.memberships?.some(m =>
+          ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+        );
+
+        if (!hasAdminRole) {
+          return res.status(403).json({
+            success: false,
+            message: 'Organization admin access required',
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireDeveloper() {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        // Super admins have all permissions
+        if (req.user?.isSuperAdmin) {
+          return next();
+        }
+
+        // Check if user has developer level access or higher
+        const hasDeveloperRole = req.user?.memberships?.some(m =>
+          ['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+        );
+
+        if (!hasDeveloperRole) {
+          return res.status(403).json({
+            success: false,
+            message: 'Developer access required',
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireMember() {
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        // Super admins have all permissions
+        if (req.user?.isSuperAdmin) {
+          return next();
+        }
+
+        // Check if user has member level access or higher (all roles except VIEWER)
+        const hasMemberRole = req.user?.memberships?.some(m =>
+          ['MEMBER', 'DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+        );
+
+        if (!hasMemberRole) {
+          return res.status(403).json({
+            success: false,
+            message: 'Member access required',
+          });
+        }
+        next();
+      });
+    };
+  }
+
+  static requireMinimumRole(minimumRole) {
+    const roleHierarchy = {
+      'SUPER_ADMIN': 7,
+      'ORGANIZATION_OWNER': 6, 'OWNER': 6,
+      'ORGANIZATION_ADMIN': 5, 'ADMIN': 5,
+      'DEVELOPER': 4,
+      'MEMBER': 3,
+      'VIEWER': 1
+    };
+
+    return (req, res, next) => {
+      this.createJWTMiddleware()(req, res, (err) => {
+        if (err) return next(err);
+
+        // Super admins have all permissions
+        if (req.user?.isSuperAdmin) {
+          return next();
+        }
+
+        const minimumLevel = roleHierarchy[minimumRole] || 0;
+
+        // Check if user has a role at or above the minimum level
+        const hasRequiredRole = req.user?.memberships?.some(m => {
+          const userLevel = roleHierarchy[m.role] || 0;
+          return userLevel >= minimumLevel;
+        });
+
+        if (!hasRequiredRole) {
+          return res.status(403).json({
+            success: false,
+            message: `Minimum role required: ${minimumRole}`,
+          });
         }
         next();
       });
