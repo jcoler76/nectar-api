@@ -112,15 +112,24 @@ const HomePage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="relative overflow-hidden px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        {/* Background hero illustration */}
+        <img
+          src={process.env.PUBLIC_URL + '/hero-marketing.svg'}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        />
+        {/* Soft overlay for readability on light artwork */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/20 to-white/40 z-0" />
+        <div className="relative z-10 max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
               Automate, Integrate, Elevate
             </span>
             <span className="block">Your Business Operations</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-700 mb-10 max-w-4xl mx-auto leading-relaxed">
             Automate repetitive tasks, integrate all your tools seamlessly, and elevate your team's
             performance to new heights. The all-in-one platform that transforms how modern
             businesses operate.
@@ -141,11 +150,11 @@ const HomePage = () => {
             No credit card required • 14-day free trial • Cancel anytime
           </p>
           <div className="flex items-center justify-center gap-4 mt-4">
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200/80 shadow-md">
               <Shield className="w-4 h-4 text-green-600" />
               <span className="text-sm font-medium text-gray-700">OWASP Top 10 Certified</span>
             </div>
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200/80 shadow-md">
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-sm font-medium text-gray-700">Enterprise Security</span>
             </div>
@@ -275,14 +284,14 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Workflow className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                  <span className="text-xl font-bold text-blue-600">.ai</span>
-                </div>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Workflow className="w-5 h-5 text-white" />
               </div>
+              <div className="flex items-center">
+                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
+                <span className="text-xl font-bold text-blue-600">.ai</span>
+              </div>
+            </div>
               <p className="text-gray-600">
                 Automate, integrate, elevate - the modern platform that transforms how businesses
                 operate and grow.
@@ -401,7 +410,7 @@ const HomePage = () => {
             </div>
           </div>
           <div className="border-t border-gray-200 mt-12 pt-8 text-center">
-            <p className="text-gray-600">&copy; 2024 Nectar. All rights reserved.</p>
+            <p className="text-gray-600">&copy; {new Date().getFullYear()} NectarStudio.ai. All rights reserved.</p>
           </div>
         </div>
       </footer>

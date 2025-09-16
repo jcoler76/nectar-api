@@ -87,11 +87,9 @@ interface DashboardStats {
 
 class LicenseService {
   private baseUrl: string;
-  private apiKey: string;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_LICENSE_SERVER_URL || 'http://localhost:6000';
-    this.apiKey = process.env.REACT_APP_LICENSE_API_KEY || '';
+    this.baseUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim();
   }
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
@@ -101,16 +99,17 @@ class LicenseService {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-Admin-Key': process.env.REACT_APP_ADMIN_API_KEY || '',
         ...options.headers,
       },
+      credentials: 'include', // Use httpOnly cookies for authentication
     });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    return result;
   }
 
   // License Management
@@ -131,11 +130,16 @@ class LicenseService {
       }
     });
 
-    return this.makeRequest(`/api/licenses?${queryParams}`);
+    const result = await this.makeRequest(`/api/licenses/licenses?${queryParams}`);
+    return {
+      licenses: result.licenses || [],
+      pagination: result.pagination,
+    };
   }
 
   async getLicense(id: string) {
-    return this.makeRequest(`/api/licenses/${id}`);
+    const result = await this.makeRequest(`/api/licenses/licenses/${id}`);
+    return result.license;
   }
 
   async createLicense(licenseData: {
@@ -152,10 +156,11 @@ class LicenseService {
     currency?: string;
     deploymentId?: string;
   }) {
-    return this.makeRequest('/api/licenses', {
+    const result = await this.makeRequest('/api/licenses/licenses', {
       method: 'POST',
       body: JSON.stringify(licenseData),
     });
+    return result.license;
   }
 
   async updateLicense(id: string, updates: {
@@ -167,21 +172,22 @@ class LicenseService {
     expiresAt?: string;
     isActive?: boolean;
   }) {
-    return this.makeRequest(`/api/licenses/${id}`, {
+    const result = await this.makeRequest(`/api/licenses/licenses/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
+    return result.license;
   }
 
   async suspendLicense(id: string, reason?: string) {
-    return this.makeRequest(`/api/licenses/${id}/suspend`, {
+    return this.makeRequest(`/api/licenses/licenses/${id}/suspend`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
     });
   }
 
   async reactivateLicense(id: string) {
-    return this.makeRequest(`/api/licenses/${id}/reactivate`, {
+    return this.makeRequest(`/api/licenses/licenses/${id}/reactivate`, {
       method: 'POST',
     });
   }
@@ -199,11 +205,16 @@ class LicenseService {
       }
     });
 
-    return this.makeRequest(`/api/customers?${queryParams}`);
+    const result = await this.makeRequest(`/api/licenses/customers?${queryParams}`);
+    return {
+      customers: result.customers || [],
+      pagination: result.pagination,
+    };
   }
 
   async getCustomer(id: string) {
-    return this.makeRequest(`/api/customers/${id}`);
+    const result = await this.makeRequest(`/api/licenses/customers/${id}`);
+    return result.customer;
   }
 
   async createCustomer(customerData: {
@@ -215,10 +226,11 @@ class LicenseService {
     country?: string;
     stripeCustomerId?: string;
   }) {
-    return this.makeRequest('/api/customers', {
+    const result = await this.makeRequest('/api/licenses/customers', {
       method: 'POST',
       body: JSON.stringify(customerData),
     });
+    return result.customer;
   }
 
   // Usage Analytics
@@ -234,7 +246,8 @@ class LicenseService {
       }
     });
 
-    return this.makeRequest(`/api/usage/license/${licenseId}?${queryParams}`);
+    const result = await this.makeRequest(`/api/licenses/usage/license/${licenseId}?${queryParams}`);
+    return result.usage;
   }
 
   async getCustomerUsage(customerId: string, params: {
@@ -248,16 +261,19 @@ class LicenseService {
       }
     });
 
-    return this.makeRequest(`/api/usage/customer/${customerId}?${queryParams}`);
+    const result = await this.makeRequest(`/api/licenses/usage/customer/${customerId}?${queryParams}`);
+    return result.usage;
   }
 
   // System Administration
   async getDashboardStats(): Promise<DashboardStats> {
-    return this.makeRequest('/api/admin/dashboard');
+    const result = await this.makeRequest('/api/licenses/admin/dashboard');
+    return result.stats;
   }
 
   async getSystemHealth(): Promise<SystemHealth> {
-    return this.makeRequest('/api/admin/health');
+    const result = await this.makeRequest('/api/licenses/admin/health');
+    return result.health;
   }
 
   // License Validation (for testing)

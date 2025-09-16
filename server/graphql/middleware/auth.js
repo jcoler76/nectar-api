@@ -4,6 +4,10 @@ const { PrismaClient } = require('../../prisma/generated/client');
 const prisma = new PrismaClient();
 
 const getUser = async req => {
+  console.log(
+    '🚀 getUser function called with headers:',
+    req.headers?.authorization ? 'Bearer token present' : 'No auth header'
+  );
   let token = req.headers.authorization;
 
   if (token && token.startsWith('Bearer ')) {
@@ -15,11 +19,22 @@ const getUser = async req => {
   if (!token) return null;
 
   try {
+    console.log(
+      '🔍 Attempting standard token validation for token starting with:',
+      token.substring(0, 50) + '...'
+    );
     // First try standard user token validation (audience: nectar-users)
     const decoded = await validateToken(token);
+    console.log('✅ Standard token validation successful:', decoded);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        isActive: true,
+        isSuperAdmin: true,
+        firstName: true,
+        lastName: true,
         memberships: {
           include: { organization: true },
         },
@@ -31,19 +46,22 @@ const getUser = async req => {
     return {
       userId: user.id,
       email: user.email,
-      isAdmin: user.isAdmin,
+      isAdmin: user.isSuperAdmin,
       roles: user.memberships || [],
       user: user,
     };
   } catch (primaryError) {
+    console.log('❌ Standard token validation failed:', primaryError.message);
     // If standard validation fails, attempt to validate as platform admin
     try {
       const adminSecret = process.env.ADMIN_JWT_SECRET;
+      console.log('🔑 Admin JWT Secret configured:', !!adminSecret);
       if (!adminSecret) {
         throw new Error('ADMIN_JWT_SECRET not configured');
       }
 
       const adminDecoded = jwt.verify(token, adminSecret);
+      console.log('🔓 Admin token decoded:', adminDecoded);
       // Only accept platform admin tokens
       if (adminDecoded?.type !== 'platform_admin' || !adminDecoded.userId) {
         throw new Error('Not a platform admin token');

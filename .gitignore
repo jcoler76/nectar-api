@@ -5,6 +5,9 @@
 server/.env
 server/.env.*
 !server/.env.example
+admin-backend/.env
+admin-backend/.env.*
+!admin-backend/.env.example
 server/env_backup
 app.js.backup
 

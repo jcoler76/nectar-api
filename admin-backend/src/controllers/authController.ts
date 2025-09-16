@@ -44,6 +44,15 @@ export class AuthController {
       // Generate JWT token
       const token = AdminAuthService.generateToken(admin)
 
+      // Set secure httpOnly cookie
+      res.cookie('adminToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        path: '/'
+      })
+
       // Log successful login
       await AdminAuditLogger.log({
         userId: admin.id,
@@ -55,7 +64,6 @@ export class AuthController {
 
       res.json({
         success: true,
-        token,
         admin: {
           id: admin.id,
           email: admin.email,
@@ -88,13 +96,21 @@ export class AuthController {
         })
       }
 
-      res.json({ 
-        success: true, 
-        message: 'Logged out successfully' 
+      // Clear the httpOnly cookie
+      res.clearCookie('adminToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      })
+
+      res.json({
+        success: true,
+        message: 'Logged out successfully'
       })
     } catch (error) {
       // Log error internally without exposing details
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Internal server error',
         code: 'INTERNAL_ERROR'
       })

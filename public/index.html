@@ -3,11 +3,43 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Nectar Studio</title>
+
+    <!-- Performance Optimizations -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- SEO Meta Tags -->
+    <title>NectarStudio.ai - Automate, Integrate, Elevate Your Business Operations</title>
+    <meta name="description" content="Transform your business operations with NectarStudio.ai. Enterprise-grade workflow automation, AI-powered analytics, and seamless integrations. 100% OWASP compliant security." />
+    <meta name="keywords" content="workflow automation, business automation, API integration, AI analytics, enterprise security, OWASP compliance" />
+    <meta name="author" content="NectarStudio.ai" />
+
+    <!-- Favicons and App Icons -->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Theme and Browser Configuration -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+
+    <!-- Performance: Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+
+    <!-- SEO: Canonical URL will be set by React Helmet -->
+    <link rel="canonical" href="https://nectarstudio.ai" />
+
+    <!-- OpenGraph and Twitter meta tags will be set by React Helmet -->
   </head>
   <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+    <!-- Performance: Fallback for CSS if JavaScript is disabled -->
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    </noscript>
   </body>
 </html>

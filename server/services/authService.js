@@ -8,7 +8,8 @@ class AuthService {
   constructor() {
     this.jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
     this.jwtIssuer = process.env.JWT_ISSUER || 'nectar-api';
-    this.jwtAudience = process.env.JWT_AUDIENCE || 'nectar-users';
+    // Align JWT audience with tokenService validation and frontend expectations
+    this.jwtAudience = process.env.JWT_AUDIENCE || 'nectar-client';
     this.tokenExpiry = process.env.JWT_EXPIRES_IN || '24h';
   }
 
@@ -75,7 +76,7 @@ class AuthService {
       const token = jwt.sign(tokenPayload, this.jwtSecret, {
         expiresIn: this.tokenExpiry,
         issuer: this.jwtIssuer,
-        audience: 'nectar-users', // Match JWT_AUDIENCE in .env
+        audience: this.jwtAudience,
       });
 
       // Update last login

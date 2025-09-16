@@ -162,6 +162,26 @@ export type RateLimitUsage = $Result.DefaultSelection<Prisma.$RateLimitUsagePayl
  *
  */
 export type SocialAccount = $Result.DefaultSelection<Prisma.$SocialAccountPayload>;
+/**
+ * Model FileStorage
+ *
+ */
+export type FileStorage = $Result.DefaultSelection<Prisma.$FileStoragePayload>;
+/**
+ * Model FileVersion
+ *
+ */
+export type FileVersion = $Result.DefaultSelection<Prisma.$FileVersionPayload>;
+/**
+ * Model FileThumbnail
+ *
+ */
+export type FileThumbnail = $Result.DefaultSelection<Prisma.$FileThumbnailPayload>;
+/**
+ * Model FileShare
+ *
+ */
+export type FileShare = $Result.DefaultSelection<Prisma.$FileSharePayload>;
 
 /**
  * Enums
@@ -294,6 +314,15 @@ export namespace $Enums {
 
   export type RateLimitKeyStrategy =
     (typeof RateLimitKeyStrategy)[keyof typeof RateLimitKeyStrategy];
+
+  export const StorageProvider: {
+    S3: 'S3';
+    LOCAL: 'LOCAL';
+    AZURE_BLOB: 'AZURE_BLOB';
+    GOOGLE_CLOUD: 'GOOGLE_CLOUD';
+  };
+
+  export type StorageProvider = (typeof StorageProvider)[keyof typeof StorageProvider];
 }
 
 export type ExposedEntityType = $Enums.ExposedEntityType;
@@ -347,6 +376,10 @@ export const RateLimitType: typeof $Enums.RateLimitType;
 export type RateLimitKeyStrategy = $Enums.RateLimitKeyStrategy;
 
 export const RateLimitKeyStrategy: typeof $Enums.RateLimitKeyStrategy;
+
+export type StorageProvider = $Enums.StorageProvider;
+
+export const StorageProvider: typeof $Enums.StorageProvider;
 
 /**
  * ##  Prisma Client ʲˢ
@@ -794,6 +827,46 @@ export class PrismaClient<
    * ```
    */
   get socialAccount(): Prisma.SocialAccountDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fileStorage`: Exposes CRUD operations for the **FileStorage** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more FileStorages
+   * const fileStorages = await prisma.fileStorage.findMany()
+   * ```
+   */
+  get fileStorage(): Prisma.FileStorageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fileVersion`: Exposes CRUD operations for the **FileVersion** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more FileVersions
+   * const fileVersions = await prisma.fileVersion.findMany()
+   * ```
+   */
+  get fileVersion(): Prisma.FileVersionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fileThumbnail`: Exposes CRUD operations for the **FileThumbnail** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more FileThumbnails
+   * const fileThumbnails = await prisma.fileThumbnail.findMany()
+   * ```
+   */
+  get fileThumbnail(): Prisma.FileThumbnailDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fileShare`: Exposes CRUD operations for the **FileShare** model.
+   * Example usage:
+   * ```ts
+   * // Fetch zero or more FileShares
+   * const fileShares = await prisma.fileShare.findMany()
+   * ```
+   */
+  get fileShare(): Prisma.FileShareDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1258,6 +1331,10 @@ export namespace Prisma {
     RateLimitConfig: 'RateLimitConfig';
     RateLimitUsage: 'RateLimitUsage';
     SocialAccount: 'SocialAccount';
+    FileStorage: 'FileStorage';
+    FileVersion: 'FileVersion';
+    FileThumbnail: 'FileThumbnail';
+    FileShare: 'FileShare';
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -1312,7 +1389,11 @@ export namespace Prisma {
         | 'termsAcceptance'
         | 'rateLimitConfig'
         | 'rateLimitUsage'
-        | 'socialAccount';
+        | 'socialAccount'
+        | 'fileStorage'
+        | 'fileVersion'
+        | 'fileThumbnail'
+        | 'fileShare';
       txIsolationLevel: Prisma.TransactionIsolationLevel;
     };
     model: {
@@ -3536,6 +3617,302 @@ export namespace Prisma {
           };
         };
       };
+      FileStorage: {
+        payload: Prisma.$FileStoragePayload<ExtArgs>;
+        fields: Prisma.FileStorageFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.FileStorageFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.FileStorageFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>;
+          };
+          findFirst: {
+            args: Prisma.FileStorageFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.FileStorageFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>;
+          };
+          findMany: {
+            args: Prisma.FileStorageFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>[];
+          };
+          create: {
+            args: Prisma.FileStorageCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>;
+          };
+          createMany: {
+            args: Prisma.FileStorageCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.FileStorageCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>[];
+          };
+          delete: {
+            args: Prisma.FileStorageDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>;
+          };
+          update: {
+            args: Prisma.FileStorageUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>;
+          };
+          deleteMany: {
+            args: Prisma.FileStorageDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.FileStorageUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.FileStorageUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>[];
+          };
+          upsert: {
+            args: Prisma.FileStorageUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileStoragePayload>;
+          };
+          aggregate: {
+            args: Prisma.FileStorageAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateFileStorage>;
+          };
+          groupBy: {
+            args: Prisma.FileStorageGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<FileStorageGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.FileStorageCountArgs<ExtArgs>;
+            result: $Utils.Optional<FileStorageCountAggregateOutputType> | number;
+          };
+        };
+      };
+      FileVersion: {
+        payload: Prisma.$FileVersionPayload<ExtArgs>;
+        fields: Prisma.FileVersionFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.FileVersionFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.FileVersionFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>;
+          };
+          findFirst: {
+            args: Prisma.FileVersionFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.FileVersionFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>;
+          };
+          findMany: {
+            args: Prisma.FileVersionFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>[];
+          };
+          create: {
+            args: Prisma.FileVersionCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>;
+          };
+          createMany: {
+            args: Prisma.FileVersionCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.FileVersionCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>[];
+          };
+          delete: {
+            args: Prisma.FileVersionDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>;
+          };
+          update: {
+            args: Prisma.FileVersionUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>;
+          };
+          deleteMany: {
+            args: Prisma.FileVersionDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.FileVersionUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.FileVersionUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>[];
+          };
+          upsert: {
+            args: Prisma.FileVersionUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileVersionPayload>;
+          };
+          aggregate: {
+            args: Prisma.FileVersionAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateFileVersion>;
+          };
+          groupBy: {
+            args: Prisma.FileVersionGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<FileVersionGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.FileVersionCountArgs<ExtArgs>;
+            result: $Utils.Optional<FileVersionCountAggregateOutputType> | number;
+          };
+        };
+      };
+      FileThumbnail: {
+        payload: Prisma.$FileThumbnailPayload<ExtArgs>;
+        fields: Prisma.FileThumbnailFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.FileThumbnailFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.FileThumbnailFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>;
+          };
+          findFirst: {
+            args: Prisma.FileThumbnailFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.FileThumbnailFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>;
+          };
+          findMany: {
+            args: Prisma.FileThumbnailFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>[];
+          };
+          create: {
+            args: Prisma.FileThumbnailCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>;
+          };
+          createMany: {
+            args: Prisma.FileThumbnailCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.FileThumbnailCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>[];
+          };
+          delete: {
+            args: Prisma.FileThumbnailDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>;
+          };
+          update: {
+            args: Prisma.FileThumbnailUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>;
+          };
+          deleteMany: {
+            args: Prisma.FileThumbnailDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.FileThumbnailUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.FileThumbnailUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>[];
+          };
+          upsert: {
+            args: Prisma.FileThumbnailUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileThumbnailPayload>;
+          };
+          aggregate: {
+            args: Prisma.FileThumbnailAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateFileThumbnail>;
+          };
+          groupBy: {
+            args: Prisma.FileThumbnailGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<FileThumbnailGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.FileThumbnailCountArgs<ExtArgs>;
+            result: $Utils.Optional<FileThumbnailCountAggregateOutputType> | number;
+          };
+        };
+      };
+      FileShare: {
+        payload: Prisma.$FileSharePayload<ExtArgs>;
+        fields: Prisma.FileShareFieldRefs;
+        operations: {
+          findUnique: {
+            args: Prisma.FileShareFindUniqueArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload> | null;
+          };
+          findUniqueOrThrow: {
+            args: Prisma.FileShareFindUniqueOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>;
+          };
+          findFirst: {
+            args: Prisma.FileShareFindFirstArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload> | null;
+          };
+          findFirstOrThrow: {
+            args: Prisma.FileShareFindFirstOrThrowArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>;
+          };
+          findMany: {
+            args: Prisma.FileShareFindManyArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>[];
+          };
+          create: {
+            args: Prisma.FileShareCreateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>;
+          };
+          createMany: {
+            args: Prisma.FileShareCreateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          createManyAndReturn: {
+            args: Prisma.FileShareCreateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>[];
+          };
+          delete: {
+            args: Prisma.FileShareDeleteArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>;
+          };
+          update: {
+            args: Prisma.FileShareUpdateArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>;
+          };
+          deleteMany: {
+            args: Prisma.FileShareDeleteManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateMany: {
+            args: Prisma.FileShareUpdateManyArgs<ExtArgs>;
+            result: BatchPayload;
+          };
+          updateManyAndReturn: {
+            args: Prisma.FileShareUpdateManyAndReturnArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>[];
+          };
+          upsert: {
+            args: Prisma.FileShareUpsertArgs<ExtArgs>;
+            result: $Utils.PayloadToResult<Prisma.$FileSharePayload>;
+          };
+          aggregate: {
+            args: Prisma.FileShareAggregateArgs<ExtArgs>;
+            result: $Utils.Optional<AggregateFileShare>;
+          };
+          groupBy: {
+            args: Prisma.FileShareGroupByArgs<ExtArgs>;
+            result: $Utils.Optional<FileShareGroupByOutputType>[];
+          };
+          count: {
+            args: Prisma.FileShareCountArgs<ExtArgs>;
+            result: $Utils.Optional<FileShareCountAggregateOutputType> | number;
+          };
+        };
+      };
     };
   } & {
     other: {
@@ -3662,6 +4039,10 @@ export namespace Prisma {
     rateLimitConfig?: RateLimitConfigOmit;
     rateLimitUsage?: RateLimitUsageOmit;
     socialAccount?: SocialAccountOmit;
+    fileStorage?: FileStorageOmit;
+    fileVersion?: FileVersionOmit;
+    fileThumbnail?: FileThumbnailOmit;
+    fileShare?: FileShareOmit;
   };
 
   /* Types for Logging */
@@ -3757,6 +4138,7 @@ export namespace Prisma {
     rateLimitConfigs: number;
     rateLimitUsage: number;
     billingEvents: number;
+    fileStorages: number;
   };
 
   export type OrganizationCountOutputTypeSelect<
@@ -3782,6 +4164,7 @@ export namespace Prisma {
     rateLimitConfigs?: boolean | OrganizationCountOutputTypeCountRateLimitConfigsArgs;
     rateLimitUsage?: boolean | OrganizationCountOutputTypeCountRateLimitUsageArgs;
     billingEvents?: boolean | OrganizationCountOutputTypeCountBillingEventsArgs;
+    fileStorages?: boolean | OrganizationCountOutputTypeCountFileStoragesArgs;
   };
 
   // Custom InputTypes
@@ -3978,6 +4361,15 @@ export namespace Prisma {
   };
 
   /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountFileStoragesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileStorageWhereInput;
+  };
+
+  /**
    * Count Type UserCountOutputType
    */
 
@@ -3999,6 +4391,9 @@ export namespace Prisma {
     rateLimitCreated: number;
     rateLimitUpdated: number;
     socialAccounts: number;
+    uploadedFiles: number;
+    fileVersionsCreated: number;
+    fileSharesCreated: number;
   };
 
   export type UserCountOutputTypeSelect<
@@ -4021,6 +4416,9 @@ export namespace Prisma {
     rateLimitCreated?: boolean | UserCountOutputTypeCountRateLimitCreatedArgs;
     rateLimitUpdated?: boolean | UserCountOutputTypeCountRateLimitUpdatedArgs;
     socialAccounts?: boolean | UserCountOutputTypeCountSocialAccountsArgs;
+    uploadedFiles?: boolean | UserCountOutputTypeCountUploadedFilesArgs;
+    fileVersionsCreated?: boolean | UserCountOutputTypeCountFileVersionsCreatedArgs;
+    fileSharesCreated?: boolean | UserCountOutputTypeCountFileSharesCreatedArgs;
   };
 
   // Custom InputTypes
@@ -4187,6 +4585,33 @@ export namespace Prisma {
     ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   > = {
     where?: SocialAccountWhereInput;
+  };
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountUploadedFilesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileStorageWhereInput;
+  };
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountFileVersionsCreatedArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileVersionWhereInput;
+  };
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountFileSharesCreatedArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileShareWhereInput;
   };
 
   /**
@@ -4602,6 +5027,64 @@ export namespace Prisma {
   };
 
   /**
+   * Count Type FileStorageCountOutputType
+   */
+
+  export type FileStorageCountOutputType = {
+    versions: number;
+    thumbnails: number;
+    shares: number;
+  };
+
+  export type FileStorageCountOutputTypeSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    versions?: boolean | FileStorageCountOutputTypeCountVersionsArgs;
+    thumbnails?: boolean | FileStorageCountOutputTypeCountThumbnailsArgs;
+    shares?: boolean | FileStorageCountOutputTypeCountSharesArgs;
+  };
+
+  // Custom InputTypes
+  /**
+   * FileStorageCountOutputType without action
+   */
+  export type FileStorageCountOutputTypeDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorageCountOutputType
+     */
+    select?: FileStorageCountOutputTypeSelect<ExtArgs> | null;
+  };
+
+  /**
+   * FileStorageCountOutputType without action
+   */
+  export type FileStorageCountOutputTypeCountVersionsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileVersionWhereInput;
+  };
+
+  /**
+   * FileStorageCountOutputType without action
+   */
+  export type FileStorageCountOutputTypeCountThumbnailsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileThumbnailWhereInput;
+  };
+
+  /**
+   * FileStorageCountOutputType without action
+   */
+  export type FileStorageCountOutputTypeCountSharesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileShareWhereInput;
+  };
+
+  /**
    * Models
    */
 
@@ -4831,6 +5314,7 @@ export namespace Prisma {
       rateLimitConfigs?: boolean | Organization$rateLimitConfigsArgs<ExtArgs>;
       rateLimitUsage?: boolean | Organization$rateLimitUsageArgs<ExtArgs>;
       billingEvents?: boolean | Organization$billingEventsArgs<ExtArgs>;
+      fileStorages?: boolean | Organization$fileStoragesArgs<ExtArgs>;
       _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>;
     },
     ExtArgs['result']['organization']
@@ -4923,6 +5407,7 @@ export namespace Prisma {
     rateLimitConfigs?: boolean | Organization$rateLimitConfigsArgs<ExtArgs>;
     rateLimitUsage?: boolean | Organization$rateLimitUsageArgs<ExtArgs>;
     billingEvents?: boolean | Organization$billingEventsArgs<ExtArgs>;
+    fileStorages?: boolean | Organization$fileStoragesArgs<ExtArgs>;
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>;
   };
   export type OrganizationIncludeCreateManyAndReturn<
@@ -4958,6 +5443,7 @@ export namespace Prisma {
       rateLimitConfigs: Prisma.$RateLimitConfigPayload<ExtArgs>[];
       rateLimitUsage: Prisma.$RateLimitUsagePayload<ExtArgs>[];
       billingEvents: Prisma.$BillingEventPayload<ExtArgs>[];
+      fileStorages: Prisma.$FileStoragePayload<ExtArgs>[];
     };
     scalars: $Extensions.GetPayloadResult<
       {
@@ -5607,6 +6093,12 @@ export namespace Prisma {
       args?: Subset<T, Organization$billingEventsArgs<ExtArgs>>
     ): Prisma.PrismaPromise<
       | $Result.GetResult<Prisma.$BillingEventPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    fileStorages<T extends Organization$fileStoragesArgs<ExtArgs> = {}>(
+      args?: Subset<T, Organization$fileStoragesArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
       | Null
     >;
     /**
@@ -6608,6 +7100,32 @@ export namespace Prisma {
   };
 
   /**
+   * Organization.fileStorages
+   */
+  export type Organization$fileStoragesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    where?: FileStorageWhereInput;
+    orderBy?: FileStorageOrderByWithRelationInput | FileStorageOrderByWithRelationInput[];
+    cursor?: FileStorageWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileStorageScalarFieldEnum | FileStorageScalarFieldEnum[];
+  };
+
+  /**
    * Organization without action
    */
   export type OrganizationDefaultArgs<
@@ -6903,6 +7421,9 @@ export namespace Prisma {
         rateLimitCreated?: boolean | User$rateLimitCreatedArgs<ExtArgs>;
         rateLimitUpdated?: boolean | User$rateLimitUpdatedArgs<ExtArgs>;
         socialAccounts?: boolean | User$socialAccountsArgs<ExtArgs>;
+        uploadedFiles?: boolean | User$uploadedFilesArgs<ExtArgs>;
+        fileVersionsCreated?: boolean | User$fileVersionsCreatedArgs<ExtArgs>;
+        fileSharesCreated?: boolean | User$fileSharesCreatedArgs<ExtArgs>;
         _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>;
       },
       ExtArgs['result']['user']
@@ -7017,6 +7538,9 @@ export namespace Prisma {
     rateLimitCreated?: boolean | User$rateLimitCreatedArgs<ExtArgs>;
     rateLimitUpdated?: boolean | User$rateLimitUpdatedArgs<ExtArgs>;
     socialAccounts?: boolean | User$socialAccountsArgs<ExtArgs>;
+    uploadedFiles?: boolean | User$uploadedFilesArgs<ExtArgs>;
+    fileVersionsCreated?: boolean | User$fileVersionsCreatedArgs<ExtArgs>;
+    fileSharesCreated?: boolean | User$fileSharesCreatedArgs<ExtArgs>;
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>;
   };
   export type UserIncludeCreateManyAndReturn<
@@ -7046,6 +7570,9 @@ export namespace Prisma {
       rateLimitCreated: Prisma.$RateLimitConfigPayload<ExtArgs>[];
       rateLimitUpdated: Prisma.$RateLimitConfigPayload<ExtArgs>[];
       socialAccounts: Prisma.$SocialAccountPayload<ExtArgs>[];
+      uploadedFiles: Prisma.$FileStoragePayload<ExtArgs>[];
+      fileVersionsCreated: Prisma.$FileVersionPayload<ExtArgs>[];
+      fileSharesCreated: Prisma.$FileSharePayload<ExtArgs>[];
     };
     scalars: $Extensions.GetPayloadResult<
       {
@@ -7642,6 +8169,23 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<
       | $Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
       | Null
+    >;
+    uploadedFiles<T extends User$uploadedFilesArgs<ExtArgs> = {}>(
+      args?: Subset<T, User$uploadedFilesArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    fileVersionsCreated<T extends User$fileVersionsCreatedArgs<ExtArgs> = {}>(
+      args?: Subset<T, User$fileVersionsCreatedArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    fileSharesCreated<T extends User$fileSharesCreatedArgs<ExtArgs> = {}>(
+      args?: Subset<T, User$fileSharesCreatedArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions> | Null
     >;
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -8538,6 +9082,84 @@ export namespace Prisma {
     take?: number;
     skip?: number;
     distinct?: SocialAccountScalarFieldEnum | SocialAccountScalarFieldEnum[];
+  };
+
+  /**
+   * User.uploadedFiles
+   */
+  export type User$uploadedFilesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    where?: FileStorageWhereInput;
+    orderBy?: FileStorageOrderByWithRelationInput | FileStorageOrderByWithRelationInput[];
+    cursor?: FileStorageWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileStorageScalarFieldEnum | FileStorageScalarFieldEnum[];
+  };
+
+  /**
+   * User.fileVersionsCreated
+   */
+  export type User$fileVersionsCreatedArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    where?: FileVersionWhereInput;
+    orderBy?: FileVersionOrderByWithRelationInput | FileVersionOrderByWithRelationInput[];
+    cursor?: FileVersionWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileVersionScalarFieldEnum | FileVersionScalarFieldEnum[];
+  };
+
+  /**
+   * User.fileSharesCreated
+   */
+  export type User$fileSharesCreatedArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    where?: FileShareWhereInput;
+    orderBy?: FileShareOrderByWithRelationInput | FileShareOrderByWithRelationInput[];
+    cursor?: FileShareWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileShareScalarFieldEnum | FileShareScalarFieldEnum[];
   };
 
   /**
@@ -13680,6 +14302,7 @@ export namespace Prisma {
   };
 
   export type SubscriptionAvgAggregateOutputType = {
+    monthlyRevenue: Decimal | null;
     maxDatabaseConnections: number | null;
     maxApiCallsPerMonth: number | null;
     maxUsersPerOrg: number | null;
@@ -13687,6 +14310,7 @@ export namespace Prisma {
   };
 
   export type SubscriptionSumAggregateOutputType = {
+    monthlyRevenue: Decimal | null;
     maxDatabaseConnections: number | null;
     maxApiCallsPerMonth: number | null;
     maxUsersPerOrg: number | null;
@@ -13704,6 +14328,7 @@ export namespace Prisma {
     stripeCustomerId: string | null;
     stripeSubscriptionId: string | null;
     stripePriceId: string | null;
+    monthlyRevenue: Decimal | null;
     createdAt: Date | null;
     updatedAt: Date | null;
     maxDatabaseConnections: number | null;
@@ -13724,6 +14349,7 @@ export namespace Prisma {
     stripeCustomerId: string | null;
     stripeSubscriptionId: string | null;
     stripePriceId: string | null;
+    monthlyRevenue: Decimal | null;
     createdAt: Date | null;
     updatedAt: Date | null;
     maxDatabaseConnections: number | null;
@@ -13744,6 +14370,7 @@ export namespace Prisma {
     stripeCustomerId: number;
     stripeSubscriptionId: number;
     stripePriceId: number;
+    monthlyRevenue: number;
     createdAt: number;
     updatedAt: number;
     maxDatabaseConnections: number;
@@ -13755,6 +14382,7 @@ export namespace Prisma {
   };
 
   export type SubscriptionAvgAggregateInputType = {
+    monthlyRevenue?: true;
     maxDatabaseConnections?: true;
     maxApiCallsPerMonth?: true;
     maxUsersPerOrg?: true;
@@ -13762,6 +14390,7 @@ export namespace Prisma {
   };
 
   export type SubscriptionSumAggregateInputType = {
+    monthlyRevenue?: true;
     maxDatabaseConnections?: true;
     maxApiCallsPerMonth?: true;
     maxUsersPerOrg?: true;
@@ -13779,6 +14408,7 @@ export namespace Prisma {
     stripeCustomerId?: true;
     stripeSubscriptionId?: true;
     stripePriceId?: true;
+    monthlyRevenue?: true;
     createdAt?: true;
     updatedAt?: true;
     maxDatabaseConnections?: true;
@@ -13799,6 +14429,7 @@ export namespace Prisma {
     stripeCustomerId?: true;
     stripeSubscriptionId?: true;
     stripePriceId?: true;
+    monthlyRevenue?: true;
     createdAt?: true;
     updatedAt?: true;
     maxDatabaseConnections?: true;
@@ -13819,6 +14450,7 @@ export namespace Prisma {
     stripeCustomerId?: true;
     stripeSubscriptionId?: true;
     stripePriceId?: true;
+    monthlyRevenue?: true;
     createdAt?: true;
     updatedAt?: true;
     maxDatabaseConnections?: true;
@@ -13927,6 +14559,7 @@ export namespace Prisma {
     stripeCustomerId: string | null;
     stripeSubscriptionId: string | null;
     stripePriceId: string | null;
+    monthlyRevenue: Decimal | null;
     createdAt: Date;
     updatedAt: Date;
     maxDatabaseConnections: number;
@@ -13967,6 +14600,7 @@ export namespace Prisma {
       stripeCustomerId?: boolean;
       stripeSubscriptionId?: boolean;
       stripePriceId?: boolean;
+      monthlyRevenue?: boolean;
       createdAt?: boolean;
       updatedAt?: boolean;
       maxDatabaseConnections?: boolean;
@@ -13996,6 +14630,7 @@ export namespace Prisma {
       stripeCustomerId?: boolean;
       stripeSubscriptionId?: boolean;
       stripePriceId?: boolean;
+      monthlyRevenue?: boolean;
       createdAt?: boolean;
       updatedAt?: boolean;
       maxDatabaseConnections?: boolean;
@@ -14022,6 +14657,7 @@ export namespace Prisma {
       stripeCustomerId?: boolean;
       stripeSubscriptionId?: boolean;
       stripePriceId?: boolean;
+      monthlyRevenue?: boolean;
       createdAt?: boolean;
       updatedAt?: boolean;
       maxDatabaseConnections?: boolean;
@@ -14045,6 +14681,7 @@ export namespace Prisma {
     stripeCustomerId?: boolean;
     stripeSubscriptionId?: boolean;
     stripePriceId?: boolean;
+    monthlyRevenue?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     maxDatabaseConnections?: boolean;
@@ -14066,6 +14703,7 @@ export namespace Prisma {
       | 'stripeCustomerId'
       | 'stripeSubscriptionId'
       | 'stripePriceId'
+      | 'monthlyRevenue'
       | 'createdAt'
       | 'updatedAt'
       | 'maxDatabaseConnections'
@@ -14115,6 +14753,7 @@ export namespace Prisma {
         stripeCustomerId: string | null;
         stripeSubscriptionId: string | null;
         stripePriceId: string | null;
+        monthlyRevenue: Prisma.Decimal | null;
         createdAt: Date;
         updatedAt: Date;
         maxDatabaseConnections: number;
@@ -14697,6 +15336,7 @@ export namespace Prisma {
     readonly stripeCustomerId: FieldRef<'Subscription', 'String'>;
     readonly stripeSubscriptionId: FieldRef<'Subscription', 'String'>;
     readonly stripePriceId: FieldRef<'Subscription', 'String'>;
+    readonly monthlyRevenue: FieldRef<'Subscription', 'Decimal'>;
     readonly createdAt: FieldRef<'Subscription', 'DateTime'>;
     readonly updatedAt: FieldRef<'Subscription', 'DateTime'>;
     readonly maxDatabaseConnections: FieldRef<'Subscription', 'Int'>;
@@ -47579,6 +48219,5712 @@ export namespace Prisma {
   };
 
   /**
+   * Model FileStorage
+   */
+
+  export type AggregateFileStorage = {
+    _count: FileStorageCountAggregateOutputType | null;
+    _avg: FileStorageAvgAggregateOutputType | null;
+    _sum: FileStorageSumAggregateOutputType | null;
+    _min: FileStorageMinAggregateOutputType | null;
+    _max: FileStorageMaxAggregateOutputType | null;
+  };
+
+  export type FileStorageAvgAggregateOutputType = {
+    fileSize: number | null;
+  };
+
+  export type FileStorageSumAggregateOutputType = {
+    fileSize: bigint | null;
+  };
+
+  export type FileStorageMinAggregateOutputType = {
+    id: string | null;
+    filename: string | null;
+    storageKey: string | null;
+    mimeType: string | null;
+    fileSize: bigint | null;
+    checksum: string | null;
+    storageProvider: $Enums.StorageProvider | null;
+    bucketName: string | null;
+    cdnUrl: string | null;
+    isPublic: boolean | null;
+    isActive: boolean | null;
+    uploadedAt: Date | null;
+    lastAccessedAt: Date | null;
+    expiresAt: Date | null;
+    organizationId: string | null;
+    uploadedBy: string | null;
+    metadata: string | null;
+    description: string | null;
+  };
+
+  export type FileStorageMaxAggregateOutputType = {
+    id: string | null;
+    filename: string | null;
+    storageKey: string | null;
+    mimeType: string | null;
+    fileSize: bigint | null;
+    checksum: string | null;
+    storageProvider: $Enums.StorageProvider | null;
+    bucketName: string | null;
+    cdnUrl: string | null;
+    isPublic: boolean | null;
+    isActive: boolean | null;
+    uploadedAt: Date | null;
+    lastAccessedAt: Date | null;
+    expiresAt: Date | null;
+    organizationId: string | null;
+    uploadedBy: string | null;
+    metadata: string | null;
+    description: string | null;
+  };
+
+  export type FileStorageCountAggregateOutputType = {
+    id: number;
+    filename: number;
+    storageKey: number;
+    mimeType: number;
+    fileSize: number;
+    checksum: number;
+    storageProvider: number;
+    bucketName: number;
+    cdnUrl: number;
+    isPublic: number;
+    isActive: number;
+    uploadedAt: number;
+    lastAccessedAt: number;
+    expiresAt: number;
+    organizationId: number;
+    uploadedBy: number;
+    metadata: number;
+    tags: number;
+    description: number;
+    _all: number;
+  };
+
+  export type FileStorageAvgAggregateInputType = {
+    fileSize?: true;
+  };
+
+  export type FileStorageSumAggregateInputType = {
+    fileSize?: true;
+  };
+
+  export type FileStorageMinAggregateInputType = {
+    id?: true;
+    filename?: true;
+    storageKey?: true;
+    mimeType?: true;
+    fileSize?: true;
+    checksum?: true;
+    storageProvider?: true;
+    bucketName?: true;
+    cdnUrl?: true;
+    isPublic?: true;
+    isActive?: true;
+    uploadedAt?: true;
+    lastAccessedAt?: true;
+    expiresAt?: true;
+    organizationId?: true;
+    uploadedBy?: true;
+    metadata?: true;
+    description?: true;
+  };
+
+  export type FileStorageMaxAggregateInputType = {
+    id?: true;
+    filename?: true;
+    storageKey?: true;
+    mimeType?: true;
+    fileSize?: true;
+    checksum?: true;
+    storageProvider?: true;
+    bucketName?: true;
+    cdnUrl?: true;
+    isPublic?: true;
+    isActive?: true;
+    uploadedAt?: true;
+    lastAccessedAt?: true;
+    expiresAt?: true;
+    organizationId?: true;
+    uploadedBy?: true;
+    metadata?: true;
+    description?: true;
+  };
+
+  export type FileStorageCountAggregateInputType = {
+    id?: true;
+    filename?: true;
+    storageKey?: true;
+    mimeType?: true;
+    fileSize?: true;
+    checksum?: true;
+    storageProvider?: true;
+    bucketName?: true;
+    cdnUrl?: true;
+    isPublic?: true;
+    isActive?: true;
+    uploadedAt?: true;
+    lastAccessedAt?: true;
+    expiresAt?: true;
+    organizationId?: true;
+    uploadedBy?: true;
+    metadata?: true;
+    tags?: true;
+    description?: true;
+    _all?: true;
+  };
+
+  export type FileStorageAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileStorage to aggregate.
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileStorages to fetch.
+     */
+    orderBy?: FileStorageOrderByWithRelationInput | FileStorageOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: FileStorageWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileStorages from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileStorages.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned FileStorages
+     **/
+    _count?: true | FileStorageCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+     **/
+    _avg?: FileStorageAvgAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+     **/
+    _sum?: FileStorageSumAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: FileStorageMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: FileStorageMaxAggregateInputType;
+  };
+
+  export type GetFileStorageAggregateType<T extends FileStorageAggregateArgs> = {
+    [P in keyof T & keyof AggregateFileStorage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFileStorage[P]>
+      : GetScalarType<T[P], AggregateFileStorage[P]>;
+  };
+
+  export type FileStorageGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileStorageWhereInput;
+    orderBy?: FileStorageOrderByWithAggregationInput | FileStorageOrderByWithAggregationInput[];
+    by: FileStorageScalarFieldEnum[] | FileStorageScalarFieldEnum;
+    having?: FileStorageScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: FileStorageCountAggregateInputType | true;
+    _avg?: FileStorageAvgAggregateInputType;
+    _sum?: FileStorageSumAggregateInputType;
+    _min?: FileStorageMinAggregateInputType;
+    _max?: FileStorageMaxAggregateInputType;
+  };
+
+  export type FileStorageGroupByOutputType = {
+    id: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint;
+    checksum: string;
+    storageProvider: $Enums.StorageProvider;
+    bucketName: string | null;
+    cdnUrl: string | null;
+    isPublic: boolean;
+    isActive: boolean;
+    uploadedAt: Date;
+    lastAccessedAt: Date | null;
+    expiresAt: Date | null;
+    organizationId: string;
+    uploadedBy: string | null;
+    metadata: string | null;
+    tags: string[];
+    description: string | null;
+    _count: FileStorageCountAggregateOutputType | null;
+    _avg: FileStorageAvgAggregateOutputType | null;
+    _sum: FileStorageSumAggregateOutputType | null;
+    _min: FileStorageMinAggregateOutputType | null;
+    _max: FileStorageMaxAggregateOutputType | null;
+  };
+
+  type GetFileStorageGroupByPayload<T extends FileStorageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FileStorageGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof FileStorageGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], FileStorageGroupByOutputType[P]>
+          : GetScalarType<T[P], FileStorageGroupByOutputType[P]>;
+      }
+    >
+  >;
+
+  export type FileStorageSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      filename?: boolean;
+      storageKey?: boolean;
+      mimeType?: boolean;
+      fileSize?: boolean;
+      checksum?: boolean;
+      storageProvider?: boolean;
+      bucketName?: boolean;
+      cdnUrl?: boolean;
+      isPublic?: boolean;
+      isActive?: boolean;
+      uploadedAt?: boolean;
+      lastAccessedAt?: boolean;
+      expiresAt?: boolean;
+      organizationId?: boolean;
+      uploadedBy?: boolean;
+      metadata?: boolean;
+      tags?: boolean;
+      description?: boolean;
+      organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+      uploader?: boolean | FileStorage$uploaderArgs<ExtArgs>;
+      versions?: boolean | FileStorage$versionsArgs<ExtArgs>;
+      thumbnails?: boolean | FileStorage$thumbnailsArgs<ExtArgs>;
+      shares?: boolean | FileStorage$sharesArgs<ExtArgs>;
+      _count?: boolean | FileStorageCountOutputTypeDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileStorage']
+  >;
+
+  export type FileStorageSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      filename?: boolean;
+      storageKey?: boolean;
+      mimeType?: boolean;
+      fileSize?: boolean;
+      checksum?: boolean;
+      storageProvider?: boolean;
+      bucketName?: boolean;
+      cdnUrl?: boolean;
+      isPublic?: boolean;
+      isActive?: boolean;
+      uploadedAt?: boolean;
+      lastAccessedAt?: boolean;
+      expiresAt?: boolean;
+      organizationId?: boolean;
+      uploadedBy?: boolean;
+      metadata?: boolean;
+      tags?: boolean;
+      description?: boolean;
+      organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+      uploader?: boolean | FileStorage$uploaderArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileStorage']
+  >;
+
+  export type FileStorageSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      filename?: boolean;
+      storageKey?: boolean;
+      mimeType?: boolean;
+      fileSize?: boolean;
+      checksum?: boolean;
+      storageProvider?: boolean;
+      bucketName?: boolean;
+      cdnUrl?: boolean;
+      isPublic?: boolean;
+      isActive?: boolean;
+      uploadedAt?: boolean;
+      lastAccessedAt?: boolean;
+      expiresAt?: boolean;
+      organizationId?: boolean;
+      uploadedBy?: boolean;
+      metadata?: boolean;
+      tags?: boolean;
+      description?: boolean;
+      organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+      uploader?: boolean | FileStorage$uploaderArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileStorage']
+  >;
+
+  export type FileStorageSelectScalar = {
+    id?: boolean;
+    filename?: boolean;
+    storageKey?: boolean;
+    mimeType?: boolean;
+    fileSize?: boolean;
+    checksum?: boolean;
+    storageProvider?: boolean;
+    bucketName?: boolean;
+    cdnUrl?: boolean;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: boolean;
+    lastAccessedAt?: boolean;
+    expiresAt?: boolean;
+    organizationId?: boolean;
+    uploadedBy?: boolean;
+    metadata?: boolean;
+    tags?: boolean;
+    description?: boolean;
+  };
+
+  export type FileStorageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    $Extensions.GetOmit<
+      | 'id'
+      | 'filename'
+      | 'storageKey'
+      | 'mimeType'
+      | 'fileSize'
+      | 'checksum'
+      | 'storageProvider'
+      | 'bucketName'
+      | 'cdnUrl'
+      | 'isPublic'
+      | 'isActive'
+      | 'uploadedAt'
+      | 'lastAccessedAt'
+      | 'expiresAt'
+      | 'organizationId'
+      | 'uploadedBy'
+      | 'metadata'
+      | 'tags'
+      | 'description',
+      ExtArgs['result']['fileStorage']
+    >;
+  export type FileStorageInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+    uploader?: boolean | FileStorage$uploaderArgs<ExtArgs>;
+    versions?: boolean | FileStorage$versionsArgs<ExtArgs>;
+    thumbnails?: boolean | FileStorage$thumbnailsArgs<ExtArgs>;
+    shares?: boolean | FileStorage$sharesArgs<ExtArgs>;
+    _count?: boolean | FileStorageCountOutputTypeDefaultArgs<ExtArgs>;
+  };
+  export type FileStorageIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+    uploader?: boolean | FileStorage$uploaderArgs<ExtArgs>;
+  };
+  export type FileStorageIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>;
+    uploader?: boolean | FileStorage$uploaderArgs<ExtArgs>;
+  };
+
+  export type $FileStoragePayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'FileStorage';
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>;
+      uploader: Prisma.$UserPayload<ExtArgs> | null;
+      versions: Prisma.$FileVersionPayload<ExtArgs>[];
+      thumbnails: Prisma.$FileThumbnailPayload<ExtArgs>[];
+      shares: Prisma.$FileSharePayload<ExtArgs>[];
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        filename: string;
+        storageKey: string;
+        mimeType: string;
+        fileSize: bigint;
+        checksum: string;
+        storageProvider: $Enums.StorageProvider;
+        bucketName: string | null;
+        cdnUrl: string | null;
+        isPublic: boolean;
+        isActive: boolean;
+        uploadedAt: Date;
+        lastAccessedAt: Date | null;
+        expiresAt: Date | null;
+        organizationId: string;
+        uploadedBy: string | null;
+        metadata: string | null;
+        tags: string[];
+        description: string | null;
+      },
+      ExtArgs['result']['fileStorage']
+    >;
+    composites: {};
+  };
+
+  type FileStorageGetPayload<S extends boolean | null | undefined | FileStorageDefaultArgs> =
+    $Result.GetResult<Prisma.$FileStoragePayload, S>;
+
+  type FileStorageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FileStorageFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FileStorageCountAggregateInputType | true;
+    };
+
+  export interface FileStorageDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['FileStorage'];
+      meta: { name: 'FileStorage' };
+    };
+    /**
+     * Find zero or one FileStorage that matches the filter.
+     * @param {FileStorageFindUniqueArgs} args - Arguments to find a FileStorage
+     * @example
+     * // Get one FileStorage
+     * const fileStorage = await prisma.fileStorage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FileStorageFindUniqueArgs>(
+      args: SelectSubset<T, FileStorageFindUniqueArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<
+        Prisma.$FileStoragePayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one FileStorage that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FileStorageFindUniqueOrThrowArgs} args - Arguments to find a FileStorage
+     * @example
+     * // Get one FileStorage
+     * const fileStorage = await prisma.fileStorage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FileStorageFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, FileStorageFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<
+        Prisma.$FileStoragePayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileStorage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageFindFirstArgs} args - Arguments to find a FileStorage
+     * @example
+     * // Get one FileStorage
+     * const fileStorage = await prisma.fileStorage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FileStorageFindFirstArgs>(
+      args?: SelectSubset<T, FileStorageFindFirstArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<
+        Prisma.$FileStoragePayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileStorage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageFindFirstOrThrowArgs} args - Arguments to find a FileStorage
+     * @example
+     * // Get one FileStorage
+     * const fileStorage = await prisma.fileStorage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FileStorageFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, FileStorageFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<
+        Prisma.$FileStoragePayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more FileStorages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FileStorages
+     * const fileStorages = await prisma.fileStorage.findMany()
+     *
+     * // Get first 10 FileStorages
+     * const fileStorages = await prisma.fileStorage.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const fileStorageWithIdOnly = await prisma.fileStorage.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends FileStorageFindManyArgs>(
+      args?: SelectSubset<T, FileStorageFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a FileStorage.
+     * @param {FileStorageCreateArgs} args - Arguments to create a FileStorage.
+     * @example
+     * // Create one FileStorage
+     * const FileStorage = await prisma.fileStorage.create({
+     *   data: {
+     *     // ... data to create a FileStorage
+     *   }
+     * })
+     *
+     */
+    create<T extends FileStorageCreateArgs>(
+      args: SelectSubset<T, FileStorageCreateArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many FileStorages.
+     * @param {FileStorageCreateManyArgs} args - Arguments to create many FileStorages.
+     * @example
+     * // Create many FileStorages
+     * const fileStorage = await prisma.fileStorage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends FileStorageCreateManyArgs>(
+      args?: SelectSubset<T, FileStorageCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many FileStorages and returns the data saved in the database.
+     * @param {FileStorageCreateManyAndReturnArgs} args - Arguments to create many FileStorages.
+     * @example
+     * // Create many FileStorages
+     * const fileStorage = await prisma.fileStorage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many FileStorages and only return the `id`
+     * const fileStorageWithIdOnly = await prisma.fileStorage.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends FileStorageCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, FileStorageCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileStoragePayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a FileStorage.
+     * @param {FileStorageDeleteArgs} args - Arguments to delete one FileStorage.
+     * @example
+     * // Delete one FileStorage
+     * const FileStorage = await prisma.fileStorage.delete({
+     *   where: {
+     *     // ... filter to delete one FileStorage
+     *   }
+     * })
+     *
+     */
+    delete<T extends FileStorageDeleteArgs>(
+      args: SelectSubset<T, FileStorageDeleteArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one FileStorage.
+     * @param {FileStorageUpdateArgs} args - Arguments to update one FileStorage.
+     * @example
+     * // Update one FileStorage
+     * const fileStorage = await prisma.fileStorage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends FileStorageUpdateArgs>(
+      args: SelectSubset<T, FileStorageUpdateArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more FileStorages.
+     * @param {FileStorageDeleteManyArgs} args - Arguments to filter FileStorages to delete.
+     * @example
+     * // Delete a few FileStorages
+     * const { count } = await prisma.fileStorage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends FileStorageDeleteManyArgs>(
+      args?: SelectSubset<T, FileStorageDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileStorages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FileStorages
+     * const fileStorage = await prisma.fileStorage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends FileStorageUpdateManyArgs>(
+      args: SelectSubset<T, FileStorageUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileStorages and returns the data updated in the database.
+     * @param {FileStorageUpdateManyAndReturnArgs} args - Arguments to update many FileStorages.
+     * @example
+     * // Update many FileStorages
+     * const fileStorage = await prisma.fileStorage.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more FileStorages and only return the `id`
+     * const fileStorageWithIdOnly = await prisma.fileStorage.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends FileStorageUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, FileStorageUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileStoragePayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one FileStorage.
+     * @param {FileStorageUpsertArgs} args - Arguments to update or create a FileStorage.
+     * @example
+     * // Update or create a FileStorage
+     * const fileStorage = await prisma.fileStorage.upsert({
+     *   create: {
+     *     // ... data to create a FileStorage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FileStorage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FileStorageUpsertArgs>(
+      args: SelectSubset<T, FileStorageUpsertArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      $Result.GetResult<Prisma.$FileStoragePayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of FileStorages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageCountArgs} args - Arguments to filter FileStorages to count.
+     * @example
+     * // Count the number of FileStorages
+     * const count = await prisma.fileStorage.count({
+     *   where: {
+     *     // ... the filter for the FileStorages we want to count
+     *   }
+     * })
+     **/
+    count<T extends FileStorageCountArgs>(
+      args?: Subset<T, FileStorageCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FileStorageCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a FileStorage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends FileStorageAggregateArgs>(
+      args: Subset<T, FileStorageAggregateArgs>
+    ): Prisma.PrismaPromise<GetFileStorageAggregateType<T>>;
+
+    /**
+     * Group by FileStorage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileStorageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends FileStorageGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FileStorageGroupByArgs['orderBy'] }
+        : { orderBy?: FileStorageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, FileStorageGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors ? GetFileStorageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the FileStorage model
+     */
+    readonly fields: FileStorageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FileStorage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FileStorageClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>
+    ): Prisma__OrganizationClient<
+      | $Result.GetResult<
+          Prisma.$OrganizationPayload<ExtArgs>,
+          T,
+          'findUniqueOrThrow',
+          GlobalOmitOptions
+        >
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    uploader<T extends FileStorage$uploaderArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorage$uploaderArgs<ExtArgs>>
+    ): Prisma__UserClient<
+      $Result.GetResult<
+        Prisma.$UserPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    versions<T extends FileStorage$versionsArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorage$versionsArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    thumbnails<T extends FileStorage$thumbnailsArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorage$thumbnailsArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      | $Result.GetResult<Prisma.$FileThumbnailPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+      | Null
+    >;
+    shares<T extends FileStorage$sharesArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorage$sharesArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions> | Null
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the FileStorage model
+   */
+  interface FileStorageFieldRefs {
+    readonly id: FieldRef<'FileStorage', 'String'>;
+    readonly filename: FieldRef<'FileStorage', 'String'>;
+    readonly storageKey: FieldRef<'FileStorage', 'String'>;
+    readonly mimeType: FieldRef<'FileStorage', 'String'>;
+    readonly fileSize: FieldRef<'FileStorage', 'BigInt'>;
+    readonly checksum: FieldRef<'FileStorage', 'String'>;
+    readonly storageProvider: FieldRef<'FileStorage', 'StorageProvider'>;
+    readonly bucketName: FieldRef<'FileStorage', 'String'>;
+    readonly cdnUrl: FieldRef<'FileStorage', 'String'>;
+    readonly isPublic: FieldRef<'FileStorage', 'Boolean'>;
+    readonly isActive: FieldRef<'FileStorage', 'Boolean'>;
+    readonly uploadedAt: FieldRef<'FileStorage', 'DateTime'>;
+    readonly lastAccessedAt: FieldRef<'FileStorage', 'DateTime'>;
+    readonly expiresAt: FieldRef<'FileStorage', 'DateTime'>;
+    readonly organizationId: FieldRef<'FileStorage', 'String'>;
+    readonly uploadedBy: FieldRef<'FileStorage', 'String'>;
+    readonly metadata: FieldRef<'FileStorage', 'String'>;
+    readonly tags: FieldRef<'FileStorage', 'String[]'>;
+    readonly description: FieldRef<'FileStorage', 'String'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * FileStorage findUnique
+   */
+  export type FileStorageFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileStorage to fetch.
+     */
+    where: FileStorageWhereUniqueInput;
+  };
+
+  /**
+   * FileStorage findUniqueOrThrow
+   */
+  export type FileStorageFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileStorage to fetch.
+     */
+    where: FileStorageWhereUniqueInput;
+  };
+
+  /**
+   * FileStorage findFirst
+   */
+  export type FileStorageFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileStorage to fetch.
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileStorages to fetch.
+     */
+    orderBy?: FileStorageOrderByWithRelationInput | FileStorageOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileStorages.
+     */
+    cursor?: FileStorageWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileStorages from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileStorages.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileStorages.
+     */
+    distinct?: FileStorageScalarFieldEnum | FileStorageScalarFieldEnum[];
+  };
+
+  /**
+   * FileStorage findFirstOrThrow
+   */
+  export type FileStorageFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileStorage to fetch.
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileStorages to fetch.
+     */
+    orderBy?: FileStorageOrderByWithRelationInput | FileStorageOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileStorages.
+     */
+    cursor?: FileStorageWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileStorages from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileStorages.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileStorages.
+     */
+    distinct?: FileStorageScalarFieldEnum | FileStorageScalarFieldEnum[];
+  };
+
+  /**
+   * FileStorage findMany
+   */
+  export type FileStorageFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileStorages to fetch.
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileStorages to fetch.
+     */
+    orderBy?: FileStorageOrderByWithRelationInput | FileStorageOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing FileStorages.
+     */
+    cursor?: FileStorageWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileStorages from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileStorages.
+     */
+    skip?: number;
+    distinct?: FileStorageScalarFieldEnum | FileStorageScalarFieldEnum[];
+  };
+
+  /**
+   * FileStorage create
+   */
+  export type FileStorageCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a FileStorage.
+     */
+    data: XOR<FileStorageCreateInput, FileStorageUncheckedCreateInput>;
+  };
+
+  /**
+   * FileStorage createMany
+   */
+  export type FileStorageCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many FileStorages.
+     */
+    data: FileStorageCreateManyInput | FileStorageCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * FileStorage createManyAndReturn
+   */
+  export type FileStorageCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * The data used to create many FileStorages.
+     */
+    data: FileStorageCreateManyInput | FileStorageCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileStorage update
+   */
+  export type FileStorageUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a FileStorage.
+     */
+    data: XOR<FileStorageUpdateInput, FileStorageUncheckedUpdateInput>;
+    /**
+     * Choose, which FileStorage to update.
+     */
+    where: FileStorageWhereUniqueInput;
+  };
+
+  /**
+   * FileStorage updateMany
+   */
+  export type FileStorageUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update FileStorages.
+     */
+    data: XOR<FileStorageUpdateManyMutationInput, FileStorageUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileStorages to update
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * Limit how many FileStorages to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileStorage updateManyAndReturn
+   */
+  export type FileStorageUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * The data used to update FileStorages.
+     */
+    data: XOR<FileStorageUpdateManyMutationInput, FileStorageUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileStorages to update
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * Limit how many FileStorages to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileStorage upsert
+   */
+  export type FileStorageUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the FileStorage to update in case it exists.
+     */
+    where: FileStorageWhereUniqueInput;
+    /**
+     * In case the FileStorage found by the `where` argument doesn't exist, create a new FileStorage with this data.
+     */
+    create: XOR<FileStorageCreateInput, FileStorageUncheckedCreateInput>;
+    /**
+     * In case the FileStorage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FileStorageUpdateInput, FileStorageUncheckedUpdateInput>;
+  };
+
+  /**
+   * FileStorage delete
+   */
+  export type FileStorageDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+    /**
+     * Filter which FileStorage to delete.
+     */
+    where: FileStorageWhereUniqueInput;
+  };
+
+  /**
+   * FileStorage deleteMany
+   */
+  export type FileStorageDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileStorages to delete
+     */
+    where?: FileStorageWhereInput;
+    /**
+     * Limit how many FileStorages to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileStorage.uploader
+   */
+  export type FileStorage$uploaderArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null;
+    where?: UserWhereInput;
+  };
+
+  /**
+   * FileStorage.versions
+   */
+  export type FileStorage$versionsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    where?: FileVersionWhereInput;
+    orderBy?: FileVersionOrderByWithRelationInput | FileVersionOrderByWithRelationInput[];
+    cursor?: FileVersionWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileVersionScalarFieldEnum | FileVersionScalarFieldEnum[];
+  };
+
+  /**
+   * FileStorage.thumbnails
+   */
+  export type FileStorage$thumbnailsArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    where?: FileThumbnailWhereInput;
+    orderBy?: FileThumbnailOrderByWithRelationInput | FileThumbnailOrderByWithRelationInput[];
+    cursor?: FileThumbnailWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileThumbnailScalarFieldEnum | FileThumbnailScalarFieldEnum[];
+  };
+
+  /**
+   * FileStorage.shares
+   */
+  export type FileStorage$sharesArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    where?: FileShareWhereInput;
+    orderBy?: FileShareOrderByWithRelationInput | FileShareOrderByWithRelationInput[];
+    cursor?: FileShareWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: FileShareScalarFieldEnum | FileShareScalarFieldEnum[];
+  };
+
+  /**
+   * FileStorage without action
+   */
+  export type FileStorageDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileStorage
+     */
+    select?: FileStorageSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileStorage
+     */
+    omit?: FileStorageOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileStorageInclude<ExtArgs> | null;
+  };
+
+  /**
+   * Model FileVersion
+   */
+
+  export type AggregateFileVersion = {
+    _count: FileVersionCountAggregateOutputType | null;
+    _avg: FileVersionAvgAggregateOutputType | null;
+    _sum: FileVersionSumAggregateOutputType | null;
+    _min: FileVersionMinAggregateOutputType | null;
+    _max: FileVersionMaxAggregateOutputType | null;
+  };
+
+  export type FileVersionAvgAggregateOutputType = {
+    versionNumber: number | null;
+    fileSize: number | null;
+  };
+
+  export type FileVersionSumAggregateOutputType = {
+    versionNumber: number | null;
+    fileSize: bigint | null;
+  };
+
+  export type FileVersionMinAggregateOutputType = {
+    id: string | null;
+    fileId: string | null;
+    versionNumber: number | null;
+    storageKey: string | null;
+    fileSize: bigint | null;
+    checksum: string | null;
+    uploadedAt: Date | null;
+    uploadedBy: string | null;
+    changelog: string | null;
+  };
+
+  export type FileVersionMaxAggregateOutputType = {
+    id: string | null;
+    fileId: string | null;
+    versionNumber: number | null;
+    storageKey: string | null;
+    fileSize: bigint | null;
+    checksum: string | null;
+    uploadedAt: Date | null;
+    uploadedBy: string | null;
+    changelog: string | null;
+  };
+
+  export type FileVersionCountAggregateOutputType = {
+    id: number;
+    fileId: number;
+    versionNumber: number;
+    storageKey: number;
+    fileSize: number;
+    checksum: number;
+    uploadedAt: number;
+    uploadedBy: number;
+    changelog: number;
+    _all: number;
+  };
+
+  export type FileVersionAvgAggregateInputType = {
+    versionNumber?: true;
+    fileSize?: true;
+  };
+
+  export type FileVersionSumAggregateInputType = {
+    versionNumber?: true;
+    fileSize?: true;
+  };
+
+  export type FileVersionMinAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    versionNumber?: true;
+    storageKey?: true;
+    fileSize?: true;
+    checksum?: true;
+    uploadedAt?: true;
+    uploadedBy?: true;
+    changelog?: true;
+  };
+
+  export type FileVersionMaxAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    versionNumber?: true;
+    storageKey?: true;
+    fileSize?: true;
+    checksum?: true;
+    uploadedAt?: true;
+    uploadedBy?: true;
+    changelog?: true;
+  };
+
+  export type FileVersionCountAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    versionNumber?: true;
+    storageKey?: true;
+    fileSize?: true;
+    checksum?: true;
+    uploadedAt?: true;
+    uploadedBy?: true;
+    changelog?: true;
+    _all?: true;
+  };
+
+  export type FileVersionAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileVersion to aggregate.
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileVersions to fetch.
+     */
+    orderBy?: FileVersionOrderByWithRelationInput | FileVersionOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: FileVersionWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileVersions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileVersions.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned FileVersions
+     **/
+    _count?: true | FileVersionCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+     **/
+    _avg?: FileVersionAvgAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+     **/
+    _sum?: FileVersionSumAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: FileVersionMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: FileVersionMaxAggregateInputType;
+  };
+
+  export type GetFileVersionAggregateType<T extends FileVersionAggregateArgs> = {
+    [P in keyof T & keyof AggregateFileVersion]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFileVersion[P]>
+      : GetScalarType<T[P], AggregateFileVersion[P]>;
+  };
+
+  export type FileVersionGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileVersionWhereInput;
+    orderBy?: FileVersionOrderByWithAggregationInput | FileVersionOrderByWithAggregationInput[];
+    by: FileVersionScalarFieldEnum[] | FileVersionScalarFieldEnum;
+    having?: FileVersionScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: FileVersionCountAggregateInputType | true;
+    _avg?: FileVersionAvgAggregateInputType;
+    _sum?: FileVersionSumAggregateInputType;
+    _min?: FileVersionMinAggregateInputType;
+    _max?: FileVersionMaxAggregateInputType;
+  };
+
+  export type FileVersionGroupByOutputType = {
+    id: string;
+    fileId: string;
+    versionNumber: number;
+    storageKey: string;
+    fileSize: bigint;
+    checksum: string;
+    uploadedAt: Date;
+    uploadedBy: string | null;
+    changelog: string | null;
+    _count: FileVersionCountAggregateOutputType | null;
+    _avg: FileVersionAvgAggregateOutputType | null;
+    _sum: FileVersionSumAggregateOutputType | null;
+    _min: FileVersionMinAggregateOutputType | null;
+    _max: FileVersionMaxAggregateOutputType | null;
+  };
+
+  type GetFileVersionGroupByPayload<T extends FileVersionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FileVersionGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof FileVersionGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], FileVersionGroupByOutputType[P]>
+          : GetScalarType<T[P], FileVersionGroupByOutputType[P]>;
+      }
+    >
+  >;
+
+  export type FileVersionSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      versionNumber?: boolean;
+      storageKey?: boolean;
+      fileSize?: boolean;
+      checksum?: boolean;
+      uploadedAt?: boolean;
+      uploadedBy?: boolean;
+      changelog?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+      uploader?: boolean | FileVersion$uploaderArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileVersion']
+  >;
+
+  export type FileVersionSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      versionNumber?: boolean;
+      storageKey?: boolean;
+      fileSize?: boolean;
+      checksum?: boolean;
+      uploadedAt?: boolean;
+      uploadedBy?: boolean;
+      changelog?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+      uploader?: boolean | FileVersion$uploaderArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileVersion']
+  >;
+
+  export type FileVersionSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      versionNumber?: boolean;
+      storageKey?: boolean;
+      fileSize?: boolean;
+      checksum?: boolean;
+      uploadedAt?: boolean;
+      uploadedBy?: boolean;
+      changelog?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+      uploader?: boolean | FileVersion$uploaderArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileVersion']
+  >;
+
+  export type FileVersionSelectScalar = {
+    id?: boolean;
+    fileId?: boolean;
+    versionNumber?: boolean;
+    storageKey?: boolean;
+    fileSize?: boolean;
+    checksum?: boolean;
+    uploadedAt?: boolean;
+    uploadedBy?: boolean;
+    changelog?: boolean;
+  };
+
+  export type FileVersionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    $Extensions.GetOmit<
+      | 'id'
+      | 'fileId'
+      | 'versionNumber'
+      | 'storageKey'
+      | 'fileSize'
+      | 'checksum'
+      | 'uploadedAt'
+      | 'uploadedBy'
+      | 'changelog',
+      ExtArgs['result']['fileVersion']
+    >;
+  export type FileVersionInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    uploader?: boolean | FileVersion$uploaderArgs<ExtArgs>;
+  };
+  export type FileVersionIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    uploader?: boolean | FileVersion$uploaderArgs<ExtArgs>;
+  };
+  export type FileVersionIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    uploader?: boolean | FileVersion$uploaderArgs<ExtArgs>;
+  };
+
+  export type $FileVersionPayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'FileVersion';
+    objects: {
+      file: Prisma.$FileStoragePayload<ExtArgs>;
+      uploader: Prisma.$UserPayload<ExtArgs> | null;
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        fileId: string;
+        versionNumber: number;
+        storageKey: string;
+        fileSize: bigint;
+        checksum: string;
+        uploadedAt: Date;
+        uploadedBy: string | null;
+        changelog: string | null;
+      },
+      ExtArgs['result']['fileVersion']
+    >;
+    composites: {};
+  };
+
+  type FileVersionGetPayload<S extends boolean | null | undefined | FileVersionDefaultArgs> =
+    $Result.GetResult<Prisma.$FileVersionPayload, S>;
+
+  type FileVersionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FileVersionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FileVersionCountAggregateInputType | true;
+    };
+
+  export interface FileVersionDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['FileVersion'];
+      meta: { name: 'FileVersion' };
+    };
+    /**
+     * Find zero or one FileVersion that matches the filter.
+     * @param {FileVersionFindUniqueArgs} args - Arguments to find a FileVersion
+     * @example
+     * // Get one FileVersion
+     * const fileVersion = await prisma.fileVersion.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FileVersionFindUniqueArgs>(
+      args: SelectSubset<T, FileVersionFindUniqueArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<
+        Prisma.$FileVersionPayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one FileVersion that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FileVersionFindUniqueOrThrowArgs} args - Arguments to find a FileVersion
+     * @example
+     * // Get one FileVersion
+     * const fileVersion = await prisma.fileVersion.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FileVersionFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, FileVersionFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<
+        Prisma.$FileVersionPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileVersion that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionFindFirstArgs} args - Arguments to find a FileVersion
+     * @example
+     * // Get one FileVersion
+     * const fileVersion = await prisma.fileVersion.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FileVersionFindFirstArgs>(
+      args?: SelectSubset<T, FileVersionFindFirstArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<
+        Prisma.$FileVersionPayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileVersion that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionFindFirstOrThrowArgs} args - Arguments to find a FileVersion
+     * @example
+     * // Get one FileVersion
+     * const fileVersion = await prisma.fileVersion.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FileVersionFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, FileVersionFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<
+        Prisma.$FileVersionPayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more FileVersions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FileVersions
+     * const fileVersions = await prisma.fileVersion.findMany()
+     *
+     * // Get first 10 FileVersions
+     * const fileVersions = await prisma.fileVersion.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const fileVersionWithIdOnly = await prisma.fileVersion.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends FileVersionFindManyArgs>(
+      args?: SelectSubset<T, FileVersionFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a FileVersion.
+     * @param {FileVersionCreateArgs} args - Arguments to create a FileVersion.
+     * @example
+     * // Create one FileVersion
+     * const FileVersion = await prisma.fileVersion.create({
+     *   data: {
+     *     // ... data to create a FileVersion
+     *   }
+     * })
+     *
+     */
+    create<T extends FileVersionCreateArgs>(
+      args: SelectSubset<T, FileVersionCreateArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many FileVersions.
+     * @param {FileVersionCreateManyArgs} args - Arguments to create many FileVersions.
+     * @example
+     * // Create many FileVersions
+     * const fileVersion = await prisma.fileVersion.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends FileVersionCreateManyArgs>(
+      args?: SelectSubset<T, FileVersionCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many FileVersions and returns the data saved in the database.
+     * @param {FileVersionCreateManyAndReturnArgs} args - Arguments to create many FileVersions.
+     * @example
+     * // Create many FileVersions
+     * const fileVersion = await prisma.fileVersion.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many FileVersions and only return the `id`
+     * const fileVersionWithIdOnly = await prisma.fileVersion.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends FileVersionCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, FileVersionCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileVersionPayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a FileVersion.
+     * @param {FileVersionDeleteArgs} args - Arguments to delete one FileVersion.
+     * @example
+     * // Delete one FileVersion
+     * const FileVersion = await prisma.fileVersion.delete({
+     *   where: {
+     *     // ... filter to delete one FileVersion
+     *   }
+     * })
+     *
+     */
+    delete<T extends FileVersionDeleteArgs>(
+      args: SelectSubset<T, FileVersionDeleteArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one FileVersion.
+     * @param {FileVersionUpdateArgs} args - Arguments to update one FileVersion.
+     * @example
+     * // Update one FileVersion
+     * const fileVersion = await prisma.fileVersion.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends FileVersionUpdateArgs>(
+      args: SelectSubset<T, FileVersionUpdateArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more FileVersions.
+     * @param {FileVersionDeleteManyArgs} args - Arguments to filter FileVersions to delete.
+     * @example
+     * // Delete a few FileVersions
+     * const { count } = await prisma.fileVersion.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends FileVersionDeleteManyArgs>(
+      args?: SelectSubset<T, FileVersionDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FileVersions
+     * const fileVersion = await prisma.fileVersion.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends FileVersionUpdateManyArgs>(
+      args: SelectSubset<T, FileVersionUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileVersions and returns the data updated in the database.
+     * @param {FileVersionUpdateManyAndReturnArgs} args - Arguments to update many FileVersions.
+     * @example
+     * // Update many FileVersions
+     * const fileVersion = await prisma.fileVersion.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more FileVersions and only return the `id`
+     * const fileVersionWithIdOnly = await prisma.fileVersion.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends FileVersionUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, FileVersionUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileVersionPayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one FileVersion.
+     * @param {FileVersionUpsertArgs} args - Arguments to update or create a FileVersion.
+     * @example
+     * // Update or create a FileVersion
+     * const fileVersion = await prisma.fileVersion.upsert({
+     *   create: {
+     *     // ... data to create a FileVersion
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FileVersion we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FileVersionUpsertArgs>(
+      args: SelectSubset<T, FileVersionUpsertArgs<ExtArgs>>
+    ): Prisma__FileVersionClient<
+      $Result.GetResult<Prisma.$FileVersionPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of FileVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionCountArgs} args - Arguments to filter FileVersions to count.
+     * @example
+     * // Count the number of FileVersions
+     * const count = await prisma.fileVersion.count({
+     *   where: {
+     *     // ... the filter for the FileVersions we want to count
+     *   }
+     * })
+     **/
+    count<T extends FileVersionCountArgs>(
+      args?: Subset<T, FileVersionCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FileVersionCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a FileVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends FileVersionAggregateArgs>(
+      args: Subset<T, FileVersionAggregateArgs>
+    ): Prisma.PrismaPromise<GetFileVersionAggregateType<T>>;
+
+    /**
+     * Group by FileVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileVersionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends FileVersionGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FileVersionGroupByArgs['orderBy'] }
+        : { orderBy?: FileVersionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, FileVersionGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors ? GetFileVersionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the FileVersion model
+     */
+    readonly fields: FileVersionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FileVersion.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FileVersionClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    file<T extends FileStorageDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorageDefaultArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      | $Result.GetResult<
+          Prisma.$FileStoragePayload<ExtArgs>,
+          T,
+          'findUniqueOrThrow',
+          GlobalOmitOptions
+        >
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    uploader<T extends FileVersion$uploaderArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileVersion$uploaderArgs<ExtArgs>>
+    ): Prisma__UserClient<
+      $Result.GetResult<
+        Prisma.$UserPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the FileVersion model
+   */
+  interface FileVersionFieldRefs {
+    readonly id: FieldRef<'FileVersion', 'String'>;
+    readonly fileId: FieldRef<'FileVersion', 'String'>;
+    readonly versionNumber: FieldRef<'FileVersion', 'Int'>;
+    readonly storageKey: FieldRef<'FileVersion', 'String'>;
+    readonly fileSize: FieldRef<'FileVersion', 'BigInt'>;
+    readonly checksum: FieldRef<'FileVersion', 'String'>;
+    readonly uploadedAt: FieldRef<'FileVersion', 'DateTime'>;
+    readonly uploadedBy: FieldRef<'FileVersion', 'String'>;
+    readonly changelog: FieldRef<'FileVersion', 'String'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * FileVersion findUnique
+   */
+  export type FileVersionFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileVersion to fetch.
+     */
+    where: FileVersionWhereUniqueInput;
+  };
+
+  /**
+   * FileVersion findUniqueOrThrow
+   */
+  export type FileVersionFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileVersion to fetch.
+     */
+    where: FileVersionWhereUniqueInput;
+  };
+
+  /**
+   * FileVersion findFirst
+   */
+  export type FileVersionFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileVersion to fetch.
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileVersions to fetch.
+     */
+    orderBy?: FileVersionOrderByWithRelationInput | FileVersionOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileVersions.
+     */
+    cursor?: FileVersionWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileVersions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileVersions.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileVersions.
+     */
+    distinct?: FileVersionScalarFieldEnum | FileVersionScalarFieldEnum[];
+  };
+
+  /**
+   * FileVersion findFirstOrThrow
+   */
+  export type FileVersionFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileVersion to fetch.
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileVersions to fetch.
+     */
+    orderBy?: FileVersionOrderByWithRelationInput | FileVersionOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileVersions.
+     */
+    cursor?: FileVersionWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileVersions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileVersions.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileVersions.
+     */
+    distinct?: FileVersionScalarFieldEnum | FileVersionScalarFieldEnum[];
+  };
+
+  /**
+   * FileVersion findMany
+   */
+  export type FileVersionFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileVersions to fetch.
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileVersions to fetch.
+     */
+    orderBy?: FileVersionOrderByWithRelationInput | FileVersionOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing FileVersions.
+     */
+    cursor?: FileVersionWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileVersions from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileVersions.
+     */
+    skip?: number;
+    distinct?: FileVersionScalarFieldEnum | FileVersionScalarFieldEnum[];
+  };
+
+  /**
+   * FileVersion create
+   */
+  export type FileVersionCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a FileVersion.
+     */
+    data: XOR<FileVersionCreateInput, FileVersionUncheckedCreateInput>;
+  };
+
+  /**
+   * FileVersion createMany
+   */
+  export type FileVersionCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many FileVersions.
+     */
+    data: FileVersionCreateManyInput | FileVersionCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * FileVersion createManyAndReturn
+   */
+  export type FileVersionCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * The data used to create many FileVersions.
+     */
+    data: FileVersionCreateManyInput | FileVersionCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileVersion update
+   */
+  export type FileVersionUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a FileVersion.
+     */
+    data: XOR<FileVersionUpdateInput, FileVersionUncheckedUpdateInput>;
+    /**
+     * Choose, which FileVersion to update.
+     */
+    where: FileVersionWhereUniqueInput;
+  };
+
+  /**
+   * FileVersion updateMany
+   */
+  export type FileVersionUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update FileVersions.
+     */
+    data: XOR<FileVersionUpdateManyMutationInput, FileVersionUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileVersions to update
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * Limit how many FileVersions to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileVersion updateManyAndReturn
+   */
+  export type FileVersionUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * The data used to update FileVersions.
+     */
+    data: XOR<FileVersionUpdateManyMutationInput, FileVersionUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileVersions to update
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * Limit how many FileVersions to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileVersion upsert
+   */
+  export type FileVersionUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the FileVersion to update in case it exists.
+     */
+    where: FileVersionWhereUniqueInput;
+    /**
+     * In case the FileVersion found by the `where` argument doesn't exist, create a new FileVersion with this data.
+     */
+    create: XOR<FileVersionCreateInput, FileVersionUncheckedCreateInput>;
+    /**
+     * In case the FileVersion was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FileVersionUpdateInput, FileVersionUncheckedUpdateInput>;
+  };
+
+  /**
+   * FileVersion delete
+   */
+  export type FileVersionDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+    /**
+     * Filter which FileVersion to delete.
+     */
+    where: FileVersionWhereUniqueInput;
+  };
+
+  /**
+   * FileVersion deleteMany
+   */
+  export type FileVersionDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileVersions to delete
+     */
+    where?: FileVersionWhereInput;
+    /**
+     * Limit how many FileVersions to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileVersion.uploader
+   */
+  export type FileVersion$uploaderArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null;
+    where?: UserWhereInput;
+  };
+
+  /**
+   * FileVersion without action
+   */
+  export type FileVersionDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileVersion
+     */
+    select?: FileVersionSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileVersion
+     */
+    omit?: FileVersionOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileVersionInclude<ExtArgs> | null;
+  };
+
+  /**
+   * Model FileThumbnail
+   */
+
+  export type AggregateFileThumbnail = {
+    _count: FileThumbnailCountAggregateOutputType | null;
+    _avg: FileThumbnailAvgAggregateOutputType | null;
+    _sum: FileThumbnailSumAggregateOutputType | null;
+    _min: FileThumbnailMinAggregateOutputType | null;
+    _max: FileThumbnailMaxAggregateOutputType | null;
+  };
+
+  export type FileThumbnailAvgAggregateOutputType = {
+    fileSize: number | null;
+  };
+
+  export type FileThumbnailSumAggregateOutputType = {
+    fileSize: bigint | null;
+  };
+
+  export type FileThumbnailMinAggregateOutputType = {
+    id: string | null;
+    fileId: string | null;
+    size: string | null;
+    storageKey: string | null;
+    fileSize: bigint | null;
+    mimeType: string | null;
+    cdnUrl: string | null;
+    createdAt: Date | null;
+  };
+
+  export type FileThumbnailMaxAggregateOutputType = {
+    id: string | null;
+    fileId: string | null;
+    size: string | null;
+    storageKey: string | null;
+    fileSize: bigint | null;
+    mimeType: string | null;
+    cdnUrl: string | null;
+    createdAt: Date | null;
+  };
+
+  export type FileThumbnailCountAggregateOutputType = {
+    id: number;
+    fileId: number;
+    size: number;
+    storageKey: number;
+    fileSize: number;
+    mimeType: number;
+    cdnUrl: number;
+    createdAt: number;
+    _all: number;
+  };
+
+  export type FileThumbnailAvgAggregateInputType = {
+    fileSize?: true;
+  };
+
+  export type FileThumbnailSumAggregateInputType = {
+    fileSize?: true;
+  };
+
+  export type FileThumbnailMinAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    size?: true;
+    storageKey?: true;
+    fileSize?: true;
+    mimeType?: true;
+    cdnUrl?: true;
+    createdAt?: true;
+  };
+
+  export type FileThumbnailMaxAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    size?: true;
+    storageKey?: true;
+    fileSize?: true;
+    mimeType?: true;
+    cdnUrl?: true;
+    createdAt?: true;
+  };
+
+  export type FileThumbnailCountAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    size?: true;
+    storageKey?: true;
+    fileSize?: true;
+    mimeType?: true;
+    cdnUrl?: true;
+    createdAt?: true;
+    _all?: true;
+  };
+
+  export type FileThumbnailAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileThumbnail to aggregate.
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileThumbnails to fetch.
+     */
+    orderBy?: FileThumbnailOrderByWithRelationInput | FileThumbnailOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: FileThumbnailWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileThumbnails from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileThumbnails.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned FileThumbnails
+     **/
+    _count?: true | FileThumbnailCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+     **/
+    _avg?: FileThumbnailAvgAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+     **/
+    _sum?: FileThumbnailSumAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: FileThumbnailMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: FileThumbnailMaxAggregateInputType;
+  };
+
+  export type GetFileThumbnailAggregateType<T extends FileThumbnailAggregateArgs> = {
+    [P in keyof T & keyof AggregateFileThumbnail]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFileThumbnail[P]>
+      : GetScalarType<T[P], AggregateFileThumbnail[P]>;
+  };
+
+  export type FileThumbnailGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileThumbnailWhereInput;
+    orderBy?: FileThumbnailOrderByWithAggregationInput | FileThumbnailOrderByWithAggregationInput[];
+    by: FileThumbnailScalarFieldEnum[] | FileThumbnailScalarFieldEnum;
+    having?: FileThumbnailScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: FileThumbnailCountAggregateInputType | true;
+    _avg?: FileThumbnailAvgAggregateInputType;
+    _sum?: FileThumbnailSumAggregateInputType;
+    _min?: FileThumbnailMinAggregateInputType;
+    _max?: FileThumbnailMaxAggregateInputType;
+  };
+
+  export type FileThumbnailGroupByOutputType = {
+    id: string;
+    fileId: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint;
+    mimeType: string;
+    cdnUrl: string | null;
+    createdAt: Date;
+    _count: FileThumbnailCountAggregateOutputType | null;
+    _avg: FileThumbnailAvgAggregateOutputType | null;
+    _sum: FileThumbnailSumAggregateOutputType | null;
+    _min: FileThumbnailMinAggregateOutputType | null;
+    _max: FileThumbnailMaxAggregateOutputType | null;
+  };
+
+  type GetFileThumbnailGroupByPayload<T extends FileThumbnailGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FileThumbnailGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof FileThumbnailGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], FileThumbnailGroupByOutputType[P]>
+          : GetScalarType<T[P], FileThumbnailGroupByOutputType[P]>;
+      }
+    >
+  >;
+
+  export type FileThumbnailSelect<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      size?: boolean;
+      storageKey?: boolean;
+      fileSize?: boolean;
+      mimeType?: boolean;
+      cdnUrl?: boolean;
+      createdAt?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileThumbnail']
+  >;
+
+  export type FileThumbnailSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      size?: boolean;
+      storageKey?: boolean;
+      fileSize?: boolean;
+      mimeType?: boolean;
+      cdnUrl?: boolean;
+      createdAt?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileThumbnail']
+  >;
+
+  export type FileThumbnailSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      size?: boolean;
+      storageKey?: boolean;
+      fileSize?: boolean;
+      mimeType?: boolean;
+      cdnUrl?: boolean;
+      createdAt?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileThumbnail']
+  >;
+
+  export type FileThumbnailSelectScalar = {
+    id?: boolean;
+    fileId?: boolean;
+    size?: boolean;
+    storageKey?: boolean;
+    fileSize?: boolean;
+    mimeType?: boolean;
+    cdnUrl?: boolean;
+    createdAt?: boolean;
+  };
+
+  export type FileThumbnailOmit<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetOmit<
+    'id' | 'fileId' | 'size' | 'storageKey' | 'fileSize' | 'mimeType' | 'cdnUrl' | 'createdAt',
+    ExtArgs['result']['fileThumbnail']
+  >;
+  export type FileThumbnailInclude<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+  };
+  export type FileThumbnailIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+  };
+  export type FileThumbnailIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+  };
+
+  export type $FileThumbnailPayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'FileThumbnail';
+    objects: {
+      file: Prisma.$FileStoragePayload<ExtArgs>;
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        fileId: string;
+        size: string;
+        storageKey: string;
+        fileSize: bigint;
+        mimeType: string;
+        cdnUrl: string | null;
+        createdAt: Date;
+      },
+      ExtArgs['result']['fileThumbnail']
+    >;
+    composites: {};
+  };
+
+  type FileThumbnailGetPayload<S extends boolean | null | undefined | FileThumbnailDefaultArgs> =
+    $Result.GetResult<Prisma.$FileThumbnailPayload, S>;
+
+  type FileThumbnailCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FileThumbnailFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FileThumbnailCountAggregateInputType | true;
+    };
+
+  export interface FileThumbnailDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['FileThumbnail'];
+      meta: { name: 'FileThumbnail' };
+    };
+    /**
+     * Find zero or one FileThumbnail that matches the filter.
+     * @param {FileThumbnailFindUniqueArgs} args - Arguments to find a FileThumbnail
+     * @example
+     * // Get one FileThumbnail
+     * const fileThumbnail = await prisma.fileThumbnail.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FileThumbnailFindUniqueArgs>(
+      args: SelectSubset<T, FileThumbnailFindUniqueArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<
+        Prisma.$FileThumbnailPayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one FileThumbnail that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FileThumbnailFindUniqueOrThrowArgs} args - Arguments to find a FileThumbnail
+     * @example
+     * // Get one FileThumbnail
+     * const fileThumbnail = await prisma.fileThumbnail.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FileThumbnailFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, FileThumbnailFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<
+        Prisma.$FileThumbnailPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileThumbnail that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailFindFirstArgs} args - Arguments to find a FileThumbnail
+     * @example
+     * // Get one FileThumbnail
+     * const fileThumbnail = await prisma.fileThumbnail.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FileThumbnailFindFirstArgs>(
+      args?: SelectSubset<T, FileThumbnailFindFirstArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<
+        Prisma.$FileThumbnailPayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileThumbnail that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailFindFirstOrThrowArgs} args - Arguments to find a FileThumbnail
+     * @example
+     * // Get one FileThumbnail
+     * const fileThumbnail = await prisma.fileThumbnail.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FileThumbnailFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, FileThumbnailFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<
+        Prisma.$FileThumbnailPayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more FileThumbnails that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FileThumbnails
+     * const fileThumbnails = await prisma.fileThumbnail.findMany()
+     *
+     * // Get first 10 FileThumbnails
+     * const fileThumbnails = await prisma.fileThumbnail.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const fileThumbnailWithIdOnly = await prisma.fileThumbnail.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends FileThumbnailFindManyArgs>(
+      args?: SelectSubset<T, FileThumbnailFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$FileThumbnailPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a FileThumbnail.
+     * @param {FileThumbnailCreateArgs} args - Arguments to create a FileThumbnail.
+     * @example
+     * // Create one FileThumbnail
+     * const FileThumbnail = await prisma.fileThumbnail.create({
+     *   data: {
+     *     // ... data to create a FileThumbnail
+     *   }
+     * })
+     *
+     */
+    create<T extends FileThumbnailCreateArgs>(
+      args: SelectSubset<T, FileThumbnailCreateArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<Prisma.$FileThumbnailPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many FileThumbnails.
+     * @param {FileThumbnailCreateManyArgs} args - Arguments to create many FileThumbnails.
+     * @example
+     * // Create many FileThumbnails
+     * const fileThumbnail = await prisma.fileThumbnail.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends FileThumbnailCreateManyArgs>(
+      args?: SelectSubset<T, FileThumbnailCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many FileThumbnails and returns the data saved in the database.
+     * @param {FileThumbnailCreateManyAndReturnArgs} args - Arguments to create many FileThumbnails.
+     * @example
+     * // Create many FileThumbnails
+     * const fileThumbnail = await prisma.fileThumbnail.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many FileThumbnails and only return the `id`
+     * const fileThumbnailWithIdOnly = await prisma.fileThumbnail.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends FileThumbnailCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, FileThumbnailCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileThumbnailPayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a FileThumbnail.
+     * @param {FileThumbnailDeleteArgs} args - Arguments to delete one FileThumbnail.
+     * @example
+     * // Delete one FileThumbnail
+     * const FileThumbnail = await prisma.fileThumbnail.delete({
+     *   where: {
+     *     // ... filter to delete one FileThumbnail
+     *   }
+     * })
+     *
+     */
+    delete<T extends FileThumbnailDeleteArgs>(
+      args: SelectSubset<T, FileThumbnailDeleteArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<Prisma.$FileThumbnailPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one FileThumbnail.
+     * @param {FileThumbnailUpdateArgs} args - Arguments to update one FileThumbnail.
+     * @example
+     * // Update one FileThumbnail
+     * const fileThumbnail = await prisma.fileThumbnail.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends FileThumbnailUpdateArgs>(
+      args: SelectSubset<T, FileThumbnailUpdateArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<Prisma.$FileThumbnailPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more FileThumbnails.
+     * @param {FileThumbnailDeleteManyArgs} args - Arguments to filter FileThumbnails to delete.
+     * @example
+     * // Delete a few FileThumbnails
+     * const { count } = await prisma.fileThumbnail.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends FileThumbnailDeleteManyArgs>(
+      args?: SelectSubset<T, FileThumbnailDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileThumbnails.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FileThumbnails
+     * const fileThumbnail = await prisma.fileThumbnail.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends FileThumbnailUpdateManyArgs>(
+      args: SelectSubset<T, FileThumbnailUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileThumbnails and returns the data updated in the database.
+     * @param {FileThumbnailUpdateManyAndReturnArgs} args - Arguments to update many FileThumbnails.
+     * @example
+     * // Update many FileThumbnails
+     * const fileThumbnail = await prisma.fileThumbnail.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more FileThumbnails and only return the `id`
+     * const fileThumbnailWithIdOnly = await prisma.fileThumbnail.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends FileThumbnailUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, FileThumbnailUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileThumbnailPayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one FileThumbnail.
+     * @param {FileThumbnailUpsertArgs} args - Arguments to update or create a FileThumbnail.
+     * @example
+     * // Update or create a FileThumbnail
+     * const fileThumbnail = await prisma.fileThumbnail.upsert({
+     *   create: {
+     *     // ... data to create a FileThumbnail
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FileThumbnail we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FileThumbnailUpsertArgs>(
+      args: SelectSubset<T, FileThumbnailUpsertArgs<ExtArgs>>
+    ): Prisma__FileThumbnailClient<
+      $Result.GetResult<Prisma.$FileThumbnailPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of FileThumbnails.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailCountArgs} args - Arguments to filter FileThumbnails to count.
+     * @example
+     * // Count the number of FileThumbnails
+     * const count = await prisma.fileThumbnail.count({
+     *   where: {
+     *     // ... the filter for the FileThumbnails we want to count
+     *   }
+     * })
+     **/
+    count<T extends FileThumbnailCountArgs>(
+      args?: Subset<T, FileThumbnailCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FileThumbnailCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a FileThumbnail.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends FileThumbnailAggregateArgs>(
+      args: Subset<T, FileThumbnailAggregateArgs>
+    ): Prisma.PrismaPromise<GetFileThumbnailAggregateType<T>>;
+
+    /**
+     * Group by FileThumbnail.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileThumbnailGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends FileThumbnailGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FileThumbnailGroupByArgs['orderBy'] }
+        : { orderBy?: FileThumbnailGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, FileThumbnailGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors
+      ? GetFileThumbnailGroupByPayload<T>
+      : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the FileThumbnail model
+     */
+    readonly fields: FileThumbnailFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FileThumbnail.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FileThumbnailClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    file<T extends FileStorageDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorageDefaultArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      | $Result.GetResult<
+          Prisma.$FileStoragePayload<ExtArgs>,
+          T,
+          'findUniqueOrThrow',
+          GlobalOmitOptions
+        >
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the FileThumbnail model
+   */
+  interface FileThumbnailFieldRefs {
+    readonly id: FieldRef<'FileThumbnail', 'String'>;
+    readonly fileId: FieldRef<'FileThumbnail', 'String'>;
+    readonly size: FieldRef<'FileThumbnail', 'String'>;
+    readonly storageKey: FieldRef<'FileThumbnail', 'String'>;
+    readonly fileSize: FieldRef<'FileThumbnail', 'BigInt'>;
+    readonly mimeType: FieldRef<'FileThumbnail', 'String'>;
+    readonly cdnUrl: FieldRef<'FileThumbnail', 'String'>;
+    readonly createdAt: FieldRef<'FileThumbnail', 'DateTime'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * FileThumbnail findUnique
+   */
+  export type FileThumbnailFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileThumbnail to fetch.
+     */
+    where: FileThumbnailWhereUniqueInput;
+  };
+
+  /**
+   * FileThumbnail findUniqueOrThrow
+   */
+  export type FileThumbnailFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileThumbnail to fetch.
+     */
+    where: FileThumbnailWhereUniqueInput;
+  };
+
+  /**
+   * FileThumbnail findFirst
+   */
+  export type FileThumbnailFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileThumbnail to fetch.
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileThumbnails to fetch.
+     */
+    orderBy?: FileThumbnailOrderByWithRelationInput | FileThumbnailOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileThumbnails.
+     */
+    cursor?: FileThumbnailWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileThumbnails from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileThumbnails.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileThumbnails.
+     */
+    distinct?: FileThumbnailScalarFieldEnum | FileThumbnailScalarFieldEnum[];
+  };
+
+  /**
+   * FileThumbnail findFirstOrThrow
+   */
+  export type FileThumbnailFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileThumbnail to fetch.
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileThumbnails to fetch.
+     */
+    orderBy?: FileThumbnailOrderByWithRelationInput | FileThumbnailOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileThumbnails.
+     */
+    cursor?: FileThumbnailWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileThumbnails from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileThumbnails.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileThumbnails.
+     */
+    distinct?: FileThumbnailScalarFieldEnum | FileThumbnailScalarFieldEnum[];
+  };
+
+  /**
+   * FileThumbnail findMany
+   */
+  export type FileThumbnailFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileThumbnails to fetch.
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileThumbnails to fetch.
+     */
+    orderBy?: FileThumbnailOrderByWithRelationInput | FileThumbnailOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing FileThumbnails.
+     */
+    cursor?: FileThumbnailWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileThumbnails from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileThumbnails.
+     */
+    skip?: number;
+    distinct?: FileThumbnailScalarFieldEnum | FileThumbnailScalarFieldEnum[];
+  };
+
+  /**
+   * FileThumbnail create
+   */
+  export type FileThumbnailCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a FileThumbnail.
+     */
+    data: XOR<FileThumbnailCreateInput, FileThumbnailUncheckedCreateInput>;
+  };
+
+  /**
+   * FileThumbnail createMany
+   */
+  export type FileThumbnailCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many FileThumbnails.
+     */
+    data: FileThumbnailCreateManyInput | FileThumbnailCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * FileThumbnail createManyAndReturn
+   */
+  export type FileThumbnailCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * The data used to create many FileThumbnails.
+     */
+    data: FileThumbnailCreateManyInput | FileThumbnailCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileThumbnail update
+   */
+  export type FileThumbnailUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a FileThumbnail.
+     */
+    data: XOR<FileThumbnailUpdateInput, FileThumbnailUncheckedUpdateInput>;
+    /**
+     * Choose, which FileThumbnail to update.
+     */
+    where: FileThumbnailWhereUniqueInput;
+  };
+
+  /**
+   * FileThumbnail updateMany
+   */
+  export type FileThumbnailUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update FileThumbnails.
+     */
+    data: XOR<FileThumbnailUpdateManyMutationInput, FileThumbnailUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileThumbnails to update
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * Limit how many FileThumbnails to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileThumbnail updateManyAndReturn
+   */
+  export type FileThumbnailUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * The data used to update FileThumbnails.
+     */
+    data: XOR<FileThumbnailUpdateManyMutationInput, FileThumbnailUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileThumbnails to update
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * Limit how many FileThumbnails to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileThumbnail upsert
+   */
+  export type FileThumbnailUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the FileThumbnail to update in case it exists.
+     */
+    where: FileThumbnailWhereUniqueInput;
+    /**
+     * In case the FileThumbnail found by the `where` argument doesn't exist, create a new FileThumbnail with this data.
+     */
+    create: XOR<FileThumbnailCreateInput, FileThumbnailUncheckedCreateInput>;
+    /**
+     * In case the FileThumbnail was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FileThumbnailUpdateInput, FileThumbnailUncheckedUpdateInput>;
+  };
+
+  /**
+   * FileThumbnail delete
+   */
+  export type FileThumbnailDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+    /**
+     * Filter which FileThumbnail to delete.
+     */
+    where: FileThumbnailWhereUniqueInput;
+  };
+
+  /**
+   * FileThumbnail deleteMany
+   */
+  export type FileThumbnailDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileThumbnails to delete
+     */
+    where?: FileThumbnailWhereInput;
+    /**
+     * Limit how many FileThumbnails to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileThumbnail without action
+   */
+  export type FileThumbnailDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileThumbnail
+     */
+    select?: FileThumbnailSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileThumbnail
+     */
+    omit?: FileThumbnailOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileThumbnailInclude<ExtArgs> | null;
+  };
+
+  /**
+   * Model FileShare
+   */
+
+  export type AggregateFileShare = {
+    _count: FileShareCountAggregateOutputType | null;
+    _avg: FileShareAvgAggregateOutputType | null;
+    _sum: FileShareSumAggregateOutputType | null;
+    _min: FileShareMinAggregateOutputType | null;
+    _max: FileShareMaxAggregateOutputType | null;
+  };
+
+  export type FileShareAvgAggregateOutputType = {
+    maxDownloads: number | null;
+    downloadCount: number | null;
+  };
+
+  export type FileShareSumAggregateOutputType = {
+    maxDownloads: number | null;
+    downloadCount: number | null;
+  };
+
+  export type FileShareMinAggregateOutputType = {
+    id: string | null;
+    fileId: string | null;
+    shareToken: string | null;
+    isPublic: boolean | null;
+    allowDownload: boolean | null;
+    allowPreview: boolean | null;
+    expiresAt: Date | null;
+    maxDownloads: number | null;
+    downloadCount: number | null;
+    password: string | null;
+    createdAt: Date | null;
+    createdBy: string | null;
+  };
+
+  export type FileShareMaxAggregateOutputType = {
+    id: string | null;
+    fileId: string | null;
+    shareToken: string | null;
+    isPublic: boolean | null;
+    allowDownload: boolean | null;
+    allowPreview: boolean | null;
+    expiresAt: Date | null;
+    maxDownloads: number | null;
+    downloadCount: number | null;
+    password: string | null;
+    createdAt: Date | null;
+    createdBy: string | null;
+  };
+
+  export type FileShareCountAggregateOutputType = {
+    id: number;
+    fileId: number;
+    shareToken: number;
+    isPublic: number;
+    allowDownload: number;
+    allowPreview: number;
+    expiresAt: number;
+    maxDownloads: number;
+    downloadCount: number;
+    password: number;
+    createdAt: number;
+    createdBy: number;
+    _all: number;
+  };
+
+  export type FileShareAvgAggregateInputType = {
+    maxDownloads?: true;
+    downloadCount?: true;
+  };
+
+  export type FileShareSumAggregateInputType = {
+    maxDownloads?: true;
+    downloadCount?: true;
+  };
+
+  export type FileShareMinAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    shareToken?: true;
+    isPublic?: true;
+    allowDownload?: true;
+    allowPreview?: true;
+    expiresAt?: true;
+    maxDownloads?: true;
+    downloadCount?: true;
+    password?: true;
+    createdAt?: true;
+    createdBy?: true;
+  };
+
+  export type FileShareMaxAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    shareToken?: true;
+    isPublic?: true;
+    allowDownload?: true;
+    allowPreview?: true;
+    expiresAt?: true;
+    maxDownloads?: true;
+    downloadCount?: true;
+    password?: true;
+    createdAt?: true;
+    createdBy?: true;
+  };
+
+  export type FileShareCountAggregateInputType = {
+    id?: true;
+    fileId?: true;
+    shareToken?: true;
+    isPublic?: true;
+    allowDownload?: true;
+    allowPreview?: true;
+    expiresAt?: true;
+    maxDownloads?: true;
+    downloadCount?: true;
+    password?: true;
+    createdAt?: true;
+    createdBy?: true;
+    _all?: true;
+  };
+
+  export type FileShareAggregateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileShare to aggregate.
+     */
+    where?: FileShareWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileShares to fetch.
+     */
+    orderBy?: FileShareOrderByWithRelationInput | FileShareOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: FileShareWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileShares from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileShares.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned FileShares
+     **/
+    _count?: true | FileShareCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+     **/
+    _avg?: FileShareAvgAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+     **/
+    _sum?: FileShareSumAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: FileShareMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: FileShareMaxAggregateInputType;
+  };
+
+  export type GetFileShareAggregateType<T extends FileShareAggregateArgs> = {
+    [P in keyof T & keyof AggregateFileShare]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFileShare[P]>
+      : GetScalarType<T[P], AggregateFileShare[P]>;
+  };
+
+  export type FileShareGroupByArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    where?: FileShareWhereInput;
+    orderBy?: FileShareOrderByWithAggregationInput | FileShareOrderByWithAggregationInput[];
+    by: FileShareScalarFieldEnum[] | FileShareScalarFieldEnum;
+    having?: FileShareScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: FileShareCountAggregateInputType | true;
+    _avg?: FileShareAvgAggregateInputType;
+    _sum?: FileShareSumAggregateInputType;
+    _min?: FileShareMinAggregateInputType;
+    _max?: FileShareMaxAggregateInputType;
+  };
+
+  export type FileShareGroupByOutputType = {
+    id: string;
+    fileId: string;
+    shareToken: string;
+    isPublic: boolean;
+    allowDownload: boolean;
+    allowPreview: boolean;
+    expiresAt: Date | null;
+    maxDownloads: number | null;
+    downloadCount: number;
+    password: string | null;
+    createdAt: Date;
+    createdBy: string;
+    _count: FileShareCountAggregateOutputType | null;
+    _avg: FileShareAvgAggregateOutputType | null;
+    _sum: FileShareSumAggregateOutputType | null;
+    _min: FileShareMinAggregateOutputType | null;
+    _max: FileShareMaxAggregateOutputType | null;
+  };
+
+  type GetFileShareGroupByPayload<T extends FileShareGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FileShareGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof FileShareGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], FileShareGroupByOutputType[P]>
+          : GetScalarType<T[P], FileShareGroupByOutputType[P]>;
+      }
+    >
+  >;
+
+  export type FileShareSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    $Extensions.GetSelect<
+      {
+        id?: boolean;
+        fileId?: boolean;
+        shareToken?: boolean;
+        isPublic?: boolean;
+        allowDownload?: boolean;
+        allowPreview?: boolean;
+        expiresAt?: boolean;
+        maxDownloads?: boolean;
+        downloadCount?: boolean;
+        password?: boolean;
+        createdAt?: boolean;
+        createdBy?: boolean;
+        file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+        creator?: boolean | UserDefaultArgs<ExtArgs>;
+      },
+      ExtArgs['result']['fileShare']
+    >;
+
+  export type FileShareSelectCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      shareToken?: boolean;
+      isPublic?: boolean;
+      allowDownload?: boolean;
+      allowPreview?: boolean;
+      expiresAt?: boolean;
+      maxDownloads?: boolean;
+      downloadCount?: boolean;
+      password?: boolean;
+      createdAt?: boolean;
+      createdBy?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+      creator?: boolean | UserDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileShare']
+  >;
+
+  export type FileShareSelectUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = $Extensions.GetSelect<
+    {
+      id?: boolean;
+      fileId?: boolean;
+      shareToken?: boolean;
+      isPublic?: boolean;
+      allowDownload?: boolean;
+      allowPreview?: boolean;
+      expiresAt?: boolean;
+      maxDownloads?: boolean;
+      downloadCount?: boolean;
+      password?: boolean;
+      createdAt?: boolean;
+      createdBy?: boolean;
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+      creator?: boolean | UserDefaultArgs<ExtArgs>;
+    },
+    ExtArgs['result']['fileShare']
+  >;
+
+  export type FileShareSelectScalar = {
+    id?: boolean;
+    fileId?: boolean;
+    shareToken?: boolean;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: boolean;
+    maxDownloads?: boolean;
+    downloadCount?: boolean;
+    password?: boolean;
+    createdAt?: boolean;
+    createdBy?: boolean;
+  };
+
+  export type FileShareOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    $Extensions.GetOmit<
+      | 'id'
+      | 'fileId'
+      | 'shareToken'
+      | 'isPublic'
+      | 'allowDownload'
+      | 'allowPreview'
+      | 'expiresAt'
+      | 'maxDownloads'
+      | 'downloadCount'
+      | 'password'
+      | 'createdAt'
+      | 'createdBy',
+      ExtArgs['result']['fileShare']
+    >;
+  export type FileShareInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    {
+      file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+      creator?: boolean | UserDefaultArgs<ExtArgs>;
+    };
+  export type FileShareIncludeCreateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    creator?: boolean | UserDefaultArgs<ExtArgs>;
+  };
+  export type FileShareIncludeUpdateManyAndReturn<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    file?: boolean | FileStorageDefaultArgs<ExtArgs>;
+    creator?: boolean | UserDefaultArgs<ExtArgs>;
+  };
+
+  export type $FileSharePayload<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    name: 'FileShare';
+    objects: {
+      file: Prisma.$FileStoragePayload<ExtArgs>;
+      creator: Prisma.$UserPayload<ExtArgs>;
+    };
+    scalars: $Extensions.GetPayloadResult<
+      {
+        id: string;
+        fileId: string;
+        shareToken: string;
+        isPublic: boolean;
+        allowDownload: boolean;
+        allowPreview: boolean;
+        expiresAt: Date | null;
+        maxDownloads: number | null;
+        downloadCount: number;
+        password: string | null;
+        createdAt: Date;
+        createdBy: string;
+      },
+      ExtArgs['result']['fileShare']
+    >;
+    composites: {};
+  };
+
+  type FileShareGetPayload<S extends boolean | null | undefined | FileShareDefaultArgs> =
+    $Result.GetResult<Prisma.$FileSharePayload, S>;
+
+  type FileShareCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FileShareFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FileShareCountAggregateInputType | true;
+    };
+
+  export interface FileShareDelegate<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > {
+    [K: symbol]: {
+      types: Prisma.TypeMap<ExtArgs>['model']['FileShare'];
+      meta: { name: 'FileShare' };
+    };
+    /**
+     * Find zero or one FileShare that matches the filter.
+     * @param {FileShareFindUniqueArgs} args - Arguments to find a FileShare
+     * @example
+     * // Get one FileShare
+     * const fileShare = await prisma.fileShare.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FileShareFindUniqueArgs>(
+      args: SelectSubset<T, FileShareFindUniqueArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<
+        Prisma.$FileSharePayload<ExtArgs>,
+        T,
+        'findUnique',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find one FileShare that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FileShareFindUniqueOrThrowArgs} args - Arguments to find a FileShare
+     * @example
+     * // Get one FileShare
+     * const fileShare = await prisma.fileShare.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FileShareFindUniqueOrThrowArgs>(
+      args: SelectSubset<T, FileShareFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<
+        Prisma.$FileSharePayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileShare that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareFindFirstArgs} args - Arguments to find a FileShare
+     * @example
+     * // Get one FileShare
+     * const fileShare = await prisma.fileShare.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FileShareFindFirstArgs>(
+      args?: SelectSubset<T, FileShareFindFirstArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<
+        Prisma.$FileSharePayload<ExtArgs>,
+        T,
+        'findFirst',
+        GlobalOmitOptions
+      > | null,
+      null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find the first FileShare that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareFindFirstOrThrowArgs} args - Arguments to find a FileShare
+     * @example
+     * // Get one FileShare
+     * const fileShare = await prisma.fileShare.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FileShareFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, FileShareFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<
+        Prisma.$FileSharePayload<ExtArgs>,
+        T,
+        'findFirstOrThrow',
+        GlobalOmitOptions
+      >,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Find zero or more FileShares that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FileShares
+     * const fileShares = await prisma.fileShare.findMany()
+     *
+     * // Get first 10 FileShares
+     * const fileShares = await prisma.fileShare.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const fileShareWithIdOnly = await prisma.fileShare.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends FileShareFindManyArgs>(
+      args?: SelectSubset<T, FileShareFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    >;
+
+    /**
+     * Create a FileShare.
+     * @param {FileShareCreateArgs} args - Arguments to create a FileShare.
+     * @example
+     * // Create one FileShare
+     * const FileShare = await prisma.fileShare.create({
+     *   data: {
+     *     // ... data to create a FileShare
+     *   }
+     * })
+     *
+     */
+    create<T extends FileShareCreateArgs>(
+      args: SelectSubset<T, FileShareCreateArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Create many FileShares.
+     * @param {FileShareCreateManyArgs} args - Arguments to create many FileShares.
+     * @example
+     * // Create many FileShares
+     * const fileShare = await prisma.fileShare.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends FileShareCreateManyArgs>(
+      args?: SelectSubset<T, FileShareCreateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Create many FileShares and returns the data saved in the database.
+     * @param {FileShareCreateManyAndReturnArgs} args - Arguments to create many FileShares.
+     * @example
+     * // Create many FileShares
+     * const fileShare = await prisma.fileShare.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many FileShares and only return the `id`
+     * const fileShareWithIdOnly = await prisma.fileShare.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends FileShareCreateManyAndReturnArgs>(
+      args?: SelectSubset<T, FileShareCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileSharePayload<ExtArgs>,
+        T,
+        'createManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Delete a FileShare.
+     * @param {FileShareDeleteArgs} args - Arguments to delete one FileShare.
+     * @example
+     * // Delete one FileShare
+     * const FileShare = await prisma.fileShare.delete({
+     *   where: {
+     *     // ... filter to delete one FileShare
+     *   }
+     * })
+     *
+     */
+    delete<T extends FileShareDeleteArgs>(
+      args: SelectSubset<T, FileShareDeleteArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Update one FileShare.
+     * @param {FileShareUpdateArgs} args - Arguments to update one FileShare.
+     * @example
+     * // Update one FileShare
+     * const fileShare = await prisma.fileShare.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends FileShareUpdateArgs>(
+      args: SelectSubset<T, FileShareUpdateArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Delete zero or more FileShares.
+     * @param {FileShareDeleteManyArgs} args - Arguments to filter FileShares to delete.
+     * @example
+     * // Delete a few FileShares
+     * const { count } = await prisma.fileShare.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends FileShareDeleteManyArgs>(
+      args?: SelectSubset<T, FileShareDeleteManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileShares.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FileShares
+     * const fileShare = await prisma.fileShare.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends FileShareUpdateManyArgs>(
+      args: SelectSubset<T, FileShareUpdateManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<BatchPayload>;
+
+    /**
+     * Update zero or more FileShares and returns the data updated in the database.
+     * @param {FileShareUpdateManyAndReturnArgs} args - Arguments to update many FileShares.
+     * @example
+     * // Update many FileShares
+     * const fileShare = await prisma.fileShare.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more FileShares and only return the `id`
+     * const fileShareWithIdOnly = await prisma.fileShare.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends FileShareUpdateManyAndReturnArgs>(
+      args: SelectSubset<T, FileShareUpdateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<
+      $Result.GetResult<
+        Prisma.$FileSharePayload<ExtArgs>,
+        T,
+        'updateManyAndReturn',
+        GlobalOmitOptions
+      >
+    >;
+
+    /**
+     * Create or update one FileShare.
+     * @param {FileShareUpsertArgs} args - Arguments to update or create a FileShare.
+     * @example
+     * // Update or create a FileShare
+     * const fileShare = await prisma.fileShare.upsert({
+     *   create: {
+     *     // ... data to create a FileShare
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FileShare we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FileShareUpsertArgs>(
+      args: SelectSubset<T, FileShareUpsertArgs<ExtArgs>>
+    ): Prisma__FileShareClient<
+      $Result.GetResult<Prisma.$FileSharePayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+      never,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+
+    /**
+     * Count the number of FileShares.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareCountArgs} args - Arguments to filter FileShares to count.
+     * @example
+     * // Count the number of FileShares
+     * const count = await prisma.fileShare.count({
+     *   where: {
+     *     // ... the filter for the FileShares we want to count
+     *   }
+     * })
+     **/
+    count<T extends FileShareCountArgs>(
+      args?: Subset<T, FileShareCountArgs>
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FileShareCountAggregateOutputType>
+        : number
+    >;
+
+    /**
+     * Allows you to perform aggregations operations on a FileShare.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends FileShareAggregateArgs>(
+      args: Subset<T, FileShareAggregateArgs>
+    ): Prisma.PrismaPromise<GetFileShareAggregateType<T>>;
+
+    /**
+     * Group by FileShare.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FileShareGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<
+      T extends FileShareGroupByArgs,
+      HasSelectOrTake extends Or<Extends<'skip', Keys<T>>, Extends<'take', Keys<T>>>,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FileShareGroupByArgs['orderBy'] }
+        : { orderBy?: FileShareGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+        ? `Error: "by" must not be empty.`
+        : HavingValid extends False
+          ? {
+              [P in HavingFields]: P extends ByFields
+                ? never
+                : P extends string
+                  ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+                  : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+            }[HavingFields]
+          : 'take' extends Keys<T>
+            ? 'orderBy' extends Keys<T>
+              ? ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields]
+              : 'Error: If you provide "take", you also need to provide "orderBy"'
+            : 'skip' extends Keys<T>
+              ? 'orderBy' extends Keys<T>
+                ? ByValid extends True
+                  ? {}
+                  : {
+                      [P in OrderFields]: P extends ByFields
+                        ? never
+                        : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                    }[OrderFields]
+                : 'Error: If you provide "skip", you also need to provide "orderBy"'
+              : ByValid extends True
+                ? {}
+                : {
+                    [P in OrderFields]: P extends ByFields
+                      ? never
+                      : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+                  }[OrderFields],
+    >(
+      args: SubsetIntersection<T, FileShareGroupByArgs, OrderByArg> & InputErrors
+    ): {} extends InputErrors ? GetFileShareGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the FileShare model
+     */
+    readonly fields: FileShareFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FileShare.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FileShareClient<
+    T,
+    Null = never,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+    GlobalOmitOptions = {},
+  > extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    file<T extends FileStorageDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, FileStorageDefaultArgs<ExtArgs>>
+    ): Prisma__FileStorageClient<
+      | $Result.GetResult<
+          Prisma.$FileStoragePayload<ExtArgs>,
+          T,
+          'findUniqueOrThrow',
+          GlobalOmitOptions
+        >
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    creator<T extends UserDefaultArgs<ExtArgs> = {}>(
+      args?: Subset<T, UserDefaultArgs<ExtArgs>>
+    ): Prisma__UserClient<
+      | $Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>
+      | Null,
+      Null,
+      ExtArgs,
+      GlobalOmitOptions
+    >;
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+      onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): $Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(
+      onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null
+    ): $Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+  }
+
+  /**
+   * Fields of the FileShare model
+   */
+  interface FileShareFieldRefs {
+    readonly id: FieldRef<'FileShare', 'String'>;
+    readonly fileId: FieldRef<'FileShare', 'String'>;
+    readonly shareToken: FieldRef<'FileShare', 'String'>;
+    readonly isPublic: FieldRef<'FileShare', 'Boolean'>;
+    readonly allowDownload: FieldRef<'FileShare', 'Boolean'>;
+    readonly allowPreview: FieldRef<'FileShare', 'Boolean'>;
+    readonly expiresAt: FieldRef<'FileShare', 'DateTime'>;
+    readonly maxDownloads: FieldRef<'FileShare', 'Int'>;
+    readonly downloadCount: FieldRef<'FileShare', 'Int'>;
+    readonly password: FieldRef<'FileShare', 'String'>;
+    readonly createdAt: FieldRef<'FileShare', 'DateTime'>;
+    readonly createdBy: FieldRef<'FileShare', 'String'>;
+  }
+
+  // Custom InputTypes
+  /**
+   * FileShare findUnique
+   */
+  export type FileShareFindUniqueArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileShare to fetch.
+     */
+    where: FileShareWhereUniqueInput;
+  };
+
+  /**
+   * FileShare findUniqueOrThrow
+   */
+  export type FileShareFindUniqueOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileShare to fetch.
+     */
+    where: FileShareWhereUniqueInput;
+  };
+
+  /**
+   * FileShare findFirst
+   */
+  export type FileShareFindFirstArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileShare to fetch.
+     */
+    where?: FileShareWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileShares to fetch.
+     */
+    orderBy?: FileShareOrderByWithRelationInput | FileShareOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileShares.
+     */
+    cursor?: FileShareWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileShares from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileShares.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileShares.
+     */
+    distinct?: FileShareScalarFieldEnum | FileShareScalarFieldEnum[];
+  };
+
+  /**
+   * FileShare findFirstOrThrow
+   */
+  export type FileShareFindFirstOrThrowArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileShare to fetch.
+     */
+    where?: FileShareWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileShares to fetch.
+     */
+    orderBy?: FileShareOrderByWithRelationInput | FileShareOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for FileShares.
+     */
+    cursor?: FileShareWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileShares from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileShares.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of FileShares.
+     */
+    distinct?: FileShareScalarFieldEnum | FileShareScalarFieldEnum[];
+  };
+
+  /**
+   * FileShare findMany
+   */
+  export type FileShareFindManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * Filter, which FileShares to fetch.
+     */
+    where?: FileShareWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of FileShares to fetch.
+     */
+    orderBy?: FileShareOrderByWithRelationInput | FileShareOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing FileShares.
+     */
+    cursor?: FileShareWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` FileShares from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` FileShares.
+     */
+    skip?: number;
+    distinct?: FileShareScalarFieldEnum | FileShareScalarFieldEnum[];
+  };
+
+  /**
+   * FileShare create
+   */
+  export type FileShareCreateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * The data needed to create a FileShare.
+     */
+    data: XOR<FileShareCreateInput, FileShareUncheckedCreateInput>;
+  };
+
+  /**
+   * FileShare createMany
+   */
+  export type FileShareCreateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to create many FileShares.
+     */
+    data: FileShareCreateManyInput | FileShareCreateManyInput[];
+    skipDuplicates?: boolean;
+  };
+
+  /**
+   * FileShare createManyAndReturn
+   */
+  export type FileShareCreateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * The data used to create many FileShares.
+     */
+    data: FileShareCreateManyInput | FileShareCreateManyInput[];
+    skipDuplicates?: boolean;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareIncludeCreateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileShare update
+   */
+  export type FileShareUpdateArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * The data needed to update a FileShare.
+     */
+    data: XOR<FileShareUpdateInput, FileShareUncheckedUpdateInput>;
+    /**
+     * Choose, which FileShare to update.
+     */
+    where: FileShareWhereUniqueInput;
+  };
+
+  /**
+   * FileShare updateMany
+   */
+  export type FileShareUpdateManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * The data used to update FileShares.
+     */
+    data: XOR<FileShareUpdateManyMutationInput, FileShareUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileShares to update
+     */
+    where?: FileShareWhereInput;
+    /**
+     * Limit how many FileShares to update.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileShare updateManyAndReturn
+   */
+  export type FileShareUpdateManyAndReturnArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * The data used to update FileShares.
+     */
+    data: XOR<FileShareUpdateManyMutationInput, FileShareUncheckedUpdateManyInput>;
+    /**
+     * Filter which FileShares to update
+     */
+    where?: FileShareWhereInput;
+    /**
+     * Limit how many FileShares to update.
+     */
+    limit?: number;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareIncludeUpdateManyAndReturn<ExtArgs> | null;
+  };
+
+  /**
+   * FileShare upsert
+   */
+  export type FileShareUpsertArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * The filter to search for the FileShare to update in case it exists.
+     */
+    where: FileShareWhereUniqueInput;
+    /**
+     * In case the FileShare found by the `where` argument doesn't exist, create a new FileShare with this data.
+     */
+    create: XOR<FileShareCreateInput, FileShareUncheckedCreateInput>;
+    /**
+     * In case the FileShare was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FileShareUpdateInput, FileShareUncheckedUpdateInput>;
+  };
+
+  /**
+   * FileShare delete
+   */
+  export type FileShareDeleteArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+    /**
+     * Filter which FileShare to delete.
+     */
+    where: FileShareWhereUniqueInput;
+  };
+
+  /**
+   * FileShare deleteMany
+   */
+  export type FileShareDeleteManyArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Filter which FileShares to delete
+     */
+    where?: FileShareWhereInput;
+    /**
+     * Limit how many FileShares to delete.
+     */
+    limit?: number;
+  };
+
+  /**
+   * FileShare without action
+   */
+  export type FileShareDefaultArgs<
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  > = {
+    /**
+     * Select specific fields to fetch from the FileShare
+     */
+    select?: FileShareSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the FileShare
+     */
+    omit?: FileShareOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FileShareInclude<ExtArgs> | null;
+  };
+
+  /**
    * Enums
    */
 
@@ -47691,6 +54037,7 @@ export namespace Prisma {
     stripeCustomerId: 'stripeCustomerId';
     stripeSubscriptionId: 'stripeSubscriptionId';
     stripePriceId: 'stripePriceId';
+    monthlyRevenue: 'monthlyRevenue';
     createdAt: 'createdAt';
     updatedAt: 'updatedAt';
     maxDatabaseConnections: 'maxDatabaseConnections';
@@ -48118,6 +54465,78 @@ export namespace Prisma {
   export type SocialAccountScalarFieldEnum =
     (typeof SocialAccountScalarFieldEnum)[keyof typeof SocialAccountScalarFieldEnum];
 
+  export const FileStorageScalarFieldEnum: {
+    id: 'id';
+    filename: 'filename';
+    storageKey: 'storageKey';
+    mimeType: 'mimeType';
+    fileSize: 'fileSize';
+    checksum: 'checksum';
+    storageProvider: 'storageProvider';
+    bucketName: 'bucketName';
+    cdnUrl: 'cdnUrl';
+    isPublic: 'isPublic';
+    isActive: 'isActive';
+    uploadedAt: 'uploadedAt';
+    lastAccessedAt: 'lastAccessedAt';
+    expiresAt: 'expiresAt';
+    organizationId: 'organizationId';
+    uploadedBy: 'uploadedBy';
+    metadata: 'metadata';
+    tags: 'tags';
+    description: 'description';
+  };
+
+  export type FileStorageScalarFieldEnum =
+    (typeof FileStorageScalarFieldEnum)[keyof typeof FileStorageScalarFieldEnum];
+
+  export const FileVersionScalarFieldEnum: {
+    id: 'id';
+    fileId: 'fileId';
+    versionNumber: 'versionNumber';
+    storageKey: 'storageKey';
+    fileSize: 'fileSize';
+    checksum: 'checksum';
+    uploadedAt: 'uploadedAt';
+    uploadedBy: 'uploadedBy';
+    changelog: 'changelog';
+  };
+
+  export type FileVersionScalarFieldEnum =
+    (typeof FileVersionScalarFieldEnum)[keyof typeof FileVersionScalarFieldEnum];
+
+  export const FileThumbnailScalarFieldEnum: {
+    id: 'id';
+    fileId: 'fileId';
+    size: 'size';
+    storageKey: 'storageKey';
+    fileSize: 'fileSize';
+    mimeType: 'mimeType';
+    cdnUrl: 'cdnUrl';
+    createdAt: 'createdAt';
+  };
+
+  export type FileThumbnailScalarFieldEnum =
+    (typeof FileThumbnailScalarFieldEnum)[keyof typeof FileThumbnailScalarFieldEnum];
+
+  export const FileShareScalarFieldEnum: {
+    id: 'id';
+    fileId: 'fileId';
+    shareToken: 'shareToken';
+    isPublic: 'isPublic';
+    allowDownload: 'allowDownload';
+    allowPreview: 'allowPreview';
+    expiresAt: 'expiresAt';
+    maxDownloads: 'maxDownloads';
+    downloadCount: 'downloadCount';
+    password: 'password';
+    createdAt: 'createdAt';
+    createdBy: 'createdBy';
+  };
+
+  export type FileShareScalarFieldEnum =
+    (typeof FileShareScalarFieldEnum)[keyof typeof FileShareScalarFieldEnum];
+
   export const SortOrder: {
     asc: 'asc';
     desc: 'desc';
@@ -48253,6 +54672,16 @@ export namespace Prisma {
     $PrismaModel,
     'SubscriptionStatus[]'
   >;
+
+  /**
+   * Reference to a field of type 'Decimal'
+   */
+  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>;
+
+  /**
+   * Reference to a field of type 'Decimal[]'
+   */
+  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>;
 
   /**
    * Reference to a field of type 'Int'
@@ -48435,6 +54864,32 @@ export namespace Prisma {
   >;
 
   /**
+   * Reference to a field of type 'BigInt'
+   */
+  export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>;
+
+  /**
+   * Reference to a field of type 'BigInt[]'
+   */
+  export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>;
+
+  /**
+   * Reference to a field of type 'StorageProvider'
+   */
+  export type EnumStorageProviderFieldRefInput<$PrismaModel> = FieldRefInputType<
+    $PrismaModel,
+    'StorageProvider'
+  >;
+
+  /**
+   * Reference to a field of type 'StorageProvider[]'
+   */
+  export type ListEnumStorageProviderFieldRefInput<$PrismaModel> = FieldRefInputType<
+    $PrismaModel,
+    'StorageProvider[]'
+  >;
+
+  /**
    * Deep Input Types
    */
 
@@ -48473,6 +54928,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigListRelationFilter;
     rateLimitUsage?: RateLimitUsageListRelationFilter;
     billingEvents?: BillingEventListRelationFilter;
+    fileStorages?: FileStorageListRelationFilter;
   };
 
   export type OrganizationOrderByWithRelationInput = {
@@ -48507,6 +54963,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigOrderByRelationAggregateInput;
     rateLimitUsage?: RateLimitUsageOrderByRelationAggregateInput;
     billingEvents?: BillingEventOrderByRelationAggregateInput;
+    fileStorages?: FileStorageOrderByRelationAggregateInput;
   };
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<
@@ -48545,6 +55002,7 @@ export namespace Prisma {
       rateLimitConfigs?: RateLimitConfigListRelationFilter;
       rateLimitUsage?: RateLimitUsageListRelationFilter;
       billingEvents?: BillingEventListRelationFilter;
+      fileStorages?: FileStorageListRelationFilter;
     },
     'id' | 'slug' | 'domain'
   >;
@@ -48623,6 +55081,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigListRelationFilter;
     rateLimitUpdated?: RateLimitConfigListRelationFilter;
     socialAccounts?: SocialAccountListRelationFilter;
+    uploadedFiles?: FileStorageListRelationFilter;
+    fileVersionsCreated?: FileVersionListRelationFilter;
+    fileSharesCreated?: FileShareListRelationFilter;
   };
 
   export type UserOrderByWithRelationInput = {
@@ -48660,6 +55121,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigOrderByRelationAggregateInput;
     rateLimitUpdated?: RateLimitConfigOrderByRelationAggregateInput;
     socialAccounts?: SocialAccountOrderByRelationAggregateInput;
+    uploadedFiles?: FileStorageOrderByRelationAggregateInput;
+    fileVersionsCreated?: FileVersionOrderByRelationAggregateInput;
+    fileSharesCreated?: FileShareOrderByRelationAggregateInput;
   };
 
   export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -48701,6 +55165,9 @@ export namespace Prisma {
       rateLimitCreated?: RateLimitConfigListRelationFilter;
       rateLimitUpdated?: RateLimitConfigListRelationFilter;
       socialAccounts?: SocialAccountListRelationFilter;
+      uploadedFiles?: FileStorageListRelationFilter;
+      fileVersionsCreated?: FileVersionListRelationFilter;
+      fileSharesCreated?: FileShareListRelationFilter;
     },
     'id' | 'email'
   >;
@@ -49038,6 +55505,13 @@ export namespace Prisma {
     stripeCustomerId?: StringNullableFilter<'Subscription'> | string | null;
     stripeSubscriptionId?: StringNullableFilter<'Subscription'> | string | null;
     stripePriceId?: StringNullableFilter<'Subscription'> | string | null;
+    monthlyRevenue?:
+      | DecimalNullableFilter<'Subscription'>
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFilter<'Subscription'> | Date | string;
     updatedAt?: DateTimeFilter<'Subscription'> | Date | string;
     maxDatabaseConnections?: IntFilter<'Subscription'> | number;
@@ -49061,6 +55535,7 @@ export namespace Prisma {
     stripeCustomerId?: SortOrderInput | SortOrder;
     stripeSubscriptionId?: SortOrderInput | SortOrder;
     stripePriceId?: SortOrderInput | SortOrder;
+    monthlyRevenue?: SortOrderInput | SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
     maxDatabaseConnections?: SortOrder;
@@ -49089,6 +55564,13 @@ export namespace Prisma {
       currentPeriodEnd?: DateTimeFilter<'Subscription'> | Date | string;
       canceledAt?: DateTimeNullableFilter<'Subscription'> | Date | string | null;
       stripePriceId?: StringNullableFilter<'Subscription'> | string | null;
+      monthlyRevenue?:
+        | DecimalNullableFilter<'Subscription'>
+        | Decimal
+        | DecimalJsLike
+        | number
+        | string
+        | null;
       createdAt?: DateTimeFilter<'Subscription'> | Date | string;
       updatedAt?: DateTimeFilter<'Subscription'> | Date | string;
       maxDatabaseConnections?: IntFilter<'Subscription'> | number;
@@ -49113,6 +55595,7 @@ export namespace Prisma {
     stripeCustomerId?: SortOrderInput | SortOrder;
     stripeSubscriptionId?: SortOrderInput | SortOrder;
     stripePriceId?: SortOrderInput | SortOrder;
+    monthlyRevenue?: SortOrderInput | SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
     maxDatabaseConnections?: SortOrder;
@@ -49141,6 +55624,13 @@ export namespace Prisma {
     stripeCustomerId?: StringNullableWithAggregatesFilter<'Subscription'> | string | null;
     stripeSubscriptionId?: StringNullableWithAggregatesFilter<'Subscription'> | string | null;
     stripePriceId?: StringNullableWithAggregatesFilter<'Subscription'> | string | null;
+    monthlyRevenue?:
+      | DecimalNullableWithAggregatesFilter<'Subscription'>
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeWithAggregatesFilter<'Subscription'> | Date | string;
     updatedAt?: DateTimeWithAggregatesFilter<'Subscription'> | Date | string;
     maxDatabaseConnections?: IntWithAggregatesFilter<'Subscription'> | number;
@@ -51520,6 +58010,412 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<'SocialAccount'> | Date | string;
   };
 
+  export type FileStorageWhereInput = {
+    AND?: FileStorageWhereInput | FileStorageWhereInput[];
+    OR?: FileStorageWhereInput[];
+    NOT?: FileStorageWhereInput | FileStorageWhereInput[];
+    id?: StringFilter<'FileStorage'> | string;
+    filename?: StringFilter<'FileStorage'> | string;
+    storageKey?: StringFilter<'FileStorage'> | string;
+    mimeType?: StringFilter<'FileStorage'> | string;
+    fileSize?: BigIntFilter<'FileStorage'> | bigint | number;
+    checksum?: StringFilter<'FileStorage'> | string;
+    storageProvider?: EnumStorageProviderFilter<'FileStorage'> | $Enums.StorageProvider;
+    bucketName?: StringNullableFilter<'FileStorage'> | string | null;
+    cdnUrl?: StringNullableFilter<'FileStorage'> | string | null;
+    isPublic?: BoolFilter<'FileStorage'> | boolean;
+    isActive?: BoolFilter<'FileStorage'> | boolean;
+    uploadedAt?: DateTimeFilter<'FileStorage'> | Date | string;
+    lastAccessedAt?: DateTimeNullableFilter<'FileStorage'> | Date | string | null;
+    expiresAt?: DateTimeNullableFilter<'FileStorage'> | Date | string | null;
+    organizationId?: StringFilter<'FileStorage'> | string;
+    uploadedBy?: StringNullableFilter<'FileStorage'> | string | null;
+    metadata?: StringNullableFilter<'FileStorage'> | string | null;
+    tags?: StringNullableListFilter<'FileStorage'>;
+    description?: StringNullableFilter<'FileStorage'> | string | null;
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>;
+    uploader?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null;
+    versions?: FileVersionListRelationFilter;
+    thumbnails?: FileThumbnailListRelationFilter;
+    shares?: FileShareListRelationFilter;
+  };
+
+  export type FileStorageOrderByWithRelationInput = {
+    id?: SortOrder;
+    filename?: SortOrder;
+    storageKey?: SortOrder;
+    mimeType?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    storageProvider?: SortOrder;
+    bucketName?: SortOrderInput | SortOrder;
+    cdnUrl?: SortOrderInput | SortOrder;
+    isPublic?: SortOrder;
+    isActive?: SortOrder;
+    uploadedAt?: SortOrder;
+    lastAccessedAt?: SortOrderInput | SortOrder;
+    expiresAt?: SortOrderInput | SortOrder;
+    organizationId?: SortOrder;
+    uploadedBy?: SortOrderInput | SortOrder;
+    metadata?: SortOrderInput | SortOrder;
+    tags?: SortOrder;
+    description?: SortOrderInput | SortOrder;
+    organization?: OrganizationOrderByWithRelationInput;
+    uploader?: UserOrderByWithRelationInput;
+    versions?: FileVersionOrderByRelationAggregateInput;
+    thumbnails?: FileThumbnailOrderByRelationAggregateInput;
+    shares?: FileShareOrderByRelationAggregateInput;
+  };
+
+  export type FileStorageWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      storageKey?: string;
+      AND?: FileStorageWhereInput | FileStorageWhereInput[];
+      OR?: FileStorageWhereInput[];
+      NOT?: FileStorageWhereInput | FileStorageWhereInput[];
+      filename?: StringFilter<'FileStorage'> | string;
+      mimeType?: StringFilter<'FileStorage'> | string;
+      fileSize?: BigIntFilter<'FileStorage'> | bigint | number;
+      checksum?: StringFilter<'FileStorage'> | string;
+      storageProvider?: EnumStorageProviderFilter<'FileStorage'> | $Enums.StorageProvider;
+      bucketName?: StringNullableFilter<'FileStorage'> | string | null;
+      cdnUrl?: StringNullableFilter<'FileStorage'> | string | null;
+      isPublic?: BoolFilter<'FileStorage'> | boolean;
+      isActive?: BoolFilter<'FileStorage'> | boolean;
+      uploadedAt?: DateTimeFilter<'FileStorage'> | Date | string;
+      lastAccessedAt?: DateTimeNullableFilter<'FileStorage'> | Date | string | null;
+      expiresAt?: DateTimeNullableFilter<'FileStorage'> | Date | string | null;
+      organizationId?: StringFilter<'FileStorage'> | string;
+      uploadedBy?: StringNullableFilter<'FileStorage'> | string | null;
+      metadata?: StringNullableFilter<'FileStorage'> | string | null;
+      tags?: StringNullableListFilter<'FileStorage'>;
+      description?: StringNullableFilter<'FileStorage'> | string | null;
+      organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>;
+      uploader?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null;
+      versions?: FileVersionListRelationFilter;
+      thumbnails?: FileThumbnailListRelationFilter;
+      shares?: FileShareListRelationFilter;
+    },
+    'id' | 'storageKey'
+  >;
+
+  export type FileStorageOrderByWithAggregationInput = {
+    id?: SortOrder;
+    filename?: SortOrder;
+    storageKey?: SortOrder;
+    mimeType?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    storageProvider?: SortOrder;
+    bucketName?: SortOrderInput | SortOrder;
+    cdnUrl?: SortOrderInput | SortOrder;
+    isPublic?: SortOrder;
+    isActive?: SortOrder;
+    uploadedAt?: SortOrder;
+    lastAccessedAt?: SortOrderInput | SortOrder;
+    expiresAt?: SortOrderInput | SortOrder;
+    organizationId?: SortOrder;
+    uploadedBy?: SortOrderInput | SortOrder;
+    metadata?: SortOrderInput | SortOrder;
+    tags?: SortOrder;
+    description?: SortOrderInput | SortOrder;
+    _count?: FileStorageCountOrderByAggregateInput;
+    _avg?: FileStorageAvgOrderByAggregateInput;
+    _max?: FileStorageMaxOrderByAggregateInput;
+    _min?: FileStorageMinOrderByAggregateInput;
+    _sum?: FileStorageSumOrderByAggregateInput;
+  };
+
+  export type FileStorageScalarWhereWithAggregatesInput = {
+    AND?: FileStorageScalarWhereWithAggregatesInput | FileStorageScalarWhereWithAggregatesInput[];
+    OR?: FileStorageScalarWhereWithAggregatesInput[];
+    NOT?: FileStorageScalarWhereWithAggregatesInput | FileStorageScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'FileStorage'> | string;
+    filename?: StringWithAggregatesFilter<'FileStorage'> | string;
+    storageKey?: StringWithAggregatesFilter<'FileStorage'> | string;
+    mimeType?: StringWithAggregatesFilter<'FileStorage'> | string;
+    fileSize?: BigIntWithAggregatesFilter<'FileStorage'> | bigint | number;
+    checksum?: StringWithAggregatesFilter<'FileStorage'> | string;
+    storageProvider?:
+      | EnumStorageProviderWithAggregatesFilter<'FileStorage'>
+      | $Enums.StorageProvider;
+    bucketName?: StringNullableWithAggregatesFilter<'FileStorage'> | string | null;
+    cdnUrl?: StringNullableWithAggregatesFilter<'FileStorage'> | string | null;
+    isPublic?: BoolWithAggregatesFilter<'FileStorage'> | boolean;
+    isActive?: BoolWithAggregatesFilter<'FileStorage'> | boolean;
+    uploadedAt?: DateTimeWithAggregatesFilter<'FileStorage'> | Date | string;
+    lastAccessedAt?: DateTimeNullableWithAggregatesFilter<'FileStorage'> | Date | string | null;
+    expiresAt?: DateTimeNullableWithAggregatesFilter<'FileStorage'> | Date | string | null;
+    organizationId?: StringWithAggregatesFilter<'FileStorage'> | string;
+    uploadedBy?: StringNullableWithAggregatesFilter<'FileStorage'> | string | null;
+    metadata?: StringNullableWithAggregatesFilter<'FileStorage'> | string | null;
+    tags?: StringNullableListFilter<'FileStorage'>;
+    description?: StringNullableWithAggregatesFilter<'FileStorage'> | string | null;
+  };
+
+  export type FileVersionWhereInput = {
+    AND?: FileVersionWhereInput | FileVersionWhereInput[];
+    OR?: FileVersionWhereInput[];
+    NOT?: FileVersionWhereInput | FileVersionWhereInput[];
+    id?: StringFilter<'FileVersion'> | string;
+    fileId?: StringFilter<'FileVersion'> | string;
+    versionNumber?: IntFilter<'FileVersion'> | number;
+    storageKey?: StringFilter<'FileVersion'> | string;
+    fileSize?: BigIntFilter<'FileVersion'> | bigint | number;
+    checksum?: StringFilter<'FileVersion'> | string;
+    uploadedAt?: DateTimeFilter<'FileVersion'> | Date | string;
+    uploadedBy?: StringNullableFilter<'FileVersion'> | string | null;
+    changelog?: StringNullableFilter<'FileVersion'> | string | null;
+    file?: XOR<FileStorageScalarRelationFilter, FileStorageWhereInput>;
+    uploader?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null;
+  };
+
+  export type FileVersionOrderByWithRelationInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    versionNumber?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    uploadedAt?: SortOrder;
+    uploadedBy?: SortOrderInput | SortOrder;
+    changelog?: SortOrderInput | SortOrder;
+    file?: FileStorageOrderByWithRelationInput;
+    uploader?: UserOrderByWithRelationInput;
+  };
+
+  export type FileVersionWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      storageKey?: string;
+      fileId_versionNumber?: FileVersionFileIdVersionNumberCompoundUniqueInput;
+      AND?: FileVersionWhereInput | FileVersionWhereInput[];
+      OR?: FileVersionWhereInput[];
+      NOT?: FileVersionWhereInput | FileVersionWhereInput[];
+      fileId?: StringFilter<'FileVersion'> | string;
+      versionNumber?: IntFilter<'FileVersion'> | number;
+      fileSize?: BigIntFilter<'FileVersion'> | bigint | number;
+      checksum?: StringFilter<'FileVersion'> | string;
+      uploadedAt?: DateTimeFilter<'FileVersion'> | Date | string;
+      uploadedBy?: StringNullableFilter<'FileVersion'> | string | null;
+      changelog?: StringNullableFilter<'FileVersion'> | string | null;
+      file?: XOR<FileStorageScalarRelationFilter, FileStorageWhereInput>;
+      uploader?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null;
+    },
+    'id' | 'storageKey' | 'fileId_versionNumber'
+  >;
+
+  export type FileVersionOrderByWithAggregationInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    versionNumber?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    uploadedAt?: SortOrder;
+    uploadedBy?: SortOrderInput | SortOrder;
+    changelog?: SortOrderInput | SortOrder;
+    _count?: FileVersionCountOrderByAggregateInput;
+    _avg?: FileVersionAvgOrderByAggregateInput;
+    _max?: FileVersionMaxOrderByAggregateInput;
+    _min?: FileVersionMinOrderByAggregateInput;
+    _sum?: FileVersionSumOrderByAggregateInput;
+  };
+
+  export type FileVersionScalarWhereWithAggregatesInput = {
+    AND?: FileVersionScalarWhereWithAggregatesInput | FileVersionScalarWhereWithAggregatesInput[];
+    OR?: FileVersionScalarWhereWithAggregatesInput[];
+    NOT?: FileVersionScalarWhereWithAggregatesInput | FileVersionScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'FileVersion'> | string;
+    fileId?: StringWithAggregatesFilter<'FileVersion'> | string;
+    versionNumber?: IntWithAggregatesFilter<'FileVersion'> | number;
+    storageKey?: StringWithAggregatesFilter<'FileVersion'> | string;
+    fileSize?: BigIntWithAggregatesFilter<'FileVersion'> | bigint | number;
+    checksum?: StringWithAggregatesFilter<'FileVersion'> | string;
+    uploadedAt?: DateTimeWithAggregatesFilter<'FileVersion'> | Date | string;
+    uploadedBy?: StringNullableWithAggregatesFilter<'FileVersion'> | string | null;
+    changelog?: StringNullableWithAggregatesFilter<'FileVersion'> | string | null;
+  };
+
+  export type FileThumbnailWhereInput = {
+    AND?: FileThumbnailWhereInput | FileThumbnailWhereInput[];
+    OR?: FileThumbnailWhereInput[];
+    NOT?: FileThumbnailWhereInput | FileThumbnailWhereInput[];
+    id?: StringFilter<'FileThumbnail'> | string;
+    fileId?: StringFilter<'FileThumbnail'> | string;
+    size?: StringFilter<'FileThumbnail'> | string;
+    storageKey?: StringFilter<'FileThumbnail'> | string;
+    fileSize?: BigIntFilter<'FileThumbnail'> | bigint | number;
+    mimeType?: StringFilter<'FileThumbnail'> | string;
+    cdnUrl?: StringNullableFilter<'FileThumbnail'> | string | null;
+    createdAt?: DateTimeFilter<'FileThumbnail'> | Date | string;
+    file?: XOR<FileStorageScalarRelationFilter, FileStorageWhereInput>;
+  };
+
+  export type FileThumbnailOrderByWithRelationInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    size?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    mimeType?: SortOrder;
+    cdnUrl?: SortOrderInput | SortOrder;
+    createdAt?: SortOrder;
+    file?: FileStorageOrderByWithRelationInput;
+  };
+
+  export type FileThumbnailWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      storageKey?: string;
+      fileId_size?: FileThumbnailFileIdSizeCompoundUniqueInput;
+      AND?: FileThumbnailWhereInput | FileThumbnailWhereInput[];
+      OR?: FileThumbnailWhereInput[];
+      NOT?: FileThumbnailWhereInput | FileThumbnailWhereInput[];
+      fileId?: StringFilter<'FileThumbnail'> | string;
+      size?: StringFilter<'FileThumbnail'> | string;
+      fileSize?: BigIntFilter<'FileThumbnail'> | bigint | number;
+      mimeType?: StringFilter<'FileThumbnail'> | string;
+      cdnUrl?: StringNullableFilter<'FileThumbnail'> | string | null;
+      createdAt?: DateTimeFilter<'FileThumbnail'> | Date | string;
+      file?: XOR<FileStorageScalarRelationFilter, FileStorageWhereInput>;
+    },
+    'id' | 'storageKey' | 'fileId_size'
+  >;
+
+  export type FileThumbnailOrderByWithAggregationInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    size?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    mimeType?: SortOrder;
+    cdnUrl?: SortOrderInput | SortOrder;
+    createdAt?: SortOrder;
+    _count?: FileThumbnailCountOrderByAggregateInput;
+    _avg?: FileThumbnailAvgOrderByAggregateInput;
+    _max?: FileThumbnailMaxOrderByAggregateInput;
+    _min?: FileThumbnailMinOrderByAggregateInput;
+    _sum?: FileThumbnailSumOrderByAggregateInput;
+  };
+
+  export type FileThumbnailScalarWhereWithAggregatesInput = {
+    AND?:
+      | FileThumbnailScalarWhereWithAggregatesInput
+      | FileThumbnailScalarWhereWithAggregatesInput[];
+    OR?: FileThumbnailScalarWhereWithAggregatesInput[];
+    NOT?:
+      | FileThumbnailScalarWhereWithAggregatesInput
+      | FileThumbnailScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'FileThumbnail'> | string;
+    fileId?: StringWithAggregatesFilter<'FileThumbnail'> | string;
+    size?: StringWithAggregatesFilter<'FileThumbnail'> | string;
+    storageKey?: StringWithAggregatesFilter<'FileThumbnail'> | string;
+    fileSize?: BigIntWithAggregatesFilter<'FileThumbnail'> | bigint | number;
+    mimeType?: StringWithAggregatesFilter<'FileThumbnail'> | string;
+    cdnUrl?: StringNullableWithAggregatesFilter<'FileThumbnail'> | string | null;
+    createdAt?: DateTimeWithAggregatesFilter<'FileThumbnail'> | Date | string;
+  };
+
+  export type FileShareWhereInput = {
+    AND?: FileShareWhereInput | FileShareWhereInput[];
+    OR?: FileShareWhereInput[];
+    NOT?: FileShareWhereInput | FileShareWhereInput[];
+    id?: StringFilter<'FileShare'> | string;
+    fileId?: StringFilter<'FileShare'> | string;
+    shareToken?: StringFilter<'FileShare'> | string;
+    isPublic?: BoolFilter<'FileShare'> | boolean;
+    allowDownload?: BoolFilter<'FileShare'> | boolean;
+    allowPreview?: BoolFilter<'FileShare'> | boolean;
+    expiresAt?: DateTimeNullableFilter<'FileShare'> | Date | string | null;
+    maxDownloads?: IntNullableFilter<'FileShare'> | number | null;
+    downloadCount?: IntFilter<'FileShare'> | number;
+    password?: StringNullableFilter<'FileShare'> | string | null;
+    createdAt?: DateTimeFilter<'FileShare'> | Date | string;
+    createdBy?: StringFilter<'FileShare'> | string;
+    file?: XOR<FileStorageScalarRelationFilter, FileStorageWhereInput>;
+    creator?: XOR<UserScalarRelationFilter, UserWhereInput>;
+  };
+
+  export type FileShareOrderByWithRelationInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    shareToken?: SortOrder;
+    isPublic?: SortOrder;
+    allowDownload?: SortOrder;
+    allowPreview?: SortOrder;
+    expiresAt?: SortOrderInput | SortOrder;
+    maxDownloads?: SortOrderInput | SortOrder;
+    downloadCount?: SortOrder;
+    password?: SortOrderInput | SortOrder;
+    createdAt?: SortOrder;
+    createdBy?: SortOrder;
+    file?: FileStorageOrderByWithRelationInput;
+    creator?: UserOrderByWithRelationInput;
+  };
+
+  export type FileShareWhereUniqueInput = Prisma.AtLeast<
+    {
+      id?: string;
+      shareToken?: string;
+      AND?: FileShareWhereInput | FileShareWhereInput[];
+      OR?: FileShareWhereInput[];
+      NOT?: FileShareWhereInput | FileShareWhereInput[];
+      fileId?: StringFilter<'FileShare'> | string;
+      isPublic?: BoolFilter<'FileShare'> | boolean;
+      allowDownload?: BoolFilter<'FileShare'> | boolean;
+      allowPreview?: BoolFilter<'FileShare'> | boolean;
+      expiresAt?: DateTimeNullableFilter<'FileShare'> | Date | string | null;
+      maxDownloads?: IntNullableFilter<'FileShare'> | number | null;
+      downloadCount?: IntFilter<'FileShare'> | number;
+      password?: StringNullableFilter<'FileShare'> | string | null;
+      createdAt?: DateTimeFilter<'FileShare'> | Date | string;
+      createdBy?: StringFilter<'FileShare'> | string;
+      file?: XOR<FileStorageScalarRelationFilter, FileStorageWhereInput>;
+      creator?: XOR<UserScalarRelationFilter, UserWhereInput>;
+    },
+    'id' | 'shareToken'
+  >;
+
+  export type FileShareOrderByWithAggregationInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    shareToken?: SortOrder;
+    isPublic?: SortOrder;
+    allowDownload?: SortOrder;
+    allowPreview?: SortOrder;
+    expiresAt?: SortOrderInput | SortOrder;
+    maxDownloads?: SortOrderInput | SortOrder;
+    downloadCount?: SortOrder;
+    password?: SortOrderInput | SortOrder;
+    createdAt?: SortOrder;
+    createdBy?: SortOrder;
+    _count?: FileShareCountOrderByAggregateInput;
+    _avg?: FileShareAvgOrderByAggregateInput;
+    _max?: FileShareMaxOrderByAggregateInput;
+    _min?: FileShareMinOrderByAggregateInput;
+    _sum?: FileShareSumOrderByAggregateInput;
+  };
+
+  export type FileShareScalarWhereWithAggregatesInput = {
+    AND?: FileShareScalarWhereWithAggregatesInput | FileShareScalarWhereWithAggregatesInput[];
+    OR?: FileShareScalarWhereWithAggregatesInput[];
+    NOT?: FileShareScalarWhereWithAggregatesInput | FileShareScalarWhereWithAggregatesInput[];
+    id?: StringWithAggregatesFilter<'FileShare'> | string;
+    fileId?: StringWithAggregatesFilter<'FileShare'> | string;
+    shareToken?: StringWithAggregatesFilter<'FileShare'> | string;
+    isPublic?: BoolWithAggregatesFilter<'FileShare'> | boolean;
+    allowDownload?: BoolWithAggregatesFilter<'FileShare'> | boolean;
+    allowPreview?: BoolWithAggregatesFilter<'FileShare'> | boolean;
+    expiresAt?: DateTimeNullableWithAggregatesFilter<'FileShare'> | Date | string | null;
+    maxDownloads?: IntNullableWithAggregatesFilter<'FileShare'> | number | null;
+    downloadCount?: IntWithAggregatesFilter<'FileShare'> | number;
+    password?: StringNullableWithAggregatesFilter<'FileShare'> | string | null;
+    createdAt?: DateTimeWithAggregatesFilter<'FileShare'> | Date | string;
+    createdBy?: StringWithAggregatesFilter<'FileShare'> | string;
+  };
+
   export type OrganizationCreateInput = {
     id?: string;
     name: string;
@@ -51552,6 +58448,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateInput = {
@@ -51586,6 +58483,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUpdateInput = {
@@ -51620,6 +58518,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateInput = {
@@ -51654,6 +58553,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateManyInput = {
@@ -51730,6 +58630,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateInput = {
@@ -51767,6 +58670,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUpdateInput = {
@@ -51804,6 +58710,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateInput = {
@@ -51841,6 +58750,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserCreateManyInput = {
@@ -52174,6 +59086,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -52196,6 +59109,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -52218,6 +59132,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -52240,6 +59161,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -52262,6 +59190,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -52282,6 +59211,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -52301,6 +59237,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -54751,6 +61694,431 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
+  export type FileStorageCreateInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    organization: OrganizationCreateNestedOneWithoutFileStoragesInput;
+    uploader?: UserCreateNestedOneWithoutUploadedFilesInput;
+    versions?: FileVersionCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailCreateNestedManyWithoutFileInput;
+    shares?: FileShareCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUncheckedCreateInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    versions?: FileVersionUncheckedCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailUncheckedCreateNestedManyWithoutFileInput;
+    shares?: FileShareUncheckedCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    organization?: OrganizationUpdateOneRequiredWithoutFileStoragesNestedInput;
+    uploader?: UserUpdateOneWithoutUploadedFilesNestedInput;
+    versions?: FileVersionUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    versions?: FileVersionUncheckedUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUncheckedUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageCreateManyInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+  };
+
+  export type FileStorageUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileStorageUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileVersionCreateInput = {
+    id?: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    changelog?: string | null;
+    file: FileStorageCreateNestedOneWithoutVersionsInput;
+    uploader?: UserCreateNestedOneWithoutFileVersionsCreatedInput;
+  };
+
+  export type FileVersionUncheckedCreateInput = {
+    id?: string;
+    fileId: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    uploadedBy?: string | null;
+    changelog?: string | null;
+  };
+
+  export type FileVersionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+    file?: FileStorageUpdateOneRequiredWithoutVersionsNestedInput;
+    uploader?: UserUpdateOneWithoutFileVersionsCreatedNestedInput;
+  };
+
+  export type FileVersionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileVersionCreateManyInput = {
+    id?: string;
+    fileId: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    uploadedBy?: string | null;
+    changelog?: string | null;
+  };
+
+  export type FileVersionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileVersionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileThumbnailCreateInput = {
+    id?: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint | number;
+    mimeType: string;
+    cdnUrl?: string | null;
+    createdAt?: Date | string;
+    file: FileStorageCreateNestedOneWithoutThumbnailsInput;
+  };
+
+  export type FileThumbnailUncheckedCreateInput = {
+    id?: string;
+    fileId: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint | number;
+    mimeType: string;
+    cdnUrl?: string | null;
+    createdAt?: Date | string;
+  };
+
+  export type FileThumbnailUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    file?: FileStorageUpdateOneRequiredWithoutThumbnailsNestedInput;
+  };
+
+  export type FileThumbnailUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileThumbnailCreateManyInput = {
+    id?: string;
+    fileId: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint | number;
+    mimeType: string;
+    cdnUrl?: string | null;
+    createdAt?: Date | string;
+  };
+
+  export type FileThumbnailUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileThumbnailUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileShareCreateInput = {
+    id?: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    file: FileStorageCreateNestedOneWithoutSharesInput;
+    creator: UserCreateNestedOneWithoutFileSharesCreatedInput;
+  };
+
+  export type FileShareUncheckedCreateInput = {
+    id?: string;
+    fileId: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    createdBy: string;
+  };
+
+  export type FileShareUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    file?: FileStorageUpdateOneRequiredWithoutSharesNestedInput;
+    creator?: UserUpdateOneRequiredWithoutFileSharesCreatedNestedInput;
+  };
+
+  export type FileShareUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdBy?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type FileShareCreateManyInput = {
+    id?: string;
+    fileId: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    createdBy: string;
+  };
+
+  export type FileShareUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileShareUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdBy?: StringFieldUpdateOperationsInput | string;
+  };
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
     in?: string[] | ListStringFieldRefInput<$PrismaModel>;
@@ -54933,6 +62301,12 @@ export namespace Prisma {
     none?: BillingEventWhereInput;
   };
 
+  export type FileStorageListRelationFilter = {
+    every?: FileStorageWhereInput;
+    some?: FileStorageWhereInput;
+    none?: FileStorageWhereInput;
+  };
+
   export type SortOrderInput = {
     sort: SortOrder;
     nulls?: NullsOrder;
@@ -55015,6 +62389,10 @@ export namespace Prisma {
   };
 
   export type BillingEventOrderByRelationAggregateInput = {
+    _count?: SortOrder;
+  };
+
+  export type FileStorageOrderByRelationAggregateInput = {
     _count?: SortOrder;
   };
 
@@ -55135,7 +62513,27 @@ export namespace Prisma {
     none?: SocialAccountWhereInput;
   };
 
+  export type FileVersionListRelationFilter = {
+    every?: FileVersionWhereInput;
+    some?: FileVersionWhereInput;
+    none?: FileVersionWhereInput;
+  };
+
+  export type FileShareListRelationFilter = {
+    every?: FileShareWhereInput;
+    some?: FileShareWhereInput;
+    none?: FileShareWhereInput;
+  };
+
   export type SocialAccountOrderByRelationAggregateInput = {
+    _count?: SortOrder;
+  };
+
+  export type FileVersionOrderByRelationAggregateInput = {
+    _count?: SortOrder;
+  };
+
+  export type FileShareOrderByRelationAggregateInput = {
     _count?: SortOrder;
   };
 
@@ -55417,6 +62815,35 @@ export namespace Prisma {
     not?: NestedEnumSubscriptionStatusFilter<$PrismaModel> | $Enums.SubscriptionStatus;
   };
 
+  export type DecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null;
+    in?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    not?:
+      | NestedDecimalNullableFilter<$PrismaModel>
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
+  };
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>;
     in?: number[] | ListIntFieldRefInput<$PrismaModel>;
@@ -55449,6 +62876,7 @@ export namespace Prisma {
     stripeCustomerId?: SortOrder;
     stripeSubscriptionId?: SortOrder;
     stripePriceId?: SortOrder;
+    monthlyRevenue?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
     maxDatabaseConnections?: SortOrder;
@@ -55459,6 +62887,7 @@ export namespace Prisma {
   };
 
   export type SubscriptionAvgOrderByAggregateInput = {
+    monthlyRevenue?: SortOrder;
     maxDatabaseConnections?: SortOrder;
     maxApiCallsPerMonth?: SortOrder;
     maxUsersPerOrg?: SortOrder;
@@ -55476,6 +62905,7 @@ export namespace Prisma {
     stripeCustomerId?: SortOrder;
     stripeSubscriptionId?: SortOrder;
     stripePriceId?: SortOrder;
+    monthlyRevenue?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
     maxDatabaseConnections?: SortOrder;
@@ -55496,6 +62926,7 @@ export namespace Prisma {
     stripeCustomerId?: SortOrder;
     stripeSubscriptionId?: SortOrder;
     stripePriceId?: SortOrder;
+    monthlyRevenue?: SortOrder;
     createdAt?: SortOrder;
     updatedAt?: SortOrder;
     maxDatabaseConnections?: SortOrder;
@@ -55506,6 +62937,7 @@ export namespace Prisma {
   };
 
   export type SubscriptionSumOrderByAggregateInput = {
+    monthlyRevenue?: SortOrder;
     maxDatabaseConnections?: SortOrder;
     maxApiCallsPerMonth?: SortOrder;
     maxUsersPerOrg?: SortOrder;
@@ -55532,6 +62964,40 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedEnumSubscriptionStatusFilter<$PrismaModel>;
     _max?: NestedEnumSubscriptionStatusFilter<$PrismaModel>;
+  };
+
+  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null;
+    in?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    not?:
+      | NestedDecimalNullableWithAggregatesFilter<$PrismaModel>
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
+    _count?: NestedIntNullableFilter<$PrismaModel>;
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>;
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>;
+    _min?: NestedDecimalNullableFilter<$PrismaModel>;
+    _max?: NestedDecimalNullableFilter<$PrismaModel>;
   };
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -57088,6 +64554,289 @@ export namespace Prisma {
     updatedAt?: SortOrder;
   };
 
+  export type BigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number;
+  };
+
+  export type EnumStorageProviderFilter<$PrismaModel = never> = {
+    equals?: $Enums.StorageProvider | EnumStorageProviderFieldRefInput<$PrismaModel>;
+    in?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    not?: NestedEnumStorageProviderFilter<$PrismaModel> | $Enums.StorageProvider;
+  };
+
+  export type FileThumbnailListRelationFilter = {
+    every?: FileThumbnailWhereInput;
+    some?: FileThumbnailWhereInput;
+    none?: FileThumbnailWhereInput;
+  };
+
+  export type FileThumbnailOrderByRelationAggregateInput = {
+    _count?: SortOrder;
+  };
+
+  export type FileStorageCountOrderByAggregateInput = {
+    id?: SortOrder;
+    filename?: SortOrder;
+    storageKey?: SortOrder;
+    mimeType?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    storageProvider?: SortOrder;
+    bucketName?: SortOrder;
+    cdnUrl?: SortOrder;
+    isPublic?: SortOrder;
+    isActive?: SortOrder;
+    uploadedAt?: SortOrder;
+    lastAccessedAt?: SortOrder;
+    expiresAt?: SortOrder;
+    organizationId?: SortOrder;
+    uploadedBy?: SortOrder;
+    metadata?: SortOrder;
+    tags?: SortOrder;
+    description?: SortOrder;
+  };
+
+  export type FileStorageAvgOrderByAggregateInput = {
+    fileSize?: SortOrder;
+  };
+
+  export type FileStorageMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    filename?: SortOrder;
+    storageKey?: SortOrder;
+    mimeType?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    storageProvider?: SortOrder;
+    bucketName?: SortOrder;
+    cdnUrl?: SortOrder;
+    isPublic?: SortOrder;
+    isActive?: SortOrder;
+    uploadedAt?: SortOrder;
+    lastAccessedAt?: SortOrder;
+    expiresAt?: SortOrder;
+    organizationId?: SortOrder;
+    uploadedBy?: SortOrder;
+    metadata?: SortOrder;
+    description?: SortOrder;
+  };
+
+  export type FileStorageMinOrderByAggregateInput = {
+    id?: SortOrder;
+    filename?: SortOrder;
+    storageKey?: SortOrder;
+    mimeType?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    storageProvider?: SortOrder;
+    bucketName?: SortOrder;
+    cdnUrl?: SortOrder;
+    isPublic?: SortOrder;
+    isActive?: SortOrder;
+    uploadedAt?: SortOrder;
+    lastAccessedAt?: SortOrder;
+    expiresAt?: SortOrder;
+    organizationId?: SortOrder;
+    uploadedBy?: SortOrder;
+    metadata?: SortOrder;
+    description?: SortOrder;
+  };
+
+  export type FileStorageSumOrderByAggregateInput = {
+    fileSize?: SortOrder;
+  };
+
+  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _avg?: NestedFloatFilter<$PrismaModel>;
+    _sum?: NestedBigIntFilter<$PrismaModel>;
+    _min?: NestedBigIntFilter<$PrismaModel>;
+    _max?: NestedBigIntFilter<$PrismaModel>;
+  };
+
+  export type EnumStorageProviderWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.StorageProvider | EnumStorageProviderFieldRefInput<$PrismaModel>;
+    in?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    not?: NestedEnumStorageProviderWithAggregatesFilter<$PrismaModel> | $Enums.StorageProvider;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _min?: NestedEnumStorageProviderFilter<$PrismaModel>;
+    _max?: NestedEnumStorageProviderFilter<$PrismaModel>;
+  };
+
+  export type FileStorageScalarRelationFilter = {
+    is?: FileStorageWhereInput;
+    isNot?: FileStorageWhereInput;
+  };
+
+  export type FileVersionFileIdVersionNumberCompoundUniqueInput = {
+    fileId: string;
+    versionNumber: number;
+  };
+
+  export type FileVersionCountOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    versionNumber?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    uploadedAt?: SortOrder;
+    uploadedBy?: SortOrder;
+    changelog?: SortOrder;
+  };
+
+  export type FileVersionAvgOrderByAggregateInput = {
+    versionNumber?: SortOrder;
+    fileSize?: SortOrder;
+  };
+
+  export type FileVersionMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    versionNumber?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    uploadedAt?: SortOrder;
+    uploadedBy?: SortOrder;
+    changelog?: SortOrder;
+  };
+
+  export type FileVersionMinOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    versionNumber?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    checksum?: SortOrder;
+    uploadedAt?: SortOrder;
+    uploadedBy?: SortOrder;
+    changelog?: SortOrder;
+  };
+
+  export type FileVersionSumOrderByAggregateInput = {
+    versionNumber?: SortOrder;
+    fileSize?: SortOrder;
+  };
+
+  export type FileThumbnailFileIdSizeCompoundUniqueInput = {
+    fileId: string;
+    size: string;
+  };
+
+  export type FileThumbnailCountOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    size?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    mimeType?: SortOrder;
+    cdnUrl?: SortOrder;
+    createdAt?: SortOrder;
+  };
+
+  export type FileThumbnailAvgOrderByAggregateInput = {
+    fileSize?: SortOrder;
+  };
+
+  export type FileThumbnailMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    size?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    mimeType?: SortOrder;
+    cdnUrl?: SortOrder;
+    createdAt?: SortOrder;
+  };
+
+  export type FileThumbnailMinOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    size?: SortOrder;
+    storageKey?: SortOrder;
+    fileSize?: SortOrder;
+    mimeType?: SortOrder;
+    cdnUrl?: SortOrder;
+    createdAt?: SortOrder;
+  };
+
+  export type FileThumbnailSumOrderByAggregateInput = {
+    fileSize?: SortOrder;
+  };
+
+  export type FileShareCountOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    shareToken?: SortOrder;
+    isPublic?: SortOrder;
+    allowDownload?: SortOrder;
+    allowPreview?: SortOrder;
+    expiresAt?: SortOrder;
+    maxDownloads?: SortOrder;
+    downloadCount?: SortOrder;
+    password?: SortOrder;
+    createdAt?: SortOrder;
+    createdBy?: SortOrder;
+  };
+
+  export type FileShareAvgOrderByAggregateInput = {
+    maxDownloads?: SortOrder;
+    downloadCount?: SortOrder;
+  };
+
+  export type FileShareMaxOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    shareToken?: SortOrder;
+    isPublic?: SortOrder;
+    allowDownload?: SortOrder;
+    allowPreview?: SortOrder;
+    expiresAt?: SortOrder;
+    maxDownloads?: SortOrder;
+    downloadCount?: SortOrder;
+    password?: SortOrder;
+    createdAt?: SortOrder;
+    createdBy?: SortOrder;
+  };
+
+  export type FileShareMinOrderByAggregateInput = {
+    id?: SortOrder;
+    fileId?: SortOrder;
+    shareToken?: SortOrder;
+    isPublic?: SortOrder;
+    allowDownload?: SortOrder;
+    allowPreview?: SortOrder;
+    expiresAt?: SortOrder;
+    maxDownloads?: SortOrder;
+    downloadCount?: SortOrder;
+    password?: SortOrder;
+    createdAt?: SortOrder;
+    createdBy?: SortOrder;
+  };
+
+  export type FileShareSumOrderByAggregateInput = {
+    maxDownloads?: SortOrder;
+    downloadCount?: SortOrder;
+  };
+
   export type ApiActivityLogCreateNestedManyWithoutOrganizationInput = {
     create?:
       | XOR<
@@ -57376,6 +65125,21 @@ export namespace Prisma {
     connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
   };
 
+  export type FileStorageCreateNestedManyWithoutOrganizationInput = {
+    create?:
+      | XOR<
+          FileStorageCreateWithoutOrganizationInput,
+          FileStorageUncheckedCreateWithoutOrganizationInput
+        >
+      | FileStorageCreateWithoutOrganizationInput[]
+      | FileStorageUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutOrganizationInput
+      | FileStorageCreateOrConnectWithoutOrganizationInput[];
+    createMany?: FileStorageCreateManyOrganizationInputEnvelope;
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+  };
+
   export type ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?:
       | XOR<
@@ -57662,6 +65426,21 @@ export namespace Prisma {
       | BillingEventCreateOrConnectWithoutOrganizationInput[];
     createMany?: BillingEventCreateManyOrganizationInputEnvelope;
     connect?: BillingEventWhereUniqueInput | BillingEventWhereUniqueInput[];
+  };
+
+  export type FileStorageUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?:
+      | XOR<
+          FileStorageCreateWithoutOrganizationInput,
+          FileStorageUncheckedCreateWithoutOrganizationInput
+        >
+      | FileStorageCreateWithoutOrganizationInput[]
+      | FileStorageUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutOrganizationInput
+      | FileStorageCreateOrConnectWithoutOrganizationInput[];
+    createMany?: FileStorageCreateManyOrganizationInputEnvelope;
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
   };
 
   export type StringFieldUpdateOperationsInput = {
@@ -58242,6 +66021,34 @@ export namespace Prisma {
     deleteMany?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
   };
 
+  export type FileStorageUpdateManyWithoutOrganizationNestedInput = {
+    create?:
+      | XOR<
+          FileStorageCreateWithoutOrganizationInput,
+          FileStorageUncheckedCreateWithoutOrganizationInput
+        >
+      | FileStorageCreateWithoutOrganizationInput[]
+      | FileStorageUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutOrganizationInput
+      | FileStorageCreateOrConnectWithoutOrganizationInput[];
+    upsert?:
+      | FileStorageUpsertWithWhereUniqueWithoutOrganizationInput
+      | FileStorageUpsertWithWhereUniqueWithoutOrganizationInput[];
+    createMany?: FileStorageCreateManyOrganizationInputEnvelope;
+    set?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    disconnect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    delete?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    update?:
+      | FileStorageUpdateWithWhereUniqueWithoutOrganizationInput
+      | FileStorageUpdateWithWhereUniqueWithoutOrganizationInput[];
+    updateMany?:
+      | FileStorageUpdateManyWithWhereWithoutOrganizationInput
+      | FileStorageUpdateManyWithWhereWithoutOrganizationInput[];
+    deleteMany?: FileStorageScalarWhereInput | FileStorageScalarWhereInput[];
+  };
+
   export type ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?:
       | XOR<
@@ -58800,6 +66607,34 @@ export namespace Prisma {
     deleteMany?: BillingEventScalarWhereInput | BillingEventScalarWhereInput[];
   };
 
+  export type FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?:
+      | XOR<
+          FileStorageCreateWithoutOrganizationInput,
+          FileStorageUncheckedCreateWithoutOrganizationInput
+        >
+      | FileStorageCreateWithoutOrganizationInput[]
+      | FileStorageUncheckedCreateWithoutOrganizationInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutOrganizationInput
+      | FileStorageCreateOrConnectWithoutOrganizationInput[];
+    upsert?:
+      | FileStorageUpsertWithWhereUniqueWithoutOrganizationInput
+      | FileStorageUpsertWithWhereUniqueWithoutOrganizationInput[];
+    createMany?: FileStorageCreateManyOrganizationInputEnvelope;
+    set?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    disconnect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    delete?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    update?:
+      | FileStorageUpdateWithWhereUniqueWithoutOrganizationInput
+      | FileStorageUpdateWithWhereUniqueWithoutOrganizationInput[];
+    updateMany?:
+      | FileStorageUpdateManyWithWhereWithoutOrganizationInput
+      | FileStorageUpdateManyWithWhereWithoutOrganizationInput[];
+    deleteMany?: FileStorageScalarWhereInput | FileStorageScalarWhereInput[];
+  };
+
   export type ApiActivityLogCreateNestedManyWithoutUserInput = {
     create?:
       | XOR<ApiActivityLogCreateWithoutUserInput, ApiActivityLogUncheckedCreateWithoutUserInput>
@@ -59013,6 +66848,42 @@ export namespace Prisma {
     connect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
   };
 
+  export type FileStorageCreateNestedManyWithoutUploaderInput = {
+    create?:
+      | XOR<FileStorageCreateWithoutUploaderInput, FileStorageUncheckedCreateWithoutUploaderInput>
+      | FileStorageCreateWithoutUploaderInput[]
+      | FileStorageUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutUploaderInput
+      | FileStorageCreateOrConnectWithoutUploaderInput[];
+    createMany?: FileStorageCreateManyUploaderInputEnvelope;
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+  };
+
+  export type FileVersionCreateNestedManyWithoutUploaderInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutUploaderInput, FileVersionUncheckedCreateWithoutUploaderInput>
+      | FileVersionCreateWithoutUploaderInput[]
+      | FileVersionUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutUploaderInput
+      | FileVersionCreateOrConnectWithoutUploaderInput[];
+    createMany?: FileVersionCreateManyUploaderInputEnvelope;
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+  };
+
+  export type FileShareCreateNestedManyWithoutCreatorInput = {
+    create?:
+      | XOR<FileShareCreateWithoutCreatorInput, FileShareUncheckedCreateWithoutCreatorInput>
+      | FileShareCreateWithoutCreatorInput[]
+      | FileShareUncheckedCreateWithoutCreatorInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutCreatorInput
+      | FileShareCreateOrConnectWithoutCreatorInput[];
+    createMany?: FileShareCreateManyCreatorInputEnvelope;
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+  };
+
   export type ApiActivityLogUncheckedCreateNestedManyWithoutUserInput = {
     create?:
       | XOR<ApiActivityLogCreateWithoutUserInput, ApiActivityLogUncheckedCreateWithoutUserInput>
@@ -59224,6 +67095,42 @@ export namespace Prisma {
       | SocialAccountCreateOrConnectWithoutUserInput[];
     createMany?: SocialAccountCreateManyUserInputEnvelope;
     connect?: SocialAccountWhereUniqueInput | SocialAccountWhereUniqueInput[];
+  };
+
+  export type FileStorageUncheckedCreateNestedManyWithoutUploaderInput = {
+    create?:
+      | XOR<FileStorageCreateWithoutUploaderInput, FileStorageUncheckedCreateWithoutUploaderInput>
+      | FileStorageCreateWithoutUploaderInput[]
+      | FileStorageUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutUploaderInput
+      | FileStorageCreateOrConnectWithoutUploaderInput[];
+    createMany?: FileStorageCreateManyUploaderInputEnvelope;
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+  };
+
+  export type FileVersionUncheckedCreateNestedManyWithoutUploaderInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutUploaderInput, FileVersionUncheckedCreateWithoutUploaderInput>
+      | FileVersionCreateWithoutUploaderInput[]
+      | FileVersionUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutUploaderInput
+      | FileVersionCreateOrConnectWithoutUploaderInput[];
+    createMany?: FileVersionCreateManyUploaderInputEnvelope;
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+  };
+
+  export type FileShareUncheckedCreateNestedManyWithoutCreatorInput = {
+    create?:
+      | XOR<FileShareCreateWithoutCreatorInput, FileShareUncheckedCreateWithoutCreatorInput>
+      | FileShareCreateWithoutCreatorInput[]
+      | FileShareUncheckedCreateWithoutCreatorInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutCreatorInput
+      | FileShareCreateOrConnectWithoutCreatorInput[];
+    createMany?: FileShareCreateManyCreatorInputEnvelope;
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
   };
 
   export type ApiActivityLogUpdateManyWithoutUserNestedInput = {
@@ -59660,6 +67567,81 @@ export namespace Prisma {
     deleteMany?: SocialAccountScalarWhereInput | SocialAccountScalarWhereInput[];
   };
 
+  export type FileStorageUpdateManyWithoutUploaderNestedInput = {
+    create?:
+      | XOR<FileStorageCreateWithoutUploaderInput, FileStorageUncheckedCreateWithoutUploaderInput>
+      | FileStorageCreateWithoutUploaderInput[]
+      | FileStorageUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutUploaderInput
+      | FileStorageCreateOrConnectWithoutUploaderInput[];
+    upsert?:
+      | FileStorageUpsertWithWhereUniqueWithoutUploaderInput
+      | FileStorageUpsertWithWhereUniqueWithoutUploaderInput[];
+    createMany?: FileStorageCreateManyUploaderInputEnvelope;
+    set?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    disconnect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    delete?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    update?:
+      | FileStorageUpdateWithWhereUniqueWithoutUploaderInput
+      | FileStorageUpdateWithWhereUniqueWithoutUploaderInput[];
+    updateMany?:
+      | FileStorageUpdateManyWithWhereWithoutUploaderInput
+      | FileStorageUpdateManyWithWhereWithoutUploaderInput[];
+    deleteMany?: FileStorageScalarWhereInput | FileStorageScalarWhereInput[];
+  };
+
+  export type FileVersionUpdateManyWithoutUploaderNestedInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutUploaderInput, FileVersionUncheckedCreateWithoutUploaderInput>
+      | FileVersionCreateWithoutUploaderInput[]
+      | FileVersionUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutUploaderInput
+      | FileVersionCreateOrConnectWithoutUploaderInput[];
+    upsert?:
+      | FileVersionUpsertWithWhereUniqueWithoutUploaderInput
+      | FileVersionUpsertWithWhereUniqueWithoutUploaderInput[];
+    createMany?: FileVersionCreateManyUploaderInputEnvelope;
+    set?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    disconnect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    delete?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    update?:
+      | FileVersionUpdateWithWhereUniqueWithoutUploaderInput
+      | FileVersionUpdateWithWhereUniqueWithoutUploaderInput[];
+    updateMany?:
+      | FileVersionUpdateManyWithWhereWithoutUploaderInput
+      | FileVersionUpdateManyWithWhereWithoutUploaderInput[];
+    deleteMany?: FileVersionScalarWhereInput | FileVersionScalarWhereInput[];
+  };
+
+  export type FileShareUpdateManyWithoutCreatorNestedInput = {
+    create?:
+      | XOR<FileShareCreateWithoutCreatorInput, FileShareUncheckedCreateWithoutCreatorInput>
+      | FileShareCreateWithoutCreatorInput[]
+      | FileShareUncheckedCreateWithoutCreatorInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutCreatorInput
+      | FileShareCreateOrConnectWithoutCreatorInput[];
+    upsert?:
+      | FileShareUpsertWithWhereUniqueWithoutCreatorInput
+      | FileShareUpsertWithWhereUniqueWithoutCreatorInput[];
+    createMany?: FileShareCreateManyCreatorInputEnvelope;
+    set?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    disconnect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    delete?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    update?:
+      | FileShareUpdateWithWhereUniqueWithoutCreatorInput
+      | FileShareUpdateWithWhereUniqueWithoutCreatorInput[];
+    updateMany?:
+      | FileShareUpdateManyWithWhereWithoutCreatorInput
+      | FileShareUpdateManyWithWhereWithoutCreatorInput[];
+    deleteMany?: FileShareScalarWhereInput | FileShareScalarWhereInput[];
+  };
+
   export type ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput = {
     create?:
       | XOR<ApiActivityLogCreateWithoutUserInput, ApiActivityLogUncheckedCreateWithoutUserInput>
@@ -60094,6 +68076,81 @@ export namespace Prisma {
     deleteMany?: SocialAccountScalarWhereInput | SocialAccountScalarWhereInput[];
   };
 
+  export type FileStorageUncheckedUpdateManyWithoutUploaderNestedInput = {
+    create?:
+      | XOR<FileStorageCreateWithoutUploaderInput, FileStorageUncheckedCreateWithoutUploaderInput>
+      | FileStorageCreateWithoutUploaderInput[]
+      | FileStorageUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileStorageCreateOrConnectWithoutUploaderInput
+      | FileStorageCreateOrConnectWithoutUploaderInput[];
+    upsert?:
+      | FileStorageUpsertWithWhereUniqueWithoutUploaderInput
+      | FileStorageUpsertWithWhereUniqueWithoutUploaderInput[];
+    createMany?: FileStorageCreateManyUploaderInputEnvelope;
+    set?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    disconnect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    delete?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    connect?: FileStorageWhereUniqueInput | FileStorageWhereUniqueInput[];
+    update?:
+      | FileStorageUpdateWithWhereUniqueWithoutUploaderInput
+      | FileStorageUpdateWithWhereUniqueWithoutUploaderInput[];
+    updateMany?:
+      | FileStorageUpdateManyWithWhereWithoutUploaderInput
+      | FileStorageUpdateManyWithWhereWithoutUploaderInput[];
+    deleteMany?: FileStorageScalarWhereInput | FileStorageScalarWhereInput[];
+  };
+
+  export type FileVersionUncheckedUpdateManyWithoutUploaderNestedInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutUploaderInput, FileVersionUncheckedCreateWithoutUploaderInput>
+      | FileVersionCreateWithoutUploaderInput[]
+      | FileVersionUncheckedCreateWithoutUploaderInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutUploaderInput
+      | FileVersionCreateOrConnectWithoutUploaderInput[];
+    upsert?:
+      | FileVersionUpsertWithWhereUniqueWithoutUploaderInput
+      | FileVersionUpsertWithWhereUniqueWithoutUploaderInput[];
+    createMany?: FileVersionCreateManyUploaderInputEnvelope;
+    set?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    disconnect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    delete?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    update?:
+      | FileVersionUpdateWithWhereUniqueWithoutUploaderInput
+      | FileVersionUpdateWithWhereUniqueWithoutUploaderInput[];
+    updateMany?:
+      | FileVersionUpdateManyWithWhereWithoutUploaderInput
+      | FileVersionUpdateManyWithWhereWithoutUploaderInput[];
+    deleteMany?: FileVersionScalarWhereInput | FileVersionScalarWhereInput[];
+  };
+
+  export type FileShareUncheckedUpdateManyWithoutCreatorNestedInput = {
+    create?:
+      | XOR<FileShareCreateWithoutCreatorInput, FileShareUncheckedCreateWithoutCreatorInput>
+      | FileShareCreateWithoutCreatorInput[]
+      | FileShareUncheckedCreateWithoutCreatorInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutCreatorInput
+      | FileShareCreateOrConnectWithoutCreatorInput[];
+    upsert?:
+      | FileShareUpsertWithWhereUniqueWithoutCreatorInput
+      | FileShareUpsertWithWhereUniqueWithoutCreatorInput[];
+    createMany?: FileShareCreateManyCreatorInputEnvelope;
+    set?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    disconnect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    delete?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    update?:
+      | FileShareUpdateWithWhereUniqueWithoutCreatorInput
+      | FileShareUpdateWithWhereUniqueWithoutCreatorInput[];
+    updateMany?:
+      | FileShareUpdateManyWithWhereWithoutCreatorInput
+      | FileShareUpdateManyWithWhereWithoutCreatorInput[];
+    deleteMany?: FileShareScalarWhereInput | FileShareScalarWhereInput[];
+  };
+
   export type OrganizationCreateNestedOneWithoutMembershipsInput = {
     create?: XOR<
       OrganizationCreateWithoutMembershipsInput,
@@ -60318,6 +68375,14 @@ export namespace Prisma {
 
   export type EnumSubscriptionStatusFieldUpdateOperationsInput = {
     set?: $Enums.SubscriptionStatus;
+  };
+
+  export type NullableDecimalFieldUpdateOperationsInput = {
+    set?: Decimal | DecimalJsLike | number | string | null;
+    increment?: Decimal | DecimalJsLike | number | string;
+    decrement?: Decimal | DecimalJsLike | number | string;
+    multiply?: Decimal | DecimalJsLike | number | string;
+    divide?: Decimal | DecimalJsLike | number | string;
   };
 
   export type IntFieldUpdateOperationsInput = {
@@ -62970,6 +71035,417 @@ export namespace Prisma {
     >;
   };
 
+  export type FileStorageCreatetagsInput = {
+    set: string[];
+  };
+
+  export type OrganizationCreateNestedOneWithoutFileStoragesInput = {
+    create?: XOR<
+      OrganizationCreateWithoutFileStoragesInput,
+      OrganizationUncheckedCreateWithoutFileStoragesInput
+    >;
+    connectOrCreate?: OrganizationCreateOrConnectWithoutFileStoragesInput;
+    connect?: OrganizationWhereUniqueInput;
+  };
+
+  export type UserCreateNestedOneWithoutUploadedFilesInput = {
+    create?: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>;
+    connectOrCreate?: UserCreateOrConnectWithoutUploadedFilesInput;
+    connect?: UserWhereUniqueInput;
+  };
+
+  export type FileVersionCreateNestedManyWithoutFileInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutFileInput, FileVersionUncheckedCreateWithoutFileInput>
+      | FileVersionCreateWithoutFileInput[]
+      | FileVersionUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutFileInput
+      | FileVersionCreateOrConnectWithoutFileInput[];
+    createMany?: FileVersionCreateManyFileInputEnvelope;
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+  };
+
+  export type FileThumbnailCreateNestedManyWithoutFileInput = {
+    create?:
+      | XOR<FileThumbnailCreateWithoutFileInput, FileThumbnailUncheckedCreateWithoutFileInput>
+      | FileThumbnailCreateWithoutFileInput[]
+      | FileThumbnailUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileThumbnailCreateOrConnectWithoutFileInput
+      | FileThumbnailCreateOrConnectWithoutFileInput[];
+    createMany?: FileThumbnailCreateManyFileInputEnvelope;
+    connect?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+  };
+
+  export type FileShareCreateNestedManyWithoutFileInput = {
+    create?:
+      | XOR<FileShareCreateWithoutFileInput, FileShareUncheckedCreateWithoutFileInput>
+      | FileShareCreateWithoutFileInput[]
+      | FileShareUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutFileInput
+      | FileShareCreateOrConnectWithoutFileInput[];
+    createMany?: FileShareCreateManyFileInputEnvelope;
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+  };
+
+  export type FileVersionUncheckedCreateNestedManyWithoutFileInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutFileInput, FileVersionUncheckedCreateWithoutFileInput>
+      | FileVersionCreateWithoutFileInput[]
+      | FileVersionUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutFileInput
+      | FileVersionCreateOrConnectWithoutFileInput[];
+    createMany?: FileVersionCreateManyFileInputEnvelope;
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+  };
+
+  export type FileThumbnailUncheckedCreateNestedManyWithoutFileInput = {
+    create?:
+      | XOR<FileThumbnailCreateWithoutFileInput, FileThumbnailUncheckedCreateWithoutFileInput>
+      | FileThumbnailCreateWithoutFileInput[]
+      | FileThumbnailUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileThumbnailCreateOrConnectWithoutFileInput
+      | FileThumbnailCreateOrConnectWithoutFileInput[];
+    createMany?: FileThumbnailCreateManyFileInputEnvelope;
+    connect?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+  };
+
+  export type FileShareUncheckedCreateNestedManyWithoutFileInput = {
+    create?:
+      | XOR<FileShareCreateWithoutFileInput, FileShareUncheckedCreateWithoutFileInput>
+      | FileShareCreateWithoutFileInput[]
+      | FileShareUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutFileInput
+      | FileShareCreateOrConnectWithoutFileInput[];
+    createMany?: FileShareCreateManyFileInputEnvelope;
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+  };
+
+  export type BigIntFieldUpdateOperationsInput = {
+    set?: bigint | number;
+    increment?: bigint | number;
+    decrement?: bigint | number;
+    multiply?: bigint | number;
+    divide?: bigint | number;
+  };
+
+  export type EnumStorageProviderFieldUpdateOperationsInput = {
+    set?: $Enums.StorageProvider;
+  };
+
+  export type FileStorageUpdatetagsInput = {
+    set?: string[];
+    push?: string | string[];
+  };
+
+  export type OrganizationUpdateOneRequiredWithoutFileStoragesNestedInput = {
+    create?: XOR<
+      OrganizationCreateWithoutFileStoragesInput,
+      OrganizationUncheckedCreateWithoutFileStoragesInput
+    >;
+    connectOrCreate?: OrganizationCreateOrConnectWithoutFileStoragesInput;
+    upsert?: OrganizationUpsertWithoutFileStoragesInput;
+    connect?: OrganizationWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        OrganizationUpdateToOneWithWhereWithoutFileStoragesInput,
+        OrganizationUpdateWithoutFileStoragesInput
+      >,
+      OrganizationUncheckedUpdateWithoutFileStoragesInput
+    >;
+  };
+
+  export type UserUpdateOneWithoutUploadedFilesNestedInput = {
+    create?: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>;
+    connectOrCreate?: UserCreateOrConnectWithoutUploadedFilesInput;
+    upsert?: UserUpsertWithoutUploadedFilesInput;
+    disconnect?: UserWhereInput | boolean;
+    delete?: UserWhereInput | boolean;
+    connect?: UserWhereUniqueInput;
+    update?: XOR<
+      XOR<UserUpdateToOneWithWhereWithoutUploadedFilesInput, UserUpdateWithoutUploadedFilesInput>,
+      UserUncheckedUpdateWithoutUploadedFilesInput
+    >;
+  };
+
+  export type FileVersionUpdateManyWithoutFileNestedInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutFileInput, FileVersionUncheckedCreateWithoutFileInput>
+      | FileVersionCreateWithoutFileInput[]
+      | FileVersionUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutFileInput
+      | FileVersionCreateOrConnectWithoutFileInput[];
+    upsert?:
+      | FileVersionUpsertWithWhereUniqueWithoutFileInput
+      | FileVersionUpsertWithWhereUniqueWithoutFileInput[];
+    createMany?: FileVersionCreateManyFileInputEnvelope;
+    set?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    disconnect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    delete?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    update?:
+      | FileVersionUpdateWithWhereUniqueWithoutFileInput
+      | FileVersionUpdateWithWhereUniqueWithoutFileInput[];
+    updateMany?:
+      | FileVersionUpdateManyWithWhereWithoutFileInput
+      | FileVersionUpdateManyWithWhereWithoutFileInput[];
+    deleteMany?: FileVersionScalarWhereInput | FileVersionScalarWhereInput[];
+  };
+
+  export type FileThumbnailUpdateManyWithoutFileNestedInput = {
+    create?:
+      | XOR<FileThumbnailCreateWithoutFileInput, FileThumbnailUncheckedCreateWithoutFileInput>
+      | FileThumbnailCreateWithoutFileInput[]
+      | FileThumbnailUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileThumbnailCreateOrConnectWithoutFileInput
+      | FileThumbnailCreateOrConnectWithoutFileInput[];
+    upsert?:
+      | FileThumbnailUpsertWithWhereUniqueWithoutFileInput
+      | FileThumbnailUpsertWithWhereUniqueWithoutFileInput[];
+    createMany?: FileThumbnailCreateManyFileInputEnvelope;
+    set?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    disconnect?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    delete?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    connect?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    update?:
+      | FileThumbnailUpdateWithWhereUniqueWithoutFileInput
+      | FileThumbnailUpdateWithWhereUniqueWithoutFileInput[];
+    updateMany?:
+      | FileThumbnailUpdateManyWithWhereWithoutFileInput
+      | FileThumbnailUpdateManyWithWhereWithoutFileInput[];
+    deleteMany?: FileThumbnailScalarWhereInput | FileThumbnailScalarWhereInput[];
+  };
+
+  export type FileShareUpdateManyWithoutFileNestedInput = {
+    create?:
+      | XOR<FileShareCreateWithoutFileInput, FileShareUncheckedCreateWithoutFileInput>
+      | FileShareCreateWithoutFileInput[]
+      | FileShareUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutFileInput
+      | FileShareCreateOrConnectWithoutFileInput[];
+    upsert?:
+      | FileShareUpsertWithWhereUniqueWithoutFileInput
+      | FileShareUpsertWithWhereUniqueWithoutFileInput[];
+    createMany?: FileShareCreateManyFileInputEnvelope;
+    set?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    disconnect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    delete?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    update?:
+      | FileShareUpdateWithWhereUniqueWithoutFileInput
+      | FileShareUpdateWithWhereUniqueWithoutFileInput[];
+    updateMany?:
+      | FileShareUpdateManyWithWhereWithoutFileInput
+      | FileShareUpdateManyWithWhereWithoutFileInput[];
+    deleteMany?: FileShareScalarWhereInput | FileShareScalarWhereInput[];
+  };
+
+  export type FileVersionUncheckedUpdateManyWithoutFileNestedInput = {
+    create?:
+      | XOR<FileVersionCreateWithoutFileInput, FileVersionUncheckedCreateWithoutFileInput>
+      | FileVersionCreateWithoutFileInput[]
+      | FileVersionUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileVersionCreateOrConnectWithoutFileInput
+      | FileVersionCreateOrConnectWithoutFileInput[];
+    upsert?:
+      | FileVersionUpsertWithWhereUniqueWithoutFileInput
+      | FileVersionUpsertWithWhereUniqueWithoutFileInput[];
+    createMany?: FileVersionCreateManyFileInputEnvelope;
+    set?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    disconnect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    delete?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    connect?: FileVersionWhereUniqueInput | FileVersionWhereUniqueInput[];
+    update?:
+      | FileVersionUpdateWithWhereUniqueWithoutFileInput
+      | FileVersionUpdateWithWhereUniqueWithoutFileInput[];
+    updateMany?:
+      | FileVersionUpdateManyWithWhereWithoutFileInput
+      | FileVersionUpdateManyWithWhereWithoutFileInput[];
+    deleteMany?: FileVersionScalarWhereInput | FileVersionScalarWhereInput[];
+  };
+
+  export type FileThumbnailUncheckedUpdateManyWithoutFileNestedInput = {
+    create?:
+      | XOR<FileThumbnailCreateWithoutFileInput, FileThumbnailUncheckedCreateWithoutFileInput>
+      | FileThumbnailCreateWithoutFileInput[]
+      | FileThumbnailUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileThumbnailCreateOrConnectWithoutFileInput
+      | FileThumbnailCreateOrConnectWithoutFileInput[];
+    upsert?:
+      | FileThumbnailUpsertWithWhereUniqueWithoutFileInput
+      | FileThumbnailUpsertWithWhereUniqueWithoutFileInput[];
+    createMany?: FileThumbnailCreateManyFileInputEnvelope;
+    set?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    disconnect?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    delete?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    connect?: FileThumbnailWhereUniqueInput | FileThumbnailWhereUniqueInput[];
+    update?:
+      | FileThumbnailUpdateWithWhereUniqueWithoutFileInput
+      | FileThumbnailUpdateWithWhereUniqueWithoutFileInput[];
+    updateMany?:
+      | FileThumbnailUpdateManyWithWhereWithoutFileInput
+      | FileThumbnailUpdateManyWithWhereWithoutFileInput[];
+    deleteMany?: FileThumbnailScalarWhereInput | FileThumbnailScalarWhereInput[];
+  };
+
+  export type FileShareUncheckedUpdateManyWithoutFileNestedInput = {
+    create?:
+      | XOR<FileShareCreateWithoutFileInput, FileShareUncheckedCreateWithoutFileInput>
+      | FileShareCreateWithoutFileInput[]
+      | FileShareUncheckedCreateWithoutFileInput[];
+    connectOrCreate?:
+      | FileShareCreateOrConnectWithoutFileInput
+      | FileShareCreateOrConnectWithoutFileInput[];
+    upsert?:
+      | FileShareUpsertWithWhereUniqueWithoutFileInput
+      | FileShareUpsertWithWhereUniqueWithoutFileInput[];
+    createMany?: FileShareCreateManyFileInputEnvelope;
+    set?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    disconnect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    delete?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    connect?: FileShareWhereUniqueInput | FileShareWhereUniqueInput[];
+    update?:
+      | FileShareUpdateWithWhereUniqueWithoutFileInput
+      | FileShareUpdateWithWhereUniqueWithoutFileInput[];
+    updateMany?:
+      | FileShareUpdateManyWithWhereWithoutFileInput
+      | FileShareUpdateManyWithWhereWithoutFileInput[];
+    deleteMany?: FileShareScalarWhereInput | FileShareScalarWhereInput[];
+  };
+
+  export type FileStorageCreateNestedOneWithoutVersionsInput = {
+    create?: XOR<
+      FileStorageCreateWithoutVersionsInput,
+      FileStorageUncheckedCreateWithoutVersionsInput
+    >;
+    connectOrCreate?: FileStorageCreateOrConnectWithoutVersionsInput;
+    connect?: FileStorageWhereUniqueInput;
+  };
+
+  export type UserCreateNestedOneWithoutFileVersionsCreatedInput = {
+    create?: XOR<
+      UserCreateWithoutFileVersionsCreatedInput,
+      UserUncheckedCreateWithoutFileVersionsCreatedInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutFileVersionsCreatedInput;
+    connect?: UserWhereUniqueInput;
+  };
+
+  export type FileStorageUpdateOneRequiredWithoutVersionsNestedInput = {
+    create?: XOR<
+      FileStorageCreateWithoutVersionsInput,
+      FileStorageUncheckedCreateWithoutVersionsInput
+    >;
+    connectOrCreate?: FileStorageCreateOrConnectWithoutVersionsInput;
+    upsert?: FileStorageUpsertWithoutVersionsInput;
+    connect?: FileStorageWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        FileStorageUpdateToOneWithWhereWithoutVersionsInput,
+        FileStorageUpdateWithoutVersionsInput
+      >,
+      FileStorageUncheckedUpdateWithoutVersionsInput
+    >;
+  };
+
+  export type UserUpdateOneWithoutFileVersionsCreatedNestedInput = {
+    create?: XOR<
+      UserCreateWithoutFileVersionsCreatedInput,
+      UserUncheckedCreateWithoutFileVersionsCreatedInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutFileVersionsCreatedInput;
+    upsert?: UserUpsertWithoutFileVersionsCreatedInput;
+    disconnect?: UserWhereInput | boolean;
+    delete?: UserWhereInput | boolean;
+    connect?: UserWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        UserUpdateToOneWithWhereWithoutFileVersionsCreatedInput,
+        UserUpdateWithoutFileVersionsCreatedInput
+      >,
+      UserUncheckedUpdateWithoutFileVersionsCreatedInput
+    >;
+  };
+
+  export type FileStorageCreateNestedOneWithoutThumbnailsInput = {
+    create?: XOR<
+      FileStorageCreateWithoutThumbnailsInput,
+      FileStorageUncheckedCreateWithoutThumbnailsInput
+    >;
+    connectOrCreate?: FileStorageCreateOrConnectWithoutThumbnailsInput;
+    connect?: FileStorageWhereUniqueInput;
+  };
+
+  export type FileStorageUpdateOneRequiredWithoutThumbnailsNestedInput = {
+    create?: XOR<
+      FileStorageCreateWithoutThumbnailsInput,
+      FileStorageUncheckedCreateWithoutThumbnailsInput
+    >;
+    connectOrCreate?: FileStorageCreateOrConnectWithoutThumbnailsInput;
+    upsert?: FileStorageUpsertWithoutThumbnailsInput;
+    connect?: FileStorageWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        FileStorageUpdateToOneWithWhereWithoutThumbnailsInput,
+        FileStorageUpdateWithoutThumbnailsInput
+      >,
+      FileStorageUncheckedUpdateWithoutThumbnailsInput
+    >;
+  };
+
+  export type FileStorageCreateNestedOneWithoutSharesInput = {
+    create?: XOR<FileStorageCreateWithoutSharesInput, FileStorageUncheckedCreateWithoutSharesInput>;
+    connectOrCreate?: FileStorageCreateOrConnectWithoutSharesInput;
+    connect?: FileStorageWhereUniqueInput;
+  };
+
+  export type UserCreateNestedOneWithoutFileSharesCreatedInput = {
+    create?: XOR<
+      UserCreateWithoutFileSharesCreatedInput,
+      UserUncheckedCreateWithoutFileSharesCreatedInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutFileSharesCreatedInput;
+    connect?: UserWhereUniqueInput;
+  };
+
+  export type FileStorageUpdateOneRequiredWithoutSharesNestedInput = {
+    create?: XOR<FileStorageCreateWithoutSharesInput, FileStorageUncheckedCreateWithoutSharesInput>;
+    connectOrCreate?: FileStorageCreateOrConnectWithoutSharesInput;
+    upsert?: FileStorageUpsertWithoutSharesInput;
+    connect?: FileStorageWhereUniqueInput;
+    update?: XOR<
+      XOR<FileStorageUpdateToOneWithWhereWithoutSharesInput, FileStorageUpdateWithoutSharesInput>,
+      FileStorageUncheckedUpdateWithoutSharesInput
+    >;
+  };
+
+  export type UserUpdateOneRequiredWithoutFileSharesCreatedNestedInput = {
+    create?: XOR<
+      UserCreateWithoutFileSharesCreatedInput,
+      UserUncheckedCreateWithoutFileSharesCreatedInput
+    >;
+    connectOrCreate?: UserCreateOrConnectWithoutFileSharesCreatedInput;
+    upsert?: UserUpsertWithoutFileSharesCreatedInput;
+    connect?: UserWhereUniqueInput;
+    update?: XOR<
+      XOR<
+        UserUpdateToOneWithWhereWithoutFileSharesCreatedInput,
+        UserUpdateWithoutFileSharesCreatedInput
+      >,
+      UserUncheckedUpdateWithoutFileSharesCreatedInput
+    >;
+  };
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>;
     in?: string[] | ListStringFieldRefInput<$PrismaModel>;
@@ -63174,6 +71650,35 @@ export namespace Prisma {
     not?: NestedEnumSubscriptionStatusFilter<$PrismaModel> | $Enums.SubscriptionStatus;
   };
 
+  export type NestedDecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null;
+    in?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    not?:
+      | NestedDecimalNullableFilter<$PrismaModel>
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
+  };
+
   export type NestedEnumSubscriptionPlanWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.SubscriptionPlan | EnumSubscriptionPlanFieldRefInput<$PrismaModel>;
     in?: $Enums.SubscriptionPlan[] | ListEnumSubscriptionPlanFieldRefInput<$PrismaModel>;
@@ -63194,6 +71699,40 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedEnumSubscriptionStatusFilter<$PrismaModel>;
     _max?: NestedEnumSubscriptionStatusFilter<$PrismaModel>;
+  };
+
+  export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null;
+    in?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    notIn?:
+      | Decimal[]
+      | DecimalJsLike[]
+      | number[]
+      | string[]
+      | ListDecimalFieldRefInput<$PrismaModel>
+      | null;
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>;
+    not?:
+      | NestedDecimalNullableWithAggregatesFilter<$PrismaModel>
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
+    _count?: NestedIntNullableFilter<$PrismaModel>;
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>;
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>;
+    _min?: NestedDecimalNullableFilter<$PrismaModel>;
+    _max?: NestedDecimalNullableFilter<$PrismaModel>;
   };
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -63477,6 +72016,50 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>;
     _min?: NestedEnumRateLimitKeyStrategyFilter<$PrismaModel>;
     _max?: NestedEnumRateLimitKeyStrategyFilter<$PrismaModel>;
+  };
+
+  export type NestedBigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number;
+  };
+
+  export type NestedEnumStorageProviderFilter<$PrismaModel = never> = {
+    equals?: $Enums.StorageProvider | EnumStorageProviderFieldRefInput<$PrismaModel>;
+    in?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    not?: NestedEnumStorageProviderFilter<$PrismaModel> | $Enums.StorageProvider;
+  };
+
+  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>;
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>;
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _avg?: NestedFloatFilter<$PrismaModel>;
+    _sum?: NestedBigIntFilter<$PrismaModel>;
+    _min?: NestedBigIntFilter<$PrismaModel>;
+    _max?: NestedBigIntFilter<$PrismaModel>;
+  };
+
+  export type NestedEnumStorageProviderWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.StorageProvider | EnumStorageProviderFieldRefInput<$PrismaModel>;
+    in?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    notIn?: $Enums.StorageProvider[] | ListEnumStorageProviderFieldRefInput<$PrismaModel>;
+    not?: NestedEnumStorageProviderWithAggregatesFilter<$PrismaModel> | $Enums.StorageProvider;
+    _count?: NestedIntFilter<$PrismaModel>;
+    _min?: NestedEnumStorageProviderFilter<$PrismaModel>;
+    _max?: NestedEnumStorageProviderFilter<$PrismaModel>;
   };
 
   export type ApiActivityLogCreateWithoutOrganizationInput = {
@@ -64076,6 +72659,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -64097,6 +72681,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -64381,6 +72966,67 @@ export namespace Prisma {
 
   export type BillingEventCreateManyOrganizationInputEnvelope = {
     data: BillingEventCreateManyOrganizationInput | BillingEventCreateManyOrganizationInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type FileStorageCreateWithoutOrganizationInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    uploader?: UserCreateNestedOneWithoutUploadedFilesInput;
+    versions?: FileVersionCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailCreateNestedManyWithoutFileInput;
+    shares?: FileShareCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUncheckedCreateWithoutOrganizationInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    versions?: FileVersionUncheckedCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailUncheckedCreateNestedManyWithoutFileInput;
+    shares?: FileShareUncheckedCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageCreateOrConnectWithoutOrganizationInput = {
+    where: FileStorageWhereUniqueInput;
+    create: XOR<
+      FileStorageCreateWithoutOrganizationInput,
+      FileStorageUncheckedCreateWithoutOrganizationInput
+    >;
+  };
+
+  export type FileStorageCreateManyOrganizationInputEnvelope = {
+    data: FileStorageCreateManyOrganizationInput | FileStorageCreateManyOrganizationInput[];
     skipDuplicates?: boolean;
   };
 
@@ -65000,6 +73646,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -65021,6 +73674,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -65335,6 +73995,59 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<'BillingEvent'> | Date | string;
     organizationId?: StringNullableFilter<'BillingEvent'> | string | null;
     subscriptionId?: StringNullableFilter<'BillingEvent'> | string | null;
+  };
+
+  export type FileStorageUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: FileStorageWhereUniqueInput;
+    update: XOR<
+      FileStorageUpdateWithoutOrganizationInput,
+      FileStorageUncheckedUpdateWithoutOrganizationInput
+    >;
+    create: XOR<
+      FileStorageCreateWithoutOrganizationInput,
+      FileStorageUncheckedCreateWithoutOrganizationInput
+    >;
+  };
+
+  export type FileStorageUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: FileStorageWhereUniqueInput;
+    data: XOR<
+      FileStorageUpdateWithoutOrganizationInput,
+      FileStorageUncheckedUpdateWithoutOrganizationInput
+    >;
+  };
+
+  export type FileStorageUpdateManyWithWhereWithoutOrganizationInput = {
+    where: FileStorageScalarWhereInput;
+    data: XOR<
+      FileStorageUpdateManyMutationInput,
+      FileStorageUncheckedUpdateManyWithoutOrganizationInput
+    >;
+  };
+
+  export type FileStorageScalarWhereInput = {
+    AND?: FileStorageScalarWhereInput | FileStorageScalarWhereInput[];
+    OR?: FileStorageScalarWhereInput[];
+    NOT?: FileStorageScalarWhereInput | FileStorageScalarWhereInput[];
+    id?: StringFilter<'FileStorage'> | string;
+    filename?: StringFilter<'FileStorage'> | string;
+    storageKey?: StringFilter<'FileStorage'> | string;
+    mimeType?: StringFilter<'FileStorage'> | string;
+    fileSize?: BigIntFilter<'FileStorage'> | bigint | number;
+    checksum?: StringFilter<'FileStorage'> | string;
+    storageProvider?: EnumStorageProviderFilter<'FileStorage'> | $Enums.StorageProvider;
+    bucketName?: StringNullableFilter<'FileStorage'> | string | null;
+    cdnUrl?: StringNullableFilter<'FileStorage'> | string | null;
+    isPublic?: BoolFilter<'FileStorage'> | boolean;
+    isActive?: BoolFilter<'FileStorage'> | boolean;
+    uploadedAt?: DateTimeFilter<'FileStorage'> | Date | string;
+    lastAccessedAt?: DateTimeNullableFilter<'FileStorage'> | Date | string | null;
+    expiresAt?: DateTimeNullableFilter<'FileStorage'> | Date | string | null;
+    organizationId?: StringFilter<'FileStorage'> | string;
+    uploadedBy?: StringNullableFilter<'FileStorage'> | string | null;
+    metadata?: StringNullableFilter<'FileStorage'> | string | null;
+    tags?: StringNullableListFilter<'FileStorage'>;
+    description?: StringNullableFilter<'FileStorage'> | string | null;
   };
 
   export type ApiActivityLogCreateWithoutUserInput = {
@@ -66091,6 +74804,140 @@ export namespace Prisma {
     skipDuplicates?: boolean;
   };
 
+  export type FileStorageCreateWithoutUploaderInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    organization: OrganizationCreateNestedOneWithoutFileStoragesInput;
+    versions?: FileVersionCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailCreateNestedManyWithoutFileInput;
+    shares?: FileShareCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUncheckedCreateWithoutUploaderInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    versions?: FileVersionUncheckedCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailUncheckedCreateNestedManyWithoutFileInput;
+    shares?: FileShareUncheckedCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageCreateOrConnectWithoutUploaderInput = {
+    where: FileStorageWhereUniqueInput;
+    create: XOR<
+      FileStorageCreateWithoutUploaderInput,
+      FileStorageUncheckedCreateWithoutUploaderInput
+    >;
+  };
+
+  export type FileStorageCreateManyUploaderInputEnvelope = {
+    data: FileStorageCreateManyUploaderInput | FileStorageCreateManyUploaderInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type FileVersionCreateWithoutUploaderInput = {
+    id?: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    changelog?: string | null;
+    file: FileStorageCreateNestedOneWithoutVersionsInput;
+  };
+
+  export type FileVersionUncheckedCreateWithoutUploaderInput = {
+    id?: string;
+    fileId: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    changelog?: string | null;
+  };
+
+  export type FileVersionCreateOrConnectWithoutUploaderInput = {
+    where: FileVersionWhereUniqueInput;
+    create: XOR<
+      FileVersionCreateWithoutUploaderInput,
+      FileVersionUncheckedCreateWithoutUploaderInput
+    >;
+  };
+
+  export type FileVersionCreateManyUploaderInputEnvelope = {
+    data: FileVersionCreateManyUploaderInput | FileVersionCreateManyUploaderInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type FileShareCreateWithoutCreatorInput = {
+    id?: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    file: FileStorageCreateNestedOneWithoutSharesInput;
+  };
+
+  export type FileShareUncheckedCreateWithoutCreatorInput = {
+    id?: string;
+    fileId: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+  };
+
+  export type FileShareCreateOrConnectWithoutCreatorInput = {
+    where: FileShareWhereUniqueInput;
+    create: XOR<FileShareCreateWithoutCreatorInput, FileShareUncheckedCreateWithoutCreatorInput>;
+  };
+
+  export type FileShareCreateManyCreatorInputEnvelope = {
+    data: FileShareCreateManyCreatorInput | FileShareCreateManyCreatorInput[];
+    skipDuplicates?: boolean;
+  };
+
   export type ApiActivityLogUpsertWithWhereUniqueWithoutUserInput = {
     where: ApiActivityLogWhereUniqueInput;
     update: XOR<
@@ -66475,6 +75322,111 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<'SocialAccount'> | Date | string;
   };
 
+  export type FileStorageUpsertWithWhereUniqueWithoutUploaderInput = {
+    where: FileStorageWhereUniqueInput;
+    update: XOR<
+      FileStorageUpdateWithoutUploaderInput,
+      FileStorageUncheckedUpdateWithoutUploaderInput
+    >;
+    create: XOR<
+      FileStorageCreateWithoutUploaderInput,
+      FileStorageUncheckedCreateWithoutUploaderInput
+    >;
+  };
+
+  export type FileStorageUpdateWithWhereUniqueWithoutUploaderInput = {
+    where: FileStorageWhereUniqueInput;
+    data: XOR<
+      FileStorageUpdateWithoutUploaderInput,
+      FileStorageUncheckedUpdateWithoutUploaderInput
+    >;
+  };
+
+  export type FileStorageUpdateManyWithWhereWithoutUploaderInput = {
+    where: FileStorageScalarWhereInput;
+    data: XOR<
+      FileStorageUpdateManyMutationInput,
+      FileStorageUncheckedUpdateManyWithoutUploaderInput
+    >;
+  };
+
+  export type FileVersionUpsertWithWhereUniqueWithoutUploaderInput = {
+    where: FileVersionWhereUniqueInput;
+    update: XOR<
+      FileVersionUpdateWithoutUploaderInput,
+      FileVersionUncheckedUpdateWithoutUploaderInput
+    >;
+    create: XOR<
+      FileVersionCreateWithoutUploaderInput,
+      FileVersionUncheckedCreateWithoutUploaderInput
+    >;
+  };
+
+  export type FileVersionUpdateWithWhereUniqueWithoutUploaderInput = {
+    where: FileVersionWhereUniqueInput;
+    data: XOR<
+      FileVersionUpdateWithoutUploaderInput,
+      FileVersionUncheckedUpdateWithoutUploaderInput
+    >;
+  };
+
+  export type FileVersionUpdateManyWithWhereWithoutUploaderInput = {
+    where: FileVersionScalarWhereInput;
+    data: XOR<
+      FileVersionUpdateManyMutationInput,
+      FileVersionUncheckedUpdateManyWithoutUploaderInput
+    >;
+  };
+
+  export type FileVersionScalarWhereInput = {
+    AND?: FileVersionScalarWhereInput | FileVersionScalarWhereInput[];
+    OR?: FileVersionScalarWhereInput[];
+    NOT?: FileVersionScalarWhereInput | FileVersionScalarWhereInput[];
+    id?: StringFilter<'FileVersion'> | string;
+    fileId?: StringFilter<'FileVersion'> | string;
+    versionNumber?: IntFilter<'FileVersion'> | number;
+    storageKey?: StringFilter<'FileVersion'> | string;
+    fileSize?: BigIntFilter<'FileVersion'> | bigint | number;
+    checksum?: StringFilter<'FileVersion'> | string;
+    uploadedAt?: DateTimeFilter<'FileVersion'> | Date | string;
+    uploadedBy?: StringNullableFilter<'FileVersion'> | string | null;
+    changelog?: StringNullableFilter<'FileVersion'> | string | null;
+  };
+
+  export type FileShareUpsertWithWhereUniqueWithoutCreatorInput = {
+    where: FileShareWhereUniqueInput;
+    update: XOR<FileShareUpdateWithoutCreatorInput, FileShareUncheckedUpdateWithoutCreatorInput>;
+    create: XOR<FileShareCreateWithoutCreatorInput, FileShareUncheckedCreateWithoutCreatorInput>;
+  };
+
+  export type FileShareUpdateWithWhereUniqueWithoutCreatorInput = {
+    where: FileShareWhereUniqueInput;
+    data: XOR<FileShareUpdateWithoutCreatorInput, FileShareUncheckedUpdateWithoutCreatorInput>;
+  };
+
+  export type FileShareUpdateManyWithWhereWithoutCreatorInput = {
+    where: FileShareScalarWhereInput;
+    data: XOR<FileShareUpdateManyMutationInput, FileShareUncheckedUpdateManyWithoutCreatorInput>;
+  };
+
+  export type FileShareScalarWhereInput = {
+    AND?: FileShareScalarWhereInput | FileShareScalarWhereInput[];
+    OR?: FileShareScalarWhereInput[];
+    NOT?: FileShareScalarWhereInput | FileShareScalarWhereInput[];
+    id?: StringFilter<'FileShare'> | string;
+    fileId?: StringFilter<'FileShare'> | string;
+    shareToken?: StringFilter<'FileShare'> | string;
+    isPublic?: BoolFilter<'FileShare'> | boolean;
+    allowDownload?: BoolFilter<'FileShare'> | boolean;
+    allowPreview?: BoolFilter<'FileShare'> | boolean;
+    expiresAt?: DateTimeNullableFilter<'FileShare'> | Date | string | null;
+    maxDownloads?: IntNullableFilter<'FileShare'> | number | null;
+    downloadCount?: IntFilter<'FileShare'> | number;
+    password?: StringNullableFilter<'FileShare'> | string | null;
+    createdAt?: DateTimeFilter<'FileShare'> | Date | string;
+    createdBy?: StringFilter<'FileShare'> | string;
+  };
+
   export type OrganizationCreateWithoutMembershipsInput = {
     id?: string;
     name: string;
@@ -66506,6 +75458,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutMembershipsInput = {
@@ -66539,6 +75492,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutMembershipsInput = {
@@ -66583,6 +75537,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -66619,6 +75576,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -66677,6 +75637,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutMembershipsInput = {
@@ -66710,6 +75671,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutMembershipsInput = {
@@ -66757,6 +75719,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -66793,6 +75758,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserCreateWithoutInvitationsSentInput = {
@@ -66829,6 +75797,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutInvitationsSentInput = {
@@ -66865,6 +75836,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutInvitationsSentInput = {
@@ -66906,6 +75880,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -66939,6 +75914,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -67003,6 +75979,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutInvitationsSentInput = {
@@ -67039,6 +76018,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutInvitationsInput = {
@@ -67092,6 +76074,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -67125,6 +76108,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateWithoutBillingEventsInput = {
@@ -67158,6 +76142,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutBillingEventsInput = {
@@ -67191,6 +76176,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutBillingEventsInput = {
@@ -67212,6 +76198,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -67233,6 +76220,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -67302,6 +76290,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutBillingEventsInput = {
@@ -67335,6 +76324,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type SubscriptionUpsertWithoutBillingEventsInput = {
@@ -67368,6 +76358,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -67389,6 +76386,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -67502,6 +76506,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutSubscriptionInput = {
@@ -67535,6 +76540,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutSubscriptionInput = {
@@ -67667,6 +76673,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutSubscriptionInput = {
@@ -67700,6 +76707,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type SubscriptionCreateWithoutInvoicesInput = {
@@ -67713,6 +76721,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -67734,6 +76743,7 @@ export namespace Prisma {
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
+    monthlyRevenue?: Decimal | DecimalJsLike | number | string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
     maxDatabaseConnections?: number;
@@ -67783,6 +76793,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -67804,6 +76821,13 @@ export namespace Prisma {
     stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripeSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
     stripePriceId?: NullableStringFieldUpdateOperationsInput | string | null;
+    monthlyRevenue?:
+      | NullableDecimalFieldUpdateOperationsInput
+      | Decimal
+      | DecimalJsLike
+      | number
+      | string
+      | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     maxDatabaseConnections?: IntFieldUpdateOperationsInput | number;
@@ -67848,6 +76872,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutDatabaseConnectionsCreatedInput = {
@@ -67884,6 +76911,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutDatabaseConnectionsCreatedInput = {
@@ -67925,6 +76955,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutDatabaseConnectionsInput = {
@@ -67958,6 +76989,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutDatabaseConnectionsInput = {
@@ -68194,6 +77226,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutDatabaseConnectionsCreatedInput = {
@@ -68230,6 +77265,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutDatabaseConnectionsInput = {
@@ -68283,6 +77321,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutDatabaseConnectionsInput = {
@@ -68316,6 +77355,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type EndpointUpsertWithWhereUniqueWithoutConnectionInput = {
@@ -68523,6 +77563,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutEndpointsCreatedInput = {
@@ -68559,6 +77602,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutEndpointsCreatedInput = {
@@ -68600,6 +77646,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutEndpointsInput = {
@@ -68633,6 +77680,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutEndpointsInput = {
@@ -68789,6 +77837,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutEndpointsCreatedInput = {
@@ -68825,6 +77876,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutEndpointsInput = {
@@ -68878,6 +77932,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutEndpointsInput = {
@@ -68911,6 +77966,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutApiKeysCreatedInput = {
@@ -68947,6 +78003,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutApiKeysCreatedInput = {
@@ -68983,6 +78042,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutApiKeysCreatedInput = {
@@ -69024,6 +78086,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApiKeysInput = {
@@ -69057,6 +78120,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApiKeysInput = {
@@ -69148,6 +78212,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApiKeysCreatedInput = {
@@ -69184,6 +78251,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutApiKeysInput = {
@@ -69237,6 +78307,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApiKeysInput = {
@@ -69270,6 +78341,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UsageMetricUpsertWithWhereUniqueWithoutApiKeyInput = {
@@ -69355,6 +78427,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutUsageMetricsInput = {
@@ -69388,6 +78461,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutUsageMetricsInput = {
@@ -69494,6 +78568,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutUsageMetricsInput = {
@@ -69527,6 +78602,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutWorkflowsCreatedInput = {
@@ -69563,6 +78639,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutWorkflowsCreatedInput = {
@@ -69599,6 +78678,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutWorkflowsCreatedInput = {
@@ -69640,6 +78722,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutWorkflowsInput = {
@@ -69673,6 +78756,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutWorkflowsInput = {
@@ -69768,6 +78852,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutWorkflowsCreatedInput = {
@@ -69804,6 +78891,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutWorkflowsInput = {
@@ -69857,6 +78947,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutWorkflowsInput = {
@@ -69890,6 +78981,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput = {
@@ -70049,6 +79141,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutWebhooksInput = {
@@ -70082,6 +79175,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutWebhooksInput = {
@@ -70143,6 +79237,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutWebhooksInput = {
@@ -70176,6 +79271,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationCreateWithoutAuditLogsInput = {
@@ -70209,6 +79305,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -70242,6 +79339,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -70286,6 +79384,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -70322,6 +79423,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -70380,6 +79484,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -70413,6 +79518,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -70460,6 +79566,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -70496,6 +79605,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type DatabaseObjectCreateWithoutServiceInput = {
@@ -70724,6 +79836,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutServicesCreatedInput = {
@@ -70760,6 +79875,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutServicesCreatedInput = {
@@ -70801,6 +79919,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutServicesInput = {
@@ -70834,6 +79953,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutServicesInput = {
@@ -71034,6 +80154,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutServicesCreatedInput = {
@@ -71070,6 +80193,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutServicesInput = {
@@ -71123,6 +80249,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutServicesInput = {
@@ -71156,6 +80283,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutApplicationsCreatedInput = {
@@ -71192,6 +80320,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutApplicationsCreatedInput = {
@@ -71228,6 +80359,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutApplicationsCreatedInput = {
@@ -71304,6 +80438,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApplicationsInput = {
@@ -71337,6 +80472,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApplicationsInput = {
@@ -71401,6 +80537,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApplicationsCreatedInput = {
@@ -71437,6 +80576,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type RoleUpsertWithoutApplicationsInput = {
@@ -71531,6 +80673,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApplicationsInput = {
@@ -71564,6 +80707,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ApplicationCreateWithoutDefaultRoleInput = {
@@ -71707,6 +80851,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutRolesCreatedInput = {
@@ -71743,6 +80890,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutRolesCreatedInput = {
@@ -71781,6 +80931,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRolesInput = {
@@ -71814,6 +80965,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRolesInput = {
@@ -72026,6 +81178,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRolesCreatedInput = {
@@ -72062,6 +81217,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutRolesInput = {
@@ -72106,6 +81264,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRolesInput = {
@@ -72139,6 +81298,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutRolesInput = {
@@ -72227,6 +81387,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutNotificationsInput = {
@@ -72260,6 +81421,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutNotificationsInput = {
@@ -72304,6 +81466,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -72340,6 +81505,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -72398,6 +81566,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutNotificationsInput = {
@@ -72431,6 +81600,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutNotificationsInput = {
@@ -72478,6 +81648,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -72514,6 +81687,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type EndpointCreateWithoutUsageLogsInput = {
@@ -72594,6 +81770,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutApiActivityLogsInput = {
@@ -72627,6 +81804,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutApiActivityLogsInput = {
@@ -72671,6 +81849,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutApiActivityLogsInput = {
@@ -72707,6 +81888,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutApiActivityLogsInput = {
@@ -72821,6 +82005,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutApiActivityLogsInput = {
@@ -72854,6 +82039,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutApiActivityLogsInput = {
@@ -72910,6 +82096,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutApiActivityLogsInput = {
@@ -72946,6 +82135,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationCreateWithoutDatabaseObjectsInput = {
@@ -72979,6 +82171,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutDatabaseObjectsInput = {
@@ -73012,6 +82205,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutDatabaseObjectsInput = {
@@ -73125,6 +82319,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutDatabaseObjectsInput = {
@@ -73158,6 +82353,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutDatabaseObjectsInput = {
@@ -73310,6 +82506,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutExposedEntitiesCreatedInput = {
@@ -73346,6 +82545,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutExposedEntitiesCreatedInput = {
@@ -73387,6 +82589,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutExposedEntitiesInput = {
@@ -73420,6 +82623,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutExposedEntitiesInput = {
@@ -73668,6 +82872,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutExposedEntitiesCreatedInput = {
@@ -73704,6 +82911,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationUpsertWithoutExposedEntitiesInput = {
@@ -73757,6 +82967,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutExposedEntitiesInput = {
@@ -73790,6 +83001,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type ServiceUpsertWithoutExposedEntitiesInput = {
@@ -74438,6 +83650,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutTermsAcceptancesInput = {
@@ -74471,6 +83684,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutTermsAcceptancesInput = {
@@ -74545,6 +83759,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutTermsAcceptancesInput = {
@@ -74581,6 +83798,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutTermsAcceptancesInput = {
@@ -74642,6 +83862,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutTermsAcceptancesInput = {
@@ -74675,6 +83896,7 @@ export namespace Prisma {
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type TermsAndConditionsUpsertWithoutAcceptancesInput = {
@@ -74773,6 +83995,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutTermsAcceptancesInput = {
@@ -74809,6 +84034,9 @@ export namespace Prisma {
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationCreateWithoutRateLimitConfigsInput = {
@@ -74842,6 +84070,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRateLimitConfigsInput = {
@@ -74875,6 +84104,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRateLimitConfigsInput = {
@@ -74919,6 +84149,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutRateLimitCreatedInput = {
@@ -74955,6 +84188,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutRateLimitCreatedInput = {
@@ -74999,6 +84235,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutRateLimitUpdatedInput = {
@@ -75035,6 +84274,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutRateLimitUpdatedInput = {
@@ -75096,6 +84338,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRateLimitConfigsInput = {
@@ -75129,6 +84372,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserUpsertWithoutRateLimitCreatedInput = {
@@ -75185,6 +84429,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRateLimitCreatedInput = {
@@ -75221,6 +84468,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUpsertWithoutRateLimitUpdatedInput = {
@@ -75277,6 +84527,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutRateLimitUpdatedInput = {
@@ -75313,6 +84566,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
   };
 
   export type OrganizationCreateWithoutRateLimitUsageInput = {
@@ -75346,6 +84602,7 @@ export namespace Prisma {
     workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationUncheckedCreateWithoutRateLimitUsageInput = {
@@ -75379,6 +84636,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
     rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
     billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+    fileStorages?: FileStorageUncheckedCreateNestedManyWithoutOrganizationInput;
   };
 
   export type OrganizationCreateOrConnectWithoutRateLimitUsageInput = {
@@ -75440,6 +84698,7 @@ export namespace Prisma {
     workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type OrganizationUncheckedUpdateWithoutRateLimitUsageInput = {
@@ -75473,6 +84732,7 @@ export namespace Prisma {
     workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
     rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
     billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+    fileStorages?: FileStorageUncheckedUpdateManyWithoutOrganizationNestedInput;
   };
 
   export type UserCreateWithoutSocialAccountsInput = {
@@ -75509,6 +84769,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserUncheckedCreateWithoutSocialAccountsInput = {
@@ -75545,6 +84808,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
     rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
   };
 
   export type UserCreateOrConnectWithoutSocialAccountsInput = {
@@ -75606,6 +84872,9 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
   };
 
   export type UserUncheckedUpdateWithoutSocialAccountsInput = {
@@ -75642,6 +84911,1238 @@ export namespace Prisma {
     workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
     rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type OrganizationCreateWithoutFileStoragesInput = {
+    id?: string;
+    name: string;
+    slug: string;
+    domain?: string | null;
+    logo?: string | null;
+    website?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    lastTermsPromptedAt?: Date | string | null;
+    requiresTermsAcceptance?: boolean;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutOrganizationInput;
+    apiKeys?: ApiKeyCreateNestedManyWithoutOrganizationInput;
+    applications?: ApplicationCreateNestedManyWithoutOrganizationInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutOrganizationInput;
+    databaseConnections?: DatabaseConnectionCreateNestedManyWithoutOrganizationInput;
+    databaseObjects?: DatabaseObjectCreateNestedManyWithoutOrganizationInput;
+    endpoints?: EndpointCreateNestedManyWithoutOrganizationInput;
+    exposedEntities?: ExposedEntityCreateNestedManyWithoutOrganizationInput;
+    invitations?: InvitationCreateNestedManyWithoutOrganizationInput;
+    memberships?: MembershipCreateNestedManyWithoutOrganizationInput;
+    notifications?: NotificationCreateNestedManyWithoutOrganizationInput;
+    roles?: RoleCreateNestedManyWithoutOrganizationInput;
+    services?: ServiceCreateNestedManyWithoutOrganizationInput;
+    subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutOrganizationInput;
+    usageMetrics?: UsageMetricCreateNestedManyWithoutOrganizationInput;
+    webhooks?: WebhookCreateNestedManyWithoutOrganizationInput;
+    workflows?: WorkflowCreateNestedManyWithoutOrganizationInput;
+    rateLimitConfigs?: RateLimitConfigCreateNestedManyWithoutOrganizationInput;
+    rateLimitUsage?: RateLimitUsageCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventCreateNestedManyWithoutOrganizationInput;
+  };
+
+  export type OrganizationUncheckedCreateWithoutFileStoragesInput = {
+    id?: string;
+    name: string;
+    slug: string;
+    domain?: string | null;
+    logo?: string | null;
+    website?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    lastTermsPromptedAt?: Date | string | null;
+    requiresTermsAcceptance?: boolean;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutOrganizationInput;
+    apiKeys?: ApiKeyUncheckedCreateNestedManyWithoutOrganizationInput;
+    applications?: ApplicationUncheckedCreateNestedManyWithoutOrganizationInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutOrganizationInput;
+    databaseConnections?: DatabaseConnectionUncheckedCreateNestedManyWithoutOrganizationInput;
+    databaseObjects?: DatabaseObjectUncheckedCreateNestedManyWithoutOrganizationInput;
+    endpoints?: EndpointUncheckedCreateNestedManyWithoutOrganizationInput;
+    exposedEntities?: ExposedEntityUncheckedCreateNestedManyWithoutOrganizationInput;
+    invitations?: InvitationUncheckedCreateNestedManyWithoutOrganizationInput;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutOrganizationInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutOrganizationInput;
+    roles?: RoleUncheckedCreateNestedManyWithoutOrganizationInput;
+    services?: ServiceUncheckedCreateNestedManyWithoutOrganizationInput;
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutOrganizationInput;
+    usageMetrics?: UsageMetricUncheckedCreateNestedManyWithoutOrganizationInput;
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutOrganizationInput;
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutOrganizationInput;
+    rateLimitConfigs?: RateLimitConfigUncheckedCreateNestedManyWithoutOrganizationInput;
+    rateLimitUsage?: RateLimitUsageUncheckedCreateNestedManyWithoutOrganizationInput;
+    billingEvents?: BillingEventUncheckedCreateNestedManyWithoutOrganizationInput;
+  };
+
+  export type OrganizationCreateOrConnectWithoutFileStoragesInput = {
+    where: OrganizationWhereUniqueInput;
+    create: XOR<
+      OrganizationCreateWithoutFileStoragesInput,
+      OrganizationUncheckedCreateWithoutFileStoragesInput
+    >;
+  };
+
+  export type UserCreateWithoutUploadedFilesInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipCreateNestedManyWithoutUserInput;
+    notifications?: NotificationCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
+  };
+
+  export type UserUncheckedCreateWithoutUploadedFilesInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationUncheckedCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutUserInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleUncheckedCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
+  };
+
+  export type UserCreateOrConnectWithoutUploadedFilesInput = {
+    where: UserWhereUniqueInput;
+    create: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>;
+  };
+
+  export type FileVersionCreateWithoutFileInput = {
+    id?: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    changelog?: string | null;
+    uploader?: UserCreateNestedOneWithoutFileVersionsCreatedInput;
+  };
+
+  export type FileVersionUncheckedCreateWithoutFileInput = {
+    id?: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    uploadedBy?: string | null;
+    changelog?: string | null;
+  };
+
+  export type FileVersionCreateOrConnectWithoutFileInput = {
+    where: FileVersionWhereUniqueInput;
+    create: XOR<FileVersionCreateWithoutFileInput, FileVersionUncheckedCreateWithoutFileInput>;
+  };
+
+  export type FileVersionCreateManyFileInputEnvelope = {
+    data: FileVersionCreateManyFileInput | FileVersionCreateManyFileInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type FileThumbnailCreateWithoutFileInput = {
+    id?: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint | number;
+    mimeType: string;
+    cdnUrl?: string | null;
+    createdAt?: Date | string;
+  };
+
+  export type FileThumbnailUncheckedCreateWithoutFileInput = {
+    id?: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint | number;
+    mimeType: string;
+    cdnUrl?: string | null;
+    createdAt?: Date | string;
+  };
+
+  export type FileThumbnailCreateOrConnectWithoutFileInput = {
+    where: FileThumbnailWhereUniqueInput;
+    create: XOR<FileThumbnailCreateWithoutFileInput, FileThumbnailUncheckedCreateWithoutFileInput>;
+  };
+
+  export type FileThumbnailCreateManyFileInputEnvelope = {
+    data: FileThumbnailCreateManyFileInput | FileThumbnailCreateManyFileInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type FileShareCreateWithoutFileInput = {
+    id?: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    creator: UserCreateNestedOneWithoutFileSharesCreatedInput;
+  };
+
+  export type FileShareUncheckedCreateWithoutFileInput = {
+    id?: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    createdBy: string;
+  };
+
+  export type FileShareCreateOrConnectWithoutFileInput = {
+    where: FileShareWhereUniqueInput;
+    create: XOR<FileShareCreateWithoutFileInput, FileShareUncheckedCreateWithoutFileInput>;
+  };
+
+  export type FileShareCreateManyFileInputEnvelope = {
+    data: FileShareCreateManyFileInput | FileShareCreateManyFileInput[];
+    skipDuplicates?: boolean;
+  };
+
+  export type OrganizationUpsertWithoutFileStoragesInput = {
+    update: XOR<
+      OrganizationUpdateWithoutFileStoragesInput,
+      OrganizationUncheckedUpdateWithoutFileStoragesInput
+    >;
+    create: XOR<
+      OrganizationCreateWithoutFileStoragesInput,
+      OrganizationUncheckedCreateWithoutFileStoragesInput
+    >;
+    where?: OrganizationWhereInput;
+  };
+
+  export type OrganizationUpdateToOneWithWhereWithoutFileStoragesInput = {
+    where?: OrganizationWhereInput;
+    data: XOR<
+      OrganizationUpdateWithoutFileStoragesInput,
+      OrganizationUncheckedUpdateWithoutFileStoragesInput
+    >;
+  };
+
+  export type OrganizationUpdateWithoutFileStoragesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    name?: StringFieldUpdateOperationsInput | string;
+    slug?: StringFieldUpdateOperationsInput | string;
+    domain?: NullableStringFieldUpdateOperationsInput | string | null;
+    logo?: NullableStringFieldUpdateOperationsInput | string | null;
+    website?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutOrganizationNestedInput;
+    apiKeys?: ApiKeyUpdateManyWithoutOrganizationNestedInput;
+    applications?: ApplicationUpdateManyWithoutOrganizationNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutOrganizationNestedInput;
+    databaseConnections?: DatabaseConnectionUpdateManyWithoutOrganizationNestedInput;
+    databaseObjects?: DatabaseObjectUpdateManyWithoutOrganizationNestedInput;
+    endpoints?: EndpointUpdateManyWithoutOrganizationNestedInput;
+    exposedEntities?: ExposedEntityUpdateManyWithoutOrganizationNestedInput;
+    invitations?: InvitationUpdateManyWithoutOrganizationNestedInput;
+    memberships?: MembershipUpdateManyWithoutOrganizationNestedInput;
+    notifications?: NotificationUpdateManyWithoutOrganizationNestedInput;
+    roles?: RoleUpdateManyWithoutOrganizationNestedInput;
+    services?: ServiceUpdateManyWithoutOrganizationNestedInput;
+    subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutOrganizationNestedInput;
+    usageMetrics?: UsageMetricUpdateManyWithoutOrganizationNestedInput;
+    webhooks?: WebhookUpdateManyWithoutOrganizationNestedInput;
+    workflows?: WorkflowUpdateManyWithoutOrganizationNestedInput;
+    rateLimitConfigs?: RateLimitConfigUpdateManyWithoutOrganizationNestedInput;
+    rateLimitUsage?: RateLimitUsageUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type OrganizationUncheckedUpdateWithoutFileStoragesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    name?: StringFieldUpdateOperationsInput | string;
+    slug?: StringFieldUpdateOperationsInput | string;
+    domain?: NullableStringFieldUpdateOperationsInput | string | null;
+    logo?: NullableStringFieldUpdateOperationsInput | string | null;
+    website?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastTermsPromptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    requiresTermsAcceptance?: BoolFieldUpdateOperationsInput | boolean;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput;
+    apiKeys?: ApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput;
+    applications?: ApplicationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput;
+    databaseConnections?: DatabaseConnectionUncheckedUpdateManyWithoutOrganizationNestedInput;
+    databaseObjects?: DatabaseObjectUncheckedUpdateManyWithoutOrganizationNestedInput;
+    endpoints?: EndpointUncheckedUpdateManyWithoutOrganizationNestedInput;
+    exposedEntities?: ExposedEntityUncheckedUpdateManyWithoutOrganizationNestedInput;
+    invitations?: InvitationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    memberships?: MembershipUncheckedUpdateManyWithoutOrganizationNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutOrganizationNestedInput;
+    roles?: RoleUncheckedUpdateManyWithoutOrganizationNestedInput;
+    services?: ServiceUncheckedUpdateManyWithoutOrganizationNestedInput;
+    subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutOrganizationNestedInput;
+    usageMetrics?: UsageMetricUncheckedUpdateManyWithoutOrganizationNestedInput;
+    webhooks?: WebhookUncheckedUpdateManyWithoutOrganizationNestedInput;
+    workflows?: WorkflowUncheckedUpdateManyWithoutOrganizationNestedInput;
+    rateLimitConfigs?: RateLimitConfigUncheckedUpdateManyWithoutOrganizationNestedInput;
+    rateLimitUsage?: RateLimitUsageUncheckedUpdateManyWithoutOrganizationNestedInput;
+    billingEvents?: BillingEventUncheckedUpdateManyWithoutOrganizationNestedInput;
+  };
+
+  export type UserUpsertWithoutUploadedFilesInput = {
+    update: XOR<UserUpdateWithoutUploadedFilesInput, UserUncheckedUpdateWithoutUploadedFilesInput>;
+    create: XOR<UserCreateWithoutUploadedFilesInput, UserUncheckedCreateWithoutUploadedFilesInput>;
+    where?: UserWhereInput;
+  };
+
+  export type UserUpdateToOneWithWhereWithoutUploadedFilesInput = {
+    where?: UserWhereInput;
+    data: XOR<UserUpdateWithoutUploadedFilesInput, UserUncheckedUpdateWithoutUploadedFilesInput>;
+  };
+
+  export type UserUpdateWithoutUploadedFilesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type UserUncheckedUpdateWithoutUploadedFilesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUncheckedUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUncheckedUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUncheckedUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type FileVersionUpsertWithWhereUniqueWithoutFileInput = {
+    where: FileVersionWhereUniqueInput;
+    update: XOR<FileVersionUpdateWithoutFileInput, FileVersionUncheckedUpdateWithoutFileInput>;
+    create: XOR<FileVersionCreateWithoutFileInput, FileVersionUncheckedCreateWithoutFileInput>;
+  };
+
+  export type FileVersionUpdateWithWhereUniqueWithoutFileInput = {
+    where: FileVersionWhereUniqueInput;
+    data: XOR<FileVersionUpdateWithoutFileInput, FileVersionUncheckedUpdateWithoutFileInput>;
+  };
+
+  export type FileVersionUpdateManyWithWhereWithoutFileInput = {
+    where: FileVersionScalarWhereInput;
+    data: XOR<FileVersionUpdateManyMutationInput, FileVersionUncheckedUpdateManyWithoutFileInput>;
+  };
+
+  export type FileThumbnailUpsertWithWhereUniqueWithoutFileInput = {
+    where: FileThumbnailWhereUniqueInput;
+    update: XOR<FileThumbnailUpdateWithoutFileInput, FileThumbnailUncheckedUpdateWithoutFileInput>;
+    create: XOR<FileThumbnailCreateWithoutFileInput, FileThumbnailUncheckedCreateWithoutFileInput>;
+  };
+
+  export type FileThumbnailUpdateWithWhereUniqueWithoutFileInput = {
+    where: FileThumbnailWhereUniqueInput;
+    data: XOR<FileThumbnailUpdateWithoutFileInput, FileThumbnailUncheckedUpdateWithoutFileInput>;
+  };
+
+  export type FileThumbnailUpdateManyWithWhereWithoutFileInput = {
+    where: FileThumbnailScalarWhereInput;
+    data: XOR<
+      FileThumbnailUpdateManyMutationInput,
+      FileThumbnailUncheckedUpdateManyWithoutFileInput
+    >;
+  };
+
+  export type FileThumbnailScalarWhereInput = {
+    AND?: FileThumbnailScalarWhereInput | FileThumbnailScalarWhereInput[];
+    OR?: FileThumbnailScalarWhereInput[];
+    NOT?: FileThumbnailScalarWhereInput | FileThumbnailScalarWhereInput[];
+    id?: StringFilter<'FileThumbnail'> | string;
+    fileId?: StringFilter<'FileThumbnail'> | string;
+    size?: StringFilter<'FileThumbnail'> | string;
+    storageKey?: StringFilter<'FileThumbnail'> | string;
+    fileSize?: BigIntFilter<'FileThumbnail'> | bigint | number;
+    mimeType?: StringFilter<'FileThumbnail'> | string;
+    cdnUrl?: StringNullableFilter<'FileThumbnail'> | string | null;
+    createdAt?: DateTimeFilter<'FileThumbnail'> | Date | string;
+  };
+
+  export type FileShareUpsertWithWhereUniqueWithoutFileInput = {
+    where: FileShareWhereUniqueInput;
+    update: XOR<FileShareUpdateWithoutFileInput, FileShareUncheckedUpdateWithoutFileInput>;
+    create: XOR<FileShareCreateWithoutFileInput, FileShareUncheckedCreateWithoutFileInput>;
+  };
+
+  export type FileShareUpdateWithWhereUniqueWithoutFileInput = {
+    where: FileShareWhereUniqueInput;
+    data: XOR<FileShareUpdateWithoutFileInput, FileShareUncheckedUpdateWithoutFileInput>;
+  };
+
+  export type FileShareUpdateManyWithWhereWithoutFileInput = {
+    where: FileShareScalarWhereInput;
+    data: XOR<FileShareUpdateManyMutationInput, FileShareUncheckedUpdateManyWithoutFileInput>;
+  };
+
+  export type FileStorageCreateWithoutVersionsInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    organization: OrganizationCreateNestedOneWithoutFileStoragesInput;
+    uploader?: UserCreateNestedOneWithoutUploadedFilesInput;
+    thumbnails?: FileThumbnailCreateNestedManyWithoutFileInput;
+    shares?: FileShareCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUncheckedCreateWithoutVersionsInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    thumbnails?: FileThumbnailUncheckedCreateNestedManyWithoutFileInput;
+    shares?: FileShareUncheckedCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageCreateOrConnectWithoutVersionsInput = {
+    where: FileStorageWhereUniqueInput;
+    create: XOR<
+      FileStorageCreateWithoutVersionsInput,
+      FileStorageUncheckedCreateWithoutVersionsInput
+    >;
+  };
+
+  export type UserCreateWithoutFileVersionsCreatedInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipCreateNestedManyWithoutUserInput;
+    notifications?: NotificationCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareCreateNestedManyWithoutCreatorInput;
+  };
+
+  export type UserUncheckedCreateWithoutFileVersionsCreatedInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationUncheckedCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutUserInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleUncheckedCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileSharesCreated?: FileShareUncheckedCreateNestedManyWithoutCreatorInput;
+  };
+
+  export type UserCreateOrConnectWithoutFileVersionsCreatedInput = {
+    where: UserWhereUniqueInput;
+    create: XOR<
+      UserCreateWithoutFileVersionsCreatedInput,
+      UserUncheckedCreateWithoutFileVersionsCreatedInput
+    >;
+  };
+
+  export type FileStorageUpsertWithoutVersionsInput = {
+    update: XOR<
+      FileStorageUpdateWithoutVersionsInput,
+      FileStorageUncheckedUpdateWithoutVersionsInput
+    >;
+    create: XOR<
+      FileStorageCreateWithoutVersionsInput,
+      FileStorageUncheckedCreateWithoutVersionsInput
+    >;
+    where?: FileStorageWhereInput;
+  };
+
+  export type FileStorageUpdateToOneWithWhereWithoutVersionsInput = {
+    where?: FileStorageWhereInput;
+    data: XOR<
+      FileStorageUpdateWithoutVersionsInput,
+      FileStorageUncheckedUpdateWithoutVersionsInput
+    >;
+  };
+
+  export type FileStorageUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    organization?: OrganizationUpdateOneRequiredWithoutFileStoragesNestedInput;
+    uploader?: UserUpdateOneWithoutUploadedFilesNestedInput;
+    thumbnails?: FileThumbnailUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    thumbnails?: FileThumbnailUncheckedUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  };
+
+  export type UserUpsertWithoutFileVersionsCreatedInput = {
+    update: XOR<
+      UserUpdateWithoutFileVersionsCreatedInput,
+      UserUncheckedUpdateWithoutFileVersionsCreatedInput
+    >;
+    create: XOR<
+      UserCreateWithoutFileVersionsCreatedInput,
+      UserUncheckedCreateWithoutFileVersionsCreatedInput
+    >;
+    where?: UserWhereInput;
+  };
+
+  export type UserUpdateToOneWithWhereWithoutFileVersionsCreatedInput = {
+    where?: UserWhereInput;
+    data: XOR<
+      UserUpdateWithoutFileVersionsCreatedInput,
+      UserUncheckedUpdateWithoutFileVersionsCreatedInput
+    >;
+  };
+
+  export type UserUpdateWithoutFileVersionsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type UserUncheckedUpdateWithoutFileVersionsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUncheckedUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUncheckedUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUncheckedUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileSharesCreated?: FileShareUncheckedUpdateManyWithoutCreatorNestedInput;
+  };
+
+  export type FileStorageCreateWithoutThumbnailsInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    organization: OrganizationCreateNestedOneWithoutFileStoragesInput;
+    uploader?: UserCreateNestedOneWithoutUploadedFilesInput;
+    versions?: FileVersionCreateNestedManyWithoutFileInput;
+    shares?: FileShareCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUncheckedCreateWithoutThumbnailsInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    versions?: FileVersionUncheckedCreateNestedManyWithoutFileInput;
+    shares?: FileShareUncheckedCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageCreateOrConnectWithoutThumbnailsInput = {
+    where: FileStorageWhereUniqueInput;
+    create: XOR<
+      FileStorageCreateWithoutThumbnailsInput,
+      FileStorageUncheckedCreateWithoutThumbnailsInput
+    >;
+  };
+
+  export type FileStorageUpsertWithoutThumbnailsInput = {
+    update: XOR<
+      FileStorageUpdateWithoutThumbnailsInput,
+      FileStorageUncheckedUpdateWithoutThumbnailsInput
+    >;
+    create: XOR<
+      FileStorageCreateWithoutThumbnailsInput,
+      FileStorageUncheckedCreateWithoutThumbnailsInput
+    >;
+    where?: FileStorageWhereInput;
+  };
+
+  export type FileStorageUpdateToOneWithWhereWithoutThumbnailsInput = {
+    where?: FileStorageWhereInput;
+    data: XOR<
+      FileStorageUpdateWithoutThumbnailsInput,
+      FileStorageUncheckedUpdateWithoutThumbnailsInput
+    >;
+  };
+
+  export type FileStorageUpdateWithoutThumbnailsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    organization?: OrganizationUpdateOneRequiredWithoutFileStoragesNestedInput;
+    uploader?: UserUpdateOneWithoutUploadedFilesNestedInput;
+    versions?: FileVersionUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateWithoutThumbnailsInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    versions?: FileVersionUncheckedUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageCreateWithoutSharesInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    organization: OrganizationCreateNestedOneWithoutFileStoragesInput;
+    uploader?: UserCreateNestedOneWithoutUploadedFilesInput;
+    versions?: FileVersionCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageUncheckedCreateWithoutSharesInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+    versions?: FileVersionUncheckedCreateNestedManyWithoutFileInput;
+    thumbnails?: FileThumbnailUncheckedCreateNestedManyWithoutFileInput;
+  };
+
+  export type FileStorageCreateOrConnectWithoutSharesInput = {
+    where: FileStorageWhereUniqueInput;
+    create: XOR<FileStorageCreateWithoutSharesInput, FileStorageUncheckedCreateWithoutSharesInput>;
+  };
+
+  export type UserCreateWithoutFileSharesCreatedInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipCreateNestedManyWithoutUserInput;
+    notifications?: NotificationCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionCreateNestedManyWithoutUploaderInput;
+  };
+
+  export type UserUncheckedCreateWithoutFileSharesCreatedInput = {
+    id?: string;
+    email: string;
+    passwordHash?: string | null;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+    isActive?: boolean;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date | string | null;
+    lastLoginAt?: Date | string | null;
+    twoFactorEnabled?: boolean;
+    twoFactorSecret?: string | null;
+    phoneNumber?: string | null;
+    phoneCarrier?: string | null;
+    isSuperAdmin?: boolean;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedCreateNestedManyWithoutUserInput;
+    apiKeysCreated?: ApiKeyUncheckedCreateNestedManyWithoutCreatedByInput;
+    applicationsCreated?: ApplicationUncheckedCreateNestedManyWithoutCreatorInput;
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutUserInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedCreateNestedManyWithoutCreatorInput;
+    endpointsCreated?: EndpointUncheckedCreateNestedManyWithoutCreatorInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedCreateNestedManyWithoutCreatorInput;
+    invitationsSent?: InvitationUncheckedCreateNestedManyWithoutInvitedByInput;
+    memberships?: MembershipUncheckedCreateNestedManyWithoutUserInput;
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput;
+    rolesCreated?: RoleUncheckedCreateNestedManyWithoutCreatorInput;
+    servicesCreated?: ServiceUncheckedCreateNestedManyWithoutCreatorInput;
+    termsAcceptances?: TermsAcceptanceUncheckedCreateNestedManyWithoutUserInput;
+    workflowsCreated?: WorkflowUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitCreated?: RateLimitConfigUncheckedCreateNestedManyWithoutCreatorInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedCreateNestedManyWithoutUpdaterInput;
+    socialAccounts?: SocialAccountUncheckedCreateNestedManyWithoutUserInput;
+    uploadedFiles?: FileStorageUncheckedCreateNestedManyWithoutUploaderInput;
+    fileVersionsCreated?: FileVersionUncheckedCreateNestedManyWithoutUploaderInput;
+  };
+
+  export type UserCreateOrConnectWithoutFileSharesCreatedInput = {
+    where: UserWhereUniqueInput;
+    create: XOR<
+      UserCreateWithoutFileSharesCreatedInput,
+      UserUncheckedCreateWithoutFileSharesCreatedInput
+    >;
+  };
+
+  export type FileStorageUpsertWithoutSharesInput = {
+    update: XOR<FileStorageUpdateWithoutSharesInput, FileStorageUncheckedUpdateWithoutSharesInput>;
+    create: XOR<FileStorageCreateWithoutSharesInput, FileStorageUncheckedCreateWithoutSharesInput>;
+    where?: FileStorageWhereInput;
+  };
+
+  export type FileStorageUpdateToOneWithWhereWithoutSharesInput = {
+    where?: FileStorageWhereInput;
+    data: XOR<FileStorageUpdateWithoutSharesInput, FileStorageUncheckedUpdateWithoutSharesInput>;
+  };
+
+  export type FileStorageUpdateWithoutSharesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    organization?: OrganizationUpdateOneRequiredWithoutFileStoragesNestedInput;
+    uploader?: UserUpdateOneWithoutUploadedFilesNestedInput;
+    versions?: FileVersionUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateWithoutSharesInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    versions?: FileVersionUncheckedUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUncheckedUpdateManyWithoutFileNestedInput;
+  };
+
+  export type UserUpsertWithoutFileSharesCreatedInput = {
+    update: XOR<
+      UserUpdateWithoutFileSharesCreatedInput,
+      UserUncheckedUpdateWithoutFileSharesCreatedInput
+    >;
+    create: XOR<
+      UserCreateWithoutFileSharesCreatedInput,
+      UserUncheckedCreateWithoutFileSharesCreatedInput
+    >;
+    where?: UserWhereInput;
+  };
+
+  export type UserUpdateToOneWithWhereWithoutFileSharesCreatedInput = {
+    where?: UserWhereInput;
+    data: XOR<
+      UserUpdateWithoutFileSharesCreatedInput,
+      UserUncheckedUpdateWithoutFileSharesCreatedInput
+    >;
+  };
+
+  export type UserUpdateWithoutFileSharesCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUpdateManyWithoutUploaderNestedInput;
+  };
+
+  export type UserUncheckedUpdateWithoutFileSharesCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    email?: StringFieldUpdateOperationsInput | string;
+    passwordHash?: NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: StringFieldUpdateOperationsInput | string;
+    lastName?: StringFieldUpdateOperationsInput | string;
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean;
+    emailVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean;
+    twoFactorSecret?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneNumber?: NullableStringFieldUpdateOperationsInput | string | null;
+    phoneCarrier?: NullableStringFieldUpdateOperationsInput | string | null;
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    apiActivityLogs?: ApiActivityLogUncheckedUpdateManyWithoutUserNestedInput;
+    apiKeysCreated?: ApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput;
+    applicationsCreated?: ApplicationUncheckedUpdateManyWithoutCreatorNestedInput;
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutUserNestedInput;
+    databaseConnectionsCreated?: DatabaseConnectionUncheckedUpdateManyWithoutCreatorNestedInput;
+    endpointsCreated?: EndpointUncheckedUpdateManyWithoutCreatorNestedInput;
+    exposedEntitiesCreated?: ExposedEntityUncheckedUpdateManyWithoutCreatorNestedInput;
+    invitationsSent?: InvitationUncheckedUpdateManyWithoutInvitedByNestedInput;
+    memberships?: MembershipUncheckedUpdateManyWithoutUserNestedInput;
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput;
+    rolesCreated?: RoleUncheckedUpdateManyWithoutCreatorNestedInput;
+    servicesCreated?: ServiceUncheckedUpdateManyWithoutCreatorNestedInput;
+    termsAcceptances?: TermsAcceptanceUncheckedUpdateManyWithoutUserNestedInput;
+    workflowsCreated?: WorkflowUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitCreated?: RateLimitConfigUncheckedUpdateManyWithoutCreatorNestedInput;
+    rateLimitUpdated?: RateLimitConfigUncheckedUpdateManyWithoutUpdaterNestedInput;
+    socialAccounts?: SocialAccountUncheckedUpdateManyWithoutUserNestedInput;
+    uploadedFiles?: FileStorageUncheckedUpdateManyWithoutUploaderNestedInput;
+    fileVersionsCreated?: FileVersionUncheckedUpdateManyWithoutUploaderNestedInput;
   };
 
   export type ApiActivityLogCreateManyOrganizationInput = {
@@ -75926,6 +86427,27 @@ export namespace Prisma {
     metadata: JsonNullValueInput | InputJsonValue;
     createdAt?: Date | string;
     subscriptionId?: string | null;
+  };
+
+  export type FileStorageCreateManyOrganizationInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    uploadedBy?: string | null;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
   };
 
   export type ApiActivityLogUpdateWithoutOrganizationInput = {
@@ -76808,6 +87330,75 @@ export namespace Prisma {
     subscriptionId?: NullableStringFieldUpdateOperationsInput | string | null;
   };
 
+  export type FileStorageUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    uploader?: UserUpdateOneWithoutUploadedFilesNestedInput;
+    versions?: FileVersionUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    versions?: FileVersionUncheckedUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUncheckedUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
   export type ApiActivityLogCreateManyUserInput = {
     id?: string;
     requestId: string;
@@ -77072,6 +87663,52 @@ export namespace Prisma {
     profileData?: string | null;
     createdAt?: Date | string;
     updatedAt?: Date | string;
+  };
+
+  export type FileStorageCreateManyUploaderInput = {
+    id?: string;
+    filename: string;
+    storageKey: string;
+    mimeType: string;
+    fileSize: bigint | number;
+    checksum: string;
+    storageProvider?: $Enums.StorageProvider;
+    bucketName?: string | null;
+    cdnUrl?: string | null;
+    isPublic?: boolean;
+    isActive?: boolean;
+    uploadedAt?: Date | string;
+    lastAccessedAt?: Date | string | null;
+    expiresAt?: Date | string | null;
+    organizationId: string;
+    metadata?: string | null;
+    tags?: FileStorageCreatetagsInput | string[];
+    description?: string | null;
+  };
+
+  export type FileVersionCreateManyUploaderInput = {
+    id?: string;
+    fileId: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    changelog?: string | null;
+  };
+
+  export type FileShareCreateManyCreatorInput = {
+    id?: string;
+    fileId: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
   };
 
   export type ApiActivityLogUpdateWithoutUserInput = {
@@ -77898,6 +88535,150 @@ export namespace Prisma {
     profileData?: NullableStringFieldUpdateOperationsInput | string | null;
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileStorageUpdateWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    organization?: OrganizationUpdateOneRequiredWithoutFileStoragesNestedInput;
+    versions?: FileVersionUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+    versions?: FileVersionUncheckedUpdateManyWithoutFileNestedInput;
+    thumbnails?: FileThumbnailUncheckedUpdateManyWithoutFileNestedInput;
+    shares?: FileShareUncheckedUpdateManyWithoutFileNestedInput;
+  };
+
+  export type FileStorageUncheckedUpdateManyWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    filename?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    storageProvider?: EnumStorageProviderFieldUpdateOperationsInput | $Enums.StorageProvider;
+    bucketName?: NullableStringFieldUpdateOperationsInput | string | null;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    isActive?: BoolFieldUpdateOperationsInput | boolean;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    lastAccessedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    organizationId?: StringFieldUpdateOperationsInput | string;
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null;
+    tags?: FileStorageUpdatetagsInput | string[];
+    description?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileVersionUpdateWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+    file?: FileStorageUpdateOneRequiredWithoutVersionsNestedInput;
+  };
+
+  export type FileVersionUncheckedUpdateWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileVersionUncheckedUpdateManyWithoutUploaderInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileShareUpdateWithoutCreatorInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    file?: FileStorageUpdateOneRequiredWithoutSharesNestedInput;
+  };
+
+  export type FileShareUncheckedUpdateWithoutCreatorInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileShareUncheckedUpdateManyWithoutCreatorInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    fileId?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
   };
 
   export type InvoiceCreateManySubscriptionInput = {
@@ -78860,6 +89641,146 @@ export namespace Prisma {
     acceptanceMethod?: EnumAcceptanceMethodFieldUpdateOperationsInput | $Enums.AcceptanceMethod;
     organizationId?: StringFieldUpdateOperationsInput | string;
     userId?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type FileVersionCreateManyFileInput = {
+    id?: string;
+    versionNumber?: number;
+    storageKey: string;
+    fileSize: bigint | number;
+    checksum: string;
+    uploadedAt?: Date | string;
+    uploadedBy?: string | null;
+    changelog?: string | null;
+  };
+
+  export type FileThumbnailCreateManyFileInput = {
+    id?: string;
+    size: string;
+    storageKey: string;
+    fileSize: bigint | number;
+    mimeType: string;
+    cdnUrl?: string | null;
+    createdAt?: Date | string;
+  };
+
+  export type FileShareCreateManyFileInput = {
+    id?: string;
+    shareToken: string;
+    isPublic?: boolean;
+    allowDownload?: boolean;
+    allowPreview?: boolean;
+    expiresAt?: Date | string | null;
+    maxDownloads?: number | null;
+    downloadCount?: number;
+    password?: string | null;
+    createdAt?: Date | string;
+    createdBy: string;
+  };
+
+  export type FileVersionUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+    uploader?: UserUpdateOneWithoutFileVersionsCreatedNestedInput;
+  };
+
+  export type FileVersionUncheckedUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileVersionUncheckedUpdateManyWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    versionNumber?: IntFieldUpdateOperationsInput | number;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    checksum?: StringFieldUpdateOperationsInput | string;
+    uploadedAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    uploadedBy?: NullableStringFieldUpdateOperationsInput | string | null;
+    changelog?: NullableStringFieldUpdateOperationsInput | string | null;
+  };
+
+  export type FileThumbnailUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileThumbnailUncheckedUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileThumbnailUncheckedUpdateManyWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    size?: StringFieldUpdateOperationsInput | string;
+    storageKey?: StringFieldUpdateOperationsInput | string;
+    fileSize?: BigIntFieldUpdateOperationsInput | bigint | number;
+    mimeType?: StringFieldUpdateOperationsInput | string;
+    cdnUrl?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+  };
+
+  export type FileShareUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    creator?: UserUpdateOneRequiredWithoutFileSharesCreatedNestedInput;
+  };
+
+  export type FileShareUncheckedUpdateWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdBy?: StringFieldUpdateOperationsInput | string;
+  };
+
+  export type FileShareUncheckedUpdateManyWithoutFileInput = {
+    id?: StringFieldUpdateOperationsInput | string;
+    shareToken?: StringFieldUpdateOperationsInput | string;
+    isPublic?: BoolFieldUpdateOperationsInput | boolean;
+    allowDownload?: BoolFieldUpdateOperationsInput | boolean;
+    allowPreview?: BoolFieldUpdateOperationsInput | boolean;
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    maxDownloads?: NullableIntFieldUpdateOperationsInput | number | null;
+    downloadCount?: IntFieldUpdateOperationsInput | number;
+    password?: NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string;
+    createdBy?: StringFieldUpdateOperationsInput | string;
   };
 
   /**

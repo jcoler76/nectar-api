@@ -13,7 +13,9 @@ import {
   X,
   FileText,
   Activity,
-  CheckCircle
+  CheckCircle,
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react'
 import { useState, useMemo } from 'react'
 
@@ -92,6 +94,8 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
         { title: 'All Licenses', icon: FileText, url: '/licensing/licenses' },
         { title: 'Customer Licenses', icon: Users, url: '/licensing/customers' },
         { title: 'Usage Analytics', icon: Activity, url: '/licensing/usage' },
+        { title: 'Advanced Analytics', icon: TrendingUp, url: '/licensing/analytics' },
+        { title: 'License Lifecycle', icon: RefreshCw, url: '/licensing/lifecycle' },
         { title: 'System Health', icon: CheckCircle, url: '/licensing/health' }
       ]
     },

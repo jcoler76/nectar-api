@@ -10,15 +10,17 @@ import {
   Calendar,
   Server
 } from 'lucide-react';
-import { MetricCard } from '../dashboard/MetricCard';
-import { ActivityChart } from '../dashboard/ActivityChart';
-import { licenseService, DashboardStats, SystemHealth } from '../../services/licenseService';
+import MetricCard from '../dashboard/MetricCard';
+import ActivityChart from '../dashboard/ActivityChart';
+import { licenseService, type DashboardStats, type SystemHealth } from '../../services/licenseService';
+import LicenseWizard from './LicenseWizard';
 
 export default function LicenseOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -268,7 +270,9 @@ export default function LicenseOverview() {
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <button
+            onClick={() => setShowWizard(true)}
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             <FileText className="h-4 w-4 mr-2" />
             Create License
           </button>
@@ -285,6 +289,16 @@ export default function LicenseOverview() {
           </button>
         </div>
       </div>
+
+      {/* License Creation Wizard */}
+      <LicenseWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onLicenseCreated={() => {
+          setShowWizard(false);
+          loadDashboardData(); // Refresh stats
+        }}
+      />
     </div>
   );
 }

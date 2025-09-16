@@ -127,6 +127,9 @@ const mountRoutes = app => {
   // Reports route - Updated for Prisma
   app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
   app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
+
+  // File Storage & CDN
+  app.use('/api/files', uploadLimiter, csrfProtection(csrfOptions), require('./fileStorage'));
   // Blueprint auto-CRUD (read/list) with policy group and CSRF
   const { applyPolicyGroup } = require('../middleware/policies');
   app.use(

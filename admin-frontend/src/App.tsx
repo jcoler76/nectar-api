@@ -12,13 +12,28 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
 
-  // Check for existing token on app load
+  // Check for existing authentication on app load
   useEffect(() => {
-    const token = localStorage.getItem('admin_token')
-    if (token) {
-      setIsAuthenticated(true)
+    const checkAuthToken = async () => {
+      try {
+        // Check authentication status by calling the profile endpoint
+        // This will use the httpOnly cookie automatically
+        const apiUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
+        const response = await fetch(`${apiUrl}/api/auth/profile`, {
+          method: 'GET',
+          credentials: 'include', // Include httpOnly cookies
+        })
+
+        if (response.ok) {
+          setIsAuthenticated(true)
+        }
+      } catch (error) {
+        // User is not authenticated or network error
+        setIsAuthenticated(false)
+      }
+      setInitialLoading(false)
     }
-    setInitialLoading(false)
+    checkAuthToken()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,12 +42,13 @@ function App() {
     setLoading(true)
     
     try {
-      const apiUrl = import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001'
+      const apiUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies in request
         body: JSON.stringify({ email, password }),
       })
 
@@ -42,8 +58,8 @@ function App() {
         throw new Error(data.error || 'Login failed')
       }
 
-      // Store the token and set authenticated state
-      localStorage.setItem('admin_token', data.token)
+      // Authentication token is now stored in secure httpOnly cookie
+      // No need to manually store anything in localStorage
       setIsAuthenticated(true)
       
     } catch (err: unknown) {
@@ -54,8 +70,19 @@ function App() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token')
+  const handleLogout = async () => {
+    try {
+      const apiUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
+      await fetch(`${apiUrl}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include', // Include httpOnly cookies
+      })
+    } catch (error) {
+      // Even if logout API fails, clear the local state
+      console.error('Logout request failed:', error)
+    }
+
+    // Clear local state regardless of API response
     setIsAuthenticated(false)
     setEmail('')
     setPassword('')

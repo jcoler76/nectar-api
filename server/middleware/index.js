@@ -19,7 +19,11 @@ const getAllowedFrameAncestors = () => {
     .map(o => o.trim())
     .filter(Boolean);
 
-  const defaultOrigins = ['http://localhost:3000', 'http://localhost:8000'];
+  const defaultOrigins = [
+    'http://localhost:3000',
+    'http://localhost:4000',
+    'http://localhost:8000',
+  ];
   const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins;
 
   return ["'self'", ...allowedOrigins];

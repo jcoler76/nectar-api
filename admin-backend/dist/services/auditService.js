@@ -7,7 +7,7 @@ class AdminAuditLogger {
      */
     static async log(data) {
         // TODO: Implement audit logging once schema is aligned
-        console.log('Audit log:', data);
+        // Audit logging temporarily disabled - sensitive data should not be logged to console
     }
     /**
      * Get recent audit logs with pagination

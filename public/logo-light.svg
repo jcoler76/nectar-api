@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140" role="img" aria-labelledby="title desc">
+  <title id="title">NectarSolutions.ai — Logo (Light)</title>
+  <desc id="desc">Transparent background. Honeycomb hexagon mark and light wordmark for dark backgrounds.</desc>
+  <defs>
+    <linearGradient id="honeyL" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082"/>
+      <stop offset="50%" stop-color="#FFCA28"/>
+      <stop offset="100%" stop-color="#FFA000"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark: hexagon + simplified droplet highlight for small sizes -->
+  <g transform="translate(30,20)">
+    <path d="M70,0 130,35 130,105 70,140 10,105 10,35 Z" fill="url(#honeyL)"/>
+    <path d="M70,0 130,35 130,105 70,140 10,105 10,35 Z" fill="none" stroke="#FFC107" stroke-width="2" opacity="0.7"/>
+    <circle cx="88" cy="52" r="6" fill="#FFF8E1" opacity="0.7"/>
+  </g>
+
+  <!-- Wordmark (light) -->
+  <g transform="translate(200,35)">
+    <text x="0" y="40" font-family="Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#FFFFFF" letter-spacing="0.2">
+      Nectar<tspan font-weight="800" fill="#FFD54F">Solutions</tspan><tspan fill="#FFFFFF">.ai</tspan>
+    </text>
+    <text x="0" y="72" font-family="Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="16" fill="#EDEFF6" opacity="0.9">
+      Build APIs and workflow automations — fast.
+    </text>
+  </g>
+</svg>
+

@@ -20,7 +20,11 @@ function buildCorsOptions() {
     .map(o => o.trim())
     .filter(Boolean);
 
-  const defaultOrigins = ['http://localhost:3000', 'http://localhost:8000'];
+  const defaultOrigins = [
+    'http://localhost:3000',
+    'http://localhost:4000',
+    'http://localhost:8000',
+  ];
   const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins;
 
   const configuredPrimaryHeader = process.env.API_AUTH_HEADER || 'x-nectarstudio-api-key';

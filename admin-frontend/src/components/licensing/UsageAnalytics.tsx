@@ -9,9 +9,9 @@ import {
   Filter,
   Download
 } from 'lucide-react';
-import { ActivityChart } from '../dashboard/ActivityChart';
-import { MetricCard } from '../dashboard/MetricCard';
-import { licenseService, UsageData } from '../../services/licenseService';
+import ActivityChart from '../dashboard/ActivityChart';
+import MetricCard from '../dashboard/MetricCard';
+import { licenseService, type UsageData } from '../../services/licenseService';
 
 interface UsageStats {
   totalActiveUsers: number;

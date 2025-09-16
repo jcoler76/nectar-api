@@ -2,15 +2,26 @@ import { useQuery } from '@tanstack/react-query';
 
 import api from '../services/api';
 import { getDashboardMetrics } from '../services/dashboardService';
+import SecureSessionStorage from '../utils/secureStorage';
 
 // Dashboard metrics query hook
 export const useDashboardMetrics = (days = 30) => {
+  const token = (() => {
+    try {
+      const s = new SecureSessionStorage();
+      return s.getItem()?.token || null;
+    } catch (_) {
+      return null;
+    }
+  })();
+
   return useQuery({
     queryKey: ['dashboard-metrics', days],
     queryFn: () => getDashboardMetrics(days),
     staleTime: 1000 * 60 * 2, // 2 minutes - frequent updates for critical metrics
     cacheTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true,
+    enabled: !!token,
     select: data => {
       // Transform data if needed
       return {
@@ -28,6 +39,15 @@ export const useDashboardMetrics = (days = 30) => {
 
 // Activity logs statistics query hook
 export const useActivityStatistics = (dateRange = '30d') => {
+  const token = (() => {
+    try {
+      const s = new SecureSessionStorage();
+      return s.getItem()?.token || null;
+    } catch (_) {
+      return null;
+    }
+  })();
+
   const timeframeMap = { '7d': '7d', '30d': '30d', '90d': '90d' };
 
   return useQuery({
@@ -45,6 +65,7 @@ export const useActivityStatistics = (dateRange = '30d') => {
     staleTime: 1000 * 60 * 1, // 1 minute - very fresh data
     cacheTime: 1000 * 60 * 3, // 3 minutes
     refetchOnWindowFocus: true,
+    enabled: !!token,
     select: data => {
       // Ensure data structure and provide defaults
       return {

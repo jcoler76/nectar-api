@@ -34,10 +34,19 @@ export const AuthProvider = ({ children }) => {
         if (authStatus.isAuthenticated && authStatus.user) {
           setUser(authStatus.user);
           setIsAuthenticated(true);
+          // Ensure axios instance carries Authorization for immediate API calls
+          try {
+            if (authStatus.user?.token) {
+              api.defaults.headers.common.Authorization = `Bearer ${authStatus.user.token}`;
+            }
+          } catch (_) {}
         } else {
           // Token was expired or invalid, but don't log this as an error
           setUser(null);
           setIsAuthenticated(false);
+          try {
+            delete api.defaults.headers.common.Authorization;
+          } catch (_) {}
         }
       } catch (error) {
         // Only log actual errors, not auth state issues
@@ -46,6 +55,9 @@ export const AuthProvider = ({ children }) => {
         }
         setUser(null);
         setIsAuthenticated(false);
+        try {
+          delete api.defaults.headers.common.Authorization;
+        } catch (_) {}
       } finally {
         setLoading(false);
       }
@@ -106,6 +118,12 @@ export const AuthProvider = ({ children }) => {
           // Regular login with token
           setUser(data.user);
           setIsAuthenticated(true);
+          try {
+            const token = data.accessToken || data.token || data.user?.token;
+            if (token) {
+              api.defaults.headers.common.Authorization = `Bearer ${token}`;
+            }
+          } catch (_) {}
           navigate('/dashboard');
         } else {
           // Unexpected response format
@@ -134,6 +152,12 @@ export const AuthProvider = ({ children }) => {
 
         setUser(data.user);
         setIsAuthenticated(true);
+        try {
+          const token = data.accessToken || data.token || data.user?.token;
+          if (token) {
+            api.defaults.headers.common.Authorization = `Bearer ${token}`;
+          }
+        } catch (_) {}
         setTwoFactorRequired(false);
         setSetupTwoFactorRequired(false);
         setTwoFactorEmail('');
@@ -166,6 +190,9 @@ export const AuthProvider = ({ children }) => {
       setTwoFactorRequired(false);
       setSetupTwoFactorRequired(false);
       setTwoFactorEmail('');
+      try {
+        delete api.defaults.headers.common.Authorization;
+      } catch (_) {}
       if (redirect) {
         navigate('/login');
       }

@@ -15,6 +15,13 @@ timeout /t 1 /nobreak >nul
 echo Ensuring no pm2-managed processes remain (optional)...
 where pm2 >nul 2>&1 && pm2 delete all >nul 2>&1
 
+REM Best-effort: free common candidate ports before selection
+echo Preflight: freeing common candidate ports (3001,3011,3021,3031, 4001-4006, 5001-5006)...
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\ensure-ports-free.ps1" -Ports 3001,3011,3021,3031,4001,4002,4003,4004,4005,4006,5001,5002,5003,5004,5005,5006 -TimeoutSeconds 15 >nul 2>&1
+if errorlevel 1 (
+  echo Warning: Some candidate ports could not be freed; continuing...
+)
+
 REM Choose dynamic ports to avoid collisions; prefer 3001/4001/5000
 set "TMP_API_PORT=%TEMP%\nectar_api_port.txt"
 set "TMP_ADMIN_PORT=%TEMP%\nectar_admin_api_port.txt"
@@ -189,7 +196,7 @@ timeout /t 1 /nobreak >nul
 start "Nectar API Frontend" cmd /k "echo Starting frontend server on port 3000... && SET PORT=3000 && SET REACT_APP_API_URL=http://localhost:%API_PORT% && npm run start:frontend"
 
 :: Start admin-frontend server in a new window (port 4000)
-start "Nectar Admin Frontend" cmd /k "cd admin-frontend && echo Starting admin frontend server on port 4000... && SET PORT=4000 && npm start"
+start "Nectar Admin Frontend" cmd /k "cd admin-frontend && echo Starting admin frontend server on port 4000... && SET PORT=4000 && SET VITE_ADMIN_API_URL=http://localhost:%ADMIN_API_PORT% && SET VITE_API_BASE_URL=http://localhost:%API_PORT% && SET VITE_GRAPHQL_URL=http://localhost:%API_PORT%/graphql && npm run dev"
 
 :: Start marketing-frontend server in a new window (port 5000)
 start "Nectar Marketing Frontend" cmd /k "cd marketing-site\frontend && echo Starting marketing frontend server on port 5000... && SET PORT=5000 && SET REACT_APP_MARKETING_API_URL=http://localhost:%MARKETING_API_PORT%/api/marketing && npm start"
@@ -205,8 +212,8 @@ echo.
 echo GraphQL Playground: http://localhost:%API_PORT%/graphql
 echo.
 echo Application Ready:
-echo - Main Frontend: Customer application (self-hosted ready)
-echo - Main Backend: Customer API with GraphQL support
+echo - Main Frontend: Platform dashboard and customer management
+echo - Main Backend: Core API with GraphQL support
 echo - Admin Frontend: Administrative interface (platform management)
 echo - Admin Backend: Admin API services
 echo - Marketing Frontend: Public marketing site (lead generation)

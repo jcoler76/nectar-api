@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useRoles } from '../../hooks/useRoles';
-import { getToken } from '../../services/authService';
 import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
 import { Badge } from '../ui/badge';
