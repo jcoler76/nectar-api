@@ -31,6 +31,11 @@ class PrismaService {
     console.log('🔌 Prisma disconnected from PostgreSQL');
   }
 
+  // Initialize method - alias for connect to match expected API
+  async initialize() {
+    await this.connect();
+  }
+
   // User operations
   async findUserByEmail(email) {
     return this.prisma.user.findUnique({

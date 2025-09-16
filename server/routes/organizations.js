@@ -8,6 +8,8 @@ const InputValidator = require('../utils/inputValidation');
 const { logger } = require('../utils/logger');
 const { errorResponses } = require('../utils/errorHandler');
 const crypto = require('crypto');
+const { requirePermission, PERMISSIONS, userHasPermission, canPerformAction } = require('../utils/rolePermissions');
+const { logRoleChange, logInvitationEvent } = require('../services/auditService');
 
 // Helper function to generate a URL-safe slug from name
 const generateSlug = name => {
@@ -112,7 +114,7 @@ const validateOrganizationUpdate = InputValidator.createValidationMiddleware({
 });
 
 // POST /api/organizations - Create new organization
-router.post('/', authenticateToken, validateOrganizationCreation, async (req, res) => {
+router.post('/', authenticateToken, requirePermission(PERMISSIONS.ORG_CREATE), validateOrganizationCreation, async (req, res) => {
   try {
     const { name, domain, website } = req.body;
     const userId = req.user.userId;
@@ -289,7 +291,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // GET /api/organizations/:id - Get organization by ID
-router.get('/:id', authenticateToken, validateOrganizationId, async (req, res) => {
+router.get('/:id', authenticateToken, AuthFactory.requireOrganizationAccess(), validateOrganizationId, async (req, res) => {
   try {
     const organizationId = req.params.id;
     const userId = req.user.userId;
@@ -393,6 +395,7 @@ router.get('/:id', authenticateToken, validateOrganizationId, async (req, res) =
 router.put(
   '/:id',
   authenticateToken,
+  AuthFactory.requireOrganizationAccess(['OWNER', 'ADMIN', 'ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN']),
   validateOrganizationId,
   validateOrganizationUpdate,
   async (req, res) => {
@@ -499,7 +502,7 @@ router.put(
 );
 
 // DELETE /api/organizations/:id - Delete organization
-router.delete('/:id', authenticateToken, validateOrganizationId, async (req, res) => {
+router.delete('/:id', authenticateToken, AuthFactory.requireOrganizationAccess(['OWNER', 'ORGANIZATION_OWNER']), validateOrganizationId, async (req, res) => {
   try {
     const organizationId = req.params.id;
     const userId = req.user.userId;
@@ -568,7 +571,7 @@ router.delete('/:id', authenticateToken, validateOrganizationId, async (req, res
 });
 
 // GET /api/organizations/:id/usage - Get organization usage statistics
-router.get('/:id/usage', authenticateToken, validateOrganizationId, async (req, res) => {
+router.get('/:id/usage', authenticateToken, AuthFactory.requireOrganizationAccess(), validateOrganizationId, async (req, res) => {
   try {
     const organizationId = req.params.id;
     const userId = req.user.userId;
@@ -836,21 +839,16 @@ router.patch(
         },
       });
 
-      // Create audit log
-      await prisma.auditLog.create({
-        data: {
-          action: 'MEMBER_ROLE_CHANGED',
-          entityType: 'membership',
-          entityId: memberId,
-          organizationId,
-          userId,
-          metadata: {
-            targetUserId: memberToUpdate.userId,
-            targetUserEmail: memberToUpdate.user.email,
-            oldRole,
-            newRole: role,
-          },
-        },
+      // Log role change with enhanced audit logging
+      await logRoleChange({
+        targetUserId: memberToUpdate.userId,
+        organizationId,
+        oldRole,
+        newRole: role,
+        performedById: userId,
+        reason: `Role changed from ${oldRole} to ${role}`,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
       });
 
       logger.info('Member role updated', {

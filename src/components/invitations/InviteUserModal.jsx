@@ -8,7 +8,7 @@ const InviteUserModal = ({ organizationId, userRole, onClose, onSuccess }) => {
   const { showNotification } = useNotification();
   const [formData, setFormData] = useState({
     email: '',
-    role: 'MEMBER',
+    role: 'MEMBER', // Default to MEMBER role
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,14 +46,58 @@ const InviteUserModal = ({ organizationId, userRole, onClose, onSuccess }) => {
 
   const getRoleDescription = role => {
     switch (role) {
-      case 'ADMIN':
-        return 'Can manage team members, settings, and all resources';
+      case 'SUPER_ADMIN':
+        return 'Platform-level access with full administrative privileges';
+      case 'ORGANIZATION_OWNER':
+        return 'Full control over organization settings, members, and billing';
+      case 'ORGANIZATION_ADMIN':
+        return 'Can manage team members, settings, and organization resources';
+      case 'DEVELOPER':
+        return 'Can manage APIs, create integrations, and handle technical resources';
       case 'MEMBER':
         return 'Can create and manage workflows, connections, and services';
       case 'VIEWER':
         return 'Can view resources but cannot make changes';
+      // Legacy role support
+      case 'OWNER':
+        return 'Legacy: Full organization control (use Organization Owner instead)';
+      case 'ADMIN':
+        return 'Legacy: Organization management (use Organization Admin instead)';
       default:
         return '';
+    }
+  };
+
+  const getAvailableRoles = () => {
+    const allRoles = [
+      { value: 'ORGANIZATION_OWNER', label: 'Organization Owner', legacy: false },
+      { value: 'ORGANIZATION_ADMIN', label: 'Organization Admin', legacy: false },
+      { value: 'DEVELOPER', label: 'Developer', legacy: false },
+      { value: 'MEMBER', label: 'Member', legacy: false },
+      { value: 'VIEWER', label: 'Viewer', legacy: false },
+      // Legacy roles (still supported for backward compatibility)
+      { value: 'OWNER', label: 'Owner (Legacy)', legacy: true },
+      { value: 'ADMIN', label: 'Admin (Legacy)', legacy: true },
+    ];
+
+    // Filter roles based on current user's permissions
+    switch (userRole) {
+      case 'SUPER_ADMIN':
+        return allRoles; // Super admin can assign any role
+      case 'OWNER':
+      case 'ORGANIZATION_OWNER':
+        return allRoles.filter(r => !['SUPER_ADMIN'].includes(r.value));
+      case 'ADMIN':
+      case 'ORGANIZATION_ADMIN':
+        return allRoles.filter(r =>
+          !['SUPER_ADMIN', 'OWNER', 'ORGANIZATION_OWNER'].includes(r.value)
+        );
+      case 'DEVELOPER':
+        return allRoles.filter(r =>
+          ['MEMBER', 'VIEWER'].includes(r.value)
+        );
+      default:
+        return allRoles.filter(r => r.value === 'VIEWER'); // Minimal permissions
     }
   };
 
@@ -118,9 +162,11 @@ const InviteUserModal = ({ organizationId, userRole, onClose, onSuccess }) => {
                 onChange={handleChange}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {userRole === 'OWNER' && <option value="ADMIN">Admin</option>}
-                <option value="MEMBER">Member</option>
-                <option value="VIEWER">Viewer</option>
+                {getAvailableRoles().map(role => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
               </select>
             </div>
             <p className="mt-1 text-xs text-gray-500">{getRoleDescription(formData.role)}</p>

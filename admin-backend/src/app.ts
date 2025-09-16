@@ -17,6 +17,7 @@ import { apiRateLimiter } from '@/middleware/rateLimiter'
 // Import routes
 import authRoutes from '@/routes/auth'
 import usersRoutes from '@/routes/users'
+import adminUsersRoutes from '@/routes/adminUsers'
 import licenseRoutes from '@/routes/licenses'
 // Disabled Stripe-related routes until schema alignment
 // import analyticsRoutes from '@/routes/analytics'
@@ -111,6 +112,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/users', usersRoutes)
+app.use('/api/admin/users', adminUsersRoutes)
 app.use('/api/licenses', licenseRoutes)
 // Disabled Stripe-related routes until schema alignment
 // app.use('/api/analytics', analyticsRoutes)

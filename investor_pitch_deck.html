@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nectar Studio Platform - Investor Pitch Deck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin: -20px -20px 50px -20px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section h2 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            border-left: 5px solid #667eea;
+            padding-left: 20px;
+        }
+
+        .section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .section h4 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .executive-summary {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 1em;
+            color: #6c757d;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .feature-card h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .pricing-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            border-color: #667eea;
+        }
+
+        .pricing-card.featured {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .price {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .price-label {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        ul {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 50px 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .cta-section h2 {
+            border: none;
+            padding: 0;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .risk-card {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .risk-card h4 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .competitive-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .competitive-table th,
+        .competitive-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .competitive-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .competitive-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .check {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .phases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .phase-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .phase-number {
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section h2 {
+                font-size: 1.8em;
+            }
+
+            .metrics-grid,
+            .features-grid,
+            .pricing-table {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚀 NECTAR STUDIO PLATFORM</h1>
+            <p class="subtitle">INVESTOR PITCH DECK</p>
+        </header>
+
+        <section class="section">
+            <div class="executive-summary">
+                <h2>Executive Summary</h2>
+                <p><strong>The Nectar Studio Platform</strong> is an enterprise-grade, unified Business Intelligence and Workflow Automation platform that combines the functionality of multiple market leaders (Supabase + Zapier + Tableau + AWS) into one comprehensive solution.</p>
+
+                <h3>Key Investment Highlights</h3>
+                <ul>
+                    <li><strong>$65B+ Total Addressable Market</strong> across BaaS, workflow automation, and BI markets</li>
+                    <li><strong>Unique positioning</strong> as the only platform combining multi-database BaaS, visual workflow engine, and AI-powered business intelligence</li>
+                    <li><strong>Enterprise-ready</strong> with self-hosted deployment, comprehensive security, and compliance features</li>
+                    <li><strong>Multiple revenue streams</strong> from SaaS subscriptions, enterprise licensing, usage-based pricing, and professional services</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎯 Market Opportunity</h2>
+
+            <h3>Market Size & Growth</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">$7.2B</div>
+                    <div class="metric-label">BaaS Market by 2025<br>(23.5% CAGR)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$19.6B</div>
+                    <div class="metric-label">Workflow Automation<br>by 2026</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$33.3B</div>
+                    <div class="metric-label">Business Intelligence<br>by 2025</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">$5.1B</div>
+                    <div class="metric-label">API Management<br>by 2026</div>
+                </div>
+            </div>
+
+            <h3>Target Market Segments</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Enterprise SaaS</h4>
+                    <p>Need scalable backend infrastructure</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Financial Services</h4>
+                    <p>Require compliance and data sovereignty</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Healthcare</h4>
+                    <p>Data privacy and regulatory requirements</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Manufacturing</h4>
+                    <p>Complex workflow automation needs</p>
+                </div>
+                <div class="feature-card">
+                    <h4>E-commerce</h4>
+                    <p>Real-time data processing requirements</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🏗️ Product Overview</h2>
+
+            <h3>Core Platform Components</h3>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>1. Multi-Database Backend-as-a-Service</h4>
+                    <ul>
+                        <li>Universal support: PostgreSQL, MySQL, MongoDB, SQL Server</li>
+                        <li>Auto-REST API generation with zero code</li>
+                        <li>Real-time data synchronization</li>
+                        <li>Advanced security and compliance</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>2. Visual Workflow Engine (50+ Nodes)</h4>
+                    <ul>
+                        <li><strong>Triggers</strong>: Webhooks, Scheduler, Email, Forms, Database changes</li>
+                        <li><strong>Actions</strong>: CRM operations, Email, File processing, API calls</li>
+                        <li><strong>Logic</strong>: Routing, Approval workflows, Delays, Idempotency</li>
+                        <li><strong>Integrations</strong>: Salesforce, HubSpot, ZoomInfo, Teams, AWS S3</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>3. AI-Powered Business Intelligence</h4>
+                    <ul>
+                        <li>Natural language to SQL conversion</li>
+                        <li>Multi-database query engine</li>
+                        <li>Real-time data visualization</li>
+                        <li>Interactive dashboards and reporting</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>4. Enterprise Security & Compliance</h4>
+                    <ul>
+                        <li>Multi-factor authentication</li>
+                        <li>Role-based access control</li>
+                        <li>SOC 2 & GDPR compliance ready</li>
+                        <li>Self-hosted deployment option</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>💰 Business Model & Revenue Streams</h2>
+
+            <h3>Pricing Strategy</h3>
+            <div class="pricing-table">
+                <div class="pricing-card">
+                    <h4>Free Plan</h4>
+                    <div class="price">$0<span class="price-label">/month</span></div>
+                    <ul>
+                        <li>1 datasource</li>
+                        <li>50K API calls/month</li>
+                        <li>NL→API generator (limited)</li>
+                        <li>BYO LLM key (optional)</li>
+                        <li>Community support</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card">
+                    <h4>Team Plan</h4>
+                    <div class="price">$99<span class="price-label">/month</span></div>
+                    <ul>
+                        <li>Up to 5 team members</li>
+                        <li>3 datasources</li>
+                        <li>1M API calls/month</li>
+                        <li>Enterprise-grade security</li>
+                        <li>Email support</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card featured">
+                    <h4>Business Plan</h4>
+                    <div class="price">$399<span class="price-label">/month</span></div>
+                    <ul>
+                        <li>Up to 25 team members</li>
+                        <li>10 datasources</li>
+                        <li>5M API calls/month</li>
+                        <li>Advanced RBAC/ABAC & masking</li>
+                        <li>Workflow Copilot</li>
+                        <li>Priority support</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card">
+                    <h4>Enterprise Plan</h4>
+                    <div class="price">Custom</div>
+                    <div class="price-label">$50K-$500K annually</div>
+                    <ul>
+                        <li>Unlimited team members & datasources</li>
+                        <li>100% OWASP Top 10 compliance</li>
+                        <li>SSO/SAML/SCIM</li>
+                        <li>On-premises deployment</li>
+                        <li>VPC peering & SOC 2 addendum</li>
+                        <li>24/7 dedicated support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Revenue Projections</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>Conservative 5-Year</h4>
+                    <div class="metric-value">$120M</div>
+                    <div class="metric-label">ARR Target<br>25,000 customers</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Aggressive 5-Year</h4>
+                    <div class="metric-value">$480M</div>
+                    <div class="metric-label">ARR Target<br>100,000 customers</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🥇 Competitive Advantages</h2>
+
+            <h3>Unique Value Propositions</h3>
+
+            <div class="highlight-box">
+                <h4>1. Unified Platform Approach</h4>
+                <p>Unlike single-purpose competitors, Nectar Studio combines:</p>
+                <ul>
+                    <li>Database-as-a-Service (vs Supabase)</li>
+                    <li>Workflow automation (vs Zapier)</li>
+                    <li>Business intelligence (vs Tableau)</li>
+                    <li>API development (vs Postman)</li>
+                </ul>
+            </div>
+
+            <table class="competitive-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Nectar Studio</th>
+                        <th>Supabase</th>
+                        <th>Zapier</th>
+                        <th>Firebase</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Multi-Database Support</td>
+                        <td class="check">✅ All Major DBs</td>
+                        <td>PostgreSQL Only</td>
+                        <td>❌</td>
+                        <td>NoSQL Only</td>
+                    </tr>
+                    <tr>
+                        <td>Visual Workflow Engine</td>
+                        <td class="check">✅ 50+ Nodes</td>
+                        <td>❌</td>
+                        <td class="check">✅ Limited</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td>Self-Hosted Option</td>
+                        <td class="check">✅ Enterprise</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td>AI-Powered BI</td>
+                        <td class="check">✅ Native</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>📈 Go-to-Market Strategy</h2>
+
+            <div class="phases">
+                <div class="phase-card">
+                    <div class="phase-number">1</div>
+                    <h4>Market Entry (0-12 months)</h4>
+                    <ul>
+                        <li><strong>Target</strong>: 1,000+ developer signups</li>
+                        <li><strong>Revenue Goal</strong>: $500K ARR</li>
+                        <li><strong>Focus</strong>: Product-market fit, community building</li>
+                        <li><strong>Channels</strong>: Developer communities, GitHub, content marketing</li>
+                    </ul>
+                </div>
+
+                <div class="phase-card">
+                    <div class="phase-number">2</div>
+                    <h4>Scale (12-24 months)</h4>
+                    <ul>
+                        <li><strong>Target</strong>: 10,000+ users, 100+ enterprise customers</li>
+                        <li><strong>Revenue Goal</strong>: $10M ARR</li>
+                        <li><strong>Focus</strong>: Enterprise features, compliance certifications</li>
+                        <li><strong>Channels</strong>: Direct sales, partner integrations</li>
+                    </ul>
+                </div>
+
+                <div class="phase-card">
+                    <div class="phase-number">3</div>
+                    <h4>Market Leadership (24-36 months)</h4>
+                    <ul>
+                        <li><strong>Target</strong>: 100,000+ users, 1,000+ enterprise customers</li>
+                        <li><strong>Revenue Goal</strong>: $50M ARR</li>
+                        <li><strong>Focus</strong>: Global expansion, AI/ML features, acquisitions</li>
+                        <li><strong>Channels</strong>: International partnerships, marketplace presence</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🛠️ Technical Architecture & Scalability</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Enterprise-Ready Infrastructure</h4>
+                    <ul>
+                        <li>Multi-service architecture with Docker/Kubernetes support</li>
+                        <li>Hybrid database architecture supporting massive scale</li>
+                        <li>Real-time capabilities with WebSocket/GraphQL subscriptions</li>
+                        <li>99.99% uptime SLA with global CDN distribution</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Performance Benchmarks</h4>
+                    <ul>
+                        <li><50ms response time for simple queries</li>
+                        <li>10,000+ requests/second per service</li>
+                        <li>1,000+ concurrent connections per database</li>
+                        <li>100M+ records tested per table</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Security & Compliance</h4>
+                    <ul>
+                        <li>SOC 2 Type II compliance readiness</li>
+                        <li>GDPR compliance for EU customers</li>
+                        <li>Multi-factor authentication with enterprise SSO</li>
+                        <li>Audit trails and compliance reporting</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>📊 Financial Projections & Unit Economics</h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>Monthly Revenue</h4>
+                    <div class="metric-value">$399</div>
+                    <div class="metric-label">per Business customer<br>($333/mo if annual)</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Customer Acquisition Cost</h4>
+                    <div class="metric-value">$500-1,000</div>
+                    <div class="metric-label">blended CAC</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Lifetime Value</h4>
+                    <div class="metric-value">$12K-24K</div>
+                    <div class="metric-label">LTV</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Gross Margin</h4>
+                    <div class="metric-value">85-90%</div>
+                    <div class="metric-label">typical SaaS margins</div>
+                </div>
+            </div>
+
+            <h3>Revenue Mix (5-Year Conservative Target - $120M ARR)</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>SaaS Subscriptions (70%)</h4>
+                    <p><strong>$84M ARR</strong> - Business Plan: $60M, Team Plan: $24M</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Enterprise Licenses (20%)</h4>
+                    <p><strong>$24M ARR</strong> - Self-hosted enterprise deployments</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Usage Overages & Add-ons (7%)</h4>
+                    <p><strong>$8.4M ARR</strong> - API calls, extra datasources, LLM usage</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Professional Services (3%)</h4>
+                    <p><strong>$3.6M ARR</strong> - Implementation and migration services</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🚨 Risk Factors & Mitigation</h2>
+
+            <div class="risk-grid">
+                <div class="risk-card">
+                    <h4>Technical Risks</h4>
+                    <ul>
+                        <li><strong>Complex architecture</strong> → Experienced technical team, proven codebase</li>
+                        <li><strong>Security vulnerabilities</strong> → Regular audits, bug bounty program</li>
+                        <li><strong>Scale challenges</strong> → Proven architecture, performance testing</li>
+                    </ul>
+                </div>
+
+                <div class="risk-card">
+                    <h4>Market Risks</h4>
+                    <ul>
+                        <li><strong>Intense competition</strong> → Unique positioning, strong differentiation</li>
+                        <li><strong>Customer acquisition</strong> → Multiple go-to-market channels</li>
+                        <li><strong>Technology changes</strong> → Continuous innovation, R&D investment</li>
+                    </ul>
+                </div>
+
+                <div class="risk-card">
+                    <h4>Operational Risks</h4>
+                    <ul>
+                        <li><strong>Talent acquisition</strong> → Competitive packages, remote-first culture</li>
+                        <li><strong>Compliance requirements</strong> → Early investment in legal/compliance</li>
+                        <li><strong>Support complexity</strong> → Automated tools, comprehensive documentation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h2>🎉 Investment Recommendation</h2>
+
+            <h3>Why Nectar Studio is a Compelling Investment</h3>
+
+            <div class="features-grid" style="margin-top: 30px;">
+                <div class="feature-card">
+                    <h4>Strong Value Proposition</h4>
+                    <ul>
+                        <li>Unique market position combining multiple high-value solutions</li>
+                        <li>Enterprise-ready platform with self-hosting capabilities</li>
+                        <li>Large addressable market across multiple growth segments</li>
+                        <li>Scalable technology with proven performance</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Financial Attractiveness</h4>
+                    <ul>
+                        <li><strong>Conservative</strong>: $120M ARR → $1B-1.4B valuation</li>
+                        <li><strong>Aggressive</strong>: $480M ARR → $7.2B-9.6B valuation</li>
+                        <li>High gross margins and multiple monetization streams</li>
+                        <li>Strong unit economics with fast payback periods</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Execution Readiness</h4>
+                    <ul>
+                        <li>Production-ready platform with comprehensive feature set</li>
+                        <li>Experienced team with enterprise software background</li>
+                        <li>Clear go-to-market strategy across multiple channels</li>
+                        <li>Multiple competitive advantages creating defensible moats</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 40px;">
+                <p><strong>The Nectar Studio Platform represents a rare opportunity to invest in a technically sophisticated, market-ready platform positioned to capture significant share in multiple high-growth markets. With strong fundamentals, clear competitive advantages, and massive market opportunity, Nectar Studio is positioned to become a market leader in the enterprise software space.</strong></p>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
