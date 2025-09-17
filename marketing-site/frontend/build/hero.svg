@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">NectarSolutions.ai — Hero</title>
+  <desc id="desc">Abstract gradient background with honeycomb network pattern and nectar glow accents</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B1021"/>
+      <stop offset="60%" stop-color="#1E2552"/>
+      <stop offset="100%" stop-color="#2B1D4A"/>
+    </linearGradient>
+    <radialGradient id="honeyGlow" cx="65%" cy="30%" r="45%">
+      <stop offset="0%" stop-color="#FFB300" stop-opacity="0.55"/>
+      <stop offset="60%" stop-color="#FF8F00" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#FF8F00" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="nectarLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FFD54F" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#FFD54F" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#FFB300" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FF8F00" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <pattern id="hex" width="80" height="69.282" patternUnits="userSpaceOnUse" patternTransform="scale(1)">
+      <g fill="none" stroke="#FFD54F" stroke-width="1.2" opacity="0.12">
+        <path d="M20,0 60,0 80,34.641 60,69.282 20,69.282 0,34.641 Z"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <rect width="100%" height="100%" fill="url(#hex)"/>
+
+  <!-- Nectar glow -->
+  <circle cx="1120" cy="270" r="380" fill="url(#honeyGlow)" filter="url(#soft)"/>
+
+  <!-- Flow lines -->
+  <g stroke-linecap="round" fill="none">
+    <path d="M-50 600 C 200 540, 420 520, 700 560 S 1180 650, 1650 520" stroke="url(#nectarLine)" stroke-width="6" opacity="0.7"/>
+    <path d="M-50 660 C 250 630, 520 600, 800 640 S 1280 720, 1650 590" stroke="url(#nectarLine)" stroke-width="3" opacity="0.6"/>
+    <path d="M-50 720 C 220 690, 520 700, 900 720 S 1360 760, 1650 700" stroke="url(#nectarLine)" stroke-width="2" opacity="0.5"/>
+  </g>
+
+  <!-- Subtle highlights -->
+  <g opacity="0.2">
+    <circle cx="1180" cy="260" r="6" fill="#FFF8E1"/>
+    <circle cx="1210" cy="300" r="4" fill="#FFF8E1"/>
+    <circle cx="1140" cy="320" r="3" fill="#FFF8E1"/>
+  </g>
+</svg>
+

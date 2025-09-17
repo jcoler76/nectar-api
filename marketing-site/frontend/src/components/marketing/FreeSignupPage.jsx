@@ -1,10 +1,14 @@
-import { ArrowLeft, CheckCircle, User, Zap } from 'lucide-react';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { CheckCircle, User, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const FreeSignupPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  // Security: Only allow 'free' plan through this form
+  const urlPlan = searchParams.get('plan');
+  const selectedPlan = (urlPlan === 'free') ? 'free' : 'free';
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
@@ -37,6 +41,8 @@ const FreeSignupPage = () => {
     if (!formData.password) newErrors.password = 'Password is required';
     else if (formData.password.length < 8)
       newErrors.password = 'Password must be at least 8 characters';
+    else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(formData.password))
+      newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';
 
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
     else if (formData.password !== formData.confirmPassword)
@@ -54,23 +60,48 @@ const FreeSignupPage = () => {
     setLoading(true);
 
     try {
-      // Simulate account creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Split full name into firstName and lastName
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
 
-      // In a real app, you would create the account here
-      // Account creation logic would go here
+      // Call the registration API via marketing backend proxy
+      const marketingBackendUrl = process.env.REACT_APP_MARKETING_BACKEND_URL || 'http://localhost:5001';
+      console.log('Marketing backend URL:', marketingBackendUrl);
+      const response = await fetch(`${marketingBackendUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          firstName,
+          lastName,
+          organizationName: formData.company || `${firstName}'s Organization`,
+          selectedPlan: selectedPlan,
+        }),
+      });
 
-      // Simulate successful account creation
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Registration successful - redirect to success page
       navigate('/checkout/success', {
         state: {
-          plan: 'Free',
+          plan: selectedPlan,
           billing: 'free',
           amount: 0,
+          user: data.data.user,
+          organization: data.data.organization,
         },
       });
     } catch (error) {
       console.error('Account creation failed:', error);
-      setErrors({ submit: 'Account creation failed. Please try again.' });
+      setErrors({ submit: error.message || 'Account creation failed. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -88,31 +119,7 @@ const FreeSignupPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/pricing')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back to Pricing
-              </button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                <span className="text-xl font-bold text-blue-600">.ai</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Header provided by MarketingLayout */}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -229,7 +236,7 @@ const FreeSignupPage = () => {
                   className={`w-full px-4 py-3 rounded-xl border transition-colors ${
                     errors.password ? 'border-red-500' : 'border-gray-300 focus:border-green-500'
                   } focus:outline-none focus:ring-2 focus:ring-green-500/20`}
-                  placeholder="At least 8 characters"
+                  placeholder="8+ chars, upper, lower, number, special"
                 />
                 {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
               </div>
@@ -276,11 +283,19 @@ const FreeSignupPage = () => {
               <div className="text-center text-sm text-gray-500">
                 <p>
                   By creating an account, you agree to our{' '}
-                  <button type="button" className="text-green-600 hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/terms')}
+                    className="text-green-600 hover:underline"
+                  >
                     Terms of Service
                   </button>{' '}
                   and{' '}
-                  <button type="button" className="text-green-600 hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/privacy')}
+                    className="text-green-600 hover:underline"
+                  >
                     Privacy Policy
                   </button>
                 </p>

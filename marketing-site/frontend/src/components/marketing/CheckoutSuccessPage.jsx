@@ -1,9 +1,10 @@
-import { CheckCircle, ArrowRight, Mail, Calendar, CreditCard } from 'lucide-react';
+import { ArrowRight, Calendar, CheckCircle, CreditCard, Mail } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import LegalLinks from './LegalLinks';
+// Header/Footer provided by MarketingLayout
 
 const CheckoutSuccessPage = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { plan: statePlan, billing: stateBilling, amount: stateAmount } = location.state || {};
   const [sessionData, setSessionData] = useState(null);
@@ -182,7 +183,7 @@ const CheckoutSuccessPage = () => {
             <p className="text-gray-600 text-sm mb-2">Need help getting started?</p>
             <div className="flex items-center justify-center gap-4 text-sm">
               <button
-                onClick={() => (window.location.href = 'mailto:support@nectar.com')}
+                onClick={() => (window.location.href = 'mailto:support@nectarstudio.ai')}
                 className="text-blue-600 hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer"
               >
                 <Mail className="w-4 h-4" />
@@ -210,10 +211,13 @@ const CheckoutSuccessPage = () => {
         <div className="text-center mt-8">
           <p className="text-gray-500 text-sm">
             Questions? Email us at{' '}
-            <a href="mailto:support@nectar.com" className="text-blue-600 hover:underline">
-              support@nectar.com
+            <a href="mailto:support@nectarstudio.ai" className="text-blue-600 hover:underline">
+              support@nectarstudio.ai
             </a>
           </p>
+          <div className="text-gray-500 text-sm mt-2">
+            <LegalLinks />
+          </div>
         </div>
       </div>
     </div>

@@ -34,6 +34,38 @@ const registerValidation = [
     .trim()
     .isLength({ max: 100 })
     .withMessage('Organization name must be less than 100 characters'),
+  body('selectedPlan')
+    .optional()
+    .isIn(['free'])
+    .withMessage('Only free plan registration is allowed through this endpoint'),
+];
+
+const registerWithPaymentValidation = [
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
+  body('password')
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage(
+      'Password must contain at least 8 characters with uppercase, lowercase, number, and special character'
+    ),
+  body('firstName')
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('First name is required and must be less than 50 characters'),
+  body('lastName')
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Last name is required and must be less than 50 characters'),
+  body('organizationName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Organization name must be less than 100 characters'),
+  body('selectedPlan')
+    .isIn(['starter', 'business', 'professional', 'enterprise'])
+    .withMessage('Valid paid plan is required'),
+  body('paymentMethodId').notEmpty().withMessage('Payment method is required for paid plans'),
+  body('billingCycle').isIn(['monthly', 'yearly']).withMessage('Valid billing cycle is required'),
 ];
 
 const changePasswordValidation = [
@@ -167,18 +199,21 @@ router.post('/refresh', async (req, res) => {
 
 /**
  * POST /api/auth/register
- * Register new user and create organization
+ * Register new user and create organization (Free plan only)
  */
 router.post('/register', registerValidation, handleValidationErrors, async (req, res) => {
   try {
     const { email, password, firstName, lastName, organizationName } = req.body;
     const ipAddress = getClientIP(req);
 
-    logger.info('Registration attempt', { email, organizationName, ipAddress });
+    // Security: Force 'free' plan for public registration
+    const plan = 'free';
+
+    logger.info('Free registration attempt', { email, organizationName, plan, ipAddress });
 
     const result = await authService.register(
       { email, password, firstName, lastName },
-      { organizationName }
+      { organizationName, selectedPlan: plan }
     );
 
     res.status(201).json({
@@ -211,6 +246,63 @@ router.post('/register', registerValidation, handleValidationErrors, async (req,
     });
   }
 });
+
+/**
+ * POST /api/auth/register-with-payment
+ * Register new user with paid plan and payment processing
+ */
+router.post(
+  '/register-with-payment',
+  registerWithPaymentValidation,
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const {
+        email,
+        password,
+        firstName,
+        lastName,
+        organizationName,
+        selectedPlan,
+        paymentMethodId,
+        billingCycle,
+      } = req.body;
+      const ipAddress = getClientIP(req);
+
+      logger.info('Paid registration attempt', {
+        email,
+        organizationName,
+        selectedPlan,
+        billingCycle,
+        ipAddress,
+      });
+
+      // TODO: Integrate with payment service to verify payment method and process subscription
+      // This would typically involve:
+      // 1. Validate payment method with Stripe/payment processor
+      // 2. Create subscription
+      // 3. Only proceed with registration if payment succeeds
+
+      // For now, return an error indicating this endpoint needs payment integration
+      return res.status(501).json({
+        success: false,
+        message:
+          'Paid plan registration requires payment processing integration. Please use the free plan for now.',
+      });
+    } catch (error) {
+      logger.error('Paid registration error', {
+        error: error.message,
+        email: req.body.email,
+        ipAddress: getClientIP(req),
+      });
+
+      res.status(400).json({
+        success: false,
+        message: error.message || 'Paid registration failed',
+      });
+    }
+  }
+);
 
 /**
  * POST /api/auth/verify

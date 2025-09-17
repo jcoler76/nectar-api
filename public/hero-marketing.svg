@@ -19,7 +19,7 @@
       <stop offset="100%" stop-color="#FF8F00" stop-opacity="0"/>
     </linearGradient>
     <pattern id="hex" width="80" height="69.282" patternUnits="userSpaceOnUse">
-      <g fill="none" stroke="#3B82F6" stroke-width="1" opacity="0.08">
+      <g fill="none" stroke="#1E40AF" stroke-width="1.5" opacity="0.6">
         <path d="M20,0 60,0 80,34.641 60,69.282 20,69.282 0,34.641 Z"/>
       </g>
     </pattern>

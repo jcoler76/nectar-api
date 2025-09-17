@@ -67,7 +67,7 @@ STRIPE_WEBHOOK_SECRET="whsec_your_webhook_secret"
 SMTP_HOST="smtp.sendgrid.net"
 SMTP_USER="apikey"
 SMTP_PASSWORD="your_sendgrid_api_key"
-FROM_EMAIL="support@nectar.com"
+FROM_EMAIL="support@nectarstudio.ai"
 
 # Feature Flags
 ENABLE_ORGANIZATION_BILLING=true

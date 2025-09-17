@@ -179,14 +179,32 @@ class StripeService {
      * Map Stripe price ID to subscription plan
      */
     static mapStripePriceToPlan(priceId) {
-        // This mapping should be configured based on your Stripe price IDs
+        // Updated mapping for 4-tier pricing structure
         const priceMapping = {
+            // Free plan (no Stripe price ID needed)
+            'price_free': 'FREE',
+
+            // Starter plan - $29/month, 1 user
             'price_starter_monthly': 'STARTER',
-            'price_starter_yearly': 'STARTER',
-            'price_pro_monthly': 'PROFESSIONAL',
-            'price_pro_yearly': 'PROFESSIONAL',
+            'price_starter_annual': 'STARTER',
+
+            // Team plan - $99/month, 10 users
+            'price_team_monthly': 'TEAM',
+            'price_team_annual': 'TEAM',
+
+            // Business plan - $199/month, 25 users
+            'price_business_monthly': 'BUSINESS',
+            'price_business_annual': 'BUSINESS',
+
+            // Enterprise - custom pricing
             'price_enterprise_monthly': 'ENTERPRISE',
-            'price_enterprise_yearly': 'ENTERPRISE',
+            'price_enterprise_annual': 'ENTERPRISE',
+
+            // Legacy pricing (for existing customers)
+            'price_pro_monthly': 'BUSINESS',
+            'price_pro_yearly': 'BUSINESS',
+            'price_professional_monthly': 'BUSINESS',
+            'price_professional_yearly': 'BUSINESS',
         };
         return priceMapping[priceId] || 'CUSTOM';
     }
@@ -363,6 +381,101 @@ class StripeService {
             return 0;
         const churnRate = (current.churnedSubscriptions / previous.activeSubscriptions) * 100;
         return Math.round(churnRate * 100) / 100; // Round to 2 decimal places
+    }
+
+    /**
+     * Handle user overage billing for Phase 1 pricing
+     */
+    static async handleUserOverageBilling(organizationId, overageUsers, overagePrice) {
+        const stripe = await this.getStripeClient();
+        const organization = await database_1.prisma.organization.findUnique({
+            where: { id: organizationId },
+            include: { subscription: true }
+        });
+
+        if (!organization?.stripeCustomerId || !organization.subscription) {
+            throw new Error('Organization must have active Stripe subscription');
+        }
+
+        // Create usage record for overage users
+        const overageAmount = overageUsers * overagePrice;
+
+        // Create one-time invoice item for user overage
+        await stripe.invoiceItems.create({
+            customer: organization.stripeCustomerId,
+            amount: Math.round(overageAmount * 100), // Convert to cents
+            currency: 'usd',
+            description: `Additional users overage: ${overageUsers} users at $${overagePrice}/user`,
+            metadata: {
+                organizationId,
+                overageType: 'users',
+                overageCount: overageUsers.toString(),
+                unitPrice: overagePrice.toString()
+            }
+        });
+
+        // Log billing event
+        await database_1.prisma.billingEvent.create({
+            data: {
+                organizationId,
+                subscriptionId: organization.subscription.id,
+                eventType: 'USER_OVERAGE_CHARGE',
+                amount: overageAmount,
+                currency: 'USD',
+                description: `User overage charge: ${overageUsers} additional users`,
+                metadata: {
+                    overageUsers,
+                    unitPrice: overagePrice,
+                    totalAmount: overageAmount
+                }
+            }
+        });
+
+        return { success: true, amount: overageAmount, users: overageUsers };
+    }
+
+    /**
+     * Get plan limits for updated 4-tier pricing structure
+     */
+    static getPlanLimits(plan) {
+        const limits = {
+            FREE: {
+                userLimit: 1,
+                datasourceLimit: 1,
+                apiCallLimit: 25000,
+                userOveragePrice: 0, // No overages allowed on free plan
+                monthlyPrice: 0
+            },
+            STARTER: {
+                userLimit: 1,
+                datasourceLimit: -1, // Unlimited
+                apiCallLimit: 1000000,
+                userOveragePrice: 10,
+                monthlyPrice: 29
+            },
+            TEAM: {
+                userLimit: 10,
+                datasourceLimit: -1, // Unlimited
+                apiCallLimit: 5000000,
+                userOveragePrice: 10,
+                monthlyPrice: 99
+            },
+            BUSINESS: {
+                userLimit: 25,
+                datasourceLimit: -1, // Unlimited
+                apiCallLimit: 10000000,
+                userOveragePrice: 10,
+                monthlyPrice: 199
+            },
+            ENTERPRISE: {
+                userLimit: -1, // Unlimited
+                datasourceLimit: -1, // Unlimited
+                apiCallLimit: -1, // Unlimited
+                userOveragePrice: 0, // Custom pricing
+                monthlyPrice: 0 // Custom pricing
+            }
+        };
+        return limits[plan] || limits.FREE;
     }
 }
 exports.StripeService = StripeService;

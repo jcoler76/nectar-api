@@ -62,54 +62,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Workflow className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                <span className="text-xl font-bold text-blue-600">.ai</span>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Features
-              </a>
-              <button
-                onClick={() => navigate('/pricing')}
-                className="text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-none cursor-pointer"
-              >
-                Pricing
-              </button>
-              <button
-                onClick={() => navigate('/security')}
-                className="text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-none cursor-pointer"
-              >
-                Security
-              </button>
-              <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">
-                About
-              </a>
-              <button
-                onClick={() => window.location.href = `${process.env.REACT_APP_CUSTOMER_APP_URL}/login`}
-                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={handleTryNow}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-              >
-                Try Now
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Header provided by MarketingLayout */}
 
       {/* Hero Section */}
       <section className="relative overflow-hidden px-4 sm:px-6 lg:px-8 pt-20 pb-16">
@@ -205,52 +158,26 @@ const HomePage = () => {
       {/* Benefits Section */}
       <section className="px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
-                Transform Your Operations in Days, Not Months
-              </h2>
-              <div className="space-y-6">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start gap-4">
-                    <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
-                    <p className="text-xl text-blue-100">{benefit}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-10">
-                <button
-                  onClick={handleTryNow}
-                  className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 transition-all hover:scale-105 shadow-xl"
-                >
-                  Get Started Today
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20">
-              <div className="text-center">
-                <div className="text-6xl font-bold text-white mb-2">90%</div>
-                <div className="text-xl text-blue-100 mb-6">Time Savings</div>
-                <div className="grid grid-cols-2 gap-6 mt-8">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white mb-1">500+</div>
-                    <div className="text-blue-100">Companies</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white mb-1">10M+</div>
-                    <div className="text-blue-100">Tasks Automated</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white mb-1">100%</div>
-                    <div className="text-blue-100">OWASP Compliant</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white mb-1">24/7</div>
-                    <div className="text-blue-100">Security Monitoring</div>
-                  </div>
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
+              Transform Your Operations in Days, Not Months
+            </h2>
+            <div className="space-y-6 text-left max-w-2xl mx-auto">
+              {benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start gap-4">
+                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
+                  <p className="text-xl text-blue-100">{benefit}</p>
                 </div>
-              </div>
+              ))}
+            </div>
+            <div className="mt-10">
+              <button
+                onClick={handleTryNow}
+                className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 mx-auto transition-all hover:scale-105 shadow-xl"
+              >
+                Get Started Today
+                <ArrowRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
@@ -278,142 +205,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Workflow className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                <span className="text-xl font-bold text-blue-600">.ai</span>
-              </div>
-            </div>
-              <p className="text-gray-600">
-                Automate, integrate, elevate - the modern platform that transforms how businesses
-                operate and grow.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Features
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Integrations
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate('/security')}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Security
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    API
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    About
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Careers
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Contact
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Blog
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Help Center
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Documentation
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Status
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {}}
-                    className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer"
-                  >
-                    Community
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 mt-12 pt-8 text-center">
-            <p className="text-gray-600">&copy; {new Date().getFullYear()} NectarStudio.ai. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer provided by MarketingLayout */}
     </div>
   );
 };

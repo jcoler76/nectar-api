@@ -168,7 +168,7 @@ async function sendWelcomeEmail(email, token, firstName) {
 
             <div class="footer">
               <p><strong>Need help?</strong><br>
-              Our team is here to help you get started. Reply to this email or contact us at <a href="mailto:support@nectar.com">support@nectar.com</a>.</p>
+              Our team is here to help you get started. Reply to this email or contact us at <a href="mailto:support@nectarstudio.ai">support@nectarstudio.ai</a>.</p>
 
               <p style="color: #999; font-size: 12px;">
                 If you didn't create this account, please ignore this email or contact support.

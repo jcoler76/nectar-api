@@ -138,6 +138,7 @@ model Organization {
   subscription  Subscription?
   billingEvents BillingEvent[]
   memberships   Membership[]
+  usageMetrics  UsageMetric[]
 
   @@map("organizations")
   @@index([slug])
@@ -196,6 +197,13 @@ model Subscription {
   stripePriceId        String?   @map("stripe_price_id")
   monthlyRevenue       Decimal?  @db.Decimal(10,2) @map("monthly_revenue")
   cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
+
+  // Plan limits for updated 4-tier pricing (FREE: 1 user, STARTER: 1 user, TEAM: 10 users, BUSINESS: 25 users)
+  userLimit            Int       @default(1) @map("user_limit")       // Number of users included in plan
+  datasourceLimit      Int       @default(1) @map("datasource_limit") // Number of datasources included
+  apiCallLimit         Int       @default(25000) @map("api_call_limit") // Monthly API call limit
+  userOveragePrice     Decimal   @default(10.00) @db.Decimal(10,2) @map("user_overage_price") // Price per additional user ($10 for all paid plans)
+
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
 
@@ -233,5 +241,32 @@ model BillingEvent {
   @@index([subscriptionId])
   @@index([eventType])
   @@index([createdAt])
+}
+
+// Usage tracking for billing
+model UsageMetric {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  period         String   // Format: "2024-01" for monthly billing
+
+  // Usage metrics
+  activeUsers    Int      @default(0) @map("active_users")
+  apiCalls       Int      @default(0) @map("api_calls")
+  datasources    Int      @default(0) @map("datasources")
+
+  // Calculated overages
+  userOverage    Int      @default(0) @map("user_overage")
+  userOverageCost Decimal @default(0) @db.Decimal(10,2) @map("user_overage_cost")
+
+  lastUpdated    DateTime @default(now()) @map("last_updated")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, period])
+  @@map("usage_metrics")
+  @@index([period])
+  @@index([organizationId])
 }
 
