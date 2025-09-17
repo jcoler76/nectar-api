@@ -1,0 +1,8 @@
+{
+  "email": "test2@example.com",
+  "password": "TestPass123!",
+  "firstName": "Test2",
+  "lastName": "User",
+  "organizationName": "Test Organization 2",
+  "selectedPlan": "free"
+}

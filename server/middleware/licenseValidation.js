@@ -334,7 +334,7 @@ const requireValidLicense = async (req, res, next) => {
         error: 'License Required',
         message: validation.message,
         code: validation.error,
-        contact: 'support@nectar.com',
+        contact: 'support@nectarstudio.ai',
       });
     }
 
@@ -376,7 +376,7 @@ const requireFeature = feature => {
           error: 'Feature Not Available',
           message: `This feature (${feature}) is not available in your current license`,
           feature,
-          upgrade: 'Contact support@nectar.com to upgrade your license',
+          upgrade: 'Contact support@nectarstudio.ai to upgrade your license',
         });
       }
 
@@ -407,7 +407,7 @@ const checkUsageLimit = (limitType, getCurrentValue) => {
           message: `You have exceeded the ${limitType} limit for your current license`,
           limitType,
           currentValue,
-          upgrade: 'Contact support@nectar.com to upgrade your license',
+          upgrade: 'Contact support@nectarstudio.ai to upgrade your license',
         });
       }
 

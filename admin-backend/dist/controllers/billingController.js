@@ -273,6 +273,317 @@ class BillingController {
             }
         });
     }
+
+    /**
+     * Get user overage analytics for Phase 1 pricing
+     */
+    static async getUserOverageAnalytics(req, res) {
+        try {
+            const { period = 'monthly' } = req.query;
+
+            // Get organizations with user overages
+            const overageAnalytics = await database_1.prisma.subscription.findMany({
+                where: {
+                    status: { in: ['ACTIVE', 'TRIALING'] },
+                    plan: { in: ['STARTER', 'TEAM', 'BUSINESS'] }
+                },
+                include: {
+                    organization: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            members: {
+                                where: { status: 'ACTIVE' },
+                                select: { id: true }
+                            }
+                        }
+                    },
+                    usageMetrics: {
+                        where: {
+                            period: period.toUpperCase(),
+                            date: {
+                                gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+                            }
+                        },
+                        orderBy: { date: 'desc' },
+                        take: 1
+                    }
+                }
+            });
+
+            const overageData = overageAnalytics.map(sub => {
+                const currentUsers = sub.organization.members.length;
+                const userLimit = sub.userLimit || 0;
+                const isOverage = currentUsers > userLimit;
+                const overageUsers = isOverage ? currentUsers - userLimit : 0;
+                const overageCost = overageUsers * (sub.userOveragePrice ? Number(sub.userOveragePrice) : 0);
+
+                return {
+                    organizationId: sub.organizationId,
+                    organizationName: sub.organization.name,
+                    plan: sub.plan,
+                    currentUsers,
+                    userLimit,
+                    overageUsers,
+                    overageCost,
+                    hasOverage: isOverage,
+                    usageMetrics: sub.usageMetrics[0] || null
+                };
+            });
+
+            const summary = {
+                totalOrganizations: overageData.length,
+                organizationsWithOverage: overageData.filter(d => d.hasOverage).length,
+                totalOverageUsers: overageData.reduce((sum, d) => sum + d.overageUsers, 0),
+                totalOverageRevenue: overageData.reduce((sum, d) => sum + d.overageCost, 0),
+                averageOveragePerOrg: overageData.filter(d => d.hasOverage).length > 0
+                    ? overageData.reduce((sum, d) => sum + d.overageCost, 0) / overageData.filter(d => d.hasOverage).length
+                    : 0
+            };
+
+            res.json({
+                success: true,
+                data: {
+                    summary,
+                    details: overageData.filter(d => d.hasOverage), // Only return organizations with overages
+                    all: overageData // All organizations for comparison
+                }
+            });
+        }
+        catch (error) {
+            console.error('Get user overage analytics error:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    /**
+     * Process user overage billing for all organizations
+     */
+    static async processUserOverageBilling(req, res) {
+        try {
+            const { dryRun = 'true', organizationIds } = req.body;
+            const isDryRun = dryRun === 'true' || dryRun === true;
+
+            // Get organizations with user overages
+            const whereClause = {
+                status: { in: ['ACTIVE', 'TRIALING'] },
+                plan: { in: ['TEAM', 'BUSINESS'] }
+            };
+
+            if (organizationIds && organizationIds.length > 0) {
+                whereClause.organizationId = { in: organizationIds };
+            }
+
+            const subscriptionsWithOverage = await database_1.prisma.subscription.findMany({
+                where: whereClause,
+                include: {
+                    organization: {
+                        select: {
+                            id: true,
+                            name: true,
+                            stripeCustomerId: true,
+                            members: {
+                                where: { status: 'ACTIVE' },
+                                select: { id: true }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const results = [];
+            let totalOverageRevenue = 0;
+
+            for (const subscription of subscriptionsWithOverage) {
+                const currentUsers = subscription.organization.members.length;
+                const userLimit = subscription.userLimit || 0;
+                const overageUsers = Math.max(0, currentUsers - userLimit);
+
+                if (overageUsers > 0 && subscription.userOveragePrice) {
+                    const overagePrice = Number(subscription.userOveragePrice);
+                    const overageAmount = overageUsers * overagePrice;
+
+                    const result = {
+                        organizationId: subscription.organizationId,
+                        organizationName: subscription.organization.name,
+                        plan: subscription.plan,
+                        overageUsers,
+                        overagePrice,
+                        overageAmount,
+                        processed: false,
+                        error: null
+                    };
+
+                    if (!isDryRun) {
+                        try {
+                            await stripeService_1.StripeService.handleUserOverageBilling(
+                                subscription.organizationId,
+                                overageUsers,
+                                overagePrice
+                            );
+                            result.processed = true;
+                            totalOverageRevenue += overageAmount;
+                        } catch (error) {
+                            result.error = error.message;
+                        }
+                    } else {
+                        totalOverageRevenue += overageAmount;
+                    }
+
+                    results.push(result);
+                }
+            }
+
+            // Log admin action
+            await auditService_1.AdminAuditLogger.log({
+                userId: req.admin.id,
+                action: isDryRun ? 'overage_billing_preview' : 'overage_billing_processed',
+                resource: 'billing',
+                resourceType: 'overage_billing',
+                details: {
+                    organizationsProcessed: results.length,
+                    totalOverageRevenue,
+                    dryRun: isDryRun,
+                    organizationIds: organizationIds || 'all'
+                },
+                ipAddress: req.ip || 'unknown',
+                userAgent: req.get('User-Agent')
+            });
+
+            res.json({
+                success: true,
+                data: {
+                    dryRun: isDryRun,
+                    summary: {
+                        totalOrganizations: results.length,
+                        totalOverageRevenue,
+                        successfullyProcessed: results.filter(r => r.processed).length,
+                        errors: results.filter(r => r.error).length
+                    },
+                    results
+                }
+            });
+        }
+        catch (error) {
+            console.error('Process user overage billing error:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    /**
+     * Get plan migration opportunities (upgrade suggestions)
+     */
+    static async getPlanMigrationOpportunities(req, res) {
+        try {
+            // Find organizations that might benefit from plan upgrades
+            const organizations = await database_1.prisma.subscription.findMany({
+                where: {
+                    status: { in: ['ACTIVE', 'TRIALING'] },
+                    plan: { in: ['FREE', 'STARTER', 'TEAM'] }
+                },
+                include: {
+                    organization: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            members: {
+                                where: { status: 'ACTIVE' },
+                                select: { id: true }
+                            },
+                            datasources: {
+                                select: { id: true }
+                            }
+                        }
+                    },
+                    usageMetrics: {
+                        where: {
+                            period: 'MONTHLY',
+                            date: {
+                                gte: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1)
+                            }
+                        },
+                        orderBy: { date: 'desc' },
+                        take: 3
+                    }
+                }
+            });
+
+            const opportunities = organizations.map(sub => {
+                const currentUsers = sub.organization.members.length;
+                const datasources = sub.organization.datasources.length;
+                const userLimit = sub.userLimit || 0;
+                const datasourceLimit = sub.datasourceLimit || 0;
+
+                // Calculate upgrade benefits
+                const planLimits = stripeService_1.StripeService.getPlanLimits(sub.plan);
+                const nextPlan = sub.plan === 'FREE' ? 'STARTER' :
+                                sub.plan === 'STARTER' ? 'TEAM' : 'BUSINESS';
+                const nextPlanLimits = stripeService_1.StripeService.getPlanLimits(nextPlan);
+
+                const shouldUpgrade =
+                    currentUsers > userLimit * 0.8 || // Using 80% of user limit
+                    datasources > datasourceLimit * 0.8 || // Using 80% of datasource limit
+                    currentUsers > userLimit; // Already over limit
+
+                const avgApiCalls = sub.usageMetrics.length > 0
+                    ? sub.usageMetrics.reduce((sum, m) => sum + (Number(m.apiCalls) || 0), 0) / sub.usageMetrics.length
+                    : 0;
+
+                return {
+                    organizationId: sub.organizationId,
+                    organizationName: sub.organization.name,
+                    currentPlan: sub.plan,
+                    suggestedPlan: nextPlan,
+                    metrics: {
+                        currentUsers,
+                        userLimit,
+                        userUtilization: Math.round((currentUsers / Math.max(userLimit, 1)) * 100),
+                        datasources,
+                        datasourceLimit,
+                        datasourceUtilization: Math.round((datasources / Math.max(datasourceLimit, 1)) * 100),
+                        avgApiCalls: Math.round(avgApiCalls),
+                        apiCallLimit: planLimits.apiCallLimit
+                    },
+                    benefits: {
+                        additionalUsers: nextPlanLimits.userLimit - userLimit,
+                        additionalDatasources: nextPlanLimits.datasourceLimit - datasourceLimit,
+                        additionalApiCalls: nextPlanLimits.apiCallLimit - planLimits.apiCallLimit
+                    },
+                    shouldUpgrade,
+                    urgency: currentUsers > userLimit ? 'high' :
+                            currentUsers > userLimit * 0.9 ? 'medium' : 'low'
+                };
+            }).filter(opp => opp.shouldUpgrade);
+
+            const summary = {
+                totalOpportunities: opportunities.length,
+                highUrgency: opportunities.filter(o => o.urgency === 'high').length,
+                mediumUrgency: opportunities.filter(o => o.urgency === 'medium').length,
+                potentialRevenue: opportunities.reduce((sum, opp) => {
+                    const currentPrice = stripeService_1.StripeService.getPlanLimits(opp.currentPlan).monthlyPrice;
+                    const suggestedPrice = stripeService_1.StripeService.getPlanLimits(opp.suggestedPlan).monthlyPrice;
+                    return sum + (suggestedPrice - currentPrice);
+                }, 0)
+            };
+
+            res.json({
+                success: true,
+                data: {
+                    summary,
+                    opportunities: opportunities.sort((a, b) => {
+                        const urgencyOrder = { high: 3, medium: 2, low: 1 };
+                        return urgencyOrder[b.urgency] - urgencyOrder[a.urgency];
+                    })
+                }
+            });
+        }
+        catch (error) {
+            console.error('Get plan migration opportunities error:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
 }
 exports.BillingController = BillingController;
 /**
@@ -282,7 +593,7 @@ BillingController.getSubscriptionsValidation = [
     (0, express_validator_1.query)('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
     (0, express_validator_1.query)('status').optional().isIn(['TRIALING', 'ACTIVE', 'PAST_DUE', 'CANCELED', 'UNPAID', 'INCOMPLETE']),
-    (0, express_validator_1.query)('plan').optional().isIn(['FREE', 'STARTER', 'PROFESSIONAL', 'ENTERPRISE', 'CUSTOM'])
+    (0, express_validator_1.query)('plan').optional().isIn(['FREE', 'TEAM', 'BUSINESS', 'ENTERPRISE', 'STARTER', 'PROFESSIONAL', 'CUSTOM'])
 ];
 BillingController.updateSubscriptionValidation = [
     (0, express_validator_1.body)('action').isIn(['cancel', 'pause', 'resume']).withMessage('Invalid action'),

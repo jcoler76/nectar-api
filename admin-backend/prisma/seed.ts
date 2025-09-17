@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
-import { AdminAuthService } from '../src/services/adminAuth'
 import * as crypto from 'crypto'
+import { AdminAuthService } from '../src/services/adminAuth'
 
 const prisma = new PrismaClient()
 
@@ -31,7 +31,7 @@ async function main() {
     // Create regular admin user with secure password
     const supportPassword = process.env.SUPPORT_SEED_PASSWORD || crypto.randomBytes(32).toString('hex')
     const regularAdmin = await AdminAuthService.createAdmin({
-      email: 'support@nectar.com',
+      email: 'support@nectarstudio.ai',
       password: supportPassword,
       firstName: 'Support',
       lastName: 'Team',
@@ -107,7 +107,7 @@ async function main() {
     console.log('\n🎉 Seeding completed successfully!')
     console.log('\n📋 Admin accounts created:')
     console.log('   Super Admin: admin.nectarstudio.ai')
-    console.log('   Admin: support@nectar.com')
+    console.log('   Admin: support@nectarstudio.ai')
     console.log('   Viewer: viewer@nectar.com')
     if (!process.env.ADMIN_SEED_PASSWORD) {
       console.log('\n⚠️  IMPORTANT: Random passwords were generated. Set ADMIN_SEED_PASSWORD, SUPPORT_SEED_PASSWORD, and VIEWER_SEED_PASSWORD environment variables for consistent passwords.')

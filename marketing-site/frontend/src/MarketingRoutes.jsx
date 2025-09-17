@@ -8,6 +8,8 @@ import FreeSignupPage from './components/marketing/FreeSignupPage';
 import HomePage from './components/marketing/HomePage';
 import PricingPage from './components/marketing/PricingPage';
 import SecurityPage from './components/marketing/SecurityPage';
+import TermsPage from './components/marketing/TermsPage';
+import PrivacyPage from './components/marketing/PrivacyPage';
 
 const MarketingRoutes = (
   <>
@@ -18,6 +20,8 @@ const MarketingRoutes = (
     <Route path="/free-signup" element={<FreeSignupPage />} />
     <Route path="/checkout" element={<CheckoutPage />} />
     <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+    <Route path="/terms" element={<TermsPage />} />
+    <Route path="/privacy" element={<PrivacyPage />} />
   </>
 );
 

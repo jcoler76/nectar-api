@@ -1,4 +1,4 @@
-import { Check, ArrowLeft, Zap, Crown, Building2, Star } from 'lucide-react';
+import { Check, Zap, Crown, Building2, Star, Calculator } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,10 +7,11 @@ import { getCaptchaToken } from '../../utils/captcha';
 const PricingPage = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const [userCount, setUserCount] = useState(5);
 
   const handleSelectPlan = async planId => {
     if (planId === 'free') {
-      navigate('/free-signup');
+      navigate('/free-signup?plan=free');
       return;
     }
 
@@ -27,9 +28,10 @@ const PricingPage = () => {
     }
 
     const priceMap = {
-      // Keep plan IDs stable; map to Stripe prices for self-serve plans only
+      // Updated price mapping for new 4-tier structure
       starter: process.env.REACT_APP_STRIPE_PRICE_ID_STARTER,
-      professional: process.env.REACT_APP_STRIPE_PRICE_ID_PROFESSIONAL,
+      team: process.env.REACT_APP_STRIPE_PRICE_ID_TEAM,
+      business: process.env.REACT_APP_STRIPE_PRICE_ID_BUSINESS,
     };
 
     const priceId = priceMap[planId];
@@ -64,62 +66,88 @@ const PricingPage = () => {
       id: 'free',
       name: 'Free',
       icon: <Zap className="w-8 h-8" />,
-      description: 'Great for trying NectarStudio.ai on a small project',
+      description: 'Perfect for personal exploration and demos',
       monthlyPrice: 0,
       yearlyPrice: 0,
       features: [
+        '1 user',
         '1 datasource',
-        '50k API calls/month',
-        'NL→API generator (limited)',
-        'BYO LLM key (optional)',
-        'OpenAPI docs & basic hooks',
+        '25k API calls/month',
+        'Full BaaS functionality',
+        'Basic workflows',
         'Community support',
       ],
-      limitations: ['Learning tier with limited capacity'],
+      limitations: ['Single user only', 'Community support'],
       popular: false,
       color: 'green',
     },
     {
       id: 'starter',
-      name: 'Team',
+      name: 'Starter',
       icon: <Zap className="w-8 h-8" />,
-      description: 'For small teams launching production APIs',
-      monthlyPrice: 99,
-      yearlyPrice: 990,
+      description: 'Full functionality for individuals and small teams',
+      monthlyPrice: 29,
+      yearlyPrice: 290,
       features: [
-        'Up to 5 team members',
-        '3 datasources',
+        '1 user included',
+        'Unlimited datasources',
         '1M API calls/month',
-        '🔐 Enterprise-grade security',
-        'API keys, quotas, audit logs',
-        'OpenAPI developer portal',
-        'Pre/post request hooks',
+        'Full BaaS functionality',
+        'Complete workflow engine',
+        'NL→API generator',
+        'OpenAPI docs & hooks',
         'Email support',
+        '$10/month per additional user',
       ],
-      limitations: ['No SSO/SAML', 'No on‑prem'],
+      limitations: ['Single environment', 'No team collaboration features'],
       popular: false,
       color: 'blue',
     },
     {
-      id: 'professional',
-      name: 'Business',
+      id: 'team',
+      name: 'Team',
       icon: <Crown className="w-8 h-8" />,
-      description: 'For growing teams with governance needs',
-      monthlyPrice: 399,
-      yearlyPrice: 3990,
+      description: 'Advanced features for growing teams',
+      monthlyPrice: 99,
+      yearlyPrice: 990,
       features: [
-        'Up to 25 team members',
-        '10 datasources',
+        '10 users included',
+        'Unlimited datasources',
         '5M API calls/month',
-        '🛡️ OWASP Top 10 compliant security',
-        'Advanced RBAC/ABAC & masking',
+        'Everything in Starter, plus:',
         'Staging environments',
-        'Workflow Copilot',
+        'AI Workflow Copilot',
+        'Team collaboration features',
         'Priority support',
+        'Advanced API hooks',
+        '$10/month per additional user',
       ],
-      limitations: ['SSO/SAML & on‑prem in Enterprise'],
+      limitations: ['No enterprise security features'],
       popular: true,
       color: 'purple',
+    },
+    {
+      id: 'business',
+      name: 'Business',
+      icon: <Building2 className="w-8 h-8" />,
+      description: 'Enterprise security and governance features',
+      monthlyPrice: 199,
+      yearlyPrice: 1990,
+      features: [
+        '25 users included',
+        'Unlimited datasources',
+        '10M API calls/month',
+        'Everything in Team, plus:',
+        'Advanced RBAC/ABAC',
+        'Data masking & encryption',
+        'Advanced analytics',
+        'Audit logging',
+        'Priority support',
+        '$10/month per additional user',
+      ],
+      limitations: ['SSO/SAML in Enterprise only'],
+      popular: false,
+      color: 'emerald',
     },
     {
       id: 'enterprise',
@@ -129,19 +157,20 @@ const PricingPage = () => {
       monthlyPrice: null,
       yearlyPrice: null,
       features: [
-        'Unlimited team members (fair use)',
-        'Unlimited datasources (fair use)',
-        '🏆 100% OWASP Top 10 compliance',
-        '🔒 Advanced threat protection',
+        'Unlimited users (fair use)',
+        'Unlimited datasources',
+        'Unlimited API calls',
+        'Everything in Business, plus:',
         'SSO/SAML/SCIM',
-        'On‑prem & private LLMs',
-        'VPC peering & SOC 2 addendum',
-        'HA SLAs & dedicated support',
-        'Migration assistance (DreamFactory → Nectar)',
+        'On-premise deployment',
+        'SOC 2 compliance',
+        'Dedicated support',
+        'Migration assistance',
+        'Custom SLAs',
       ],
       limitations: [],
       popular: false,
-      color: 'emerald',
+      color: 'slate',
     },
   ];
 
@@ -157,41 +186,36 @@ const PricingPage = () => {
     return Math.round(((monthlyCost - yearlyCost) / monthlyCost) * 100);
   };
 
+  const calculateTotalCost = plan => {
+    if (plan.id === 'free' || plan.id === 'enterprise') return getPrice(plan);
+
+    const basePrice = getPrice(plan);
+    let includedUsers = 1; // Default for new plans
+    const overagePrice = 10; // $10/user for all plans
+
+    if (plan.id === 'free') {
+      includedUsers = 1;
+      // Free plan doesn't allow additional users
+      return userCount > 1 ? null : basePrice;
+    } else if (plan.id === 'starter') {
+      includedUsers = 1;
+    } else if (plan.id === 'team') {
+      includedUsers = 10;
+    } else if (plan.id === 'business') {
+      includedUsers = 25;
+    }
+
+    if (userCount <= includedUsers) {
+      return basePrice;
+    }
+
+    const additionalUsers = userCount - includedUsers;
+    return basePrice + (additionalUsers * overagePrice);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back to Home
-              </button>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                  <span className="text-xl font-bold text-blue-600">.ai</span>
-                </div>
-              </div>
-              <button
-                onClick={() => window.location.href = `${process.env.REACT_APP_CUSTOMER_APP_URL}/login`}
-                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Header provided by MarketingLayout */}
 
       {/* Header */}
       <section className="px-4 sm:px-6 lg:px-8 pt-16 pb-12">
@@ -236,17 +260,18 @@ const PricingPage = () => {
               )}
             </div>
           </div>
+
         </div>
       </section>
 
       {/* Pricing Cards */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 xl:gap-10">
             {plans.map(plan => (
               <div
                 key={plan.id}
-                className={`relative bg-white rounded-2xl border-2 p-8 transition-all duration-300 hover:scale-105 ${
+                className={`relative bg-white rounded-2xl border-2 p-6 xl:p-8 transition-all duration-300 hover:scale-105 min-w-[300px] xl:min-w-[260px] ${
                   plan.popular
                     ? 'border-purple-500 shadow-2xl shadow-purple-500/25'
                     : 'border-gray-200 hover:border-gray-300 shadow-xl hover:shadow-2xl'
@@ -263,12 +288,19 @@ const PricingPage = () => {
 
                 <div className="text-center mb-8">
                   <div
-                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-${plan.color}-500 to-${plan.color}-600 text-white mb-4`}
+                    className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-white mb-4"
+                    style={{
+                      background: plan.color === 'green' ? 'linear-gradient(135deg, #10b981, #059669)' :
+                                  plan.color === 'blue' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
+                                  plan.color === 'purple' ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)' :
+                                  plan.color === 'emerald' ? 'linear-gradient(135deg, #10b981, #059669)' :
+                                  'linear-gradient(135deg, #64748b, #475569)'
+                    }}
                   >
                     {plan.icon}
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 mb-6">{plan.description}</p>
+                  <p className="text-gray-600 mb-6 h-16 text-center">{plan.description}</p>
 
                   <div className="mb-6">
                     {plan.id !== 'enterprise' ? (
@@ -302,13 +334,18 @@ const PricingPage = () => {
 
                   <button
                     onClick={() => handleSelectPlan(plan.id)}
-                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all hover:scale-105 ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
-                        : `bg-${plan.color}-600 hover:bg-${plan.color}-700 text-white`
-                    }`}
+                    className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all hover:scale-105 text-white shadow-lg"
+                    style={{
+                      background: plan.popular
+                        ? 'linear-gradient(to right, #9333ea, #ec4899)'
+                        : plan.color === 'green' ? '#059669'
+                        : plan.color === 'blue' ? '#2563eb'
+                        : plan.color === 'purple' ? '#7c3aed'
+                        : plan.color === 'emerald' ? '#059669'
+                        : '#475569'
+                    }}
                   >
-                    {plan.id === 'enterprise' ? 'Contact Sales' : 'Start Free Trial'}
+                    {plan.id === 'enterprise' ? 'Contact Sales' : plan.id === 'free' ? 'Get Started Free' : 'Start Free Trial'}
                   </button>
                   {plan.id !== 'enterprise' ? (
                     <p className="text-xs text-gray-500 mt-3">
@@ -328,7 +365,16 @@ const PricingPage = () => {
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <Check className={`w-5 h-5 text-${plan.color}-600 flex-shrink-0 mt-0.5`} />
+                        <Check
+                          className="w-5 h-5 flex-shrink-0 mt-0.5"
+                          style={{
+                            color: plan.color === 'green' ? '#059669'
+                                  : plan.color === 'blue' ? '#2563eb'
+                                  : plan.color === 'purple' ? '#7c3aed'
+                                  : plan.color === 'emerald' ? '#059669'
+                                  : '#475569'
+                          }}
+                        />
                         <span className="text-gray-700 text-sm">{feature}</span>
                       </li>
                     ))}
@@ -336,6 +382,65 @@ const PricingPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* User Calculator */}
+          <div className="mt-16 mb-16">
+            <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Calculator className="w-6 h-6 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Calculate Your Cost</h3>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of team members: {userCount}
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={userCount}
+                    onChange={e => setUserCount(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>1</span>
+                    <span>25</span>
+                    <span>50+</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="font-medium text-gray-700">Team Plan</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        ${calculateTotalCost(plans.find(p => p.id === 'team'))}
+                        <span className="text-sm text-gray-500">/mo</span>
+                      </div>
+                      {userCount > 10 && (
+                        <div className="text-xs text-gray-500">
+                          +${(userCount - 10) * 10} overage
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-700">Business Plan</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        ${calculateTotalCost(plans.find(p => p.id === 'business'))}
+                        <span className="text-sm text-gray-500">/mo</span>
+                      </div>
+                      {userCount > 25 && (
+                        <div className="text-xs text-gray-500">
+                          +${(userCount - 25) * 10} overage
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Add-ons */}
@@ -449,6 +554,7 @@ const PricingPage = () => {
           </div>
         </div>
       </section>
+      {/* Footer provided by MarketingLayout */}
     </div>
   );
 };

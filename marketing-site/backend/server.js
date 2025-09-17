@@ -14,7 +14,7 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.MARKETING_FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.MARKETING_FRONTEND_URL || 'http://localhost:5000',
   credentials: true,
 }));
 
@@ -37,6 +37,34 @@ app.get('/health', (req, res) => {
 // Marketing billing routes
 const marketingBillingRoutes = require('./routes/marketingBilling');
 app.use('/api/marketing', marketingBillingRoutes);
+
+// Auth proxy routes - forward to main API
+app.use('/api/auth', async (req, res) => {
+  try {
+    const mainApiUrl = process.env.MAIN_API_URL || 'http://localhost:3001';
+    const fetch = require('node-fetch');
+
+    // Forward all headers including Origin, but exclude host-specific ones
+    const forwardHeaders = { ...req.headers };
+    delete forwardHeaders.host;
+    delete forwardHeaders['content-length'];
+
+    const response = await fetch(`${mainApiUrl}/api/auth${req.path}`, {
+      method: req.method,
+      headers: forwardHeaders,
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error('Auth proxy error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Auth proxy error'
+    });
+  }
+});
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -314,6 +314,15 @@ const userResolvers = {
   User: {
     fullName: user => `${user.firstName} ${user.lastName}`,
 
+    // Resolver for isAdmin field - computed from memberships
+    isAdmin: user => {
+      return (
+        user.memberships?.some(m =>
+          ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+        ) || false
+      );
+    },
+
     // Resolver for roles field - based on schema, roles are not directly associated with users
     roles: async user => {
       // In this schema, users don't have direct roles

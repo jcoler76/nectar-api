@@ -23,7 +23,7 @@ async function main() {
         console.log('✅ Created super admin:', superAdmin.email);
         // Create regular admin user
         const regularAdmin = await adminAuth_1.AdminAuthService.createAdmin({
-            email: 'support@nectar.com',
+            email: 'support@nectarstudio.ai',
             password: 'SupportPassword123!',
             firstName: 'Support',
             lastName: 'Team',
@@ -89,7 +89,7 @@ async function main() {
         console.log('\n🎉 Seeding completed successfully!');
         console.log('\n📋 Default admin accounts created:');
         console.log('   Super Admin: admin.nectarstudio.ai / AdminPassword123!');
-        console.log('   Admin: support@nectar.com / SupportPassword123!');
+        console.log('   Admin: support@nectarstudio.ai / SupportPassword123!');
         console.log('   Viewer: viewer@nectar.com / ViewerPassword123!');
         console.log('\n⚠️  Please change these default passwords in production!');
     }

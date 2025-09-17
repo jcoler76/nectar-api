@@ -1,8 +1,9 @@
-import { ArrowLeft, CheckCircle, CreditCard, Lock, Zap } from 'lucide-react';
+import { CheckCircle, CreditCard, Lock, Zap } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { getCaptchaToken } from '../../utils/captcha';
+// Header/Footer provided by MarketingLayout
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ const CheckoutPage = () => {
     email: '',
     fullName: '',
     company: '',
+    password: '',
+    confirmPassword: '',
     cardNumber: '',
     expiryDate: '',
     cvv: '',
@@ -144,6 +147,17 @@ const CheckoutPage = () => {
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
 
     if (!formData.fullName) newErrors.fullName = 'Full name is required';
+
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 8)
+      newErrors.password = 'Password must be at least 8 characters';
+    else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(formData.password))
+      newErrors.password = 'Password must contain uppercase, lowercase, number, and special character';
+
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = 'Passwords do not match';
+
     if (!formData.cardNumber) newErrors.cardNumber = 'Card number is required';
     else if (formData.cardNumber.replace(/\s/g, '').length < 16)
       newErrors.cardNumber = 'Invalid card number';
@@ -169,18 +183,48 @@ const CheckoutPage = () => {
     setLoading(true);
 
     try {
-      // Simulate Stripe payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Split full name into firstName and lastName
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
 
-      // In a real app, you would integrate with Stripe here
-      // Processing payment for: plan, billing, customer, amount
+      // For now, simulate a payment method ID since we don't have real Stripe integration yet
+      const paymentMethodId = `pm_simulated_${Date.now()}`;
 
-      // Simulate successful payment
+      // Call the register-with-payment endpoint via marketing backend proxy
+      const marketingBackendUrl = process.env.REACT_APP_MARKETING_BACKEND_URL || 'http://localhost:5001';
+      console.log('Marketing backend URL:', marketingBackendUrl);
+      const response = await fetch(`${marketingBackendUrl}/api/auth/register-with-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          firstName,
+          lastName,
+          organizationName: formData.company || `${firstName}'s Organization`,
+          selectedPlan: planId,
+          paymentMethodId,
+          billingCycle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Registration successful - redirect to success page
       navigate('/checkout/success', {
         state: {
           plan: selectedPlan.name,
           billing: billingCycle,
           amount: totalPrice,
+          user: data.data?.user,
+          organization: data.data?.organization,
         },
       });
     } catch (error) {
@@ -200,30 +244,7 @@ const CheckoutPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/pricing')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back to Pricing
-              </button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900">NectarStudio</span>
-                <span className="text-xl font-bold text-blue-600">.ai</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Header provided by MarketingLayout */}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -356,6 +377,44 @@ const CheckoutPage = () => {
                     />
                     {errors.fullName && (
                       <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password *
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 rounded-xl border transition-colors ${
+                        errors.password ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                      placeholder="8+ chars, upper, lower, number, special"
+                    />
+                    {errors.password && (
+                      <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm Password *
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 rounded-xl border transition-colors ${
+                        errors.confirmPassword ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                      placeholder="Confirm your password"
+                    />
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
                     )}
                   </div>
 
@@ -499,11 +558,19 @@ const CheckoutPage = () => {
                   </div>
                   <p>
                     By clicking "Start Free Trial", you agree to our{' '}
-                    <button type="button" className="text-blue-600 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/terms')}
+                      className="text-blue-600 hover:underline"
+                    >
                       Terms of Service
                     </button>{' '}
                     and{' '}
-                    <button type="button" className="text-blue-600 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/privacy')}
+                      className="text-blue-600 hover:underline"
+                    >
                       Privacy Policy
                     </button>
                   </p>
