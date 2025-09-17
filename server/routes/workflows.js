@@ -47,6 +47,7 @@ const { verifyWorkflowAccess } = require('../middleware/resourceAuthorization');
 const { asyncHandler, errorResponses } = require('../utils/errorHandler');
 const { logger } = require('../middleware/logger');
 const { enrichWorkflowContext } = require('../middleware/workflowEnrichment');
+const workflowAnalyticsService = require('../services/workflowAnalyticsService');
 
 // Route to test an HTTP request from the workflow builder
 router.post('/test-http-request', async (req, res) => {
@@ -562,5 +563,87 @@ router.post('/test-hubspot-action', async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// Workflow Analytics Routes - All endpoints require proper authorization
+
+// Get performance analytics for a specific workflow
+router.get(
+  '/:id/analytics',
+  verifyWorkflowAccess(),
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { timeRange = '7d' } = req.query;
+
+    // Workflow ownership already verified by verifyWorkflowAccess middleware
+    const analytics = await workflowAnalyticsService.getWorkflowAnalytics(id, timeRange);
+    res.json({ success: true, data: analytics });
+  })
+);
+
+// Get performance summary for all workflows (organization-scoped)
+router.get(
+  '/analytics/summary',
+  asyncHandler(async (req, res) => {
+    const { timeRange = '7d' } = req.query;
+
+    // SECURITY: Use user's organization ID, ignore any user-provided organizationId
+    const userOrganizationId = req.user.organizationId;
+
+    if (!userOrganizationId) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'User must belong to an organization to access analytics',
+        },
+      });
+    }
+
+    const summary = await workflowAnalyticsService.getPerformanceSummary(
+      timeRange,
+      userOrganizationId
+    );
+    res.json({ success: true, data: summary });
+  })
+);
+
+// Get optimization recommendations for a specific workflow
+router.get(
+  '/:id/optimization',
+  verifyWorkflowAccess(),
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    // Workflow ownership already verified by verifyWorkflowAccess middleware
+    const recommendations = await workflowAnalyticsService.getOptimizationRecommendations(id);
+    res.json({ success: true, data: recommendations });
+  })
+);
+
+// Get workflow execution trends (organization-scoped)
+router.get(
+  '/analytics/trends',
+  asyncHandler(async (req, res) => {
+    const { timeRange = '30d', groupBy = 'day' } = req.query;
+
+    // SECURITY: Use user's organization ID, ignore any user-provided organizationId
+    const userOrganizationId = req.user.organizationId;
+
+    if (!userOrganizationId) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'User must belong to an organization to access trends',
+        },
+      });
+    }
+
+    const trends = await workflowAnalyticsService.getExecutionTrends(
+      timeRange,
+      groupBy,
+      userOrganizationId
+    );
+    res.json({ success: true, data: trends });
+  })
+);
 
 module.exports = router;

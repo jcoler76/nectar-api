@@ -289,7 +289,115 @@ router.post('/get-business-domain-help', async (req, res) => {
   }
 });
 
-// Chat endpoint - main interface for natural language business queries
+// Natural Language Query endpoint - main interface for BI queries
+router.post(
+  '/nl-query',
+  asyncHandler(async (req, res) => {
+    try {
+      const { query, serviceName, context = {} } = req.body;
+
+      if (!query) {
+        return res.status(400).json({
+          success: false,
+          error: 'Query is required',
+        });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({
+          success: false,
+          error: 'AI service not configured',
+        });
+      }
+
+      // SECURITY: Ensure user is authenticated and has organization access
+      const userOrganizationId = req.user?.organizationId;
+      if (!userOrganizationId) {
+        return res.status(403).json({
+          success: false,
+          error: 'User must belong to an organization to use AI queries',
+        });
+      }
+
+      // Get available data schema for context (organization-scoped)
+      const schemaContext = await getAvailableSchemaContext(serviceName, userOrganizationId);
+
+      const systemPrompt = `You are a business intelligence assistant that converts natural language questions into database queries.
+
+Available data schema:
+${JSON.stringify(schemaContext, null, 2)}
+
+Your task is to:
+1. Understand the business intent
+2. Generate appropriate database query (SQL or MongoDB)
+3. Provide clear visualization suggestions
+4. Return structured JSON response
+
+Response format:
+{
+  "query": "generated database query",
+  "queryType": "sql|mongodb",
+  "visualization": {
+    "type": "chart|table|metric",
+    "chartType": "line|bar|pie|area",
+    "xAxis": "field name",
+    "yAxis": "field name"
+  },
+  "explanation": "what this query does",
+  "sampleResult": "example of expected data structure"
+}`;
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Natural language query: "${query}"` },
+        ],
+        temperature: 0.3,
+        max_tokens: 1500,
+        response_format: { type: 'json_object' },
+      });
+
+      const result = JSON.parse(completion.choices[0].message.content);
+
+      // Execute the query if it's safe and valid (organization-scoped)
+      let queryResult = null;
+      if (result.query && isQuerySafe(result.query)) {
+        try {
+          queryResult = await executeQuery(
+            result.query,
+            result.queryType,
+            serviceName,
+            userOrganizationId
+          );
+        } catch (queryError) {
+          logger.warn('Query execution failed:', queryError.message);
+          result.executionError = queryError.message;
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          nlQuery: query,
+          generatedQuery: result.query,
+          queryType: result.queryType,
+          visualization: result.visualization,
+          explanation: result.explanation,
+          sampleResult: result.sampleResult,
+          actualResult: queryResult,
+          executionError: result.executionError,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Error in NL query endpoint:', { error: error.message });
+      errorResponses.serverError(res, error);
+    }
+  })
+);
+
+// Chat endpoint - simplified version for basic interactions
 router.post('/chat', async (req, res) => {
   try {
     const { message, context = {} } = req.body;
@@ -301,40 +409,21 @@ router.post('/chat', async (req, res) => {
       });
     }
 
-    // Business intelligence tools have been removed
-    const analysis = {
-      message:
-        'Business Intelligence tools are no longer available. This feature has been removed.',
-      suggestions: [],
-    };
-
-    // If we have a high-confidence suggestion, try to build a query
-    if (analysis.suggestions && analysis.suggestions.length > 0) {
-      const topSuggestion = analysis.suggestions[0];
-
-      if (topSuggestion.confidence > 0.8 && topSuggestion.sampleQuery) {
-        try {
-          // Extract GraphQL query from the suggestion
-          const graphqlQuery = extractGraphQLQuery(topSuggestion.sampleQuery);
-
-          if (graphqlQuery) {
-            analysis.suggestedQuery = graphqlQuery;
-            analysis.variables = extractVariables(topSuggestion.sampleQuery);
-          }
-        } catch (queryError) {
-          logger.info('Could not extract executable query:', queryError.message);
-        }
-      }
+    // For now, redirect to nl-query for better handling
+    if (
+      message.includes('?') ||
+      message.toLowerCase().includes('show') ||
+      message.toLowerCase().includes('get')
+    ) {
+      return res.redirect(307, '/api/ai/nl-query');
     }
 
     res.json({
       success: true,
       data: {
-        response: analysis.businessDomain
-          ? `I understand you're asking about **${analysis.businessDomain}**. ${analysis.concept || ''}`
-          : 'I can help you analyze your business data.',
-        analysis,
-        suggestions: analysis.suggestions || generateDefaultSuggestions(),
+        response:
+          'I can help you analyze your business data. Try asking questions like "Show me top customers" or "What are our sales trends?"',
+        suggestions: generateDefaultSuggestions(),
         timestamp: new Date().toISOString(),
       },
     });
@@ -467,25 +556,173 @@ function extractVariables(queryText) {
 }
 
 /**
+ * Get available schema context for AI query generation (organization-scoped)
+ */
+async function getAvailableSchemaContext(serviceName, organizationId) {
+  try {
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+
+    const context = {
+      tables: [],
+      commonFields: ['id', 'createdAt', 'updatedAt', 'name', 'email', 'status'],
+      sampleQueries: [
+        'SELECT COUNT(*) FROM users WHERE organizationId = ? AND status = "active"',
+        'SELECT name, email FROM users WHERE organizationId = ? ORDER BY createdAt DESC LIMIT 10',
+        'SELECT COUNT(*) as total FROM apiActivityLog WHERE organizationId = ? AND timestamp > NOW() - INTERVAL 7 DAY',
+      ],
+      organizationId, // Include for query scoping
+    };
+
+    // Get available tables/models from Prisma (only organization-accessible ones)
+    if (prisma && organizationId) {
+      context.tables = [
+        'user',
+        'service',
+        'apiActivityLog',
+        'workflow',
+        'subscription',
+        'usageMetric',
+      ];
+
+      // Add note about organization scoping
+      context.securityNote = 'All queries must include organizationId filter for data isolation';
+    }
+
+    return context;
+  } catch (error) {
+    logger.error('Error getting schema context:', error.message);
+    return { tables: [], commonFields: [], sampleQueries: [], organizationId };
+  }
+}
+
+/**
+ * Check if a query is safe to execute
+ */
+function isQuerySafe(query) {
+  if (!query || typeof query !== 'string') return false;
+
+  const dangerousPatterns = [
+    /DROP\s+/i,
+    /DELETE\s+/i,
+    /UPDATE\s+/i,
+    /INSERT\s+/i,
+    /ALTER\s+/i,
+    /CREATE\s+/i,
+    /TRUNCATE\s+/i,
+    /EXEC\s+/i,
+    /EXECUTE\s+/i,
+    /xp_/i,
+    /sp_/i,
+  ];
+
+  return !dangerousPatterns.some(pattern => pattern.test(query));
+}
+
+/**
+ * Execute a query safely with organization scoping
+ */
+async function executeQuery(query, queryType, serviceName, organizationId) {
+  try {
+    const { PrismaClient } = require('../prisma/generated/client');
+    const prisma = new PrismaClient();
+
+    // SECURITY: Validate that organizationId is provided
+    if (!organizationId) {
+      throw new Error('Organization ID is required for query execution');
+    }
+
+    if (queryType === 'sql') {
+      // SECURITY: For SQL queries, validate that they include organization filtering
+      if (!query.toLowerCase().includes('organizationid')) {
+        throw new Error('SQL queries must include organizationId filter for security');
+      }
+
+      // Replace ? placeholders with actual organizationId (basic implementation)
+      const parameterizedQuery = query.replace(/\?/g, `'${organizationId}'`);
+
+      // Use Prisma raw query with limitations
+      const result = await prisma.$queryRaw`${parameterizedQuery}`;
+      return Array.isArray(result) ? result.slice(0, 100) : result; // Limit results
+    } else if (queryType === 'mongodb') {
+      // For MongoDB-style queries, convert to Prisma operations with organization filter
+      return await executeMongoStyleQuery(query, prisma, organizationId);
+    }
+
+    return null;
+  } catch (error) {
+    logger.error('Query execution error:', error.message);
+    throw new Error('Query execution failed: ' + error.message);
+  }
+}
+
+/**
+ * Execute MongoDB-style queries using Prisma with organization scoping
+ */
+async function executeMongoStyleQuery(queryString, prisma, organizationId) {
+  try {
+    // Parse basic MongoDB-style operations
+    const query = JSON.parse(queryString);
+
+    if (query.collection && query.operation) {
+      const model = prisma[query.collection];
+      if (!model) throw new Error('Invalid collection');
+
+      // SECURITY: Always inject organizationId filter to prevent data leakage
+      const secureFilter = {
+        ...query.filter,
+        organizationId: organizationId, // Force organization scoping
+      };
+
+      switch (query.operation) {
+        case 'find':
+          return await model.findMany({
+            where: secureFilter,
+            take: Math.min(query.limit || 50, 100),
+            orderBy: query.sort || { createdAt: 'desc' },
+          });
+        case 'count':
+          return await model.count({ where: secureFilter });
+        case 'aggregate':
+          // Basic aggregation support with organization filter
+          const pipeline = query.pipeline || {};
+          pipeline.where = { ...pipeline.where, organizationId };
+          return await model.groupBy(pipeline);
+        default:
+          throw new Error('Unsupported operation');
+      }
+    }
+
+    throw new Error('Invalid query format');
+  } catch (error) {
+    throw new Error('MongoDB query parsing failed: ' + error.message);
+  }
+}
+
+/**
  * Generate default suggestions for chat
  */
 function generateDefaultSuggestions() {
   return [
     {
-      text: 'Show me top customers by revenue',
+      text: 'Show me API usage trends for the last 7 days',
+      confidence: 0.9,
+    },
+    {
+      text: 'How many active users do we have?',
+      confidence: 0.9,
+    },
+    {
+      text: 'What are the top performing workflows?',
       confidence: 0.8,
     },
     {
-      text: "What's our current sales pipeline?",
+      text: 'Show me error rates by service',
       confidence: 0.8,
     },
     {
-      text: 'Outstanding invoices report',
-      confidence: 0.8,
-    },
-    {
-      text: 'Customer acquisition trends',
-      confidence: 0.8,
+      text: 'Display subscription usage metrics',
+      confidence: 0.7,
     },
   ];
 }

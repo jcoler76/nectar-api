@@ -10,6 +10,9 @@ import { useAuth } from '@/context/AuthContext';
 import { hasPermission } from '@/utils/rolePermissions';
 
 // Import dashboard components
+import BusinessImpactDashboard from '../analytics/BusinessImpactDashboard';
+import WorkflowPerformanceDashboard from '../analytics/WorkflowPerformanceDashboard';
+
 import DeveloperDashboard from './DeveloperDashboard';
 import MemberDashboard from './MemberDashboard';
 import OrganizationAdminDashboard from './OrganizationAdminDashboard';
@@ -29,6 +32,9 @@ import {
   UserManagement,
   LicenseManagement,
 } from './widgets';
+
+// Import BI Analytics components
+import NLQueryWidget from './widgets/NLQueryWidget';
 
 const RoleBasedDashboard = () => {
   const { user, organization, permissions } = useAuth();
@@ -82,10 +88,29 @@ const RoleBasedDashboard = () => {
       </div>
 
       <div className="dashboard-grid">
+        {/* Natural Language Query - Available to all authenticated users */}
+        <div className="widget-container">
+          <NLQueryWidget />
+        </div>
+
         {/* Organization Overview - Available to all roles */}
         <div className="widget-container">
           <OrganizationOverview organization={organization} />
         </div>
+
+        {/* Business Impact Dashboard - Admin level and above */}
+        <RoleGuard permission="analytics:view">
+          <div className="widget-container col-span-full">
+            <BusinessImpactDashboard />
+          </div>
+        </RoleGuard>
+
+        {/* Workflow Performance - Developer level and above */}
+        <RoleGuard permission="workflow:view">
+          <div className="widget-container col-span-full">
+            <WorkflowPerformanceDashboard showSummary={true} />
+          </div>
+        </RoleGuard>
 
         {/* System Health - Super Admin only */}
         <RoleGuard role="SUPER_ADMIN">
