@@ -4,18 +4,18 @@
  */
 
 import React, { useMemo } from 'react';
+
+import { RoleGuard } from '@/components/roles/RoleGuard';
 import { useAuth } from '@/context/AuthContext';
 import { hasPermission } from '@/utils/rolePermissions';
-import { RoleGuard } from '@/components/roles/RoleGuard';
 
 // Import dashboard components
-import SuperAdminDashboard from './SuperAdminDashboard';
-import OrganizationOwnerDashboard from './OrganizationOwnerDashboard';
-import OrganizationAdminDashboard from './OrganizationAdminDashboard';
 import DeveloperDashboard from './DeveloperDashboard';
 import MemberDashboard from './MemberDashboard';
+import OrganizationAdminDashboard from './OrganizationAdminDashboard';
+import OrganizationOwnerDashboard from './OrganizationOwnerDashboard';
+import SuperAdminDashboard from './SuperAdminDashboard';
 import ViewerDashboard from './ViewerDashboard';
-
 // Import shared widgets
 import {
   OrganizationOverview,
@@ -27,7 +27,7 @@ import {
   QuickActions,
   SystemHealth,
   UserManagement,
-  LicenseManagement
+  LicenseManagement,
 } from './widgets';
 
 const RoleBasedDashboard = () => {
@@ -78,9 +78,7 @@ const RoleBasedDashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>Welcome back, {user?.firstName || user?.email}</h1>
-        <div className="user-role-badge">
-          {primaryDashboard.replace('-', ' ').toUpperCase()}
-        </div>
+        <div className="user-role-badge">{primaryDashboard.replace('-', ' ').toUpperCase()}</div>
       </div>
 
       <div className="dashboard-grid">
@@ -133,9 +131,7 @@ const RoleBasedDashboard = () => {
         {/* Billing Widget - Admin level and above */}
         <RoleGuard permission="billing:view">
           <div className="widget-container">
-            <BillingWidget
-              canManage={hasPermission(user?.role, 'billing:manage')}
-            />
+            <BillingWidget canManage={hasPermission(user?.role, 'billing:manage')} />
           </div>
         </RoleGuard>
 
@@ -166,8 +162,7 @@ const RoleBasedDashboard = () => {
       {/* Choose between custom layout or shared layout */}
       {process.env.REACT_APP_USE_CUSTOM_DASHBOARDS === 'true'
         ? renderCustomDashboard()
-        : renderSharedDashboard()
-      }
+        : renderSharedDashboard()}
     </div>
   );
 };

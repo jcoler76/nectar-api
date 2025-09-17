@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
 import {
   Users,
-  Shield,
   Crown,
   Settings,
   Code,
   Eye,
-  ChevronDown,
   MoreHorizontal,
   UserPlus,
   Trash2,
   Edit3,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+
+import InviteUserModal from '../invitations/InviteUserModal';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,17 +25,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import InviteUserModal from '../invitations/InviteUserModal';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 const MemberRoleManager = ({ organizationId, currentUserRole }) => {
   const [members, setMembers] = useState([]);
@@ -49,54 +41,54 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
       label: 'Super Admin',
       icon: Crown,
       color: 'bg-purple-100 text-purple-800',
-      description: 'Platform-level administrative access'
+      description: 'Platform-level administrative access',
     },
     ORGANIZATION_OWNER: {
       label: 'Organization Owner',
       icon: Crown,
       color: 'bg-red-100 text-red-800',
-      description: 'Full organization control'
+      description: 'Full organization control',
     },
     ORGANIZATION_ADMIN: {
       label: 'Organization Admin',
       icon: Settings,
       color: 'bg-blue-100 text-blue-800',
-      description: 'Manage organization resources'
+      description: 'Manage organization resources',
     },
     DEVELOPER: {
       label: 'Developer',
       icon: Code,
       color: 'bg-green-100 text-green-800',
-      description: 'Technical resource management'
+      description: 'Technical resource management',
     },
     MEMBER: {
       label: 'Member',
       icon: Users,
       color: 'bg-gray-100 text-gray-800',
-      description: 'Standard access'
+      description: 'Standard access',
     },
     VIEWER: {
       label: 'Viewer',
       icon: Eye,
       color: 'bg-yellow-100 text-yellow-800',
-      description: 'Read-only access'
+      description: 'Read-only access',
     },
     // Legacy roles
     OWNER: {
       label: 'Owner (Legacy)',
       icon: Crown,
       color: 'bg-red-100 text-red-800',
-      description: 'Legacy organization owner'
+      description: 'Legacy organization owner',
     },
     ADMIN: {
       label: 'Admin (Legacy)',
       icon: Settings,
       color: 'bg-blue-100 text-blue-800',
-      description: 'Legacy administrator'
-    }
+      description: 'Legacy administrator',
+    },
   };
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/organizations/${organizationId}/members`);
@@ -107,23 +99,26 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId]);
 
   useEffect(() => {
     if (organizationId) {
       fetchMembers();
     }
-  }, [organizationId]);
+  }, [organizationId, fetchMembers]);
 
   const handleRoleChange = async (memberId, newRole) => {
     try {
-      const response = await fetch(`/api/organizations/${organizationId}/members/${memberId}/role`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
+      const response = await fetch(
+        `/api/organizations/${organizationId}/members/${memberId}/role`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ role: newRole }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to update role');
@@ -136,7 +131,7 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
     }
   };
 
-  const handleRemoveMember = async (memberId) => {
+  const handleRemoveMember = async memberId => {
     if (!window.confirm('Are you sure you want to remove this member from the organization?')) {
       return;
     }
@@ -165,7 +160,7 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
       ADMIN: 580, // Legacy
       DEVELOPER: 400,
       MEMBER: 200,
-      VIEWER: 100
+      VIEWER: 100,
     };
 
     const currentUserLevel = roleHierarchy[currentUserRole] || 0;
@@ -176,7 +171,7 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
     return currentUserLevel > memberLevel && currentUserLevel > targetLevel;
   };
 
-  const getAvailableRoles = (memberRole) => {
+  const getAvailableRoles = memberRole => {
     const allRoles = Object.keys(roleConfig);
     return allRoles.filter(role => {
       // Don't show SUPER_ADMIN unless current user is SUPER_ADMIN
@@ -264,7 +259,7 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {members.map((member) => (
+                {members.map(member => (
                   <TableRow key={member.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -277,8 +272,7 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
                           <div className="font-medium">
                             {member.firstName && member.lastName
                               ? `${member.firstName} ${member.lastName}`
-                              : member.email
-                            }
+                              : member.email}
                           </div>
                           <div className="text-sm text-gray-500">{member.email}</div>
                         </div>
@@ -288,8 +282,8 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
                       <RoleBadge role={member.role} />
                     </TableCell>
                     <TableCell>
-                      <Badge variant={member.isActive ? "success" : "secondary"}>
-                        {member.isActive ? "Active" : "Inactive"}
+                      <Badge variant={member.isActive ? 'success' : 'secondary'}>
+                        {member.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -356,13 +350,13 @@ const MemberRoleManager = ({ organizationId, currentUserRole }) => {
               <label className="block text-sm font-medium mb-2">New Role</label>
               <Select
                 value={editingMember.role}
-                onValueChange={(newRole) => handleRoleChange(editingMember.id, newRole)}
+                onValueChange={newRole => handleRoleChange(editingMember.id, newRole)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {getAvailableRoles(editingMember.role).map((role) => {
+                  {getAvailableRoles(editingMember.role).map(role => {
                     const config = roleConfig[role];
                     return (
                       <SelectItem key={role} value={role}>

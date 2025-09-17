@@ -119,7 +119,7 @@ async function createUserAccountFromPayment({
 // Send welcome email with verification token using existing mailer
 async function sendWelcomeEmail(email, token, firstName) {
   try {
-    const { sendEmail } = require('../utils/mailer');
+    const { sendEmail } = require('../../../server/utils/mailer');
 
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
 
@@ -308,7 +308,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     // Attempt to persist a unique record for idempotency when possible
     // If DB is available and model exists, save a BillingEvent with unique stripeEventId
     try {
-      const { getPrismaClient } = require('../config/prisma');
+      const { getPrismaClient } = require('../../../server/config/prisma');
       const prisma = getPrismaClient();
       // Try to attach to a subscription/org if present, else store minimal data
       let subscriptionId = null;
@@ -346,7 +346,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     // Persist subscription/invoice where possible
     try {
-      const { getPrismaClient } = require('../config/prisma');
+      const { getPrismaClient } = require('../../../server/config/prisma');
       const prisma = getPrismaClient();
 
       // Helpers
