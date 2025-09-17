@@ -45,7 +45,8 @@
       "Read(/C:\\Users\\Jestin\\nectar-api\\server/**)",
       "Bash(npm install:*)",
       "Bash(npm run start:backend:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Read(//c/Users/jcoler/Downloads/dfparity/**)"
     ],
     "deny": [],
     "ask": []

@@ -2,6 +2,13 @@ const MSSQLDriver = require('./drivers/MSSQLDriver');
 const PostgreSQLDriver = require('./drivers/PostgreSQLDriver');
 const MySQLDriver = require('./drivers/MySQLDriver');
 const MongoDBDriver = require('./drivers/MongoDBDriver');
+const SQLiteDriver = require('./drivers/SQLiteDriver');
+const OracleDriver = require('./drivers/OracleDriver');
+const AWSRDSDriver = require('./drivers/AWSRDSDriver');
+const AzureSQLDriver = require('./drivers/AzureSQLDriver');
+const GoogleCloudSQLDriver = require('./drivers/GoogleCloudSQLDriver');
+const BigQueryDriver = require('../analytics/drivers/BigQueryDriver');
+const SnowflakeDriver = require('../analytics/drivers/SnowflakeDriver');
 const { logger } = require('../../utils/logger');
 
 /**
@@ -14,6 +21,13 @@ class DatabaseDriverFactory {
     ['POSTGRESQL', PostgreSQLDriver],
     ['MYSQL', MySQLDriver],
     ['MONGODB', MongoDBDriver],
+    ['SQLITE', SQLiteDriver],
+    ['ORACLE', OracleDriver],
+    ['AWS_RDS', AWSRDSDriver],
+    ['AZURE_SQL', AzureSQLDriver],
+    ['GOOGLE_CLOUD_SQL', GoogleCloudSQLDriver],
+    ['BIGQUERY', BigQueryDriver],
+    ['SNOWFLAKE', SnowflakeDriver],
   ]);
 
   /**
@@ -108,36 +122,55 @@ class DatabaseDriverFactory {
    * @returns {Object[]} Array of database type information
    */
   static getDatabaseTypeInfo() {
-    return [
-      {
-        type: 'MSSQL',
-        displayName: 'Microsoft SQL Server',
-        description: 'Microsoft SQL Server database',
-        defaultPort: MSSQLDriver.getDefaultPort(),
-        icon: '🗄️',
-      },
-      {
-        type: 'POSTGRESQL',
-        displayName: 'PostgreSQL',
-        description: 'PostgreSQL open-source relational database',
-        defaultPort: PostgreSQLDriver.getDefaultPort(),
-        icon: '🐘',
-      },
-      {
-        type: 'MYSQL',
-        displayName: 'MySQL',
-        description: 'MySQL/MariaDB relational database',
-        defaultPort: MySQLDriver.getDefaultPort(),
-        icon: '🐬',
-      },
-      {
-        type: 'MONGODB',
-        displayName: 'MongoDB',
-        description: 'MongoDB NoSQL document database',
-        defaultPort: MongoDBDriver.getDefaultPort(),
-        icon: '🍃',
-      },
-    ];
+    const databaseTypes = [];
+
+    // Add each driver type dynamically
+    for (const [type, DriverClass] of this.drivers.entries()) {
+      try {
+        const driverInfo = DriverClass.getDriverInfo();
+        databaseTypes.push({
+          type,
+          displayName: driverInfo.name,
+          description: driverInfo.description,
+          category: driverInfo.category || 'standard',
+          features: driverInfo.features || [],
+          icon: this._getIconForType(type),
+        });
+      } catch (error) {
+        // Fallback for legacy drivers without getDriverInfo
+        databaseTypes.push({
+          type,
+          displayName: type,
+          description: `${type} database`,
+          category: 'standard',
+          features: [],
+          icon: this._getIconForType(type),
+        });
+      }
+    }
+
+    return databaseTypes;
+  }
+
+  /**
+   * Get icon for database type
+   * @private
+   */
+  static _getIconForType(type) {
+    const icons = {
+      MSSQL: '🗄️',
+      POSTGRESQL: '🐘',
+      MYSQL: '🐬',
+      MONGODB: '🍃',
+      SQLITE: '📄',
+      ORACLE: '🔺',
+      AWS_RDS: '☁️',
+      AZURE_SQL: '🌐',
+      GOOGLE_CLOUD_SQL: '🌩️',
+      BIGQUERY: '📊',
+      SNOWFLAKE: '❄️',
+    };
+    return icons[type] || '💾';
   }
 
   /**

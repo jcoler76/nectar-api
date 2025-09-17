@@ -10,6 +10,82 @@ const { logger } = require('../middleware/logger');
 const jwt = require('jsonwebtoken');
 
 /**
+ * Create OAuth callback handler
+ * @param {string} provider - OAuth provider name
+ */
+function createOAuthCallback(provider) {
+  return (req, res) => {
+    try {
+      const isIntegration = req.query.integration === 'true';
+
+      if (isIntegration) {
+        // Integration flow - connect account to existing user
+        const successHtml = `
+          <html>
+            <body>
+              <script>
+                if (window.opener) {
+                  window.opener.postMessage({
+                    type: 'oauth_success',
+                    provider: '${provider}',
+                    message: '${provider.charAt(0).toUpperCase() + provider.slice(1)} account connected successfully!'
+                  }, '*');
+                  window.close();
+                } else {
+                  window.location.href = '/integrations?success=${provider}_connected';
+                }
+              </script>
+              <p>${provider.charAt(0).toUpperCase() + provider.slice(1)} account connected! You can close this window.</p>
+            </body>
+          </html>
+        `;
+        res.send(successHtml);
+      } else {
+        // User authentication flow (fallback)
+        const token = jwt.sign(
+          {
+            userId: req.user.id,
+            organizationId: req.user.organizationId,
+            isAdmin: req.user.isAdmin || req.user.isSuperAdmin,
+            provider: provider,
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        const redirectUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?token=${token}`;
+        res.redirect(redirectUrl);
+      }
+
+      logger.info(`${provider} OAuth successful for integration: ${isIntegration}`);
+    } catch (error) {
+      logger.error(`${provider} OAuth callback error:`, error);
+
+      const errorHtml = `
+        <html>
+          <body>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: 'oauth_error',
+                  provider: '${provider}',
+                  error: 'Failed to connect ${provider} account'
+                }, '*');
+                window.close();
+              } else {
+                window.location.href = '/integrations?error=${provider}_failed';
+              }
+            </script>
+            <p>Failed to connect ${provider} account. You can close this window.</p>
+          </body>
+        </html>
+      `;
+      res.send(errorHtml);
+    }
+  };
+}
+
+/**
  * Get available OAuth providers
  */
 router.get('/providers', (req, res) => {
@@ -296,12 +372,61 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 }
 
 /**
+ * Microsoft OAuth Routes
+ */
+if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+  router.get(
+    '/microsoft',
+    passport.authenticate('microsoft', {
+      scope: ['user.read'],
+    })
+  );
+
+  router.get(
+    '/microsoft/callback',
+    passport.authenticate('microsoft', { failureRedirect: '/integrations?error=oauth_failed' }),
+    createOAuthCallback('microsoft')
+  );
+}
+
+/**
+ * LinkedIn OAuth Routes
+ */
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+  router.get(
+    '/linkedin',
+    passport.authenticate('linkedin', {
+      scope: ['r_emailaddress', 'r_liteprofile'],
+    })
+  );
+
+  router.get(
+    '/linkedin/callback',
+    passport.authenticate('linkedin', { failureRedirect: '/integrations?error=oauth_failed' }),
+    createOAuthCallback('linkedin')
+  );
+}
+
+/**
+ * Twitter OAuth Routes
+ */
+if (process.env.TWITTER_CONSUMER_KEY && process.env.TWITTER_CONSUMER_SECRET) {
+  router.get('/twitter', passport.authenticate('twitter'));
+
+  router.get(
+    '/twitter/callback',
+    passport.authenticate('twitter', { failureRedirect: '/integrations?error=oauth_failed' }),
+    createOAuthCallback('twitter')
+  );
+}
+
+/**
  * Link social account to existing user (TODO: Implement when Prisma client is available)
  */
 router.post('/link/:provider', (req, res) => {
   const { provider } = req.params;
 
-  if (!['google', 'github', 'facebook'].includes(provider)) {
+  if (!['google', 'github', 'facebook', 'microsoft', 'linkedin', 'twitter'].includes(provider)) {
     return res.status(400).json({ error: 'Invalid OAuth provider' });
   }
 

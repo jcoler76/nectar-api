@@ -7,6 +7,9 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
+const MicrosoftStrategy = require('passport-microsoft').Strategy;
+const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+const TwitterStrategy = require('passport-twitter').Strategy;
 const { getPrismaClient } = require('./prisma');
 const { logger } = require('../middleware/logger');
 
@@ -228,6 +231,79 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 }
 
 /**
+ * Microsoft OAuth Strategy
+ */
+if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+  passport.use(
+    new MicrosoftStrategy(
+      {
+        clientID: process.env.MICROSOFT_CLIENT_ID,
+        clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+        callbackURL: process.env.MICROSOFT_CALLBACK_URL || '/api/auth/microsoft/callback',
+        scope: ['user.read'],
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          const user = await findOrCreateOAuthUser('microsoft', profile, accessToken, refreshToken);
+          return done(null, user);
+        } catch (error) {
+          return done(error, null);
+        }
+      }
+    )
+  );
+}
+
+/**
+ * LinkedIn OAuth Strategy
+ */
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+  passport.use(
+    new LinkedInStrategy(
+      {
+        clientID: process.env.LINKEDIN_CLIENT_ID,
+        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        callbackURL: process.env.LINKEDIN_CALLBACK_URL || '/api/auth/linkedin/callback',
+        scope: ['r_emailaddress', 'r_liteprofile'],
+        state: true,
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          const user = await findOrCreateOAuthUser('linkedin', profile, accessToken, refreshToken);
+          return done(null, user);
+        } catch (error) {
+          return done(error, null);
+        }
+      }
+    )
+  );
+}
+
+/**
+ * Twitter OAuth Strategy
+ */
+if (process.env.TWITTER_CONSUMER_KEY && process.env.TWITTER_CONSUMER_SECRET) {
+  passport.use(
+    new TwitterStrategy(
+      {
+        consumerKey: process.env.TWITTER_CONSUMER_KEY,
+        consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+        callbackURL: process.env.TWITTER_CALLBACK_URL || '/api/auth/twitter/callback',
+        includeEmail: true,
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          const user = await findOrCreateOAuthUser('twitter', profile, accessToken, refreshToken);
+          return done(null, user);
+        } catch (error) {
+          return done(error, null);
+        }
+      }
+    )
+  );
+}
+
+/**
  * Get available OAuth providers
  */
 function getAvailableProviders() {
@@ -257,6 +333,33 @@ function getAvailableProviders() {
       displayName: 'Facebook',
       icon: '👤',
       color: '#1877F2',
+    });
+  }
+
+  if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+    providers.push({
+      name: 'microsoft',
+      displayName: 'Microsoft',
+      icon: '🪟',
+      color: '#00BCF2',
+    });
+  }
+
+  if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+    providers.push({
+      name: 'linkedin',
+      displayName: 'LinkedIn',
+      icon: '💼',
+      color: '#0077B5',
+    });
+  }
+
+  if (process.env.TWITTER_CONSUMER_KEY && process.env.TWITTER_CONSUMER_SECRET) {
+    providers.push({
+      name: 'twitter',
+      displayName: 'Twitter',
+      icon: '🐦',
+      color: '#1DA1F2',
     });
   }
 
