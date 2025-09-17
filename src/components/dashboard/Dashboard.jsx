@@ -10,7 +10,7 @@ import {
   Users,
   XCircle,
 } from 'lucide-react';
-import { memo, useMemo, useState, useTransition } from 'react';
+import { lazy, memo, Suspense, useMemo, useState, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useDashboardData } from '../../hooks/useDashboardData';
@@ -21,8 +21,9 @@ import {
   ServiceHealthSkeleton,
   StatisticsCardSkeleton,
 } from './DashboardSkeleton';
-import IntersectionChart from './IntersectionChart';
 import ServiceHealthList from './ServiceHealthList';
+
+const IntersectionChart = lazy(() => import('./IntersectionChart'));
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState('30d');
@@ -290,29 +291,39 @@ const Dashboard = () => {
 
         {/* Activity Charts - Lazy loaded with intersection observer */}
         <section aria-label="Activity charts" className={isPending ? 'opacity-70' : ''}>
-          <div className="grid grid-cols-1 gap-6">
-            <IntersectionChart
-              title="API Calls"
-              data={filteredActivityData}
-              xKey="time"
-              yKey="calls"
-              height={320}
-            />
-            <IntersectionChart
-              title="Records Processed"
-              data={filteredActivityData}
-              xKey="time"
-              yKey="totalRecords"
-              height={320}
-            />
-            <IntersectionChart
-              title="Failed Requests"
-              data={filteredActivityData}
-              xKey="time"
-              yKey="failures"
-              height={320}
-            />
-          </div>
+          <Suspense
+            fallback={
+              <div className="grid grid-cols-1 gap-6">
+                {[1, 2, 3].map(i => (
+                  <StatisticsCardSkeleton key={i} />
+                ))}
+              </div>
+            }
+          >
+            <div className="grid grid-cols-1 gap-6">
+              <IntersectionChart
+                title="API Calls"
+                data={filteredActivityData}
+                xKey="time"
+                yKey="calls"
+                height={320}
+              />
+              <IntersectionChart
+                title="Records Processed"
+                data={filteredActivityData}
+                xKey="time"
+                yKey="totalRecords"
+                height={320}
+              />
+              <IntersectionChart
+                title="Failed Requests"
+                data={filteredActivityData}
+                xKey="time"
+                yKey="failures"
+                height={320}
+              />
+            </div>
+          </Suspense>
         </section>
 
         {/* Service health panel */}

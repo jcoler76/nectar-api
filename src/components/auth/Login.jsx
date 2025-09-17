@@ -104,6 +104,12 @@ const Login = () => {
               placeholder="Enter 6-digit code"
               className="text-center text-lg tracking-widest"
               maxLength={6}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </FormFieldGroup>
         </FormSection>
@@ -182,6 +188,12 @@ const Login = () => {
               placeholder="Enter 6-digit code"
               className="text-center text-lg tracking-widest"
               maxLength={6}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </FormFieldGroup>
 
@@ -267,6 +279,10 @@ const Login = () => {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="pl-8"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
               />
             </div>
           </FormFieldGroup>
@@ -285,6 +301,9 @@ const Login = () => {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 className="pl-8 pr-10"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
               />
               <Button
                 type="button"
@@ -316,8 +335,16 @@ const Login = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
-      <main className="w-full max-w-md" role="main" aria-label="User authentication">
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4"
+      style={{ minHeight: '100vh' }}
+    >
+      <main
+        className="w-full max-w-md"
+        role="main"
+        aria-label="User authentication"
+        style={{ maxWidth: '28rem' }}
+      >
         <Card className="shadow-large">
           <CardContent className="p-0">
             {setupTwoFactorRequired

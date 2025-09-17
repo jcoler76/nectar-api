@@ -2,13 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!-- Performance Optimizations -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- SEO Meta Tags -->
     <title>NectarStudio.ai - Automate, Integrate, Elevate Your Business Operations</title>
@@ -25,8 +25,50 @@
     <meta name="theme-color" content="#2563eb" />
     <meta name="msapplication-TileColor" content="#2563eb" />
 
-    <!-- Performance: Preload critical resources -->
+    <!-- Performance: Optimized font loading for mobile -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
+
+    <!-- Mobile Performance: Critical CSS and loading optimization -->
+    <style>
+      /* Prevent layout shift and improve mobile performance */
+      #root { min-height: 100vh; }
+      body { margin: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      /* Mobile touch optimization */
+      * { -webkit-tap-highlight-color: transparent; }
+      /* Improve mobile rendering */
+      .min-h-screen { min-height: 100vh; min-height: -webkit-fill-available; }
+      /* Critical loading states */
+      .loading-skeleton { animation: pulse 1.5s ease-in-out infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+
+    <!-- Performance: Resource hints for faster loading -->
+    <link rel="dns-prefetch" href="//api.nectarstudio.ai" />
+    <link rel="preconnect" href="//api.nectarstudio.ai" crossorigin />
+
+    <!-- Mobile Performance: Passive event listeners -->
+    <script>
+      // Improve mobile touch performance
+      (function() {
+        var supportsPassive = false;
+        try {
+          var opts = Object.defineProperty({}, 'passive', {
+            get: function() { supportsPassive = true; }
+          });
+          window.addEventListener('testPassive', null, opts);
+          window.removeEventListener('testPassive', null, opts);
+        } catch (e) {}
+
+        if (supportsPassive) {
+          ['touchstart', 'touchmove', 'wheel', 'mousewheel'].forEach(function(event) {
+            document.addEventListener(event, function() {}, { passive: true });
+          });
+        }
+      })();
+    </script>
 
     <!-- SEO: Canonical URL will be set by React Helmet -->
     <link rel="canonical" href="https://nectarstudio.ai" />
