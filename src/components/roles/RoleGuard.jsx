@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { useAuth } from '../../context/AuthContext';
 import { userHasPermission, canPerformAction, isRoleHigher } from '../../utils/rolePermissions';
 
@@ -56,9 +57,7 @@ const RoleGuard = ({
   // Check by minimum role level
   else if (minRole) {
     const userRoles = user.roles || user.memberships?.map(m => m.role) || [];
-    hasAccess = userRoles.some(userRole =>
-      isRoleHigher(userRole, minRole) || userRole === minRole
-    );
+    hasAccess = userRoles.some(userRole => isRoleHigher(userRole, minRole) || userRole === minRole);
   }
 
   // If organization-specific check, verify user is member
@@ -79,14 +78,7 @@ const RoleGuard = ({
 /**
  * Hook version of RoleGuard for use in conditional logic
  */
-export const useRoleGuard = ({
-  permission,
-  roles,
-  minRole,
-  organizationId,
-  action,
-  resource,
-}) => {
+export const useRoleGuard = ({ permission, roles, minRole, organizationId, action, resource }) => {
   const { user } = useAuth();
 
   if (!user) {
@@ -112,9 +104,7 @@ export const useRoleGuard = ({
   // Check by minimum role level
   if (minRole) {
     const userRoles = user.roles || user.memberships?.map(m => m.role) || [];
-    return userRoles.some(userRole =>
-      isRoleHigher(userRole, minRole) || userRole === minRole
-    );
+    return userRoles.some(userRole => isRoleHigher(userRole, minRole) || userRole === minRole);
   }
 
   return false;

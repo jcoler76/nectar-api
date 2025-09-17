@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+
 import {
   OrganizationOverview,
   TeamMembers,
@@ -12,7 +13,7 @@ import {
   ApiKeyManagement,
   OrganizationSettings,
   ActivityFeed,
-  UsageMetrics
+  UsageMetrics,
 } from './widgets';
 
 const OrganizationOwnerDashboard = ({ user, organization }) => {
@@ -52,10 +53,7 @@ const OrganizationOwnerDashboard = ({ user, organization }) => {
       <div className="owner-grid">
         {/* Organization Overview */}
         <div className="widget-container full-width">
-          <OrganizationOverview
-            organization={organization}
-            showManagement={true}
-          />
+          <OrganizationOverview organization={organization} showManagement={true} />
         </div>
 
         {/* Team Management */}
@@ -71,20 +69,12 @@ const OrganizationOwnerDashboard = ({ user, organization }) => {
 
         {/* Billing & Subscription */}
         <div className="widget-container half-width">
-          <BillingWidget
-            canManage={true}
-            showDetailed={true}
-            organization={organization}
-          />
+          <BillingWidget canManage={true} showDetailed={true} organization={organization} />
         </div>
 
         {/* Usage Analytics */}
         <div className="widget-container full-width">
-          <AnalyticsWidget
-            showAdvanced={true}
-            canExport={true}
-            timeRange="30d"
-          />
+          <AnalyticsWidget showAdvanced={true} canExport={true} timeRange="30d" />
         </div>
 
         {/* API Key Management */}
@@ -99,26 +89,17 @@ const OrganizationOwnerDashboard = ({ user, organization }) => {
 
         {/* Organization Settings */}
         <div className="widget-container half-width">
-          <OrganizationSettings
-            canEdit={true}
-            showAdvancedSettings={true}
-          />
+          <OrganizationSettings canEdit={true} showAdvancedSettings={true} />
         </div>
 
         {/* Usage Metrics */}
         <div className="widget-container half-width">
-          <UsageMetrics
-            showTrends={true}
-            showPredictions={true}
-          />
+          <UsageMetrics showTrends={true} showPredictions={true} />
         </div>
 
         {/* Activity Feed */}
         <div className="widget-container half-width">
-          <ActivityFeed
-            showAllActivities={true}
-            canManageNotifications={true}
-          />
+          <ActivityFeed showAllActivities={true} canManageNotifications={true} />
         </div>
       </div>
 

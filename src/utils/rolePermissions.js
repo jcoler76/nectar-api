@@ -61,37 +61,43 @@ export const PERMISSIONS = {
 const ROLE_HIERARCHY = {
   [ROLES.SUPER_ADMIN]: {
     level: 100,
-    inherits: [ROLES.ORGANIZATION_OWNER, ROLES.ORGANIZATION_ADMIN, ROLES.DEVELOPER, ROLES.MEMBER, ROLES.VIEWER]
+    inherits: [
+      ROLES.ORGANIZATION_OWNER,
+      ROLES.ORGANIZATION_ADMIN,
+      ROLES.DEVELOPER,
+      ROLES.MEMBER,
+      ROLES.VIEWER,
+    ],
   },
   [ROLES.ORGANIZATION_OWNER]: {
     level: 80,
-    inherits: [ROLES.ORGANIZATION_ADMIN, ROLES.DEVELOPER, ROLES.MEMBER, ROLES.VIEWER]
+    inherits: [ROLES.ORGANIZATION_ADMIN, ROLES.DEVELOPER, ROLES.MEMBER, ROLES.VIEWER],
   },
   [ROLES.ORGANIZATION_ADMIN]: {
     level: 60,
-    inherits: [ROLES.DEVELOPER, ROLES.MEMBER, ROLES.VIEWER]
+    inherits: [ROLES.DEVELOPER, ROLES.MEMBER, ROLES.VIEWER],
   },
   [ROLES.DEVELOPER]: {
     level: 40,
-    inherits: [ROLES.MEMBER, ROLES.VIEWER]
+    inherits: [ROLES.MEMBER, ROLES.VIEWER],
   },
   [ROLES.MEMBER]: {
     level: 20,
-    inherits: [ROLES.VIEWER]
+    inherits: [ROLES.VIEWER],
   },
   [ROLES.VIEWER]: {
     level: 10,
-    inherits: []
+    inherits: [],
   },
   // Legacy roles
   [ROLES.OWNER]: {
     level: 80,
-    inherits: [ROLES.ADMIN, ROLES.MEMBER, ROLES.VIEWER]
+    inherits: [ROLES.ADMIN, ROLES.MEMBER, ROLES.VIEWER],
   },
   [ROLES.ADMIN]: {
     level: 60,
-    inherits: [ROLES.MEMBER, ROLES.VIEWER]
-  }
+    inherits: [ROLES.MEMBER, ROLES.VIEWER],
+  },
 };
 
 /**
@@ -123,18 +129,9 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.API_MANAGE,
     PERMISSIONS.BILLING_VIEW,
   ],
-  [ROLES.DEVELOPER]: [
-    PERMISSIONS.API_MANAGE,
-    PERMISSIONS.API_KEYS,
-  ],
-  [ROLES.MEMBER]: [
-    PERMISSIONS.API_USE,
-    PERMISSIONS.ORG_READ,
-  ],
-  [ROLES.VIEWER]: [
-    PERMISSIONS.API_VIEW,
-    PERMISSIONS.ORG_READ,
-  ],
+  [ROLES.DEVELOPER]: [PERMISSIONS.API_MANAGE, PERMISSIONS.API_KEYS],
+  [ROLES.MEMBER]: [PERMISSIONS.API_USE, PERMISSIONS.ORG_READ],
+  [ROLES.VIEWER]: [PERMISSIONS.API_VIEW, PERMISSIONS.ORG_READ],
   // Legacy role mappings
   [ROLES.OWNER]: [
     PERMISSIONS.ORG_ADMIN,
@@ -212,9 +209,7 @@ export function userHasPermission(user, permission, organizationId = null) {
 
   // Fallback to memberships if roles array not available
   if (user.memberships) {
-    return user.memberships.some(membership =>
-      hasPermission(membership.role, permission)
-    );
+    return user.memberships.some(membership => hasPermission(membership.role, permission));
   }
 
   return false;
@@ -274,9 +269,11 @@ export function getUserAdminOrganizations(user) {
 
   const adminRoles = [ROLES.OWNER, ROLES.ADMIN, ROLES.ORGANIZATION_OWNER, ROLES.ORGANIZATION_ADMIN];
 
-  return user.memberships
-    ?.filter(membership => adminRoles.includes(membership.role))
-    ?.map(membership => membership.organizationId) || [];
+  return (
+    user.memberships
+      ?.filter(membership => adminRoles.includes(membership.role))
+      ?.map(membership => membership.organizationId) || []
+  );
 }
 
 /**
@@ -289,51 +286,53 @@ export function getRoleDisplayInfo(role) {
     [ROLES.SUPER_ADMIN]: {
       label: 'Super Admin',
       color: 'purple',
-      description: 'Platform-level administrative access'
+      description: 'Platform-level administrative access',
     },
     [ROLES.ORGANIZATION_OWNER]: {
       label: 'Organization Owner',
       color: 'red',
-      description: 'Full organization control'
+      description: 'Full organization control',
     },
     [ROLES.ORGANIZATION_ADMIN]: {
       label: 'Organization Admin',
       color: 'blue',
-      description: 'Manage organization resources'
+      description: 'Manage organization resources',
     },
     [ROLES.DEVELOPER]: {
       label: 'Developer',
       color: 'green',
-      description: 'Technical resource management'
+      description: 'Technical resource management',
     },
     [ROLES.MEMBER]: {
       label: 'Member',
       color: 'gray',
-      description: 'Standard access'
+      description: 'Standard access',
     },
     [ROLES.VIEWER]: {
       label: 'Viewer',
       color: 'yellow',
-      description: 'Read-only access'
+      description: 'Read-only access',
     },
     // Legacy roles
     [ROLES.OWNER]: {
       label: 'Owner (Legacy)',
       color: 'red',
-      description: 'Legacy organization owner'
+      description: 'Legacy organization owner',
     },
     [ROLES.ADMIN]: {
       label: 'Admin (Legacy)',
       color: 'blue',
-      description: 'Legacy administrator'
-    }
+      description: 'Legacy administrator',
+    },
   };
 
-  return roleInfo[role] || {
-    label: role,
-    color: 'gray',
-    description: 'Unknown role'
-  };
+  return (
+    roleInfo[role] || {
+      label: role,
+      color: 'gray',
+      description: 'Unknown role',
+    }
+  );
 }
 
 /**
@@ -370,7 +369,7 @@ export function canManageMemberRole(user, organizationId, targetRole) {
   return isRoleHigher(orgMembership.role, targetRole);
 }
 
-export default {
+const rolePermissionsConfig = {
   ROLES,
   PERMISSIONS,
   getRolePermissions,
@@ -384,3 +383,5 @@ export default {
   canInviteMembers,
   canManageMemberRole,
 };
+
+export default rolePermissionsConfig;

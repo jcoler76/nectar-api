@@ -3,24 +3,24 @@
  * Role-based API key management with different capabilities per role
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import { useAuth } from '@/context/AuthContext';
-import { hasPermission } from '@/utils/rolePermissions';
-import { RoleGuard } from '@/components/roles/RoleGuard';
 
 const ApiKeyManagement = ({
   canCreate = false,
   canRevoke = false,
   canRotate = false,
   showUsageStats = false,
-  showEnvironments = false
+  showEnvironments = false,
 }) => {
   const { user, organization } = useAuth();
   const [apiKeys, setApiKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedKey, setSelectedKey] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [reasonInput, setReasonInput] = useState('');
 
   // Form state
   const [newKey, setNewKey] = useState({
@@ -28,21 +28,17 @@ const ApiKeyManagement = ({
     description: '',
     environment: 'development',
     permissions: [],
-    expiresIn: '1y'
+    expiresIn: '1y',
   });
 
   const userRole = user?.memberships?.find(m => m.organizationId === organization?.id)?.role;
 
-  useEffect(() => {
-    fetchApiKeys();
-  }, [organization?.id]);
-
-  const fetchApiKeys = async () => {
+  const fetchApiKeys = useCallback(async () => {
     try {
       const response = await fetch(`/api/organizations/${organization?.id}/api-keys`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
 
       if (response.ok) {
@@ -56,9 +52,13 @@ const ApiKeyManagement = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [organization?.id]);
 
-  const handleCreateKey = async (e) => {
+  useEffect(() => {
+    fetchApiKeys();
+  }, [fetchApiKeys]);
+
+  const handleCreateKey = async e => {
     e.preventDefault();
     setActionLoading(true);
 
@@ -67,16 +67,18 @@ const ApiKeyManagement = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify(newKey)
+        body: JSON.stringify(newKey),
       });
 
       if (response.ok) {
         const data = await response.json();
 
         // Show the new API key to the user (only shown once)
-        alert(`API Key Created!\n\nKey: ${data.key}\n\nStore this securely - it won't be shown again.`);
+        alert(
+          `API Key Created!\n\nKey: ${data.key}\n\nStore this securely - it won't be shown again.`
+        );
 
         // Reset form and refresh list
         setNewKey({
@@ -84,7 +86,7 @@ const ApiKeyManagement = ({
           description: '',
           environment: 'development',
           permissions: [],
-          expiresIn: '1y'
+          expiresIn: '1y',
         });
         setShowCreateForm(false);
         fetchApiKeys();
@@ -100,29 +102,44 @@ const ApiKeyManagement = ({
     }
   };
 
-  const handleRevokeKey = async (keyId, keyName) => {
-    if (!confirm(`Are you sure you want to revoke the API key "${keyName}"? This action cannot be undone.`)) {
+  const handleRevokeKey = (keyId, keyName) => {
+    setConfirmDialog({
+      type: 'revoke',
+      keyId,
+      keyName,
+      title: 'Revoke API Key',
+      message: `Are you sure you want to revoke the API key "${keyName}"? This action cannot be undone.`,
+      needsReason: true,
+    });
+  };
+
+  const confirmRevokeKey = async () => {
+    if (!reasonInput.trim()) {
+      alert('Please provide a reason for revoking this key.');
       return;
     }
 
-    const reason = prompt('Please provide a reason for revoking this key:');
-    if (!reason) return;
-
+    const { keyId } = confirmDialog;
     setActionLoading(true);
 
     try {
-      const response = await fetch(`/api/organizations/${organization?.id}/api-keys/${keyId}/revoke`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ reason })
-      });
+      const response = await fetch(
+        `/api/organizations/${organization?.id}/api-keys/${keyId}/revoke`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({ reason: reasonInput }),
+        }
+      );
 
       if (response.ok) {
         alert('API key revoked successfully');
         fetchApiKeys();
+        setConfirmDialog(null);
+        setReasonInput('');
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error}`);
@@ -135,25 +152,37 @@ const ApiKeyManagement = ({
     }
   };
 
-  const handleRotateKey = async (keyId, keyName) => {
-    if (!confirm(`Rotate the API key "${keyName}"? The old key will become invalid immediately.`)) {
-      return;
-    }
+  const handleRotateKey = (keyId, keyName) => {
+    setConfirmDialog({
+      type: 'rotate',
+      keyId,
+      keyName,
+      title: 'Rotate API Key',
+      message: `Rotate the API key "${keyName}"? The old key will become invalid immediately.`,
+      needsReason: false,
+    });
+  };
 
+  const confirmRotateKey = async () => {
+    const { keyId } = confirmDialog;
     setActionLoading(true);
 
     try {
-      const response = await fetch(`/api/organizations/${organization?.id}/api-keys/${keyId}/rotate`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await fetch(
+        `/api/organizations/${organization?.id}/api-keys/${keyId}/rotate`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
         }
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
         alert(`API Key Rotated!\n\nNew Key: ${data.key}\n\nUpdate your applications immediately.`);
         fetchApiKeys();
+        setConfirmDialog(null);
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error}`);
@@ -166,11 +195,11 @@ const ApiKeyManagement = ({
     }
   };
 
-  const getEnvironmentBadge = (environment) => {
+  const getEnvironmentBadge = environment => {
     const badges = {
       production: 'env-badge production',
       staging: 'env-badge staging',
-      development: 'env-badge development'
+      development: 'env-badge development',
     };
     return badges[environment] || 'env-badge';
   };
@@ -242,7 +271,7 @@ const ApiKeyManagement = ({
                 <input
                   type="text"
                   value={newKey.name}
-                  onChange={(e) => setNewKey({ ...newKey, name: e.target.value })}
+                  onChange={e => setNewKey({ ...newKey, name: e.target.value })}
                   required
                   placeholder="My API Key"
                 />
@@ -252,7 +281,7 @@ const ApiKeyManagement = ({
                 <label>Description</label>
                 <textarea
                   value={newKey.description}
-                  onChange={(e) => setNewKey({ ...newKey, description: e.target.value })}
+                  onChange={e => setNewKey({ ...newKey, description: e.target.value })}
                   placeholder="What will this key be used for?"
                   rows={3}
                 />
@@ -263,7 +292,7 @@ const ApiKeyManagement = ({
                   <label>Environment *</label>
                   <select
                     value={newKey.environment}
-                    onChange={(e) => setNewKey({ ...newKey, environment: e.target.value })}
+                    onChange={e => setNewKey({ ...newKey, environment: e.target.value })}
                   >
                     <option value="development">Development</option>
                     <option value="staging">Staging</option>
@@ -278,15 +307,13 @@ const ApiKeyManagement = ({
                 <label>Expires In</label>
                 <select
                   value={newKey.expiresIn}
-                  onChange={(e) => setNewKey({ ...newKey, expiresIn: e.target.value })}
+                  onChange={e => setNewKey({ ...newKey, expiresIn: e.target.value })}
                 >
                   <option value="30d">30 days</option>
                   <option value="90d">90 days</option>
                   <option value="6m">6 months</option>
                   <option value="1y">1 year</option>
-                  {userRole === 'ORGANIZATION_OWNER' && (
-                    <option value="never">Never</option>
-                  )}
+                  {userRole === 'ORGANIZATION_OWNER' && <option value="never">Never</option>}
                 </select>
               </div>
 
@@ -312,24 +339,19 @@ const ApiKeyManagement = ({
             <div className="empty-state">
               <p>No API keys found.</p>
               {canCreate && (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => setShowCreateForm(true)}
-                >
+                <button className="btn btn-primary" onClick={() => setShowCreateForm(true)}>
                   Create Your First API Key
                 </button>
               )}
             </div>
           ) : (
             <div className="keys-grid">
-              {apiKeys.map((key) => (
+              {apiKeys.map(key => (
                 <div key={key.id} className="key-card">
                   <div className="key-header">
                     <div>
                       <h4>{key.name}</h4>
-                      {key.description && (
-                        <p className="key-description">{key.description}</p>
-                      )}
+                      {key.description && <p className="key-description">{key.description}</p>}
                     </div>
                     <div className="key-badges">
                       {getStatusBadge(key.isActive, key.expiresAt)}
@@ -462,6 +484,55 @@ const ApiKeyManagement = ({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {confirmDialog && (
+        <div className="modal-overlay">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <h4>{confirmDialog.title}</h4>
+            </div>
+            <div className="modal-body">
+              <p>{confirmDialog.message}</p>
+              {confirmDialog.needsReason && (
+                <div className="form-group">
+                  <label>Reason for revoking:</label>
+                  <textarea
+                    value={reasonInput}
+                    onChange={e => setReasonInput(e.target.value)}
+                    placeholder="Please provide a reason..."
+                    rows={3}
+                    required
+                  />
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setConfirmDialog(null);
+                  setReasonInput('');
+                }}
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={`btn ${confirmDialog.type === 'revoke' ? 'btn-danger' : 'btn-warning'}`}
+                onClick={confirmDialog.type === 'revoke' ? confirmRevokeKey : confirmRotateKey}
+                disabled={actionLoading || (confirmDialog.needsReason && !reasonInput.trim())}
+              >
+                {actionLoading
+                  ? 'Processing...'
+                  : confirmDialog.type === 'revoke'
+                    ? 'Revoke Key'
+                    : 'Rotate Key'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

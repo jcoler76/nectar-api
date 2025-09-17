@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+
 import {
   SystemHealth,
   PlatformAnalytics,
@@ -12,7 +13,7 @@ import {
   LicenseManagement,
   AdminUserManagement,
   AuditLogs,
-  SystemSettings
+  SystemSettings,
 } from './widgets';
 
 const SuperAdminDashboard = ({ user }) => {

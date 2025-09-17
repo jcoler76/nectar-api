@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+
 import {
   ApiKeyManagement,
   AnalyticsWidget,
@@ -12,7 +13,7 @@ import {
   WebhookManagement,
   RateLimitMonitor,
   ErrorLogs,
-  TestingTools
+  TestingTools,
 } from './widgets';
 
 const DeveloperDashboard = ({ user, organization }) => {
@@ -62,10 +63,7 @@ const DeveloperDashboard = ({ user, organization }) => {
 
         {/* API Analytics */}
         <div className="widget-container half-width">
-          <AnalyticsWidget
-            showTechnicalMetrics={true}
-            focusOnAPI={true}
-          />
+          <AnalyticsWidget showTechnicalMetrics={true} focusOnAPI={true} />
         </div>
 
         {/* Rate Limit Monitor */}
@@ -75,18 +73,12 @@ const DeveloperDashboard = ({ user, organization }) => {
 
         {/* Error Logs & Debugging */}
         <div className="widget-container full-width">
-          <ErrorLogs
-            canViewDetails={true}
-            showTrends={true}
-          />
+          <ErrorLogs canViewDetails={true} showTrends={true} />
         </div>
 
         {/* Webhook Management */}
         <div className="widget-container half-width">
-          <WebhookManagement
-            canCreate={true}
-            canTest={true}
-          />
+          <WebhookManagement canCreate={true} canTest={true} />
         </div>
 
         {/* Testing Tools */}
@@ -96,16 +88,12 @@ const DeveloperDashboard = ({ user, organization }) => {
 
         {/* API Documentation */}
         <div className="widget-container half-width">
-          <ApiDocumentation
-            showInteractive={true}
-          />
+          <ApiDocumentation showInteractive={true} />
         </div>
 
         {/* Code Examples */}
         <div className="widget-container half-width">
-          <CodeExamples
-            showLanguageOptions={true}
-          />
+          <CodeExamples showLanguageOptions={true} />
         </div>
       </div>
 
