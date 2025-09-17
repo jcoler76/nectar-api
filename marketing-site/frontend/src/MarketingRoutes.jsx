@@ -1,11 +1,14 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 
+import APIPage from './components/marketing/APIPage';
 import CheckoutPage from './components/marketing/CheckoutPage';
 import CheckoutSuccessPage from './components/marketing/CheckoutSuccessPage';
 import ContactSalesPage from './components/marketing/ContactSalesPage';
+import FeaturesPage from './components/marketing/FeaturesPage';
 import FreeSignupPage from './components/marketing/FreeSignupPage';
 import HomePage from './components/marketing/HomePage';
+import IntegrationsPage from './components/marketing/IntegrationsPage';
 import PricingPage from './components/marketing/PricingPage';
 import SecurityPage from './components/marketing/SecurityPage';
 import TermsPage from './components/marketing/TermsPage';
@@ -14,6 +17,9 @@ import PrivacyPage from './components/marketing/PrivacyPage';
 const MarketingRoutes = (
   <>
     <Route path="/home" element={<HomePage />} />
+    <Route path="/features" element={<FeaturesPage />} />
+    <Route path="/integrations" element={<IntegrationsPage />} />
+    <Route path="/api" element={<APIPage />} />
     <Route path="/pricing" element={<PricingPage />} />
     <Route path="/security" element={<SecurityPage />} />
     <Route path="/contact" element={<ContactSalesPage />} />

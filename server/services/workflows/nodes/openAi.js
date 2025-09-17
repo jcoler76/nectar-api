@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { interpolateSecure, SECURITY_CONTEXTS } = require('../interpolationSecure');
 const { logger } = require('../../../utils/logger');
+const PromptSecurityService = require('../../promptSecurityService');
 
 // Ensure you have OPENAI_API_KEY in your environment variables
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -21,6 +22,37 @@ const execute = async (config, context) => {
 
   // Interpolate the prompt with data from the context using secure interpolation
   const interpolatedPrompt = interpolateSecure(prompt, context, SECURITY_CONTEXTS.GENERAL);
+
+  // Apply AI security validation
+  const promptSecurity = new PromptSecurityService();
+  const securityAnalysis = promptSecurity.analyzePrompt(interpolatedPrompt, 'WORKFLOW');
+
+  if (!securityAnalysis.isSecure) {
+    const highSeverityThreats = securityAnalysis.threats.filter(
+      t => t.severity === 'CRITICAL' || t.severity === 'HIGH'
+    );
+
+    if (highSeverityThreats.length > 0) {
+      logger.warn(`OpenAI Node "${label}" blocked due to security threats:`, {
+        workflowId: context.workflowContext?.workflowId,
+        nodeId: context.workflowContext?.nodeId,
+        threats: highSeverityThreats.map(t => ({ category: t.category, severity: t.severity })),
+      });
+
+      return {
+        status: 'error',
+        message: 'Prompt blocked by security filters',
+        securityDetails: {
+          threatsDetected: highSeverityThreats.length,
+          categories: [...new Set(highSeverityThreats.map(t => t.category))],
+        },
+      };
+    }
+
+    // Use sanitized prompt for medium/low threats
+    interpolatedPrompt = securityAnalysis.sanitizedPrompt;
+    logger.info(`OpenAI Node "${label}" using sanitized prompt due to security concerns`);
+  }
 
   const requestBody = {
     model,
@@ -52,13 +84,36 @@ const execute = async (config, context) => {
     });
 
     const result = response.data.choices[0].message.content.trim();
+
+    // Validate AI response for security issues
+    const responseValidation = promptSecurity.validateResponse(result, interpolatedPrompt);
+    let finalResult = result;
+
+    if (!responseValidation.isSecure) {
+      logger.warn(`OpenAI Node "${label}" response sanitized due to security issues:`, {
+        workflowId: context.workflowContext?.workflowId,
+        nodeId: context.workflowContext?.nodeId,
+        issues: responseValidation.issues.map(i => ({
+          category: i.category,
+          severity: i.severity,
+        })),
+      });
+      finalResult = responseValidation.sanitizedResponse;
+    }
+
     logger.info(`OpenAI Node "${label}" successful.`);
 
     return {
       status: 'success',
       data: {
         fullResponse: response.data,
-        messageContent: result,
+        messageContent: finalResult,
+        securityValidation: {
+          promptSecure: securityAnalysis.isSecure,
+          responseSecure: responseValidation.isSecure,
+          threats: securityAnalysis.threats.length,
+          responseIssues: responseValidation.issues.length,
+        },
       },
     };
   } catch (error) {

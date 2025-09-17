@@ -28,13 +28,13 @@ const Footer = () => {
             <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
             <ul className="space-y-2 text-gray-600">
               <li>
-                <button onClick={() => {}}
+                <button onClick={() => navigate('/features')}
                         className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer">
                   Features
                 </button>
               </li>
               <li>
-                <button onClick={() => {}}
+                <button onClick={() => navigate('/integrations')}
                         className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer">
                   Integrations
                 </button>
@@ -46,7 +46,7 @@ const Footer = () => {
                 </button>
               </li>
               <li>
-                <button onClick={() => {}}
+                <button onClick={() => navigate('/api')}
                         className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer">
                   API
                 </button>

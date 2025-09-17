@@ -3,6 +3,7 @@ const router = express.Router();
 const OpenAI = require('openai');
 const { asyncHandler, errorResponses } = require('../utils/errorHandler');
 const { logger } = require('../middleware/logger');
+const AISecurityMiddleware = require('../middleware/aiSecurity');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -116,7 +117,8 @@ function generateExampleResponse(analysis, procedureName) {
   };
 }
 
-router.post('/generate-samples', async (req, res) => {
+// Apply AI security middleware to documentation endpoints
+router.post('/generate-samples', AISecurityMiddleware.forDocumentation(), async (req, res) => {
   try {
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
@@ -292,6 +294,7 @@ router.post('/get-business-domain-help', async (req, res) => {
 // Natural Language Query endpoint - main interface for BI queries
 router.post(
   '/nl-query',
+  AISecurityMiddleware.forGeneral(),
   asyncHandler(async (req, res) => {
     try {
       const { query, serviceName, context = {} } = req.body;
@@ -398,7 +401,7 @@ Response format:
 );
 
 // Chat endpoint - simplified version for basic interactions
-router.post('/chat', async (req, res) => {
+router.post('/chat', AISecurityMiddleware.forGeneral(), async (req, res) => {
   try {
     const { message, context = {} } = req.body;
 

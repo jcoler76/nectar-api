@@ -1,4 +1,4 @@
-const { sendEmail } = require('../../../utils/mailer');
+const { sendEmail } = require('../../../utils/enhancedMailer');
 const { interpolateSecure, SECURITY_CONTEXTS } = require('../interpolationSecure');
 const { logger } = require('../../../utils/logger');
 

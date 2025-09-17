@@ -163,7 +163,6 @@ const PricingPage = () => {
         'Everything in Business, plus:',
         'SSO/SAML/SCIM',
         'On-premise deployment',
-        'SOC 2 compliance',
         'Dedicated support',
         'Migration assistance',
         'Custom SLAs',
