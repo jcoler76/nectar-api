@@ -22,7 +22,7 @@ import {
 const APIPage = () => {
   const navigate = useNavigate();
 
-  const codeExample = `// Initialize the NectarStudio API client
+  const codeExample = `// Connect your database and instantly create APIs
 import { NectarAPI } from '@nectar/api-client';
 
 const nectar = new NectarAPI({
@@ -30,28 +30,35 @@ const nectar = new NectarAPI({
   environment: 'production'
 });
 
-// Execute a workflow
-const result = await nectar.workflows.execute('workflow-id', {
-  input: { name: 'John', email: 'john@example.com' }
+// Connect to your database (PostgreSQL, MySQL, MongoDB, etc.)
+const database = await nectar.databases.connect({
+  type: 'postgresql',
+  connectionString: 'postgresql://user:pass@host:5432/db'
 });
 
-// Get workflow status
-const status = await nectar.workflows.getStatus('execution-id');
+// Instantly generated REST endpoints are now available:
+// GET  /api/users        - List all users
+// POST /api/users        - Create new user
+// GET  /api/users/:id    - Get user by ID
+// PUT  /api/users/:id    - Update user
+// DELETE /api/users/:id  - Delete user
 
-console.log('Workflow completed:', result);`;
+// Use the auto-generated API immediately
+const users = await fetch('/api/users').then(r => r.json());
+console.log('Database API ready:', users);`;
 
   const apiFeatures = [
     {
       icon: <Zap className="w-12 h-12 text-yellow-600" />,
-      title: 'RESTful API',
+      title: 'Instant Database APIs',
       description:
-        'Clean, intuitive REST endpoints with JSON responses. Easy to integrate with any programming language.',
+        'Connect any database and automatically generate production-ready REST APIs in seconds. No coding, no configuration required.',
       details: [
-        'RESTful design principles',
-        'JSON request/response format',
-        'HTTP status codes',
-        'Consistent error handling',
-        'Pagination support',
+        'PostgreSQL, MySQL, MongoDB support',
+        'Auto-generated endpoints',
+        'Real-time schema detection',
+        'Built-in authentication',
+        'Instant deployment',
       ],
     },
     {
@@ -150,7 +157,7 @@ console.log('Workflow completed:', result);`;
         }}
         title="Powerful API"
         subtitle="For Developers"
-        description="Build integrations and automate workflows with our comprehensive REST API. Simple, secure, and built for scale."
+        description="Turn any database into a REST API instantly, or build custom integrations with our comprehensive API platform. Connect PostgreSQL, MySQL, MongoDB and more in seconds."
         primaryButton={{
           text: 'Get API Key',
           icon: <Key className="w-5 h-5" />,

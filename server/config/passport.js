@@ -9,7 +9,7 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const MicrosoftStrategy = require('passport-microsoft').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
-const TwitterStrategy = require('passport-twitter').Strategy;
+const TwitterStrategy = require('@passport-js/passport-twitter').Strategy;
 const { getPrismaClient } = require('./prisma');
 const { logger } = require('../middleware/logger');
 

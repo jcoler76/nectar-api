@@ -42,8 +42,8 @@ const HomePage = () => {
     },
     {
       icon: <Globe className="w-8 h-8 text-teal-600" />,
-      title: 'API Integrations',
-      description: 'Connect with 100+ third-party services and build custom integrations',
+      title: 'Instant API Creation',
+      description: 'Turn any database into a REST API in seconds. PostgreSQL, MySQL, MongoDB, and more - no coding required',
     },
     {
       icon: <Zap className="w-8 h-8 text-yellow-600" />,
@@ -53,10 +53,10 @@ const HomePage = () => {
   ];
 
   const benefits = [
+    'Create APIs from any database in under 30 seconds',
     'Reduce manual work by up to 90%',
     'Improve team productivity instantly',
     'Scale operations without adding headcount',
-    'Ensure compliance with automated workflows',
     'Get insights from your data in seconds',
   ];
 

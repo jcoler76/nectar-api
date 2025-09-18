@@ -9,6 +9,7 @@ import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
 import DependencyWarningDialog from '../common/DependencyWarningDialog';
 import { Badge } from '../ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
 import ConnectionForm from './ConnectionForm';
@@ -64,6 +65,10 @@ const ConnectionList = () => {
       handleClose();
     }
     // Keep form open on error
+  };
+
+  const handleAddConnection = () => {
+    handleAdd();
   };
 
   const handleTestConnectionDetails = connectionData => {
@@ -257,20 +262,29 @@ const ConnectionList = () => {
         columns={columns}
         loading={loading}
         error={error}
-        onAdd={() => handleAdd()}
+        onAdd={handleAddConnection}
         searchable={true}
         filterable={true}
         enableVirtualization={true} // Enable virtual scrolling for large connection lists
-      >
-        {/* Connection Form */}
-        <ConnectionForm
-          open={isFormOpen}
-          onClose={handleClose}
-          onSave={handleSaveConnection}
-          connection={selectedConnection}
-          onTestConnection={handleTestConnectionDetails}
-        />
-      </BaseListView>
+      ></BaseListView>
+
+      {/* Connection Form Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={open => !open && handleClose()}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedConnection ? 'Edit Connection' : 'Add New Connection'}
+            </DialogTitle>
+          </DialogHeader>
+          <ConnectionForm
+            open={isFormOpen}
+            onClose={handleClose}
+            onSave={handleSaveConnection}
+            connection={selectedConnection}
+            onTestConnection={handleTestConnectionDetails}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Dependency Confirmation Dialog */}
       <ConfirmDialog

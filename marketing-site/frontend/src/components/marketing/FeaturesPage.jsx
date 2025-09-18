@@ -99,6 +99,19 @@ const FeaturesPage = () => {
         'Alerting system',
       ],
     },
+    {
+      icon: <Code className="w-12 h-12 text-indigo-600" />,
+      title: 'Instant Database APIs',
+      description:
+        'Turn any database into a production-ready REST API in seconds. PostgreSQL, MySQL, MongoDB and more - zero configuration required.',
+      details: [
+        'Auto-generated REST endpoints',
+        'Real-time schema detection',
+        'Built-in authentication & security',
+        'PostgreSQL, MySQL, MongoDB support',
+        'Instant deployment',
+      ],
+    },
   ];
 
   const platformCapabilities = [
@@ -116,11 +129,11 @@ const FeaturesPage = () => {
     {
       title: 'Integration Hub',
       items: [
+        'Instant database-to-API conversion',
         'Native platform connectors',
         'REST API integration',
         'GraphQL support',
         'Database connections',
-        'File system access',
         'Real-time webhooks',
       ],
     },

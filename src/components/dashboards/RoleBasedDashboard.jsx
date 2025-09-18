@@ -19,7 +19,6 @@ import OrganizationAdminDashboard from './OrganizationAdminDashboard';
 import OrganizationOwnerDashboard from './OrganizationOwnerDashboard';
 import SuperAdminDashboard from './SuperAdminDashboard';
 import ViewerDashboard from './ViewerDashboard';
-// Import shared widgets
 import {
   OrganizationOverview,
   TeamMembers,
@@ -32,8 +31,6 @@ import {
   UserManagement,
   LicenseManagement,
 } from './widgets';
-
-// Import BI Analytics components
 import NLQueryWidget from './widgets/NLQueryWidget';
 
 const RoleBasedDashboard = () => {
