@@ -8,6 +8,8 @@ import {
   ChevronUp,
   Code,
   Database,
+  DollarSign,
+  FileText,
   Gauge,
   GitBranch,
   Grid3X3,
@@ -78,6 +80,13 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
     },
     { title: 'Roles', url: '/roles', icon: Sparkles, permission: 'canManageServices', badge: null },
     {
+      title: 'File Storage',
+      url: '/files',
+      icon: FileText,
+      permission: 'canViewDashboard',
+      badge: null,
+    },
+    {
       title: 'Applications',
       url: '/applications',
       icon: Grid3X3,
@@ -138,6 +147,44 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
       badge: null,
     },
     {
+      id: 'analytics',
+      title: 'Analytics',
+      icon: TrendingUp,
+      permission: 'canViewDashboard',
+      badge: null,
+      expandable: true,
+      children: [
+        {
+          title: 'Analytics Dashboard',
+          url: '/analytics',
+          icon: BarChart3,
+          permission: 'canViewDashboard',
+          badge: null,
+        },
+        {
+          title: 'Business Impact',
+          url: '/analytics/business-impact',
+          icon: DollarSign,
+          permission: 'canViewDashboard',
+          badge: null,
+        },
+        {
+          title: 'Workflow Performance',
+          url: '/analytics/workflow-performance',
+          icon: Activity,
+          permission: 'canViewDashboard',
+          badge: null,
+        },
+        {
+          title: 'Natural Language Query',
+          url: '/analytics/query',
+          icon: Search,
+          permission: 'canViewDashboard',
+          badge: null,
+        },
+      ],
+    },
+    {
       title: 'Activity Logs',
       url: '/reports/activity-logs',
       icon: Activity,
@@ -171,8 +218,14 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
   // Auto-expand parent items when child routes are active
   useEffect(() => {
     const isRateLimitActive = location.pathname.startsWith('/rate-limits');
+    const isAnalyticsActive = location.pathname.startsWith('/analytics');
+
     if (isRateLimitActive && !expandedItems.has('rate-limits')) {
       setExpandedItems(prev => new Set([...prev, 'rate-limits']));
+    }
+
+    if (isAnalyticsActive && !expandedItems.has('analytics')) {
+      setExpandedItems(prev => new Set([...prev, 'analytics']));
     }
   }, [location.pathname, expandedItems]);
 
