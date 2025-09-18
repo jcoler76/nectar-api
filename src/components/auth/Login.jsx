@@ -254,10 +254,14 @@ const Login = () => {
     <FormContainer>
       <form onSubmit={handleLoginSubmit} className="space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
-            <Lock className="h-6 w-6 text-primary-foreground" />
+          <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
+            <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.5 3.5L22 12l-4.5 8.5h-11L2 12l4.5-8.5h11z" />
+            </svg>
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">Nectar Studio</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            NectarStudio <span className="text-blue-600">.ai</span>
+          </h2>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
         </div>
 
@@ -267,7 +271,10 @@ const Login = () => {
           <FormFieldGroup>
             <Label htmlFor="email">Email Address *</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Mail
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+                style={{ color: '#ff0000 !important', zIndex: 10 }}
+              />
               <Input
                 id="email"
                 name="email"
@@ -290,7 +297,10 @@ const Login = () => {
           <FormFieldGroup>
             <Label htmlFor="password">Password *</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Lock
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+                style={{ color: '#ff0000 !important', zIndex: 10 }}
+              />
               <Input
                 id="password"
                 name="password"
@@ -336,24 +346,40 @@ const Login = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4"
+      className="min-h-screen flex items-center justify-center p-4 relative"
       style={{ minHeight: '100vh' }}
     >
+      {/* Background honeycomb pattern */}
+      <img
+        src={process.env.PUBLIC_URL + '/hero-marketing.svg'}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+      />
+      {/* Overlay for better readability - much lighter honeycomb effect */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/85 to-white/90 z-0" />
       <main
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
         role="main"
         aria-label="User authentication"
         style={{ maxWidth: '28rem' }}
       >
-        <Card className="shadow-large">
-          <CardContent className="p-0">
-            {setupTwoFactorRequired
-              ? renderSetupForm()
-              : twoFactorRequired
-                ? renderTokenForm()
-                : renderLoginForm()}
-          </CardContent>
-        </Card>
+        <div
+          style={{
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            backgroundColor: 'white',
+            padding: '2rem',
+            minHeight: '400px',
+          }}
+        >
+          {setupTwoFactorRequired
+            ? renderSetupForm()
+            : twoFactorRequired
+              ? renderTokenForm()
+              : renderLoginForm()}
+        </div>
       </main>
     </div>
   );

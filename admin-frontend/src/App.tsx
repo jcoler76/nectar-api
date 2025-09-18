@@ -105,21 +105,40 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6">
-            <Shield className="h-8 w-8 text-white" />
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Background honeycomb pattern */}
+      <img
+        src={process.env.PUBLIC_URL + '/hero-marketing.svg'}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+      />
+      {/* Overlay for better readability - much lighter honeycomb effect */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/85 to-white/90 z-0" />
+      <div className="max-w-md w-full space-y-8 relative z-10">
+        <div style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          backgroundColor: 'white',
+          padding: '2rem',
+          minHeight: '400px'
+        }}>
+          <div className="text-center mb-6">
+            <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
+              <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.5 3.5L22 12l-4.5 8.5h-11L2 12l4.5-8.5h11z"/>
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+              Admin Portal - NectarStudio <span className="text-blue-600">.ai</span>
+            </h2>
+            <p className="text-muted-foreground">
+              Sign in to access the admin dashboard
+            </p>
           </div>
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Admin Portal - NectarStudio.ai
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to access the admin dashboard
-          </p>
-        </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
               {error}
@@ -132,7 +151,7 @@ function App() {
                 Email Address
               </label>
               <div className="mt-1 relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" style={{ color: '#ff0000', zIndex: 10 }} />
                 <input
                   id="email"
                   name="email"
@@ -152,7 +171,7 @@ function App() {
                 Password
               </label>
               <div className="mt-1 relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" style={{ color: '#ff0000', zIndex: 10 }} />
                 <input
                   id="password"
                   name="password"
@@ -200,7 +219,8 @@ function App() {
               This is the admin portal for Nectar Studio platform administrators.
             </p>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   )
