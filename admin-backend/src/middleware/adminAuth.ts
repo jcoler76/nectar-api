@@ -22,10 +22,12 @@ export const authenticateAdmin = async (
   try {
     // Check for token in httpOnly cookie first, then fallback to Authorization header for backwards compatibility
     let token = req.cookies?.adminToken
+    let tokenSource = 'cookie'
 
     if (!token) {
       const authHeader = req.header('Authorization')
       token = authHeader?.replace('Bearer ', '')
+      tokenSource = 'header'
     }
 
     if (!token) {

@@ -7,7 +7,7 @@ import {
     Users
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { graphqlRequest } from '../services/graphql'
+import { adminApi } from '../services/adminApi'
 import AdminLayout from './layout/AdminLayout'
 import SecuritySettings from './system/SecuritySettings'
 import ApplicationKeyManager from './system/ApplicationKeyManager'
@@ -50,16 +50,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     let mounted = true
     const load = async () => {
       try {
-        const data = await graphqlRequest<{ adminMetrics: { totalUsers: number; activeUsers: number; totalSubscriptions: number; monthlyRevenue: number } }>(
-          `query AdminMetrics { adminMetrics { totalUsers activeUsers totalSubscriptions monthlyRevenue } }`
-        )
+        const metrics = await adminApi.getAdminMetrics()
         if (!mounted) return
-        setStats({
-          totalUsers: data.adminMetrics.totalUsers,
-          activeUsers: data.adminMetrics.activeUsers,
-          totalSubscriptions: data.adminMetrics.totalSubscriptions,
-          monthlyRevenue: data.adminMetrics.monthlyRevenue,
-        })
+        setStats(metrics)
       } catch (e) {
         console.error('Failed to load admin metrics', e)
         setStats({ totalUsers: 0, activeUsers: 0, totalSubscriptions: 0, monthlyRevenue: 0 })

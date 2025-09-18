@@ -38,6 +38,14 @@ class AuthController {
             }
             // Generate JWT token
             const token = adminAuth_1.AdminAuthService.generateToken(admin);
+            // Set secure httpOnly cookie
+            res.cookie('adminToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                path: '/'
+            });
             // Log successful login
             await auditService_1.AdminAuditLogger.log({
                 userId: admin.id,
@@ -48,7 +56,6 @@ class AuthController {
             });
             res.json({
                 success: true,
-                token,
                 admin: {
                     id: admin.id,
                     email: admin.email,
@@ -80,6 +87,13 @@ class AuthController {
                     userAgent: req.get('User-Agent'),
                 });
             }
+            // Clear the httpOnly cookie
+            res.clearCookie('adminToken', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                path: '/'
+            });
             res.json({
                 success: true,
                 message: 'Logged out successfully'
