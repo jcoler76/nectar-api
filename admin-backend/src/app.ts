@@ -7,6 +7,7 @@ import { EnvironmentValidator } from '@/utils/envValidation'
 EnvironmentValidator.validateOrExit()
 
 import compression from 'compression'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express, { Application, Request, Response } from 'express'
 import helmet from 'helmet'
@@ -18,6 +19,7 @@ import { apiRateLimiter } from '@/middleware/rateLimiter'
 import authRoutes from '@/routes/auth'
 import usersRoutes from '@/routes/users'
 import adminUsersRoutes from '@/routes/adminUsers'
+import adminRoutes from '@/routes/admin'
 import licenseRoutes from '@/routes/licenses'
 // Disabled Stripe-related routes until schema alignment
 // import analyticsRoutes from '@/routes/analytics'
@@ -84,6 +86,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
+// Cookie parsing middleware
+app.use(cookieParser())
+
 // Compression middleware
 app.use(compression())
 
@@ -105,7 +110,7 @@ app.get('/health', (req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'nectar-admin-backend',
-    version: '1.0.0',
+    version: '1.0.0', // restart
   })
 })
 
@@ -113,6 +118,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/users', usersRoutes)
 app.use('/api/admin/users', adminUsersRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/licenses', licenseRoutes)
 // Disabled Stripe-related routes until schema alignment
 // app.use('/api/analytics', analyticsRoutes)

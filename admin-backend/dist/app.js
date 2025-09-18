@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Load environment variables FIRST before any other imports that might use them
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+// Validate environment configuration before starting application
+const envValidation_1 = require("@/utils/envValidation");
+envValidation_1.EnvironmentValidator.validateOrExit();
 const compression_1 = __importDefault(require("compression"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -16,6 +20,8 @@ const rateLimiter_1 = require("@/middleware/rateLimiter");
 // Import routes
 const auth_1 = __importDefault(require("@/routes/auth"));
 const users_1 = __importDefault(require("@/routes/users"));
+const adminUsers_1 = __importDefault(require("@/routes/adminUsers"));
+const admin_1 = __importDefault(require("@/routes/admin"));
 const licenses_1 = __importDefault(require("@/routes/licenses"));
 // Disabled Stripe-related routes until schema alignment
 // import analyticsRoutes from '@/routes/analytics'
@@ -73,6 +79,8 @@ app.use((0, cors_1.default)({
 // Body parsing middleware
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+// Cookie parsing middleware
+app.use((0, cookie_parser_1.default)());
 // Compression middleware
 app.use((0, compression_1.default)());
 // Logging middleware
@@ -90,12 +98,14 @@ app.get('/health', (req, res) => {
         status: 'healthy',
         timestamp: new Date().toISOString(),
         service: 'nectar-admin-backend',
-        version: '1.0.0',
+        version: '1.0.0', // restart
     });
 });
 // API routes
 app.use('/api/auth', auth_1.default);
 app.use('/api/users', users_1.default);
+app.use('/api/admin/users', adminUsers_1.default);
+app.use('/api/admin', admin_1.default);
 app.use('/api/licenses', licenses_1.default);
 // Disabled Stripe-related routes until schema alignment
 // app.use('/api/analytics', analyticsRoutes)

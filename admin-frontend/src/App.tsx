@@ -108,7 +108,7 @@ function App() {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
       {/* Background honeycomb pattern */}
       <img
-        src={process.env.PUBLIC_URL + '/hero-marketing.svg'}
+        src={import.meta.env.BASE_URL + 'hero-marketing.svg'}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"

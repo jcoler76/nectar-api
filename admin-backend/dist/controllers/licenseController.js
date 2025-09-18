@@ -4,7 +4,11 @@ exports.licenseController = exports.validateSuspendLicense = exports.validateCus
 const express_validator_1 = require("express-validator");
 // License Server Configuration
 const LICENSE_SERVER_URL = process.env.LICENSE_SERVER_URL || 'http://localhost:6000';
-const LICENSE_ADMIN_KEY = process.env.LICENSE_ADMIN_KEY || '';
+// Validate required LICENSE_ADMIN_KEY - fail fast if not configured
+if (!process.env.LICENSE_ADMIN_KEY) {
+    throw new Error('LICENSE_ADMIN_KEY environment variable is required for license server communication');
+}
+const LICENSE_ADMIN_KEY = process.env.LICENSE_ADMIN_KEY;
 class LicenseController {
     async makeRequest(endpoint, options = {}) {
         const url = `${LICENSE_SERVER_URL}${endpoint}`;

@@ -1,52 +1,152 @@
 "use strict";
+/**
+ * Audit Service for RBAC System - Admin Backend Version
+ * Handles logging of admin actions, role changes, and security events
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminAuditLogger = void 0;
+exports.logAuditEvent = logAuditEvent;
+exports.logRoleChange = logRoleChange;
+exports.logUserLogin = logUserLogin;
+const database_1 = require("@/utils/database");
+/**
+ * Log a general audit event
+ * @param options - Audit event options
+ */
+async function logAuditEvent(options) {
+    try {
+        const { action, entityType, entityId, userId, adminUserId, organizationId, oldValues, newValues, metadata, ipAddress, userAgent } = options;
+        // Skip audit logging only if no organizationId is provided and it's not an admin operation
+        if (!organizationId && !adminUserId) {
+            console.log(`Audit log skipped (no org or admin context): ${action}`);
+            return;
+        }
+        await database_1.prisma.auditLog.create({
+            data: {
+                action,
+                entityType,
+                entityId,
+                userId,
+                adminPerformedById: adminUserId,
+                organizationId,
+                oldValues,
+                newValues,
+                metadata,
+                ipAddress,
+                userAgent
+            }
+        });
+        console.log(`Audit log created: ${action} on ${entityType} ${entityId}`);
+    }
+    catch (error) {
+        console.error('Failed to create audit log:', error);
+        // Don't throw - audit logging failures shouldn't break the main functionality
+    }
+}
+/**
+ * Log a role change event with detailed tracking
+ * @param options - Role change options
+ */
+async function logRoleChange(options) {
+    try {
+        const { targetUserId, targetAdminId, organizationId, oldRole, newRole, reason, performedById, adminPerformedById, approvedById, status = 'COMPLETED', ipAddress, userAgent } = options;
+        // Create detailed role change log
+        const roleChangeLog = await database_1.prisma.roleChangeLog.create({
+            data: {
+                targetUserId,
+                targetAdminId,
+                organizationId,
+                oldRole,
+                newRole,
+                reason,
+                performedById,
+                adminPerformedById,
+                approvedById,
+                status,
+                ipAddress,
+                userAgent
+            }
+        });
+        // Also log as general audit event
+        await logAuditEvent({
+            action: 'ROLE_CHANGE',
+            entityType: targetUserId ? 'USER' : 'ADMIN_USER',
+            entityId: targetUserId || targetAdminId || '',
+            userId: performedById,
+            adminUserId: adminPerformedById,
+            organizationId,
+            oldValues: { role: oldRole },
+            newValues: { role: newRole },
+            metadata: {
+                reason,
+                roleChangeLogId: roleChangeLog.id,
+                status
+            },
+            ipAddress,
+            userAgent
+        });
+        console.log(`Role change logged: ${oldRole} -> ${newRole} for ${targetUserId || targetAdminId}`);
+        return roleChangeLog;
+    }
+    catch (error) {
+        console.error('Failed to log role change:', error);
+        throw error; // Role change logging failures should be surfaced
+    }
+}
+/**
+ * Log admin user login events
+ * @param options - Login event options
+ */
+async function logUserLogin(options) {
+    const { userId, adminUserId, success = true, ipAddress, userAgent, metadata = {} } = options;
+    await logAuditEvent({
+        action: success ? 'LOGIN' : 'LOGIN_FAILED',
+        entityType: adminUserId ? 'ADMIN_USER' : 'USER',
+        entityId: userId || adminUserId || '',
+        userId,
+        adminUserId,
+        metadata: {
+            success,
+            ...metadata
+        },
+        ipAddress,
+        userAgent
+    });
+}
 class AdminAuditLogger {
-    /**
-     * Log admin action for audit trail
-     */
     static async log(data) {
-        // TODO: Implement audit logging once schema is aligned
-        // Audit logging temporarily disabled - sensitive data should not be logged to console
-    }
-    /**
-     * Get recent audit logs with pagination
-     */
-    static async getRecentLogs(limit = 50, offset = 0) {
-        // TODO: Implement once schema is aligned
-        return [];
-    }
-    /**
-     * Get audit logs for specific admin
-     */
-    static async getAdminLogs(userId, limit = 50, offset = 0) {
-        // TODO: Implement once schema is aligned
-        return [];
-    }
-    /**
-     * Get audit logs for specific action
-     */
-    static async getActionLogs(action, limit = 50, offset = 0) {
-        // TODO: Implement once schema is aligned
-        return [];
-    }
-    /**
-     * Search audit logs
-     */
-    static async searchLogs(filters, limit = 50, offset = 0) {
-        // TODO: Implement once schema is aligned
-        return [];
-    }
-    /**
-     * Get audit log statistics
-     */
-    static async getLogStats(startDate, endDate) {
-        // TODO: Implement once schema is aligned
-        return {
-            totalLogs: 0,
-            topActions: [],
-            topAdmins: [],
-        };
+        // Try to get organization context for the admin user
+        let organizationId;
+        if (data.userId) {
+            try {
+                const userWithMembership = await database_1.prisma.user.findFirst({
+                    where: { id: data.userId },
+                    include: {
+                        memberships: {
+                            take: 1,
+                            orderBy: { joinedAt: 'asc' }, // Use the first (oldest) organization membership
+                            select: {
+                                organizationId: true
+                            }
+                        }
+                    }
+                });
+                organizationId = userWithMembership?.memberships[0]?.organizationId;
+            }
+            catch (error) {
+                console.error('Failed to get organization context for admin audit log:', error);
+            }
+        }
+        await logAuditEvent({
+            action: data.action,
+            entityType: data.resourceType || data.resource || 'UNKNOWN',
+            entityId: data.resource || 'unknown',
+            adminUserId: data.userId,
+            organizationId,
+            metadata: data.details,
+            ipAddress: data.ipAddress,
+            userAgent: data.userAgent
+        });
     }
 }
 exports.AdminAuditLogger = AdminAuditLogger;
