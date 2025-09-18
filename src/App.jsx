@@ -51,6 +51,16 @@ const WorkflowExecutionReport = lazy(() => import('./components/reports/Workflow
 const FileStorageDashboard = lazy(() => import('./components/fileStorage/FileStorageDashboard'));
 const ActivityLogsReport = lazy(() => import('./components/reports/ActivityLogsReport'));
 
+// Analytics Dashboards
+const BusinessImpactDashboard = lazy(
+  () => import('./components/analytics/BusinessImpactDashboard')
+);
+const WorkflowPerformanceDashboard = lazy(
+  () => import('./components/analytics/WorkflowPerformanceDashboard')
+);
+const AnalyticsPage = lazy(() => import('./components/analytics/AnalyticsPage'));
+const NaturalLanguageQuery = lazy(() => import('./components/analytics/NaturalLanguageQuery'));
+
 // Lazy-load settings screens to reduce initial bundle size
 const AdminSettings = lazy(() => import('./components/settings/AdminSettings'));
 const UserSettings = lazy(() => import('./components/settings/UserSettings'));
@@ -435,6 +445,48 @@ function App() {
                           <RateLimitForm />
                         </Suspense>
                       </RateLimitErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                {/* Analytics Dashboards */}
+                <Route
+                  path="/analytics/business-impact"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute
+                        component={BusinessImpactDashboard}
+                        routeName="Business Impact Analytics"
+                      />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics/workflow-performance"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute
+                        component={WorkflowPerformanceDashboard}
+                        routeName="Workflow Performance Analytics"
+                      />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute component={AnalyticsPage} routeName="Analytics Dashboard" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics/query"
+                  element={
+                    <ProtectedRoute>
+                      <LazyRoute
+                        component={NaturalLanguageQuery}
+                        routeName="Natural Language Query"
+                      />
                     </ProtectedRoute>
                   }
                 />
