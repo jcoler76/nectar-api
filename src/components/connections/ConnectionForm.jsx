@@ -332,7 +332,10 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
               </Tooltip>
             </div>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <User
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+                style={{ color: '#ff0000 !important', zIndex: 10 }}
+              />
               <Input
                 id="username"
                 name="username"
@@ -358,7 +361,10 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
               </Tooltip>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Lock
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+                style={{ color: '#ff0000 !important', zIndex: 10 }}
+              />
               <Input
                 id="password"
                 name="password"
