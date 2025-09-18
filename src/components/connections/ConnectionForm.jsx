@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -18,6 +17,7 @@ const DATABASE_TYPES = [
     defaultPort: 1433,
     icon: '🗄️',
     description: 'Microsoft SQL Server database',
+    category: 'Traditional',
   },
   {
     value: 'POSTGRESQL',
@@ -25,6 +25,7 @@ const DATABASE_TYPES = [
     defaultPort: 5432,
     icon: '🐘',
     description: 'PostgreSQL open-source relational database',
+    category: 'Traditional',
   },
   {
     value: 'MYSQL',
@@ -32,6 +33,7 @@ const DATABASE_TYPES = [
     defaultPort: 3306,
     icon: '🐬',
     description: 'MySQL/MariaDB relational database',
+    category: 'Traditional',
   },
   {
     value: 'MONGODB',
@@ -39,13 +41,178 @@ const DATABASE_TYPES = [
     defaultPort: 27017,
     icon: '🍃',
     description: 'MongoDB NoSQL document database',
+    category: 'Traditional',
+  },
+  {
+    value: 'SQLITE',
+    label: 'SQLite',
+    defaultPort: null,
+    icon: '💾',
+    description: 'SQLite lightweight database (file-based)',
+    category: 'Traditional',
+  },
+  {
+    value: 'ORACLE',
+    label: 'Oracle Database',
+    defaultPort: 1521,
+    icon: '🏛️',
+    description: 'Oracle Database Enterprise',
+    category: 'Traditional',
+  },
+  // AWS Cloud Databases
+  {
+    value: 'AWS_RDS_POSTGRESQL',
+    label: 'AWS RDS PostgreSQL',
+    defaultPort: 5432,
+    icon: '🐘',
+    description: 'Amazon RDS PostgreSQL managed database',
+    category: 'AWS',
+    cloudProvider: 'AWS',
+  },
+  {
+    value: 'AWS_RDS_MYSQL',
+    label: 'AWS RDS MySQL',
+    defaultPort: 3306,
+    icon: '🐬',
+    description: 'Amazon RDS MySQL managed database',
+    category: 'AWS',
+    cloudProvider: 'AWS',
+  },
+  {
+    value: 'AWS_RDS_MSSQL',
+    label: 'AWS RDS SQL Server',
+    defaultPort: 1433,
+    icon: '🗄️',
+    description: 'Amazon RDS SQL Server managed database',
+    category: 'AWS',
+    cloudProvider: 'AWS',
+  },
+  {
+    value: 'AWS_RDS_ORACLE',
+    label: 'AWS RDS Oracle',
+    defaultPort: 1521,
+    icon: '🏛️',
+    description: 'Amazon RDS Oracle managed database',
+    category: 'AWS',
+    cloudProvider: 'AWS',
+  },
+  {
+    value: 'AWS_AURORA_POSTGRESQL',
+    label: 'AWS Aurora PostgreSQL',
+    defaultPort: 5432,
+    icon: '🌟',
+    description: 'Amazon Aurora PostgreSQL-compatible database',
+    category: 'AWS',
+    cloudProvider: 'AWS',
+  },
+  {
+    value: 'AWS_AURORA_MYSQL',
+    label: 'AWS Aurora MySQL',
+    defaultPort: 3306,
+    icon: '🌟',
+    description: 'Amazon Aurora MySQL-compatible database',
+    category: 'AWS',
+    cloudProvider: 'AWS',
+  },
+  // Azure Cloud Databases
+  {
+    value: 'AZURE_SQL_DATABASE',
+    label: 'Azure SQL Database',
+    defaultPort: 1433,
+    icon: '☁️',
+    description: 'Microsoft Azure SQL Database',
+    category: 'Azure',
+    cloudProvider: 'Azure',
+  },
+  {
+    value: 'AZURE_SQL_MANAGED_INSTANCE',
+    label: 'Azure SQL Managed Instance',
+    defaultPort: 1433,
+    icon: '☁️',
+    description: 'Azure SQL Managed Instance',
+    category: 'Azure',
+    cloudProvider: 'Azure',
+  },
+  {
+    value: 'AZURE_POSTGRESQL',
+    label: 'Azure Database for PostgreSQL',
+    defaultPort: 5432,
+    icon: '🐘',
+    description: 'Azure managed PostgreSQL service',
+    category: 'Azure',
+    cloudProvider: 'Azure',
+  },
+  {
+    value: 'AZURE_MYSQL',
+    label: 'Azure Database for MySQL',
+    defaultPort: 3306,
+    icon: '🐬',
+    description: 'Azure managed MySQL service',
+    category: 'Azure',
+    cloudProvider: 'Azure',
+  },
+  // Google Cloud Databases
+  {
+    value: 'GCP_CLOUD_SQL_POSTGRESQL',
+    label: 'Google Cloud SQL PostgreSQL',
+    defaultPort: 5432,
+    icon: '🐘',
+    description: 'Google Cloud SQL PostgreSQL',
+    category: 'Google Cloud',
+    cloudProvider: 'GCP',
+  },
+  {
+    value: 'GCP_CLOUD_SQL_MYSQL',
+    label: 'Google Cloud SQL MySQL',
+    defaultPort: 3306,
+    icon: '🐬',
+    description: 'Google Cloud SQL MySQL',
+    category: 'Google Cloud',
+    cloudProvider: 'GCP',
+  },
+  {
+    value: 'GCP_CLOUD_SQL_MSSQL',
+    label: 'Google Cloud SQL Server',
+    defaultPort: 1433,
+    icon: '🗄️',
+    description: 'Google Cloud SQL Server',
+    category: 'Google Cloud',
+    cloudProvider: 'GCP',
+  },
+  {
+    value: 'GCP_SPANNER',
+    label: 'Google Cloud Spanner',
+    defaultPort: 443,
+    icon: '🔧',
+    description: 'Google Cloud Spanner globally distributed database',
+    category: 'Google Cloud',
+    cloudProvider: 'GCP',
+  },
+  // Analytics & Big Data
+  {
+    value: 'BIGQUERY',
+    label: 'Google BigQuery',
+    defaultPort: 443,
+    icon: '📊',
+    description: 'Google BigQuery data warehouse',
+    category: 'Analytics',
+    cloudProvider: 'GCP',
+  },
+  {
+    value: 'SNOWFLAKE',
+    label: 'Snowflake',
+    defaultPort: 443,
+    icon: '❄️',
+    description: 'Snowflake cloud data platform',
+    category: 'Analytics',
+    cloudProvider: 'Snowflake',
   },
 ];
 
 const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection }) => {
   const [formData, setFormData] = useState({
     name: '',
-    type: 'MSSQL',
+    type: '',
     host: '',
     port: 1433,
     database: '',
@@ -53,7 +220,19 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
     failoverHost: '',
     username: '',
     password: '',
+    // Cloud-specific fields
+    region: '',
+    endpoint: '',
+    instanceConnectionName: '',
+    accountId: '',
+    warehouseName: '',
+    authMethod: 'password',
+    privateKey: '',
+    passphrase: '',
+    projectId: '',
+    keyFile: '',
   });
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [error, setError] = useState('');
@@ -70,11 +249,23 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
         failoverHost: connection.failoverHost || '',
         username: connection.username || '',
         password: '', // Always keep password empty for security
+        // Cloud-specific fields
+        region: connection.region || '',
+        endpoint: connection.endpoint || '',
+        instanceConnectionName: connection.instanceConnectionName || '',
+        accountId: connection.accountId || '',
+        warehouseName: connection.warehouseName || '',
+        authMethod: connection.authMethod || 'password',
+        privateKey: connection.privateKey || '',
+        passphrase: connection.passphrase || '',
+        projectId: connection.projectId || '',
+        keyFile: connection.keyFile || '',
       });
+      setCurrentStep(2); // Skip to step 2 for editing
     } else {
       setFormData({
         name: '',
-        type: 'MSSQL',
+        type: '',
         host: '',
         port: 1433,
         database: '',
@@ -82,7 +273,19 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
         failoverHost: '',
         username: '',
         password: '',
+        // Cloud-specific fields
+        region: '',
+        endpoint: '',
+        instanceConnectionName: '',
+        accountId: '',
+        warehouseName: '',
+        authMethod: 'password',
+        privateKey: '',
+        passphrase: '',
+        projectId: '',
+        keyFile: '',
       });
+      setCurrentStep(1); // Start at step 1 for new connections
     }
     setError('');
     setIsSubmitting(false);
@@ -104,6 +307,23 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
       type: value,
       port: dbType?.defaultPort || 1433,
     }));
+
+    // Auto-advance to step 2 once database type is selected
+    if (value && formData.name.trim()) {
+      setCurrentStep(2);
+    }
+  };
+
+  const canAdvanceToStep2 = formData.name.trim() && formData.type;
+
+  const goToStep2 = () => {
+    if (canAdvanceToStep2) {
+      setCurrentStep(2);
+    }
+  };
+
+  const goToStep1 = () => {
+    setCurrentStep(1);
   };
 
   const handleSubmit = async e => {
@@ -141,23 +361,17 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            {connection ? 'Edit Connection' : 'Add New Connection'}
-          </DialogTitle>
-        </DialogHeader>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Error Message */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
+      {/* Step 1: Connection Name and Database Type */}
+      {currentStep === 1 && !connection && (
+        <>
           {/* Connection Name */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -195,21 +409,159 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
                   )}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
-                {DATABASE_TYPES.map(dbType => (
-                  <SelectItem key={dbType.value} value={dbType.value}>
-                    <div className="flex items-center gap-2">
-                      <span>{dbType.icon}</span>
-                      <div className="flex flex-col">
-                        <span>{dbType.label}</span>
-                        <span className="text-xs text-muted-foreground">{dbType.description}</span>
+              <SelectContent className="max-h-[400px]">
+                {/* Group database types by category */}
+                {['Traditional', 'AWS', 'Azure', 'Google Cloud', 'Analytics'].map(category => {
+                  const typesInCategory = DATABASE_TYPES.filter(
+                    dbType => dbType.category === category
+                  );
+                  if (typesInCategory.length === 0) return null;
+
+                  return (
+                    <div key={category}>
+                      {/* Category Header */}
+                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground bg-muted/50 sticky top-0">
+                        {category === 'Traditional'
+                          ? '🖥️ Traditional Databases'
+                          : category === 'AWS'
+                            ? '☁️ Amazon Web Services'
+                            : category === 'Azure'
+                              ? '🔷 Microsoft Azure'
+                              : category === 'Google Cloud'
+                                ? '🟦 Google Cloud Platform'
+                                : category === 'Analytics'
+                                  ? '📊 Analytics & Big Data'
+                                  : category}
                       </div>
+                      {/* Database options in this category */}
+                      {typesInCategory.map(dbType => (
+                        <SelectItem key={dbType.value} value={dbType.value}>
+                          <div className="flex items-center gap-2">
+                            <span>{dbType.icon}</span>
+                            <div className="flex flex-col">
+                              <span>{dbType.label}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {dbType.description}
+                              </span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </div>
-                  </SelectItem>
-                ))}
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
+        </>
+      )}
+
+      {/* Step 2: Connection Details or Edit Mode */}
+      {(currentStep === 2 || connection) && (
+        <>
+          {/* Show connection name and type as readonly in step 2 */}
+          {currentStep === 2 && !connection && (
+            <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium">Connection: {formData.name}</div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{DATABASE_TYPES.find(t => t.value === formData.type)?.icon}</span>
+                    <span>{DATABASE_TYPES.find(t => t.value === formData.type)?.label}</span>
+                  </div>
+                </div>
+                <Button type="button" variant="ghost" size="sm" onClick={goToStep1}>
+                  Edit
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Connection Name - only show in edit mode */}
+          {connection && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="name">Connection Name *</Label>
+                <Tooltip title="Unique identifier for this connection. Use descriptive names like 'prod-customer-db' or 'staging-inventory'. Cannot be changed after creation.">
+                  <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                </Tooltip>
+              </div>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="e.g., prod-customer-db, staging-inventory"
+              />
+            </div>
+          )}
+
+          {/* Database Type - only show in edit mode */}
+          {connection && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>Database Type *</Label>
+                <Tooltip title="Select your database system type. This determines the connection protocol and default port. Each type has different features and capabilities.">
+                  <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                </Tooltip>
+              </div>
+              <Select value={formData.type} onValueChange={handleDatabaseTypeChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select database type">
+                    {formData.type && (
+                      <div className="flex items-center gap-2">
+                        <span>{DATABASE_TYPES.find(t => t.value === formData.type)?.icon}</span>
+                        <span>{DATABASE_TYPES.find(t => t.value === formData.type)?.label}</span>
+                      </div>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-h-[400px]">
+                  {/* Group database types by category */}
+                  {['Traditional', 'AWS', 'Azure', 'Google Cloud', 'Analytics'].map(category => {
+                    const typesInCategory = DATABASE_TYPES.filter(
+                      dbType => dbType.category === category
+                    );
+                    if (typesInCategory.length === 0) return null;
+
+                    return (
+                      <div key={category}>
+                        {/* Category Header */}
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground bg-muted/50 sticky top-0">
+                          {category === 'Traditional'
+                            ? '🖥️ Traditional Databases'
+                            : category === 'AWS'
+                              ? '☁️ Amazon Web Services'
+                              : category === 'Azure'
+                                ? '🔷 Microsoft Azure'
+                                : category === 'Google Cloud'
+                                  ? '🟦 Google Cloud Platform'
+                                  : category === 'Analytics'
+                                    ? '📊 Analytics & Big Data'
+                                    : category}
+                        </div>
+                        {/* Database options in this category */}
+                        {typesInCategory.map(dbType => (
+                          <SelectItem key={dbType.value} value={dbType.value}>
+                            <div className="flex items-center gap-2">
+                              <span>{dbType.icon}</span>
+                              <div className="flex flex-col">
+                                <span>{dbType.label}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {dbType.description}
+                                </span>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Host and Port */}
           <div className="flex gap-2">
@@ -304,6 +656,178 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
             </Tooltip>
           </div>
 
+          {/* Cloud-specific fields based on database type */}
+          {(() => {
+            const dbType = DATABASE_TYPES.find(t => t.value === formData.type);
+            if (!dbType?.cloudProvider) return null;
+
+            return (
+              <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-blue-600 font-medium">☁️ Cloud Configuration</span>
+                  <Tooltip
+                    title={`Configure ${dbType.cloudProvider}-specific settings for ${dbType.label}`}
+                  >
+                    <HelpCircle className="h-4 w-4 text-blue-500 cursor-help" />
+                  </Tooltip>
+                </div>
+
+                {/* AWS-specific fields */}
+                {dbType.cloudProvider === 'AWS' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="region">AWS Region</Label>
+                        <Input
+                          id="region"
+                          name="region"
+                          value={formData.region}
+                          onChange={handleChange}
+                          placeholder="us-east-1"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="endpoint">RDS Endpoint</Label>
+                        <Input
+                          id="endpoint"
+                          name="endpoint"
+                          value={formData.endpoint}
+                          onChange={handleChange}
+                          placeholder="mydb.cluster-xxx.us-east-1.rds.amazonaws.com"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Azure-specific fields */}
+                {dbType.cloudProvider === 'Azure' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="endpoint">Azure SQL Server Name</Label>
+                      <Input
+                        id="endpoint"
+                        name="endpoint"
+                        value={formData.endpoint}
+                        onChange={handleChange}
+                        placeholder="myserver.database.windows.net"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Google Cloud-specific fields */}
+                {dbType.cloudProvider === 'GCP' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="projectId">Project ID</Label>
+                        <Input
+                          id="projectId"
+                          name="projectId"
+                          value={formData.projectId}
+                          onChange={handleChange}
+                          placeholder="my-gcp-project"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="region">Region</Label>
+                        <Input
+                          id="region"
+                          name="region"
+                          value={formData.region}
+                          onChange={handleChange}
+                          placeholder="us-central1"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="instanceConnectionName">Instance Connection Name</Label>
+                      <Input
+                        id="instanceConnectionName"
+                        name="instanceConnectionName"
+                        value={formData.instanceConnectionName}
+                        onChange={handleChange}
+                        placeholder="project:region:instance"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Snowflake-specific fields */}
+                {dbType.cloudProvider === 'Snowflake' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="accountId">Account Identifier</Label>
+                        <Input
+                          id="accountId"
+                          name="accountId"
+                          value={formData.accountId}
+                          onChange={handleChange}
+                          placeholder="xy12345.us-east-1"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="warehouseName">Warehouse Name</Label>
+                        <Input
+                          id="warehouseName"
+                          name="warehouseName"
+                          value={formData.warehouseName}
+                          onChange={handleChange}
+                          placeholder="COMPUTE_WH"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Authentication Method</Label>
+                      <Select
+                        value={formData.authMethod}
+                        onValueChange={value =>
+                          setFormData(prev => ({ ...prev, authMethod: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="password">Username/Password</SelectItem>
+                          <SelectItem value="keypair">Key Pair Authentication</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {formData.authMethod === 'keypair' && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="privateKey">Private Key</Label>
+                          <Input
+                            id="privateKey"
+                            name="privateKey"
+                            type="password"
+                            value={formData.privateKey}
+                            onChange={handleChange}
+                            placeholder="-----BEGIN PRIVATE KEY-----..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="passphrase">Private Key Passphrase (optional)</Label>
+                          <Input
+                            id="passphrase"
+                            name="passphrase"
+                            type="password"
+                            value={formData.passphrase}
+                            onChange={handleChange}
+                            placeholder="Enter passphrase if key is encrypted"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Failover Host */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -386,8 +910,25 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
               {connection ? 'Leave blank to keep current password' : 'Required for new connections'}
             </p>
           </div>
+        </>
+      )}
 
-          <DialogFooter className="flex justify-between pt-4">
+      <div className="flex justify-between pt-4">
+        {/* Step 1 Footer */}
+        {currentStep === 1 && !connection && (
+          <div className="flex justify-between w-full">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={goToStep2} disabled={!canAdvanceToStep2}>
+              Next: Configure Connection
+            </Button>
+          </div>
+        )}
+
+        {/* Step 2 Footer or Edit Mode Footer */}
+        {(currentStep === 2 || connection) && (
+          <>
             <Tooltip title="Verify that the connection settings are correct and the database server is accessible with the provided credentials">
               <Button
                 type="button"
@@ -410,6 +951,11 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
             </Tooltip>
 
             <div className="flex gap-2">
+              {currentStep === 2 && !connection && (
+                <Button type="button" variant="outline" onClick={goToStep1} disabled={isSubmitting}>
+                  Back
+                </Button>
+              )}
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
@@ -420,14 +966,14 @@ const ConnectionForm = ({ open, onClose, onSave, connection, onTestConnection })
                     Saving...
                   </>
                 ) : (
-                  'Save'
+                  'Save Connection'
                 )}
               </Button>
             </div>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </>
+        )}
+      </div>
+    </form>
   );
 };
 

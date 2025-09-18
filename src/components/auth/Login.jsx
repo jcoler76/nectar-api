@@ -3,7 +3,6 @@ import { useContext, useState } from 'react';
 
 import AuthContext from '../../context/AuthContext';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { FormActions, FormContainer, FormFieldGroup, FormSection } from '../ui/form-layout';
 import { ValidationMessage } from '../ui/form-validation';

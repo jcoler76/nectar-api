@@ -2,7 +2,6 @@ import {
   DollarSign,
   Clock,
   TrendingUp,
-  Users,
   CheckCircle,
   AlertTriangle,
   Calculator,
@@ -12,19 +11,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 
 import { Alert, AlertDescription } from '../ui/alert';
@@ -54,7 +46,7 @@ const BusinessImpactDashboard = () => {
 
   useEffect(() => {
     fetchBusinessImpact();
-  }, [timeRange]);
+  }, [timeRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchBusinessImpact = async () => {
     setLoading(true);
@@ -206,7 +198,7 @@ const BusinessImpactDashboard = () => {
     };
   };
 
-  const customROI = useMemo(() => calculateCustomROI(), [roiInputs]);
+  const customROI = useMemo(() => calculateCustomROI(), [roiInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (

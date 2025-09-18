@@ -128,8 +128,7 @@ const mountRoutes = app => {
   app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
   app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
 
-  // File Storage & CDN
-  app.use('/api/files', uploadLimiter, csrfProtection(csrfOptions), require('./fileStorage'));
+  // File Storage & CDN (moved to comprehensive files route below)
   // Blueprint auto-CRUD (read/list) with policy group and CSRF
   const { applyPolicyGroup } = require('../middleware/policies');
   app.use(
@@ -168,9 +167,10 @@ const mountRoutes = app => {
     csrfProtection(csrfOptions),
     require('./swaggerUi')
   );
-  // Temporarily disabled during MongoDB to Prisma migration - imports/ai routes
+  // Re-enabled for BaaS analytics - imports/ai routes
+  // TODO: Update imports route to use Prisma models instead of MongoDB models
   // app.use('/api/imports', authMiddleware, csrfProtection(csrfOptions), require('./imports'));
-  // app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./ai'));
+  app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./ai'));
   // app.use(
   //   '/api/acceptance-criteria',
   //   authMiddleware,
@@ -303,7 +303,7 @@ const mountRoutes = app => {
   //   require('./jiraWebhookDynamic')
   // );
 
-  // Temporarily disabled during MongoDB to Prisma migration - forms route
+  // TODO: Re-enable after updating to use Prisma models instead of MongoDB models
   // app.use(
   //   '/api/forms',
   //   (req, res, next) => {
@@ -316,7 +316,7 @@ const mountRoutes = app => {
   //   require('./forms')
   // );
 
-  // Temporarily disabled during MongoDB to Prisma migration - email route
+  // TODO: Re-enable after updating to use Prisma models instead of MongoDB models
   // app.use(
   //   '/api/email',
   //   (req, res, next) => {
@@ -329,7 +329,7 @@ const mountRoutes = app => {
   //   require('./email')
   // );
 
-  // Temporarily disabled during MongoDB to Prisma migration - files route
+  // TODO: Re-enable after updating to use Prisma models instead of MongoDB models
   // app.use(
   //   '/api/files',
   //   (req, res, next) => {
@@ -343,7 +343,7 @@ const mountRoutes = app => {
   //         next();
   //       });
   //     }
-
+  //
   //     // Apply CSRF only to non-public endpoints
   //     if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
   //       return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));

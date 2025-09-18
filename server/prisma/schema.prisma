@@ -242,6 +242,19 @@ model DatabaseConnection {
   organizationId    String
   createdBy         String?
   databases         Json?
+
+  // Cloud-specific fields for AWS, Azure, GCP, Snowflake
+  region                   String?         // AWS region, GCP region, etc.
+  endpoint                 String?         // Cloud endpoint URL
+  instanceConnectionName   String?         // GCP instance connection name
+  accountId                String?         // Snowflake account identifier
+  warehouseName            String?         // Snowflake warehouse name
+  authMethod               String?         @default("password") // password, keypair
+  privateKeyEncrypted      String?         // Encrypted private key for keypair auth
+  passphraseEncrypted      String?         // Encrypted passphrase for private key
+  projectId                String?         // GCP project ID
+  keyFileEncrypted         String?         // Encrypted service account key file
+
   creator           User?           @relation(fields: [createdBy], references: [id])
   organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   endpoints         Endpoint[]
@@ -761,12 +774,37 @@ enum InvoiceStatus {
 }
 
 enum DatabaseType {
+  // Traditional databases
   POSTGRESQL
   MYSQL
   MARIADB
   MSSQL
   MONGODB
   REDIS
+  SQLITE
+  ORACLE
+
+  // AWS Cloud databases
+  AWS_RDS_POSTGRESQL
+  AWS_RDS_MYSQL
+  AWS_RDS_MSSQL
+  AWS_RDS_ORACLE
+  AWS_AURORA_POSTGRESQL
+  AWS_AURORA_MYSQL
+
+  // Azure Cloud databases
+  AZURE_SQL_DATABASE
+  AZURE_SQL_MANAGED_INSTANCE
+  AZURE_POSTGRESQL
+  AZURE_MYSQL
+
+  // Google Cloud databases
+  GCP_CLOUD_SQL_POSTGRESQL
+  GCP_CLOUD_SQL_MYSQL
+  GCP_CLOUD_SQL_MSSQL
+  GCP_SPANNER
+
+  // Analytics & Big Data
   SUPABASE
   SNOWFLAKE
   BIGQUERY

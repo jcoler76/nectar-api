@@ -8,6 +8,169 @@ Reuse shared components any time possible.
 
 Evaluate the agents available to you and add instructions on usage to CLAUDE.md. Make sure that the end of EVERY to do list is to use the CLAUDE.md checker, and ensure each stop point or new feature utilizes the quality control agent.
 
+## 🚨 CRITICAL DEPLOYMENT FIXES & PRISMA MIGRATION (Updated: 2025-09-18)
+
+### 🔄 CRITICAL: Prisma Schema Synchronization Process
+
+**MANDATORY WORKFLOW**: Every Prisma schema change requires synchronization between root and admin-backend directories.
+
+#### ⚠️ CRITICAL SCHEMA SYNC STEPS (NEVER SKIP)
+
+**IMPORTANT**: The actual main schema is `./server/prisma/schema.prisma` (NOT root level)
+
+**1. Primary Schema Changes (Server Level)**
+- **Location**: `./server/prisma/schema.prisma` (MAIN APPLICATION SCHEMA)
+- **Import Pattern**: ALL files must use `@prisma/client` (never custom paths)
+
+```javascript
+// ✅ CORRECT: Standard import in ALL files
+const { PrismaClient } = require('@prisma/client');
+
+// ❌ WRONG: Custom paths (causes import errors)
+// const { PrismaClient } = require('./prisma/generated/client');
+// const { PrismaClient } = require('../server/prisma/generated/client');
+```
+
+**2. MANDATORY Copy Process After Every Schema Change**
+```bash
+# After ANY change to ./server/prisma/schema.prisma:
+
+# Step 1: Copy schema to admin-backend (MANDATORY SYNC)
+cp ./server/prisma/schema.prisma ./admin-backend/prisma/schema.prisma
+
+# Step 2: Copy schema to root (MANDATORY SYNC)
+cp ./server/prisma/schema.prisma ./prisma/schema.prisma
+
+# Step 3: Generate server client
+cd server && npx prisma generate
+
+# Step 4: Generate admin-backend client
+cd ../admin-backend && npx prisma generate
+
+# Step 5: Apply database migrations from server
+cd ../server && npx prisma db push
+
+# CRITICAL: If you get permission errors (EPERM on Windows):
+# - Kill all Node processes first if they're using Prisma files
+# - Retry the generation commands above
+```
+
+**3. Why This Sync is CRITICAL**
+- **Root schema**: Used by main application (server/, src/)
+- **Admin-backend schema**: Used by admin portal (admin-backend/)
+- **Both must be identical**: Different schemas cause runtime errors
+- **Standard imports**: `@prisma/client` ensures compatibility across both
+
+#### 🚨 SCHEMA CHANGE PROTOCOL (MANDATORY)
+
+**EVERY TIME you modify `./server/prisma/schema.prisma`:**
+
+1. **Make changes** to main schema `./server/prisma/schema.prisma`
+2. **Copy to admin-backend**: `cp ./server/prisma/schema.prisma ./admin-backend/prisma/schema.prisma`
+3. **Copy to root**: `cp ./server/prisma/schema.prisma ./prisma/schema.prisma`
+4. **Generate server client**: `cd server && npx prisma generate`
+5. **Generate admin client**: `cd ../admin-backend && npx prisma generate`
+6. **Apply migrations**: `cd ../server && npx prisma db push`
+7. **Update imports**: Verify all files use `@prisma/client`
+8. **Test both apps**: Ensure main app and admin portal work
+
+**⚠️ FAILURE TO FOLLOW THIS PROCESS WILL CAUSE:**
+- Import errors in admin-backend
+- Runtime crashes during authentication
+- Schema mismatch errors
+- Database connection failures
+
+#### Import Pattern Migration (COMPLETED)
+
+**Recent Migration**: All files converted from custom Prisma paths to standard imports.
+
+**Before (Deprecated):**
+```javascript
+// These patterns were removed in 2025-09-18 migration
+const { PrismaClient } = require('./prisma/generated/client');
+const { PrismaClient } = require('../prisma/generated/client');
+const { PrismaClient } = require('../../server/prisma/generated/client');
+```
+
+**After (Current Standard):**
+```javascript
+// ALL files now use this pattern
+const { PrismaClient } = require('@prisma/client');
+```
+
+**Files Updated in Migration:**
+- All controllers (`server/controllers/`)
+- All GraphQL resolvers (`server/graphql/resolvers/`)
+- All middleware (`server/middleware/`)
+- All services (`server/services/`)
+- Admin backend files (`admin-backend/src/`)
+- Customer app files (`customer-app/server/`)
+
+#### Schema Locations & Purposes
+
+**Primary Schema**: `./prisma/schema.prisma`
+- **Purpose**: Source of truth for all schema changes
+- **Used by**: Main application, server routes, GraphQL
+- **Generator**: Standard `@prisma/client`
+
+**Admin Backend Schema**: `./admin-backend/prisma/schema.prisma`
+- **Purpose**: Copy of primary schema for admin portal
+- **Used by**: Admin authentication, admin-only features
+- **Generator**: Standard `@prisma/client`
+- **MUST MATCH**: Primary schema exactly
+
+#### Troubleshooting Schema Sync Issues
+
+**Problem**: `Cannot find module '@prisma/client'`
+```bash
+# Solution: Regenerate clients in both locations
+npx prisma generate
+cd admin-backend && npx prisma generate
+```
+
+**Problem**: Schema mismatch errors
+```bash
+# Solution: Ensure schemas are identical
+diff ./prisma/schema.prisma ./admin-backend/prisma/schema.prisma
+# If different, copy from root to admin-backend
+cp ./prisma/schema.prisma ./admin-backend/prisma/schema.prisma
+```
+
+**Problem**: Import path errors
+```bash
+# Solution: Search and replace custom imports
+# Find files with old imports:
+grep -r "prisma/generated/client" .
+# Replace with: @prisma/client
+```
+
+#### Development Workflow Integration
+
+**When adding new models:**
+1. Add to `./prisma/schema.prisma`
+2. Copy to `./admin-backend/prisma/schema.prisma`
+3. Generate both clients
+4. Create/update TypeScript types if needed
+5. Update resolvers/controllers to use new models
+
+**When modifying existing models:**
+1. Modify `./prisma/schema.prisma`
+2. Copy to `./admin-backend/prisma/schema.prisma`
+3. Regenerate clients
+4. Update any affected queries/mutations
+5. Test both main app and admin portal
+
+**Automation Opportunity:**
+Consider creating a script to automate this process:
+```bash
+#!/bin/bash
+# sync-prisma.sh
+cp ./prisma/schema.prisma ./admin-backend/prisma/schema.prisma
+npx prisma generate
+cd admin-backend && npx prisma generate
+echo "✅ Prisma schemas synchronized"
+```
+
 ## 🚨 CRITICAL DEPLOYMENT FIXES (Updated: 2025-07-26)
 
 ### TailwindCSS PostCSS Configuration Issue

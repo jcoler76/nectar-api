@@ -3,7 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
 
+import AboutPage from './components/marketing/AboutPage';
 import APIPage from './components/marketing/APIPage';
+import CareersPage from './components/marketing/CareersPage';
 import CheckoutPage from './components/marketing/CheckoutPage';
 import CheckoutSuccessPage from './components/marketing/CheckoutSuccessPage';
 import ContactSalesPage from './components/marketing/ContactSalesPage';
@@ -48,6 +50,8 @@ function AppRoutes() {
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/careers" element={<CareersPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
           <Route path="/api" element={<APIPage />} />

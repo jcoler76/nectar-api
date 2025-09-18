@@ -5,31 +5,22 @@ import {
   Clock,
   TrendingUp,
   Zap,
-  BarChart3,
   Settings,
 } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 
 import { Alert, AlertDescription } from '../ui/alert';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Skeleton } from '../ui/skeleton';
@@ -46,7 +37,7 @@ const WorkflowPerformanceDashboard = ({ workflowId = null, showSummary = false }
 
   useEffect(() => {
     fetchAnalytics();
-  }, [timeRange, workflowId, showSummary]);
+  }, [timeRange, workflowId, showSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAnalytics = async () => {
     setLoading(true);

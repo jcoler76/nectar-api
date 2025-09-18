@@ -1,4 +1,4 @@
-const apn = require('node-apn');
+const apn = require('@parse/node-apn');
 const ICommunicationProvider = require('../interfaces/ICommunicationProvider');
 const { logger } = require('../../../utils/logger');
 

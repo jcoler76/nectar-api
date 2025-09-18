@@ -12,13 +12,23 @@ export const exportToCSV = async (data: ExportData, filename: string): Promise<v
 
 export const exportToExcel = async (data: ExportData, filename: string): Promise<void> => {
   const { saveAs } = await import('file-saver');
-  const XLSX = await import('xlsx');
+  const ExcelJS = await import('exceljs');
 
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([excelBuffer], {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Sheet1');
+
+  if (data.length > 0) {
+    const headers = Object.keys(data[0]);
+    worksheet.addRow(headers);
+
+    data.forEach(row => {
+      const values = headers.map(header => row[header]);
+      worksheet.addRow(values);
+    });
+  }
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
   saveAs(blob, `${filename}.xlsx`);

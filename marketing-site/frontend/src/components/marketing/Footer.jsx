@@ -58,13 +58,13 @@ const Footer = () => {
             <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
             <ul className="space-y-2 text-gray-600">
               <li>
-                <button onClick={() => {}}
+                <button onClick={() => navigate('/about')}
                         className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer">
                   About
                 </button>
               </li>
               <li>
-                <button onClick={() => {}}
+                <button onClick={() => navigate('/careers')}
                         className="hover:text-gray-900 transition-colors text-left bg-transparent border-none cursor-pointer">
                   Careers
                 </button>
