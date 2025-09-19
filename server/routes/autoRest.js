@@ -98,9 +98,9 @@ router.get('/:serviceName/_discover', authMiddleware, async (req, res) => {
 
     // Group by type for easier frontend handling
     const groupedObjects = {
-      tables: objects.filter(obj => obj.type === 'TABLE'),
+      tables: objects.filter(obj => obj.type === 'USER_TABLE'),
       views: objects.filter(obj => obj.type === 'VIEW'),
-      procedures: objects.filter(obj => obj.type === 'PROCEDURE'),
+      procedures: objects.filter(obj => obj.type === 'SQL_STORED_PROCEDURE'),
     };
 
     res.json({

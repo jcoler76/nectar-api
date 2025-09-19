@@ -21,20 +21,29 @@ async function logAuditEvent(options) {
             console.log(`Audit log skipped (no org or admin context): ${action}`);
             return;
         }
+        const auditData = {
+            action,
+            entityType,
+            entityId,
+            ipAddress: ipAddress || 'unknown'
+        };
+        // Only include optional fields if they have values
+        if (userId)
+            auditData.userId = userId;
+        if (adminUserId)
+            auditData.adminPerformedById = adminUserId;
+        if (organizationId)
+            auditData.organizationId = organizationId;
+        if (oldValues)
+            auditData.oldValues = oldValues;
+        if (newValues)
+            auditData.newValues = newValues;
+        if (metadata)
+            auditData.metadata = metadata;
+        if (userAgent)
+            auditData.userAgent = userAgent;
         await database_1.prisma.auditLog.create({
-            data: {
-                action,
-                entityType,
-                entityId,
-                userId,
-                adminPerformedById: adminUserId,
-                organizationId,
-                oldValues,
-                newValues,
-                metadata,
-                ipAddress,
-                userAgent
-            }
+            data: auditData
         });
         console.log(`Audit log created: ${action} on ${entityType} ${entityId}`);
     }

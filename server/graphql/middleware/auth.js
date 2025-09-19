@@ -43,10 +43,15 @@ const getUser = async req => {
 
     if (!user || !user.isActive) return null;
 
+    // Get the primary organization ID from memberships
+    const primaryMembership = user.memberships?.[0]; // Get first membership as primary
+    const organizationId = primaryMembership?.organization?.id;
+
     return {
       userId: user.id,
       email: user.email,
       isAdmin: user.isSuperAdmin,
+      organizationId: organizationId,
       roles: user.memberships || [],
       user: user,
     };

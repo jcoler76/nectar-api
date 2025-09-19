@@ -14,7 +14,13 @@ import {
   TableRow,
 } from '../ui/table';
 
-const BulkHttpVerbConfig = ({ selectedTables, selectedService, onPermissionsChange }) => {
+const BulkHttpVerbConfig = ({
+  selectedTables,
+  selectedService,
+  onPermissionsChange,
+  existingPermissions = [],
+  onRemoveTable,
+}) => {
   const [bulkActions, setBulkActions] = useState({
     GET: false,
     POST: false,
@@ -30,19 +36,28 @@ const BulkHttpVerbConfig = ({ selectedTables, selectedService, onPermissionsChan
     if (selectedTables.length > 0) {
       const initialPermissions = {};
       selectedTables.forEach(table => {
+        // Find existing permissions for this table
+        const existingTablePermission = existingPermissions.find(
+          perm =>
+            perm.objectName === `/table/${table.name}` || perm.objectName === `_table/${table.name}`
+        );
+
+        // If we have existing permissions, use them; otherwise default to false
+        const tableActions = existingTablePermission?.actions || {};
+
         initialPermissions[table.name] = {
-          GET: false,
-          POST: false,
-          PUT: false,
-          PATCH: false,
-          DELETE: false,
+          GET: tableActions.GET || false,
+          POST: tableActions.POST || false,
+          PUT: tableActions.PUT || false,
+          PATCH: tableActions.PATCH || false,
+          DELETE: tableActions.DELETE || false,
         };
       });
       setTablePermissions(initialPermissions);
     } else {
       setTablePermissions({});
     }
-  }, [selectedTables]);
+  }, [selectedTables, existingPermissions]);
 
   // Notify parent when permissions change
   useEffect(() => {
@@ -78,11 +93,17 @@ const BulkHttpVerbConfig = ({ selectedTables, selectedService, onPermissionsChan
   };
 
   const handleRemoveTable = tableName => {
+    // Remove from local permissions state
     setTablePermissions(prev => {
       const updated = { ...prev };
       delete updated[tableName];
       return updated;
     });
+
+    // Remove from parent's selectedTables array if callback is provided
+    if (onRemoveTable) {
+      onRemoveTable(tableName);
+    }
   };
 
   const getSelectedActionsCount = actions => {
@@ -91,26 +112,8 @@ const BulkHttpVerbConfig = ({ selectedTables, selectedService, onPermissionsChan
 
   // Get the object types from selectedTables to determine dynamic labels
   const getObjectTypeInfo = () => {
-    if (selectedTables.length === 0) return { label: 'objects', single: 'object' };
-
-    const types = [...new Set(selectedTables.map(item => item.type?.toLowerCase() || 'table'))];
-
-    if (types.length === 1) {
-      const type = types[0];
-      switch (type) {
-        case 'table':
-          return { label: 'tables', single: 'table' };
-        case 'view':
-          return { label: 'views', single: 'view' };
-        case 'procedure':
-          return { label: 'procedures', single: 'procedure' };
-        default:
-          return { label: 'objects', single: 'object' };
-      }
-    } else {
-      // Mixed types
-      return { label: 'database objects', single: 'database object' };
-    }
+    // Since we're configuring API endpoints, use "endpoints" terminology
+    return { label: 'endpoints', single: 'endpoint' };
   };
 
   const objectTypeInfo = getObjectTypeInfo();
@@ -164,21 +167,15 @@ const BulkHttpVerbConfig = ({ selectedTables, selectedService, onPermissionsChan
         </CardContent>
       </Card>
 
-      {/* Individual Table Permissions */}
+      {/* Individual Object Permissions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Table className="h-5 w-5" />
-            Individual{' '}
-            {objectTypeInfo.label
-              .split(' ')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')}{' '}
-            Permissions
+            Individual Endpoint Permissions
           </CardTitle>
           <CardDescription>
-            Fine-tune HTTP methods for each {objectTypeInfo.single}. You can override the bulk
-            settings here.
+            Fine-tune HTTP methods for each endpoint. You can override the bulk settings here.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -186,10 +183,7 @@ const BulkHttpVerbConfig = ({ selectedTables, selectedService, onPermissionsChan
             <TableUI>
               <TableHeader>
                 <TableRow>
-                  <TableHead>
-                    {objectTypeInfo.single.charAt(0).toUpperCase() + objectTypeInfo.single.slice(1)}{' '}
-                    Name
-                  </TableHead>
+                  <TableHead>Endpoint Name</TableHead>
                   <TableHead>GET</TableHead>
                   <TableHead>POST</TableHead>
                   <TableHead>PUT</TableHead>

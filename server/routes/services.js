@@ -267,7 +267,53 @@ router.post('/:id/refresh-schema', async (req, res) => {
       sampleObjects: objects.slice(0, 3).map(obj => ({ name: obj.name, type: obj.type_desc })),
     });
 
-    // Update the service with the retrieved objects
+    // Store objects in databaseObject table
+    try {
+      // Clear existing database objects for this service
+      await prisma.databaseObject.deleteMany({
+        where: {
+          serviceId: service.id,
+          organizationId: context.user.organizationId,
+        },
+      });
+
+      // Create new database object records
+      const databaseObjectsToCreate = objects.map(obj => ({
+        serviceId: service.id,
+        organizationId: context.user.organizationId,
+        name: obj.name,
+        schema: obj.schema_name || null,
+        type: obj.type_desc || 'TABLE',
+        metadata: {
+          objectId: obj.object_id,
+          parentObjectId: obj.parent_object_id,
+          schemaId: obj.schema_id,
+          createDate: obj.create_date,
+          modifyDate: obj.modify_date,
+          isPublished: obj.is_published,
+          isSchemaPublished: obj.is_schema_published,
+        },
+      }));
+
+      if (databaseObjectsToCreate.length > 0) {
+        await prisma.databaseObject.createMany({
+          data: databaseObjectsToCreate,
+        });
+      }
+
+      logger.info('Database objects stored in databaseObject table', {
+        serviceId: service.id,
+        objectsStored: databaseObjectsToCreate.length,
+      });
+    } catch (dbObjectError) {
+      logger.error('Failed to store database objects', {
+        serviceId: service.id,
+        error: dbObjectError.message,
+      });
+      // Continue execution even if this fails
+    }
+
+    // Also update the service with the retrieved objects for backward compatibility
     const updateResult = await executeGraphQLMutation(
       null, // Don't send response yet
       SERVICE_QUERIES.UPDATE,
@@ -280,10 +326,12 @@ router.post('/:id/refresh-schema', async (req, res) => {
     );
 
     if (!updateResult) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to save schema objects to service',
-      });
+      logger.warn(
+        'Failed to update service objects field, but databaseObject records were created',
+        {
+          serviceId: service.id,
+        }
+      );
     }
 
     // Return schema refresh results
