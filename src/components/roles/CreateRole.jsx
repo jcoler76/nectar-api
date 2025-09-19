@@ -1,4 +1,4 @@
-import { Plus, Trash2, Search } from 'lucide-react';
+import { Plus, Trash2, Search, Settings } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { createRole, updateRole, getServiceSchema } from '../../services/roleSer
 import { getServices } from '../../services/serviceService';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Input } from '../ui/input';
@@ -22,7 +22,7 @@ import ApiBuilderWelcome from './ApiBuilderWelcome';
 import BulkHttpVerbConfig from './BulkHttpVerbConfig';
 import BulkTableSelection from './BulkTableSelection';
 
-const steps = ['Welcome', 'Basic Information', 'Table Selection', 'Permissions Configuration'];
+const steps = ['Welcome', 'Basic Information', 'Select Endpoints', 'Configure Endpoints'];
 
 const CreateRole = ({ mode = 'create', existingRole = null }) => {
   const navigate = useNavigate();
@@ -85,6 +85,34 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
         isActive: existingRole.isActive ?? true,
       });
       setSelectedService(existingRole.serviceId);
+
+      // Convert existing permissions back to selected tables format
+      if (existingRole.permissions && existingRole.permissions.length > 0) {
+        // Handle multiple possible objectName formats
+        const tablesFromPermissions = existingRole.permissions
+          .filter(p => p.objectName)
+          .map(p => {
+            let tableName = p.objectName;
+
+            // Handle different objectName formats:
+            if (tableName.startsWith('/table/')) {
+              tableName = tableName.replace('/table/', '');
+            } else if (tableName.startsWith('table/')) {
+              tableName = tableName.replace('table/', '');
+            }
+            // If it's just a table name without prefix, use as-is
+
+            return {
+              name: tableName,
+              type: 'table',
+              schema: 'dbo',
+            };
+          });
+
+        setSelectedTables(tablesFromPermissions);
+        setBulkPermissions(existingRole.permissions);
+      }
+
       if (existingRole.serviceId) {
         fetchServiceComponents(existingRole.serviceId);
       }
@@ -199,9 +227,13 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
     }
 
     if (activeStep === 2) {
-      // Table selection step - validate that tables are selected
-      if (selectedTables.length === 0) {
-        setError('Please select at least one table');
+      // Table selection step - validate that tables are selected OR we're in edit mode with existing permissions
+      const hasExistingPermissions =
+        mode === 'edit' && role.permissions && role.permissions.length > 0;
+      const hasNewSelections = selectedTables.length > 0;
+
+      if (!hasExistingPermissions && !hasNewSelections) {
+        setError('Please select at least one object');
         return;
       }
       setError('');
@@ -209,18 +241,25 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
 
     if (activeStep === 3) {
       // Permissions configuration step - validate that permissions are set
-      if (bulkPermissions.length === 0) {
-        setError('Please configure permissions for the selected tables');
+      const hasExistingPermissions =
+        mode === 'edit' && role.permissions && role.permissions.length > 0;
+      const hasNewBulkPermissions = bulkPermissions.length > 0;
+
+      if (!hasExistingPermissions && !hasNewBulkPermissions) {
+        setError('Please configure permissions for the selected objects');
         return;
       }
 
-      const hasValidPermissions = bulkPermissions.some(permission =>
-        Object.values(permission.actions).some(enabled => enabled)
-      );
+      // If we have new bulk permissions, validate they have at least one HTTP method
+      if (hasNewBulkPermissions) {
+        const hasValidPermissions = bulkPermissions.some(permission =>
+          Object.values(permission.actions).some(enabled => enabled)
+        );
 
-      if (!hasValidPermissions) {
-        setError('Please select at least one HTTP method for the tables');
-        return;
+        if (!hasValidPermissions) {
+          setError('Please select at least one HTTP method for the objects');
+          return;
+        }
       }
 
       setError('');
@@ -240,12 +279,14 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
         return;
       }
 
-      // Convert service name to service ID if needed
+      // Get service ID (should already be an ID, not a name)
       let serviceId = selectedService || role.serviceId;
-      if (typeof serviceId === 'string' && isNaN(serviceId)) {
-        // selectedService is a service name, find the corresponding ID
-        const service = services.find(s => s.name === serviceId);
-        serviceId = service ? service.id : null;
+
+      // Since selectedService is now always a service ID (UUID), no conversion needed
+      // Just validate that we have a service ID
+      if (!serviceId) {
+        setError('Please select a service');
+        return;
       }
 
       const roleData = {
@@ -363,6 +404,10 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
 
   const handlePermissionsChange = useCallback(permissions => {
     setBulkPermissions(permissions);
+  }, []);
+
+  const handleRemoveTable = useCallback(tableName => {
+    setSelectedTables(prev => prev.filter(table => table.name !== tableName));
   }, []);
 
   const filteredComponents = sortedComponents
@@ -591,11 +636,16 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
             />
           )}
           {activeStep === 3 && (
-            <BulkHttpVerbConfig
-              selectedTables={selectedTables}
-              selectedService={selectedService}
-              onPermissionsChange={handlePermissionsChange}
-            />
+            <div className="space-y-6">
+              {/* HTTP Verb Configuration */}
+              <BulkHttpVerbConfig
+                selectedTables={selectedTables}
+                selectedService={selectedService}
+                onPermissionsChange={handlePermissionsChange}
+                existingPermissions={role?.permissions || []}
+                onRemoveTable={handleRemoveTable}
+              />
+            </div>
           )}
         </CardContent>
       </Card>

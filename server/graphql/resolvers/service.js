@@ -1,10 +1,79 @@
 const { PrismaClient } = require('../../prisma/generated/client');
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
 const databaseService = require('../../services/databaseService');
+const DatabaseService = require('../../services/database/DatabaseService');
 const { encryptDatabasePassword, decryptDatabasePassword } = require('../../utils/encryption');
 const { logger } = require('../../utils/logger');
 
 const prisma = new PrismaClient();
+
+/**
+ * Discover and store database objects for a service
+ * @param {Object} service - The service record
+ * @param {Object} connectionConfig - Database connection configuration
+ * @returns {Promise<void>}
+ */
+async function discoverAndStoreSchema(service, connectionConfig) {
+  try {
+    logger.info('Starting schema discovery for service', {
+      serviceId: service.id,
+      serviceName: service.name,
+      database: service.database,
+    });
+
+    // Get database objects using DatabaseService
+    const objects = await DatabaseService.getDatabaseObjects(connectionConfig);
+
+    if (!objects || objects.length === 0) {
+      logger.warn('No database objects found during schema discovery', {
+        serviceId: service.id,
+        database: service.database,
+      });
+      return;
+    }
+
+    logger.info('Database objects discovered', {
+      serviceId: service.id,
+      totalObjects: objects.length,
+      sampleObjects: objects.slice(0, 3).map(obj => ({ name: obj.name, type: obj.type_desc })),
+    });
+
+    // Store objects in databaseObject table
+    const databaseObjectsToCreate = objects.map(obj => ({
+      serviceId: service.id,
+      organizationId: service.organizationId,
+      name: obj.name,
+      schema: obj.schema_name || null,
+      type: obj.type_desc || 'TABLE',
+      metadata: {
+        objectId: obj.object_id,
+        parentObjectId: obj.parent_object_id,
+        schemaId: obj.schema_id,
+        createDate: obj.create_date,
+        modifyDate: obj.modify_date,
+        isPublished: obj.is_published,
+        isSchemaPublished: obj.is_schema_published,
+      },
+    }));
+
+    // Batch insert database objects
+    await prisma.databaseObject.createMany({
+      data: databaseObjectsToCreate,
+      skipDuplicates: true, // Skip if already exists
+    });
+
+    logger.info('Database objects stored successfully', {
+      serviceId: service.id,
+      objectsStored: databaseObjectsToCreate.length,
+    });
+  } catch (error) {
+    logger.error('Failed to discover and store schema', {
+      serviceId: service.id,
+      error: error.message,
+    });
+    // Don't throw error - service creation should still succeed even if schema discovery fails
+  }
+}
 
 const serviceResolvers = {
   Query: {
@@ -183,6 +252,68 @@ const serviceResolvers = {
           userId: currentUser.userId,
           organizationId: currentUser.organizationId,
         });
+
+        // Automatically discover and store database schema
+        try {
+          // Build connection config for schema discovery
+          let connectionConfig = {
+            type: 'MSSQL', // Default to MSSQL for backward compatibility
+            host: service.host,
+            port: service.port,
+            database: service.database,
+            username: service.username,
+          };
+
+          // Decrypt password if exists
+          if (service.passwordEncrypted) {
+            try {
+              connectionConfig.password = decryptDatabasePassword(service.passwordEncrypted);
+            } catch (decryptError) {
+              logger.warn('Could not decrypt service password for schema discovery', {
+                serviceId: service.id,
+                error: decryptError.message,
+              });
+            }
+          }
+
+          // If service uses a connection, override with connection details
+          if (service.connection) {
+            connectionConfig = {
+              ...connectionConfig,
+              type: service.connection.type || 'MSSQL',
+              host: service.connection.host,
+              port: service.connection.port,
+              username: service.connection.username,
+            };
+
+            if (service.connection.passwordEncrypted) {
+              try {
+                connectionConfig.password = decryptDatabasePassword(
+                  service.connection.passwordEncrypted
+                );
+              } catch (decryptError) {
+                logger.warn('Could not decrypt connection password for schema discovery', {
+                  serviceId: service.id,
+                  connectionId: service.connection.id,
+                  error: decryptError.message,
+                });
+              }
+            }
+          }
+
+          // Perform schema discovery asynchronously (don't wait for it to complete)
+          discoverAndStoreSchema(service, connectionConfig).catch(error => {
+            logger.error('Async schema discovery failed for new service', {
+              serviceId: service.id,
+              error: error.message,
+            });
+          });
+        } catch (error) {
+          logger.error('Failed to initiate schema discovery for new service', {
+            serviceId: service.id,
+            error: error.message,
+          });
+        }
 
         return service;
       } catch (error) {

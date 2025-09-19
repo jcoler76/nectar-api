@@ -8,21 +8,15 @@ const auditService_1 = require("@/services/auditService");
  */
 const authenticateAdmin = async (req, res, next) => {
     try {
-        // Debug logging
-        console.log('🔍 Auth Debug - All cookies:', req.cookies);
-        console.log('🔍 Auth Debug - Headers:', req.headers.cookie);
         // Check for token in httpOnly cookie first, then fallback to Authorization header for backwards compatibility
         let token = req.cookies?.adminToken;
+        let tokenSource = 'cookie';
         if (!token) {
             const authHeader = req.header('Authorization');
             token = authHeader?.replace('Bearer ', '');
-            console.log('🔍 Auth Debug - Using Authorization header:', !!token);
-        }
-        else {
-            console.log('🔍 Auth Debug - Using cookie token:', !!token);
+            tokenSource = 'header';
         }
         if (!token) {
-            console.log('🔍 Auth Debug - No token found anywhere');
             res.status(401).json({
                 error: 'Access token required',
                 code: 'NO_TOKEN'

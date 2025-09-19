@@ -43,6 +43,15 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     fetchServices();
   }, []);
 
+  // Auto-discover schema when service is prefilled in edit mode
+  useEffect(() => {
+    // Only run if we have a selected service, services are loaded, and no objects discovered yet
+    if (selectedService && services.length > 0 && discoveredObjects.tables.length === 0) {
+      console.log('🔍 Auto-discovering schema for prefilled service:', selectedService);
+      discoverTables(selectedService);
+    }
+  }, [selectedService, services.length]);
+
   const fetchServices = async () => {
     try {
       const data = await getServices();
@@ -52,9 +61,29 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     }
   };
 
-  const discoverTables = async () => {
-    if (!selectedService) {
+  const discoverTables = async (serviceId = null) => {
+    const targetServiceId = serviceId || selectedService;
+    console.log('🔍 discoverTables called with:', { serviceId, selectedService, targetServiceId });
+    console.log(
+      '🔍 Available services:',
+      services.map(s => ({ id: s.id, name: s.name }))
+    );
+
+    if (!targetServiceId) {
       setError('Please select a service first');
+      return;
+    }
+
+    // Find the service name from the ID since the discover endpoint expects service name
+    const service = services.find(s => s.id === targetServiceId);
+    console.log('🔍 Found service:', service);
+
+    if (!service) {
+      console.error('❌ Service not found in services array:', {
+        targetServiceId,
+        availableServices: services,
+      });
+      setError('Selected service not found');
       return;
     }
 
@@ -68,7 +97,7 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     setSelectedObjects(new Set());
 
     try {
-      const response = await api.get(`/api/v2/${selectedService}/_discover`);
+      const response = await api.get(`/api/v2/${service.name}/_discover`);
       const data = response.data.data || {};
 
       setDiscoveredObjects({
@@ -139,7 +168,7 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     onTablesSelected(selectedObjectData, selectedService);
   };
 
-  const handleServiceChange = serviceId => {
+  const handleServiceChange = async serviceId => {
     setSelectedService(serviceId);
     setDiscoveredObjects({
       tables: [],
@@ -148,6 +177,11 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     });
     setSelectedObjects(new Set());
     onTablesSelected([], serviceId);
+
+    // Automatically discover schema when service is selected
+    if (serviceId) {
+      await discoverTables(serviceId);
+    }
   };
 
   // Helper function to get icon for object type
@@ -248,7 +282,8 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                → /api/v2/{selectedService}/_table/{obj.suggestedPathSlug || obj.name}
+                → /api/v2/{services.find(s => s.id === selectedService)?.name || 'service'}/_table/
+                {obj.suggestedPathSlug || obj.name}
               </div>
             </div>
           ))}
@@ -280,7 +315,7 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
                 className="flex items-center gap-1"
                 onClick={() =>
                   window.open(
-                    `/api/v2/${selectedService}/_table/${obj.suggestedPathSlug || obj.name}`,
+                    `/api/v2/${services.find(s => s.id === selectedService)?.name || 'service'}/_table/${obj.suggestedPathSlug || obj.name}`,
                     '_blank'
                   )
                 }
@@ -317,7 +352,7 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
             Select Database Service
           </CardTitle>
           <CardDescription>
-            Choose a service to discover its database tables for API generation
+            Choose a service to discover database objects for API generation
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -328,7 +363,7 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
               </SelectTrigger>
               <SelectContent>
                 {services.map(service => (
-                  <SelectItem key={service.id} value={service.name}>
+                  <SelectItem key={service.id} value={service.id}>
                     <div className="flex items-center gap-2">
                       <Database className="h-4 w-4" />
                       {service.name}

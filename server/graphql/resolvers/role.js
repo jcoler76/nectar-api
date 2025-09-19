@@ -310,7 +310,20 @@ const roleResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        const { serviceId, permissions = [], ...roleData } = input;
+        const { serviceId, permissions = [], createdBy, ...roleData } = input;
+
+        logger.info('GraphQL createRole called', {
+          input,
+          serviceId,
+          permissions,
+          roleData,
+          currentUser: {
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+            email: currentUser.email,
+            isAdmin: currentUser.isAdmin,
+          },
+        });
 
         // Verify service exists and belongs to organization
         const service = await prisma.service.findFirst({
@@ -321,14 +334,29 @@ const roleResolvers = {
         });
 
         if (!service) {
+          logger.error('Service not found', {
+            serviceId,
+            organizationId: currentUser.organizationId,
+          });
           throw new UserInputError('Service not found');
         }
+
+        // Ensure permissions are properly serialized for JSON storage
+        const serializedPermissions = Array.isArray(permissions)
+          ? permissions.map(permission => ({
+              serviceId: permission.serviceId,
+              objectName: permission.objectName,
+              actions: permission.actions || {},
+            }))
+          : [];
+
+        logger.info('Serialized permissions', { serializedPermissions });
 
         const role = await prisma.role.create({
           data: {
             ...roleData,
             serviceId,
-            permissions,
+            permissions: serializedPermissions,
             organizationId: currentUser.organizationId,
             createdBy: currentUser.userId,
           },
@@ -356,10 +384,18 @@ const roleResolvers = {
 
         return role;
       } catch (error) {
+        logger.error('GraphQL role creation error', {
+          error: error.message,
+          code: error.code,
+          stack: error.stack,
+          input,
+          userId: currentUser.userId,
+          organizationId: currentUser.organizationId,
+        });
+
         if (error.code === 'P2002') {
           throw new UserInputError('Role name already exists in your organization');
         }
-        logger.error('GraphQL role creation error', { error: error.message, input });
         throw new Error('Failed to create role');
       }
     },
@@ -385,7 +421,18 @@ const roleResolvers = {
           throw new ForbiddenError('Access denied');
         }
 
-        const { serviceId, ...updateData } = input;
+        const { serviceId, permissions, ...updateData } = input;
+
+        // Handle permissions serialization if being updated
+        if (permissions !== undefined) {
+          updateData.permissions = Array.isArray(permissions)
+            ? permissions.map(permission => ({
+                serviceId: permission.serviceId,
+                objectName: permission.objectName,
+                actions: permission.actions || {},
+              }))
+            : [];
+        }
 
         // Verify service if being updated
         if (serviceId && serviceId !== existingRole.serviceId) {
@@ -640,8 +687,13 @@ const roleResolvers = {
           throw new UserInputError('Service not found');
         }
 
-        // Add the new permission
-        const updatedPermissions = [...existingPermissions, permission];
+        // Add the new permission with proper serialization
+        const serializedPermission = {
+          serviceId: permission.serviceId,
+          objectName: permission.objectName,
+          actions: permission.actions || {},
+        };
+        const updatedPermissions = [...existingPermissions, serializedPermission];
 
         const role = await prisma.role.update({
           where: { id: roleId },
@@ -785,11 +837,12 @@ const roleResolvers = {
           throw new UserInputError('Service not found');
         }
 
-        // Update the permission
+        // Update the permission with proper serialization
         const updatedPermissions = [...existingPermissions];
         updatedPermissions[existingPermissionIndex] = {
-          ...updatedPermissions[existingPermissionIndex],
-          ...permission,
+          serviceId: permission.serviceId,
+          objectName: permission.objectName,
+          actions: permission.actions || {},
         };
 
         const role = await prisma.role.update({

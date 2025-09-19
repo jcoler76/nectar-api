@@ -45,6 +45,8 @@ router.post(
         name,
         serviceId,
         permissions: permissions || [],
+        permissionsLength: (permissions || []).length,
+        permissionsType: typeof permissions,
         isActive,
         user: req.user
           ? {
