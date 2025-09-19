@@ -5,7 +5,6 @@ import {
   GET_ROLES,
   GET_ROLE,
   GET_SERVICE_ROLES,
-  GET_SERVICE_SCHEMA,
 } from '../graphql/roleQueries';
 
 import { executeGraphQL } from './graphqlClient';
