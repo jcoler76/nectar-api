@@ -1,4 +1,4 @@
-import { Plus, Trash2, Search, Settings } from 'lucide-react';
+import { Plus, Trash2, Search } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { createRole, updateRole, getServiceSchema } from '../../services/roleSer
 import { getServices } from '../../services/serviceService';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Input } from '../ui/input';

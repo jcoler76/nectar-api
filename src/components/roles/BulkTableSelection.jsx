@@ -9,7 +9,7 @@ import {
   Grid,
   Search,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import api from '../../services/api';
 import { getServices } from '../../services/serviceService';
@@ -43,15 +43,6 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     fetchServices();
   }, []);
 
-  // Auto-discover schema when service is prefilled in edit mode
-  useEffect(() => {
-    // Only run if we have a selected service, services are loaded, and no objects discovered yet
-    if (selectedService && services.length > 0 && discoveredObjects.tables.length === 0) {
-      console.log('🔍 Auto-discovering schema for prefilled service:', selectedService);
-      discoverTables(selectedService);
-    }
-  }, [selectedService, services.length]);
-
   const fetchServices = async () => {
     try {
       const data = await getServices();
@@ -61,67 +52,72 @@ const BulkTableSelection = ({ onTablesSelected, selectedService, setSelectedServ
     }
   };
 
-  const discoverTables = async (serviceId = null) => {
-    const targetServiceId = serviceId || selectedService;
-    console.log('🔍 discoverTables called with:', { serviceId, selectedService, targetServiceId });
-    console.log(
-      '🔍 Available services:',
-      services.map(s => ({ id: s.id, name: s.name }))
-    );
+  const discoverTables = useCallback(
+    async (serviceId = null) => {
+      const targetServiceId = serviceId || selectedService;
 
-    if (!targetServiceId) {
-      setError('Please select a service first');
-      return;
-    }
-
-    // Find the service name from the ID since the discover endpoint expects service name
-    const service = services.find(s => s.id === targetServiceId);
-    console.log('🔍 Found service:', service);
-
-    if (!service) {
-      console.error('❌ Service not found in services array:', {
-        targetServiceId,
-        availableServices: services,
-      });
-      setError('Selected service not found');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setDiscoveredObjects({
-      tables: [],
-      views: [],
-      procedures: [],
-    });
-    setSelectedObjects(new Set());
-
-    try {
-      const response = await api.get(`/api/v2/${service.name}/_discover`);
-      const data = response.data.data || {};
-
-      setDiscoveredObjects({
-        tables: data.tables || [],
-        views: data.views || [],
-        procedures: data.procedures || [],
-      });
-
-      const totalObjects =
-        (data.tables?.length || 0) + (data.views?.length || 0) + (data.procedures?.length || 0);
-      if (totalObjects === 0) {
-        setError(
-          'No database objects found for this service. Make sure the service has been properly configured with database schema information.'
-        );
+      if (!targetServiceId) {
+        setError('Please select a service first');
+        return;
       }
-    } catch (err) {
-      setError(
-        'Failed to discover database objects: ' +
-          (err.response?.data?.error?.message || err.message)
-      );
-    } finally {
-      setLoading(false);
+
+      // Find the service name from the ID since the discover endpoint expects service name
+      const service = services.find(s => s.id === targetServiceId);
+
+      if (!service) {
+        console.error('❌ Service not found in services array:', {
+          targetServiceId,
+          availableServices: services,
+        });
+        setError('Selected service not found');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+      setDiscoveredObjects({
+        tables: [],
+        views: [],
+        procedures: [],
+      });
+      setSelectedObjects(new Set());
+
+      try {
+        const response = await api.get(`/api/v2/${service.name}/_discover`);
+        const data = response.data.data || {};
+
+        setDiscoveredObjects({
+          tables: data.tables || [],
+          views: data.views || [],
+          procedures: data.procedures || [],
+        });
+
+        const totalObjects =
+          (data.tables?.length || 0) + (data.views?.length || 0) + (data.procedures?.length || 0);
+        if (totalObjects === 0) {
+          setError(
+            'No database objects found for this service. Make sure the service has been properly configured with database schema information.'
+          );
+        }
+      } catch (err) {
+        setError(
+          'Failed to discover database objects: ' +
+            (err.response?.data?.error?.message || err.message)
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedService, services]
+  );
+
+  // Auto-discover schema when service is prefilled in edit mode
+  useEffect(() => {
+    // Only run if we have a selected service, services are loaded, and no objects discovered yet
+    if (selectedService && services.length > 0 && discoveredObjects.tables.length === 0) {
+      discoverTables(selectedService);
     }
-  };
+  }, [selectedService, services.length, discoverTables, discoveredObjects.tables.length]);
 
   const handleObjectSelection = (objectName, checked) => {
     const newSelected = new Set(selectedObjects);
