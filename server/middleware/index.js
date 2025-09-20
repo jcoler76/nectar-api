@@ -85,9 +85,9 @@ const applySecurityMiddleware = app => {
         includeSubDomains: true,
         preload: true,
       },
-      // Prevent clickjacking
+      // Allow same-origin iframes for documentation (temporary for development)
       frameguard: {
-        action: 'deny',
+        action: 'sameorigin',
       },
       // Hide X-Powered-By header
       hidePoweredBy: true,
