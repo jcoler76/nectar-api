@@ -87,7 +87,7 @@ class KeyManager {
     const nodeVersion = process.version;
     return crypto
       .createHash('sha256')
-      .update(systemInfo + nodeVersion + 'mirabel-key-storage')
+      .update(systemInfo + nodeVersion + 'nectarstudio-key-storage')
       .digest();
   }
 

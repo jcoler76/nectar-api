@@ -113,7 +113,7 @@ describe('SalesforceService', () => {
         headers: {
           Authorization: 'Bearer test-token',
           'Content-Type': 'application/json',
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         validateStatus: expect.any(Function),
       });

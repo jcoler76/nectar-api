@@ -105,7 +105,7 @@ async function seedRateLimitConfigs() {
     if (!adminUser) {
       console.log('No admin user found, creating system user...');
       adminUser = new User({
-        email: 'system@mirabel.local',
+        email: 'system.nectarstudio.ai',
         firstName: 'System',
         lastName: 'Administrator',
         isAdmin: true,

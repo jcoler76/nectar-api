@@ -353,7 +353,7 @@ For tests to work with real implementations, set these environment variables:
 
 ```bash
 # Test database (separate from development/production)
-TEST_MONGODB_URI=mongodb://localhost:27017/mirabel_test
+TEST_MONGODB_URI=mongodb://localhost:27017/nectar_test
 
 # JWT secret for test tokens
 JWT_SECRET=your-test-jwt-secret
@@ -392,7 +392,7 @@ module.exports = {
 ## Best Practices
 
 ### 1. Database Management
-- Use separate test database (`mirabel_test`)
+- Use separate test database (`nectar_test`)
 - Clear database between tests
 - Use transactions when possible for faster rollback
 - Consider in-memory MongoDB for speed vs real MongoDB for accuracy

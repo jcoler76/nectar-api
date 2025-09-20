@@ -495,7 +495,8 @@ const S3BucketTriggerPanel = ({ node, onNodeDataChange, workflowId }) => {
                   </Typography>
                   <Box component="ul" sx={{ pl: 2, mt: 1 }}>
                     <Box component="li">
-                      Name: Give it a descriptive name (e.g., &quot;Mirabel Workflow Trigger&quot;)
+                      Name: Give it a descriptive name (e.g., &quot;Nectar Studio Workflow
+                      Trigger&quot;)
                     </Box>
                     <Box component="li">
                       Prefix: {nodeData.prefix || '(leave empty for all files)'}

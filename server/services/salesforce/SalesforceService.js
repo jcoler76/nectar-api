@@ -39,7 +39,7 @@ class SalesforceService {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'MirabelAPI/1.0',
+        'User-Agent': 'NectarStudio/1.0',
       },
       validateStatus: () => true,
     });

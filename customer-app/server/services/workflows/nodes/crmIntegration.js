@@ -57,7 +57,7 @@ function getCRMConfiguration(crmType, connection) {
     timeout: connection.timeout || 30000,
     headers: {
       'Content-Type': 'application/json',
-      'User-Agent': 'MirabelAPI/1.0',
+      'User-Agent': 'NectarStudio/1.0',
     },
   };
 

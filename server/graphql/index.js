@@ -30,13 +30,16 @@ const initializeGraphQL = async app => {
       app,
       path: '/graphql',
       cors: {
-        origin: process.env.NODE_ENV === 'development' ? true : [
-          'https://mirabelconnect.mirabeltechnologies.com',
-          'http://mirabelconnect.mirabeltechnologies.com',
-          'http://localhost:3000',
-          'http://localhost:4000',
-          'http://localhost:8000',
-        ],
+        origin:
+          process.env.NODE_ENV === 'development'
+            ? true
+            : [
+                'https://app.nectarstudio.ai',
+                'http://app.nectarstudio.ai',
+                'http://localhost:3000',
+                'http://localhost:4000',
+                'http://localhost:8000',
+              ],
         credentials: true,
       },
     });

@@ -8,12 +8,12 @@ const axios = require('axios');
 
 async function testLogin() {
   try {
-    console.log('Testing login for jcoler@mirabeltechnologies.com...');
+    console.log('Testing login for jcoler@nectarstudio.ai...');
 
     const response = await axios.post(
       'http://localhost:3001/api/auth/login',
       {
-        email: 'jcoler@mirabeltechnologies.com',
+        email: 'jcoler@nectarstudio.ai',
         password: 'Fr33d0M!!@!MC',
       },
       {

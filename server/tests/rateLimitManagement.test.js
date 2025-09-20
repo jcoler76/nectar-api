@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 // Mock environment variables for testing
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret';
-process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mirabel-test';
+process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/nectar-test';
 
 describe('Rate Limit Management API', () => {
   let adminUser;

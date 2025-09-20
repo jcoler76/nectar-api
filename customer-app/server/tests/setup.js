@@ -7,7 +7,7 @@ const { testEnvironment } = require('../utils/testUtils');
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-for-testing-32-chars';
 process.env.MONGODB_TEST_URI =
-  process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/mirabel_test';
+  process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/nectar_test';
 process.env.ENCRYPTION_KEY =
   process.env.ENCRYPTION_KEY || 'test-encryption-key-for-testing-32-chars';
 

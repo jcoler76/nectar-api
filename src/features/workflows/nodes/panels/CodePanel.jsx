@@ -95,7 +95,7 @@ const transporter = nodemailer.createTransporter({
 
 await transporter.sendMail({
   from: env.SMTP_USER,
-  to: 'jcoler@mirabeltechnologies.com',
+  to: 'jcoler@nectarstudio.ai',
   subject: \`Health Report - \${new Date().toLocaleDateString()}\`,
   html: html
 });

@@ -5,9 +5,9 @@ const nodemailer = require('nodemailer');
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 // Configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mirabel_db';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/nectar_db';
 const DB_NAME = process.env.DB_NAME || 'nectar-api';
-const EMAIL_TO = 'jcoler@mirabeltechnologies.com';
+const EMAIL_TO = 'jcoler@nectarstudio.ai';
 
 async function runHealthCheck() {
   let client;
@@ -390,7 +390,7 @@ async function sendEmail(html, healthScore) {
   const status = healthScore >= 90 ? 'Healthy' : healthScore >= 70 ? 'Warning' : 'Critical';
 
   await transporter.sendMail({
-    from: process.env.SMTP_USER || 'mirabel-health@mirabeltechnologies.com',
+    from: process.env.SMTP_USER || 'health@nectarstudio.ai',
     to: EMAIL_TO,
     subject: `Daily Health Report - ${new Date().toLocaleDateString()} - Status: ${status} (${healthScore}/100)`,
     html: html,

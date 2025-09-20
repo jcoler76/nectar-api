@@ -8,7 +8,7 @@
       "program": "${workspaceFolder}/server/server.js",
       "env": {
         "NODE_ENV": "development",
-        "DEBUG": "mirabel:*"
+        "DEBUG": "nectarstudio:*"
       },
       "console": "integratedTerminal",
       "restart": true,

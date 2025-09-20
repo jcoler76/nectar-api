@@ -98,7 +98,7 @@ describe('Authentication Service - Complete Test Suite', () => {
         expect(decoded.role).toBe(testUser.role);
         expect(decoded.type).toBe('access');
         expect(decoded.iss).toBe('nectar-api');
-        expect(decoded.aud).toBe('mirabel-client');
+        expect(decoded.aud).toBe('nectar-client');
         expect(decoded.jti).toBeTruthy();
       } catch (error) {
         throw new Error(`Valid token should not throw error: ${error.message}`);
@@ -127,7 +127,7 @@ describe('Authentication Service - Complete Test Suite', () => {
         {
           algorithm: 'HS256',
           issuer: 'nectar-api',
-          audience: 'mirabel-client',
+          audience: 'nectar-client',
         }
       );
 
@@ -358,7 +358,7 @@ describe('Authentication Service - Complete Test Suite', () => {
           expiresIn: '1ms',
           algorithm: 'HS256',
           issuer: 'nectar-api',
-          audience: 'mirabel-client',
+          audience: 'nectar-client',
         }
       );
 

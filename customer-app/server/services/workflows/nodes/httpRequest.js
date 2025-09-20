@@ -72,7 +72,7 @@ const execute = async (config, context) => {
         'x-workflow-node-id': nodeId,
         'x-workflow-correlation-id': `${workflowId}:${workflowRunId}:${nodeId}`,
         'user-agent':
-          enhancedHeaders['user-agent'] || `Mirabel-Workflow/${nodeType} (Node: ${label})`,
+          enhancedHeaders['user-agent'] || `NectarStudio-Workflow/${nodeType} (Node: ${label})`,
       };
     }
 

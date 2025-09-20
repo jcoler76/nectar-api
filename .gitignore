@@ -55,6 +55,13 @@ nectar-api-library/
 # Security documentation (contains sensitive vulnerability details)
 SECURITY_CHECKLIST.md
 
+# Development scripts (contain security risks - should never be deployed)
+**/development-scripts/
+development-scripts/
+server/development-scripts/
+customer-app/server/development-scripts/
+admin-backend/development-scripts/
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -309,7 +309,7 @@ module.exports = {
 #### Test Environment Variables
 ```bash
 # Database
-MONGODB_TEST_URI=mongodb://localhost:27017/mirabel_test
+MONGODB_TEST_URI=mongodb://localhost:27017/nectar_test
 SQL_SERVER_TEST_DATABASE=test_database
 
 # Authentication

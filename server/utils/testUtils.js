@@ -388,7 +388,7 @@ class TestEnvironment {
     process.env.NODE_ENV = 'test';
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-testing-only';
     process.env.MONGODB_URI =
-      process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/mirabel_test';
+      process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/nectar_test';
 
     // Connect to test database
     const dbManager = new RealDatabaseTestManager();

@@ -3,28 +3,28 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoIcon from '@mui/icons-material/Info';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Alert,
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Radio,
-  RadioGroup,
-  Select,
-  Stack,
-  Switch,
-  TextField,
-  Tooltip,
-  Typography,
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Alert,
+    Box,
+    Button,
+    Chip,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Radio,
+    RadioGroup,
+    Select,
+    Stack,
+    Switch,
+    TextField,
+    Tooltip,
+    Typography,
 } from '@mui/material';
 import { useState } from 'react';
 
@@ -495,7 +495,7 @@ const S3BucketTriggerPanel = ({ node, onNodeDataChange, workflowId }) => {
                   </Typography>
                   <Box component="ul" sx={{ pl: 2, mt: 1 }}>
                     <Box component="li">
-                      Name: Give it a descriptive name (e.g., &quot;Mirabel Workflow Trigger&quot;)
+                      Name: Give it a descriptive name (e.g., &quot;Nectar Studio Workflow Trigger&quot;)
                     </Box>
                     <Box component="li">
                       Prefix: {nodeData.prefix || '(leave empty for all files)'}

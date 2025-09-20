@@ -43,7 +43,7 @@ const execute = async (config, context) => {
       headers['x-workflow-node-type'] = nodeType;
       headers['x-workflow-node-id'] = nodeId;
       headers['x-workflow-correlation-id'] = `${workflowId}:${workflowRunId}:${nodeId}`;
-      headers['user-agent'] = `Mirabel-Workflow/${nodeType} (Node: ${label})`;
+      headers['user-agent'] = `NectarStudio-Workflow/${nodeType} (Node: ${label})`;
     }
 
     const response = await axios.post(OPENAI_API_URL, requestBody, {

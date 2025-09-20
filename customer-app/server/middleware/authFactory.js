@@ -29,7 +29,7 @@ class AuthFactory {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET, {
           issuer: process.env.JWT_ISSUER || 'nectar-api',
-          audience: process.env.JWT_AUDIENCE || 'mirabel-users',
+          audience: process.env.JWT_AUDIENCE || 'nectar-client',
         });
 
         if (requireUser) {
@@ -169,7 +169,7 @@ class AuthFactory {
   static createUniversalKeyMiddleware() {
     return async (req, res, next) => {
       try {
-        const universalKey = req.headers['x-mirabel-universal-key'];
+        const universalKey = req.headers['x-nectarstudio-universal-key'];
 
         if (!universalKey || universalKey !== process.env.MCP_UNIVERSAL_KEY) {
           return res.status(401).json({

@@ -60,7 +60,7 @@ const validateDatabase = async () => {
     }
 
     // Validate admin user
-    const adminUser = await User.findOne({ email: 'admin@mirabel.api' });
+    const adminUser = await User.findOne({ email: 'admin@nectarstudio.ai' });
     if (!adminUser) {
       console.log('Admin user not found');
       if (logger && typeof logger.error === 'function') {

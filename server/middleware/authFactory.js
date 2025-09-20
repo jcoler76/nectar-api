@@ -51,9 +51,10 @@ class AuthFactory {
           // Enhanced role detection for new RBAC system
           const hasOwnerRole = user.memberships?.some(m => m.role === 'OWNER') || false;
           const hasSuperAdminRole = user.memberships?.some(m => m.role === 'SUPER_ADMIN') || false;
-          const hasOrgAdminRole = user.memberships?.some(m =>
-            ['ADMIN', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(m.role)
-          ) || false;
+          const hasOrgAdminRole =
+            user.memberships?.some(m =>
+              ['ADMIN', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(m.role)
+            ) || false;
 
           req.user = {
             ...user,
@@ -178,7 +179,7 @@ class AuthFactory {
   static createUniversalKeyMiddleware() {
     return async (req, res, next) => {
       try {
-        const universalKey = req.headers['x-mirabel-universal-key'];
+        const universalKey = req.headers['x-nectarstudio-universal-key'];
 
         if (!universalKey || universalKey !== process.env.MCP_UNIVERSAL_KEY) {
           return res.status(401).json({
@@ -269,7 +270,7 @@ class AuthFactory {
 
   static requireAdmin() {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         if (!req.user?.isAdmin) {
@@ -285,7 +286,7 @@ class AuthFactory {
 
   static requireSuperAdmin() {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         if (!req.user?.isSuperAdmin) {
@@ -301,7 +302,7 @@ class AuthFactory {
 
   static requireRole(...roles) {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         const userRoles = req.user?.roles || [];
@@ -320,7 +321,7 @@ class AuthFactory {
 
   static requireOrganizationAccess(allowedRoles = []) {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         const organizationId = req.params.organizationId || req.body.organizationId;
@@ -337,9 +338,7 @@ class AuthFactory {
         }
 
         // Check if user has membership in the organization with allowed roles
-        const orgMembership = req.user?.memberships?.find(m =>
-          m.organizationId === organizationId
-        );
+        const orgMembership = req.user?.memberships?.find(m => m.organizationId === organizationId);
 
         if (!orgMembership) {
           return res.status(403).json({
@@ -422,7 +421,7 @@ class AuthFactory {
   // Role-specific middleware methods
   static requireOrganizationOwner() {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         // Super admins have all permissions
@@ -431,8 +430,8 @@ class AuthFactory {
         }
 
         // Check if user has ORGANIZATION_OWNER or OWNER role in any organization
-        const hasOwnerRole = req.user?.memberships?.some(m =>
-          m.role === 'ORGANIZATION_OWNER' || m.role === 'OWNER'
+        const hasOwnerRole = req.user?.memberships?.some(
+          m => m.role === 'ORGANIZATION_OWNER' || m.role === 'OWNER'
         );
 
         if (!hasOwnerRole) {
@@ -448,7 +447,7 @@ class AuthFactory {
 
   static requireOrganizationAdmin() {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         // Super admins have all permissions
@@ -474,7 +473,7 @@ class AuthFactory {
 
   static requireDeveloper() {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         // Super admins have all permissions
@@ -484,7 +483,9 @@ class AuthFactory {
 
         // Check if user has developer level access or higher
         const hasDeveloperRole = req.user?.memberships?.some(m =>
-          ['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+          ['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(
+            m.role
+          )
         );
 
         if (!hasDeveloperRole) {
@@ -500,7 +501,7 @@ class AuthFactory {
 
   static requireMember() {
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         // Super admins have all permissions
@@ -510,7 +511,14 @@ class AuthFactory {
 
         // Check if user has member level access or higher (all roles except VIEWER)
         const hasMemberRole = req.user?.memberships?.some(m =>
-          ['MEMBER', 'DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+          [
+            'MEMBER',
+            'DEVELOPER',
+            'ORGANIZATION_ADMIN',
+            'ORGANIZATION_OWNER',
+            'ADMIN',
+            'OWNER',
+          ].includes(m.role)
         );
 
         if (!hasMemberRole) {
@@ -526,16 +534,18 @@ class AuthFactory {
 
   static requireMinimumRole(minimumRole) {
     const roleHierarchy = {
-      'SUPER_ADMIN': 7,
-      'ORGANIZATION_OWNER': 6, 'OWNER': 6,
-      'ORGANIZATION_ADMIN': 5, 'ADMIN': 5,
-      'DEVELOPER': 4,
-      'MEMBER': 3,
-      'VIEWER': 1
+      SUPER_ADMIN: 7,
+      ORGANIZATION_OWNER: 6,
+      OWNER: 6,
+      ORGANIZATION_ADMIN: 5,
+      ADMIN: 5,
+      DEVELOPER: 4,
+      MEMBER: 3,
+      VIEWER: 1,
     };
 
     return (req, res, next) => {
-      this.createJWTMiddleware()(req, res, (err) => {
+      this.createJWTMiddleware()(req, res, err => {
         if (err) return next(err);
 
         // Super admins have all permissions

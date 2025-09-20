@@ -14,9 +14,9 @@ const apiVersioning = (req, res, next) => {
     // 1. Check for version in URL path (e.g., /api/v1/users)
     const pathVersion = req.path.match(/^\/api\/(v\d+)\//)?.[1];
 
-    // 2. Check for version in Accept header (e.g., application/vnd.mirabel.v1+json)
+    // 2. Check for version in Accept header (e.g., application/vnd.nectarstudio.v1+json)
     const acceptHeader = req.headers.accept || '';
-    const headerVersion = acceptHeader.match(/application\/vnd\.mirabel\.(v\d+)\+json/)?.[1];
+    const headerVersion = acceptHeader.match(/application\/vnd\.nectarstudio\.(v\d+)\+json/)?.[1];
 
     // 3. Check for version in custom header
     const customHeaderVersion = req.headers['x-api-version'];

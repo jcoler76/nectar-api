@@ -15,7 +15,7 @@ const cleanupDatabase = async () => {
     logger.info('Connected to MongoDB for cleanup');
 
     // Keep admin user but remove all other data
-    const adminUser = await User.findOne({ email: 'admin@mirabel.api' });
+    const adminUser = await User.findOne({ email: 'admin@nectarstudio.ai' });
 
     await User.deleteMany({ _id: { $ne: adminUser._id } });
     await Service.deleteMany({});

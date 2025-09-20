@@ -142,7 +142,7 @@ router.get('/role/:roleId', async (req, res) => {
         };
 
         return {
-          path: `https://mirabelconnect.mirabeltechnologies.com/api/v2/${perm.service.name}${perm.objectName}`,
+          path: `https://api.nectarstudio.ai/api/v2/${perm.service.name}${perm.objectName}`,
           methods: allowedMethods,
           method: allowedMethods[0] || 'GET', // Keep for backward compatibility
           primaryMethod: allowedMethods[0] || 'GET',
@@ -878,7 +878,7 @@ function generatePostmanCollection(role, endpoints) {
 
 // Helper functions for inline examples
 function generateCurlExample(permission, method) {
-  const endpoint = `https://mirabelconnect.mirabeltechnologies.com/api/v2/${permission.service.name}${permission.objectName}`;
+  const endpoint = `https://api.nectarstudio.ai/api/v2/${permission.service.name}${permission.objectName}`;
   let curlCommand = `curl -X ${method} "${endpoint}" \\
   -H "X-API-Key: YOUR_API_KEY"`;
 
@@ -899,7 +899,7 @@ function generateCurlExample(permission, method) {
 }
 
 function generateJavaScriptExample(permission, method) {
-  const endpoint = `https://mirabelconnect.mirabeltechnologies.com/api/v2/${permission.service.name}${permission.objectName}`;
+  const endpoint = `https://api.nectarstudio.ai/api/v2/${permission.service.name}${permission.objectName}`;
   let jsExample = `const response = await fetch('${endpoint}', {
   method: '${method}',
   headers: {
@@ -1001,7 +1001,7 @@ router.post('/pdf/:roleId/custom', async (req, res) => {
         logo: req.body.logo,
         primaryColor: req.body.primaryColor || '#1976d2',
         secondaryColor: req.body.secondaryColor || '#f5f5f5',
-        companyName: req.body.companyName || 'Mirabel Technologies',
+        companyName: req.body.companyName || 'Nectar Studio',
         contactInfo: req.body.contactInfo,
       },
     };
@@ -1064,8 +1064,8 @@ router.get('/pdf/:roleId/info', async (req, res) => {
             brandingOptions: {
               primaryColor: '#1976d2',
               secondaryColor: '#f5f5f5',
-              companyName: 'Mirabel Technologies',
-              contactInfo: 'support@mirabeltechnologies.com',
+              companyName: 'Nectar Studio',
+              contactInfo: 'support@nectarstudio.ai',
             },
           },
         },
@@ -1642,7 +1642,7 @@ function generatePDFContent(doc, role, options) {
   } = options;
 
   const primaryColor = brandingOptions.primaryColor || '#1976d2';
-  const companyName = brandingOptions.companyName || 'Mirabel Technologies';
+  const companyName = brandingOptions.companyName || 'Nectar Studio';
 
   let currentY = 50;
 
@@ -1740,7 +1740,7 @@ function generatePDFContent(doc, role, options) {
   doc
     .fontSize(12)
     .fillColor('#333333')
-    .text('https://mirabelconnect.mirabeltechnologies.com/api/v2/', 50, currentY);
+    .text('https://api.nectarstudio.ai/api/v2/', 50, currentY);
 
   // Individual Endpoints
   validPermissions.forEach((perm, index) => {
@@ -1772,7 +1772,7 @@ function generatePDFContent(doc, role, options) {
       .fontSize(10)
       .fillColor('#666666')
       .text(
-        `Full URL: https://mirabelconnect.mirabeltechnologies.com/api/v2/${perm.service.name}${perm.objectName}`,
+        `Full URL: https://api.nectarstudio.ai/api/v2/${perm.service.name}${perm.objectName}`,
         50,
         currentY
       );

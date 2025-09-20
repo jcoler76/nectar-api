@@ -164,7 +164,7 @@ async function updateJiraTicket(ticketKey, apiResult, startTime) {
 
 ${apiResult.data?.message ? `Message: ${apiResult.data.message}` : ''}
 
-_This ticket was automatically processed by Mirabel Workflow Automation._`;
+_This ticket was automatically processed by Nectar Studio Workflow Automation._`;
   } else {
     comment = `❌ **Invoice Rep Update Failed**
 
@@ -177,7 +177,7 @@ _This ticket was automatically processed by Mirabel Workflow Automation._`;
 ${apiResult.data ? `Response: ${JSON.stringify(apiResult.data, null, 2)}` : ''}
 
 _Please review and run manually if needed._
-_This ticket was automatically processed by Mirabel Workflow Automation._`;
+_This ticket was automatically processed by Nectar Studio Workflow Automation._`;
   }
 
   try {

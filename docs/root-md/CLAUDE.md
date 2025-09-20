@@ -525,7 +525,6 @@ New workflow node types must implement:
 # Backend (.env in /server/)
 NODE_ENV=development
 JWT_SECRET=your-secret-key
-MONGODB_URI=mongodb://localhost:27017/mirabel
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
@@ -671,14 +670,14 @@ In production `.env.production` file:
 DB_BACKUP_ENABLED=true
 DB_BACKUP_SCHEDULE=0 2 * * *
 DB_BACKUP_RETENTION_DAYS=30
-BACKUP_ALERT_EMAIL=admin@mirabeltechnologies.com
+BACKUP_ALERT_EMAIL=admin@nectarstudio.ai
 
 # Email configuration for alerts
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-email@domain.com
 EMAIL_PASS=your-app-password
-EMAIL_FROM="Nectar API Backup <no-reply@mirabeltechnologies.com>"
+EMAIL_FROM="Nectar API Backup <no-reply@nectarstudio.ai>"
 ```
 
 #### 3. Manual Operations

@@ -225,8 +225,8 @@ const initializeGraphQL = async () => {
       path: '/graphql',
       cors: {
         origin: [
-          'https://mirabelconnect.mirabeltechnologies.com',
-          'http://mirabelconnect.mirabeltechnologies.com',
+          'https://app.nectarstudio.ai',
+          'http://app.nectarstudio.ai',
           'http://localhost:3000',
         ],
         credentials: true,

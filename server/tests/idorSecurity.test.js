@@ -86,7 +86,7 @@ describe('IDOR Security Tests', () => {
     // Connect to test database
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(
-        process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/mirabel_test'
+        process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/nectar_test'
       );
     }
 

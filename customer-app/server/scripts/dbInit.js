@@ -13,14 +13,14 @@ const initializeDatabase = async () => {
     console.log('Connected to MongoDB for initialization');
 
     // Check if admin user exists
-    const adminExists = await User.findOne({ email: 'jcoler@mirabeltechnologies.com' });
+    const adminExists = await User.findOne({ email: 'jcoler@nectarstudio.ai' });
 
     if (!adminExists) {
       const defaultPassword = process.env.TEMP_ADMIN_PASSWORD || 'ChangeMe123!';
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
       const adminUser = new User({
-        email: 'jcoler@mirabeltechnologies.com',
+        email: 'jcoler@nectarstudio.ai',
         password: hashedPassword,
         firstName: 'Jestin',
         lastName: 'Coler',

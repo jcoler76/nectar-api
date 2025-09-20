@@ -282,7 +282,7 @@ api.interceptors.response.use(
         // This allows React to handle the logout gracefully without losing component state
         window.dispatchEvent(
           new StorageEvent('storage', {
-            key: 'mirabel_session',
+            key: 'nectar_session',
             newValue: null,
             oldValue: 'cleared',
           })

@@ -199,7 +199,7 @@ async function updateJiraTicket(ticketKey, apiResult) {
 
 ${apiResult.data?.message ? `Message: ${apiResult.data.message}` : ''}
 
-_Automated by Mirabel Workflow System_`;
+_Automated by Nectar Studio Workflow System_`;
     } else {
       comment = `❌ **Invoice Rep Update Failed**
 
@@ -210,7 +210,7 @@ _Automated by Mirabel Workflow System_`;
 - Execution Time: ${apiResult.executionTime} seconds
 
 _Please review and run manually if needed._
-_Automated by Mirabel Workflow System_`;
+_Automated by Nectar Studio Workflow System_`;
     }
 
     // Add comment

@@ -14,6 +14,7 @@ model Organization {
   domain                  String?              @unique
   logo                    String?
   website                 String?
+  isActive                Boolean              @default(true)
   createdAt               DateTime             @default(now())
   updatedAt               DateTime             @updatedAt
   lastTermsPromptedAt     DateTime?
@@ -22,27 +23,26 @@ model Organization {
   apiKeys                 ApiKey[]
   applications            Application[]        @relation("ApplicationOrganization")
   auditLogs               AuditLog[]
+  billingEvents           BillingEvent[]
   databaseConnections     DatabaseConnection[]
   databaseObjects         DatabaseObject[]     @relation("DatabaseObjectOrganization")
   endpoints               Endpoint[]
   exposedEntities         ExposedEntity[]
+  fileStorages            FileStorage[]
   invitations             Invitation[]
   memberships             Membership[]
   notifications           Notification[]       @relation("NotificationOrganization")
+  rateLimitConfigs        RateLimitConfig[]
+  rateLimitUsage          RateLimitUsage[]
   roles                   Role[]               @relation("RoleOrganization")
+  roleChangeLogs          RoleChangeLog[]
   services                Service[]            @relation("ServiceOrganization")
   subscription            Subscription?
   termsAcceptances        TermsAcceptance[]
   usageMetrics            UsageMetric[]
   webhooks                Webhook[]
   workflows               Workflow[]
-  rateLimitConfigs        RateLimitConfig[]
-  rateLimitUsage          RateLimitUsage[]
-  billingEvents           BillingEvent[]
-  fileStorages            FileStorage[]
   fileFolders             FileFolder[]
-  // RBAC Relations
-  roleChangeLogs          RoleChangeLog[]
 
   @@index([slug])
   @@index([createdAt])
@@ -63,9 +63,9 @@ model User {
   twoFactorSecret            String?
   phoneNumber                String?
   phoneCarrier               String?
-  isSuperAdmin               Boolean              @default(false)
   createdAt                  DateTime             @default(now())
   updatedAt                  DateTime             @updatedAt
+  isSuperAdmin               Boolean              @default(false)
   apiActivityLogs            ApiActivityLog[]     @relation("ApiActivityUser")
   apiKeysCreated             ApiKey[]
   applicationsCreated        Application[]        @relation("ApplicationCreator")
@@ -73,46 +73,44 @@ model User {
   databaseConnectionsCreated DatabaseConnection[]
   endpointsCreated           Endpoint[]
   exposedEntitiesCreated     ExposedEntity[]
+  fileSharesCreated          FileShare[]
+  uploadedFiles              FileStorage[]
+  fileVersionsCreated        FileVersion[]
   invitationsSent            Invitation[]         @relation("InvitedBy")
   memberships                Membership[]
   notifications              Notification[]       @relation("NotificationUser")
+  rateLimitCreated           RateLimitConfig[]    @relation("RateLimitCreator")
+  rateLimitUpdated           RateLimitConfig[]    @relation("RateLimitUpdater")
   rolesCreated               Role[]               @relation("RoleCreator")
+  approvedRoleChanges        RoleChangeLog[]      @relation("ApprovedRoleChanges")
+  performedRoleChanges       RoleChangeLog[]      @relation("PerformedRoleChanges")
+  targetedRoleChanges        RoleChangeLog[]      @relation("TargetedRoleChanges")
   servicesCreated            Service[]            @relation("ServiceCreator")
+  socialAccounts             SocialAccount[]
   termsAcceptances           TermsAcceptance[]
   workflowsCreated           Workflow[]
-  rateLimitCreated           RateLimitConfig[] @relation("RateLimitCreator")
-  rateLimitUpdated           RateLimitConfig[] @relation("RateLimitUpdater")
-  socialAccounts             SocialAccount[]
-  uploadedFiles              FileStorage[]
-  fileVersionsCreated        FileVersion[]
-  fileSharesCreated          FileShare[]
   fileFoldersCreated         FileFolder[]
-  // RBAC Audit Relations
-  targetedRoleChanges        RoleChangeLog[] @relation("TargetedRoleChanges")
-  performedRoleChanges       RoleChangeLog[] @relation("PerformedRoleChanges")
-  approvedRoleChanges        RoleChangeLog[] @relation("ApprovedRoleChanges")
 
   @@index([email])
   @@index([createdAt])
 }
 
 model AdminUser {
-  id              String      @id @default(uuid())
-  email           String      @unique
-  passwordHash    String
-  firstName       String
-  lastName        String
-  role            AdminRole   @default(SUPPORT_AGENT)
-  isActive        Boolean     @default(true)
-  lastLoginAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  createdBy       String?     // ID of admin who created this user
-  notes           String?     // Internal notes about this admin user
-  // RBAC Audit Relations
-  auditLogs       AuditLog[]
-  targetedRoleChanges   RoleChangeLog[] @relation("TargetedAdminRoleChanges")
-  performedRoleChanges  RoleChangeLog[] @relation("AdminPerformedRoleChanges")
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  role                 AdminRole       @default(SUPPORT_AGENT)
+  isActive             Boolean         @default(true)
+  lastLoginAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  createdBy            String?
+  notes                String?
+  auditLogs            AuditLog[]
+  performedRoleChanges RoleChangeLog[] @relation("AdminPerformedRoleChanges")
+  targetedRoleChanges  RoleChangeLog[] @relation("TargetedAdminRoleChanges")
 
   @@index([email])
   @@index([role])
@@ -164,15 +162,15 @@ model EmailVerificationToken {
 }
 
 model BillingEvent {
-  id               String        @id @default(uuid())
-  eventType        String        // e.g., 'checkout.session.completed'
-  stripeEventId    String        @unique
-  metadata         Json          // Full Stripe event data
-  createdAt        DateTime      @default(now())
-  organizationId   String?
-  subscriptionId   String?
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  subscription     Subscription? @relation(fields: [subscriptionId], references: [id])
+  id             String        @id @default(uuid())
+  eventType      String
+  stripeEventId  String        @unique
+  metadata       Json
+  createdAt      DateTime      @default(now())
+  organizationId String?
+  subscriptionId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 
   @@index([stripeEventId])
   @@index([eventType])
@@ -190,7 +188,6 @@ model Subscription {
   stripeCustomerId       String?            @unique
   stripeSubscriptionId   String?            @unique
   stripePriceId          String?
-  monthlyRevenue         Decimal?           @db.Decimal(10,2)
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
   maxDatabaseConnections Int                @default(1)
@@ -198,8 +195,9 @@ model Subscription {
   maxUsersPerOrg         Int                @default(1)
   maxWorkflows           Int                @default(5)
   organizationId         String             @unique
-  invoices               Invoice[]
+  monthlyRevenue         Decimal?           @db.Decimal(10, 2)
   billingEvents          BillingEvent[]
+  invoices               Invoice[]
   organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([status])
@@ -226,41 +224,38 @@ model Invoice {
 }
 
 model DatabaseConnection {
-  id                String          @id @default(uuid())
-  name              String
-  type              DatabaseType
-  host              String
-  port              Int
-  database          String
-  username          String
-  passwordEncrypted String
-  sslEnabled        Boolean         @default(false)
-  isActive          Boolean         @default(true)
-  lastTestedAt      DateTime?
-  lastTestResult    Boolean?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  organizationId    String
-  createdBy         String?
-  databases         Json?
-
-  // Cloud-specific fields for AWS, Azure, GCP, Snowflake
-  region                   String?         // AWS region, GCP region, etc.
-  endpoint                 String?         // Cloud endpoint URL
-  instanceConnectionName   String?         // GCP instance connection name
-  accountId                String?         // Snowflake account identifier
-  warehouseName            String?         // Snowflake warehouse name
-  authMethod               String?         @default("password") // password, keypair
-  privateKeyEncrypted      String?         // Encrypted private key for keypair auth
-  passphraseEncrypted      String?         // Encrypted passphrase for private key
-  projectId                String?         // GCP project ID
-  keyFileEncrypted         String?         // Encrypted service account key file
-
-  creator           User?           @relation(fields: [createdBy], references: [id])
-  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  endpoints         Endpoint[]
-  exposedEntities   ExposedEntity[]
-  services          Service[]
+  id                     String          @id @default(uuid())
+  name                   String
+  type                   DatabaseType
+  host                   String
+  port                   Int
+  database               String
+  username               String
+  passwordEncrypted      String
+  sslEnabled             Boolean         @default(false)
+  isActive               Boolean         @default(true)
+  lastTestedAt           DateTime?
+  lastTestResult         Boolean?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  organizationId         String
+  createdBy              String?
+  databases              Json?
+  accountId              String?
+  authMethod             String?         @default("password")
+  endpoint               String?
+  instanceConnectionName String?
+  keyFileEncrypted       String?
+  passphraseEncrypted    String?
+  privateKeyEncrypted    String?
+  projectId              String?
+  region                 String?
+  warehouseName          String?
+  creator                User?           @relation(fields: [createdBy], references: [id])
+  organization           Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  endpoints              Endpoint[]
+  exposedEntities        ExposedEntity[]
+  services               Service[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -277,15 +272,15 @@ model Endpoint {
   queryParams        Json?
   bodySchema         Json?
   responseSchema     Json?
-  apiKey             String              @unique
   isActive           Boolean             @default(true)
   rateLimitPerMinute Int                 @default(60)
   requiresAuth       Boolean             @default(true)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-  organizationId     String
-  createdBy          String
   connectionId       String?
+  apiKey             String              @unique
+  createdBy          String
+  organizationId     String
   usageLogs          ApiActivityLog[]
   connection         DatabaseConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   creator            User                @relation(fields: [createdBy], references: [id])
@@ -388,23 +383,22 @@ model Webhook {
 }
 
 model AuditLog {
-  id             String       @id @default(uuid())
-  action         String
-  entityType     String
-  entityId       String
-  metadata       Json?
-  ipAddress      String?
-  userAgent      String?
-  timestamp      DateTime     @default(now())
-  organizationId String
-  userId         String?
-  // Enhanced RBAC fields
+  id                 String       @id @default(uuid())
+  action             String
+  entityType         String
+  entityId           String
+  metadata           Json?
+  ipAddress          String?
+  userAgent          String?
+  timestamp          DateTime     @default(now())
+  organizationId     String
+  userId             String?
   adminPerformedById String?
-  adminPerformedBy   AdminUser? @relation(fields: [adminPerformedById], references: [id])
-  oldValues      Json?
-  newValues      Json?
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User?        @relation(fields: [userId], references: [id])
+  newValues          Json?
+  oldValues          Json?
+  adminPerformedBy   AdminUser?   @relation(fields: [adminPerformedById], references: [id])
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user               User?        @relation(fields: [userId], references: [id])
 
   @@index([organizationId, timestamp])
   @@index([userId])
@@ -663,39 +657,29 @@ model TermsAcceptance {
 }
 
 model RateLimitConfig {
-  id              String   @id @default(uuid())
-  name            String   // Internal name (unique per org)
-  displayName     String   // User-friendly display name
-  type            RateLimitType
-  max             Int      // Maximum requests allowed
-  windowMs        Int      // Time window in milliseconds
-  keyStrategy     RateLimitKeyStrategy @default(IP)
-  enabled         Boolean  @default(true)
-  description     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Application-specific limits
-  applicationLimits Json? // Array of { applicationId, max, windowMs }
-  
-  // Role-specific limits  
-  roleLimits       Json? // Array of { roleId, max, windowMs }
-  
-  // Component/service-specific limits
-  componentLimits  Json? // Array of { serviceId, component, max, windowMs }
-  
-  // Change tracking
-  changeHistory    Json? // Array of change records
-  changeReason     String?
-  
-  // Relations
-  organizationId   String
-  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy        String
-  creator          User         @relation("RateLimitCreator", fields: [createdBy], references: [id])
-  updatedBy        String?
-  updater          User?        @relation("RateLimitUpdater", fields: [updatedBy], references: [id])
-  
+  id                String               @id @default(uuid())
+  name              String
+  displayName       String
+  type              RateLimitType
+  max               Int
+  windowMs          Int
+  keyStrategy       RateLimitKeyStrategy @default(IP)
+  enabled           Boolean              @default(true)
+  description       String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  applicationLimits Json?
+  roleLimits        Json?
+  componentLimits   Json?
+  changeHistory     Json?
+  changeReason      String?
+  organizationId    String
+  createdBy         String
+  updatedBy         String?
+  creator           User                 @relation("RateLimitCreator", fields: [createdBy], references: [id])
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  updater           User?                @relation("RateLimitUpdater", fields: [updatedBy], references: [id])
+
   @@unique([organizationId, name])
   @@index([organizationId])
   @@index([type])
@@ -704,24 +688,190 @@ model RateLimitConfig {
 }
 
 model RateLimitUsage {
-  id             String   @id @default(uuid())
-  configName     String   // Reference to rate limit config
-  limitKey       String   // The key being limited (IP, user ID, etc.)
-  currentCount   Int      @default(0)
-  resetAt        DateTime // When the window resets
-  blocked        Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  // Relations
+  id             String       @id @default(uuid())
+  configName     String
+  limitKey       String
+  currentCount   Int          @default(0)
+  resetAt        DateTime
+  blocked        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
+
   @@unique([organizationId, configName, limitKey])
   @@index([organizationId])
   @@index([configName])
   @@index([resetAt])
   @@index([blocked])
+}
+
+model SocialAccount {
+  id           String   @id @default(uuid())
+  userId       String
+  provider     String
+  providerId   String
+  email        String?
+  name         String?
+  profileUrl   String?
+  avatarUrl    String?
+  accessToken  String?
+  refreshToken String?
+  profileData  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+}
+
+model FileStorage {
+  id              String          @id @default(uuid())
+  filename        String
+  storageKey      String          @unique
+  mimeType        String
+  fileSize        BigInt
+  checksum        String
+  storageProvider StorageProvider @default(S3)
+  bucketName      String?
+  cdnUrl          String?
+  isPublic        Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  uploadedAt      DateTime        @default(now())
+  lastAccessedAt  DateTime?
+  expiresAt       DateTime?
+  organizationId  String
+  uploadedBy      String?
+  metadata        String?
+  tags            String[]
+  description     String?
+  folderId        String?
+  shares          FileShare[]
+  folder          FileFolder?     @relation("FolderFiles", fields: [folderId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploader        User?           @relation(fields: [uploadedBy], references: [id])
+  thumbnails      FileThumbnail[]
+  versions        FileVersion[]
+
+  @@index([organizationId])
+  @@index([uploadedBy])
+  @@index([storageKey])
+  @@index([uploadedAt])
+  @@index([mimeType])
+  @@index([isPublic])
+  @@index([folderId])
+}
+
+model FileVersion {
+  id            String      @id @default(uuid())
+  fileId        String
+  versionNumber Int         @default(1)
+  storageKey    String      @unique
+  fileSize      BigInt
+  checksum      String
+  uploadedAt    DateTime    @default(now())
+  uploadedBy    String?
+  changelog     String?
+  file          FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  uploader      User?       @relation(fields: [uploadedBy], references: [id])
+
+  @@unique([fileId, versionNumber])
+  @@index([fileId])
+}
+
+model FileThumbnail {
+  id         String      @id @default(uuid())
+  fileId     String
+  size       String
+  storageKey String      @unique
+  fileSize   BigInt
+  mimeType   String
+  cdnUrl     String?
+  createdAt  DateTime    @default(now())
+  file       FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, size])
+  @@index([fileId])
+}
+
+model FileShare {
+  id            String      @id @default(uuid())
+  fileId        String
+  shareToken    String      @unique
+  isPublic      Boolean     @default(false)
+  allowDownload Boolean     @default(true)
+  allowPreview  Boolean     @default(true)
+  expiresAt     DateTime?
+  maxDownloads  Int?
+  downloadCount Int         @default(0)
+  password      String?
+  createdAt     DateTime    @default(now())
+  createdBy     String
+  creator       User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  file          FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([shareToken])
+  @@index([fileId])
+  @@index([createdBy])
+}
+
+model FileFolder {
+  id             String        @id @default(uuid())
+  name           String
+  path           String
+  parentId       String?
+  depth          Int           @default(0)
+  isRoot         Boolean       @default(false)
+  organizationId String
+  createdBy      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  files          FileStorage[] @relation("FolderFiles")
+  creator        User?         @relation(fields: [createdBy], references: [id])
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent         FileFolder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       FileFolder[]  @relation("FolderHierarchy")
+
+  @@unique([organizationId, path])
+  @@unique([parentId, name])
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([path])
+  @@index([depth])
+  @@map("file_folders")
+}
+
+model RoleChangeLog {
+  id                 String           @id @default(uuid())
+  targetUserId       String?
+  targetAdminId      String?
+  organizationId     String?
+  oldRole            String
+  newRole            String
+  reason             String?
+  performedById      String?
+  adminPerformedById String?
+  approvedById       String?
+  status             RoleChangeStatus @default(COMPLETED)
+  ipAddress          String?
+  userAgent          String?
+  createdAt          DateTime         @default(now())
+  adminPerformedBy   AdminUser?       @relation("AdminPerformedRoleChanges", fields: [adminPerformedById], references: [id])
+  approvedBy         User?            @relation("ApprovedRoleChanges", fields: [approvedById], references: [id])
+  organization       Organization?    @relation(fields: [organizationId], references: [id])
+  performedBy        User?            @relation("PerformedRoleChanges", fields: [performedById], references: [id])
+  targetAdmin        AdminUser?       @relation("TargetedAdminRoleChanges", fields: [targetAdminId], references: [id])
+  targetUser         User?            @relation("TargetedRoleChanges", fields: [targetUserId], references: [id])
+
+  @@index([targetUserId])
+  @@index([targetAdminId])
+  @@index([organizationId])
+  @@index([performedById])
+  @@index([adminPerformedById])
+  @@index([status])
+  @@index([createdAt])
 }
 
 enum ExposedEntityType {
@@ -730,25 +880,22 @@ enum ExposedEntityType {
 }
 
 enum MemberRole {
-  // Existing values (keep temporarily)
   OWNER
   ADMIN
   MEMBER
   VIEWER
-
-  // New enhanced roles (will migrate to these)
-  SUPER_ADMIN          // Platform-level access (you)
-  ORGANIZATION_OWNER   // Organization owner (maps from OWNER)
-  ORGANIZATION_ADMIN   // Organization administrator (maps from ADMIN)
-  DEVELOPER           // Technical team members with API access
+  SUPER_ADMIN
+  ORGANIZATION_OWNER
+  ORGANIZATION_ADMIN
+  DEVELOPER
 }
 
 enum AdminRole {
-  SUPER_ADMIN          // Platform owner with full access
-  ADMIN               // Senior customer success/operations staff
-  SUPPORT_AGENT       // Customer support representatives
-  BILLING_ADMIN       // Finance/accounting staff
-  ANALYST             // Business intelligence/data team
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT_AGENT
+  BILLING_ADMIN
+  ANALYST
 }
 
 enum SubscriptionPlan {
@@ -775,41 +922,32 @@ enum InvoiceStatus {
 }
 
 enum DatabaseType {
-  // Traditional databases
   POSTGRESQL
   MYSQL
   MARIADB
   MSSQL
   MONGODB
   REDIS
+  SUPABASE
+  SNOWFLAKE
+  BIGQUERY
+  DYNAMODB
   SQLITE
   ORACLE
-
-  // AWS Cloud databases
   AWS_RDS_POSTGRESQL
   AWS_RDS_MYSQL
   AWS_RDS_MSSQL
   AWS_RDS_ORACLE
   AWS_AURORA_POSTGRESQL
   AWS_AURORA_MYSQL
-
-  // Azure Cloud databases
   AZURE_SQL_DATABASE
   AZURE_SQL_MANAGED_INSTANCE
   AZURE_POSTGRESQL
   AZURE_MYSQL
-
-  // Google Cloud databases
   GCP_CLOUD_SQL_POSTGRESQL
   GCP_CLOUD_SQL_MYSQL
   GCP_CLOUD_SQL_MSSQL
   GCP_SPANNER
-
-  // Analytics & Big Data
-  SUPABASE
-  SNOWFLAKE
-  BIGQUERY
-  DYNAMODB
 }
 
 enum HttpMethod {
@@ -841,28 +979,6 @@ enum NotificationPriority {
   LOW
 }
 
-model SocialAccount {
-  id           String   @id @default(uuid())
-  userId       String
-  provider     String   // 'google', 'github', 'facebook', etc.
-  providerId   String   // The user's ID from the OAuth provider
-  email        String?
-  name         String?
-  profileUrl   String?
-  avatarUrl    String?
-  accessToken  String?
-  refreshToken String?
-  profileData  String?  // JSON string of full profile data
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerId])
-  @@index([userId])
-  @@index([provider])
-}
-
 enum AcceptanceMethod {
   CLICK
   SCROLL
@@ -886,171 +1002,11 @@ enum RateLimitKeyStrategy {
   CUSTOM
 }
 
-// File Storage & CDN Models
-model FileStorage {
-  id               String            @id @default(uuid())
-  filename         String            // Original filename
-  storageKey       String            @unique // S3 key or storage path
-  mimeType         String
-  fileSize         BigInt            // File size in bytes
-  checksum         String            // SHA-256 hash for integrity
-  storageProvider  StorageProvider   @default(S3)
-  bucketName       String?           // S3 bucket name
-  cdnUrl           String?           // CDN URL if available
-  isPublic         Boolean           @default(false)
-  isActive         Boolean           @default(true)
-  uploadedAt       DateTime          @default(now())
-  lastAccessedAt   DateTime?
-  expiresAt        DateTime?         // Optional expiration
-  organizationId   String
-  uploadedBy       String?
-  folderId         String?           // Folder association
-
-  // Metadata
-  metadata         String?           // JSON metadata (dimensions, etc.)
-  tags             String[]          // Searchable tags
-  description      String?
-
-  // Relationships
-  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  uploader         User?             @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
-  folder           FileFolder?       @relation("FolderFiles", fields: [folderId], references: [id], onDelete: SetNull)
-
-  // File versions and thumbnails
-  versions         FileVersion[]
-  thumbnails       FileThumbnail[]
-  shares           FileShare[]
-
-  @@index([organizationId])
-  @@index([uploadedBy])
-  @@index([storageKey])
-  @@index([uploadedAt])
-  @@index([mimeType])
-  @@index([isPublic])
-  @@index([folderId])
-}
-
-model FileVersion {
-  id             String      @id @default(uuid())
-  fileId         String
-  versionNumber  Int         @default(1)
-  storageKey     String      @unique
-  fileSize       BigInt
-  checksum       String
-  uploadedAt     DateTime    @default(now())
-  uploadedBy     String?
-  changelog      String?     // Version description
-
-  file           FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  uploader       User?       @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
-
-  @@unique([fileId, versionNumber])
-  @@index([fileId])
-}
-
-model FileThumbnail {
-  id           String      @id @default(uuid())
-  fileId       String
-  size         String      // e.g., "150x150", "300x300"
-  storageKey   String      @unique
-  fileSize     BigInt
-  mimeType     String
-  cdnUrl       String?
-  createdAt    DateTime    @default(now())
-
-  file         FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
-
-  @@unique([fileId, size])
-  @@index([fileId])
-}
-
-model FileShare {
-  id             String      @id @default(uuid())
-  fileId         String
-  shareToken     String      @unique
-  isPublic       Boolean     @default(false)
-  allowDownload  Boolean     @default(true)
-  allowPreview   Boolean     @default(true)
-  expiresAt      DateTime?
-  maxDownloads   Int?
-  downloadCount  Int         @default(0)
-  password       String?     // Hashed password for protected shares
-  createdAt      DateTime    @default(now())
-  createdBy      String
-
-  file           FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  creator        User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-
-  @@index([shareToken])
-  @@index([fileId])
-  @@index([createdBy])
-}
-
-model FileFolder {
-  id             String   @id @default(uuid())
-  name           String
-  path           String
-  parentId       String?
-  depth          Int      @default(0)
-  isRoot         Boolean  @default(false)
-  organizationId String
-  createdBy      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  creator        User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  parent         FileFolder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children       FileFolder[]  @relation("FolderHierarchy")
-  files          FileStorage[] @relation("FolderFiles")
-
-  @@unique([organizationId, path])
-  @@unique([parentId, name])
-  @@index([organizationId])
-  @@index([parentId])
-  @@index([path])
-  @@index([depth])
-  @@map("file_folders")
-}
-
 enum StorageProvider {
   S3
   LOCAL
   AZURE_BLOB
   GOOGLE_CLOUD
-}
-
-// Enhanced RBAC Models
-
-model RoleChangeLog {
-  id              String      @id @default(uuid())
-  targetUserId    String?
-  targetUser      User?       @relation("TargetedRoleChanges", fields: [targetUserId], references: [id])
-  targetAdminId   String?
-  targetAdmin     AdminUser?  @relation("TargetedAdminRoleChanges", fields: [targetAdminId], references: [id])
-  organizationId  String?
-  organization    Organization? @relation(fields: [organizationId], references: [id])
-  oldRole         String
-  newRole         String
-  reason          String?
-  performedById   String?
-  performedBy     User?       @relation("PerformedRoleChanges", fields: [performedById], references: [id])
-  adminPerformedById String?
-  adminPerformedBy   AdminUser? @relation("AdminPerformedRoleChanges", fields: [adminPerformedById], references: [id])
-  approvedById    String?
-  approvedBy      User?       @relation("ApprovedRoleChanges", fields: [approvedById], references: [id])
-  status          RoleChangeStatus @default(COMPLETED)
-  ipAddress       String?
-  userAgent       String?
-  createdAt       DateTime    @default(now())
-
-  @@index([targetUserId])
-  @@index([targetAdminId])
-  @@index([organizationId])
-  @@index([performedById])
-  @@index([adminPerformedById])
-  @@index([status])
-  @@index([createdAt])
 }
 
 enum AuditAction {

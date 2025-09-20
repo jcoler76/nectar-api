@@ -1,19 +1,19 @@
 // Secure session storage utility
 class SecureSessionStorage {
   constructor() {
-    this.storageKey = 'mirabel_session';
+    this.storageKey = 'nectar_session';
     this.encryptionKey = this.generateEncryptionKey();
   }
 
   generateEncryptionKey() {
     // Generate a key based on browser fingerprint and session
     const fingerprint = this.getBrowserFingerprint();
-    let sessionId = localStorage.getItem('mirabel_session_id');
+    let sessionId = localStorage.getItem('nectar_session_id');
 
     // Only generate new session ID if none exists to maintain consistency
     if (!sessionId) {
       sessionId = this.generateSessionId();
-      localStorage.setItem('mirabel_session_id', sessionId);
+      localStorage.setItem('nectar_session_id', sessionId);
     }
 
     return btoa(fingerprint + sessionId).substring(0, 32);
@@ -26,7 +26,7 @@ class SecureSessionStorage {
       navigator.userAgent,
       navigator.language,
       new Date().getTimezoneOffset(),
-      'mirabel-stable-key', // Static component for additional stability
+      'nectar-stable-key', // Static component for additional stability
     ].join('|');
 
     return btoa(fingerprint).substring(0, 16);
@@ -160,7 +160,7 @@ class SecureSessionStorage {
   removeItem() {
     const oldValue = localStorage.getItem(this.storageKey);
     localStorage.removeItem(this.storageKey);
-    localStorage.removeItem('mirabel_session_id');
+    localStorage.removeItem('nectar_session_id');
 
     // Manually trigger storage event for logout synchronization
     window.dispatchEvent(
@@ -199,7 +199,7 @@ class SecureSessionStorage {
         const recoveredData = this.decryptWithKey(encryptedData, legacyKey);
         if (recoveredData) {
           // Update to use localStorage and re-encrypt with current key
-          localStorage.setItem('mirabel_session_id', legacySessionId);
+          localStorage.setItem('nectar_session_id', legacySessionId);
           sessionStorage.removeItem('session_id');
           this.encryptionKey = this.generateEncryptionKey();
           this.setItem(recoveredData);
@@ -218,7 +218,7 @@ class SecureSessionStorage {
         const recoveredData = this.decryptWithKey(encryptedData, testKey);
         if (recoveredData) {
           // Update session ID and re-encrypt with current key
-          localStorage.setItem('mirabel_session_id', sessionId);
+          localStorage.setItem('nectar_session_id', sessionId);
           this.encryptionKey = this.generateEncryptionKey();
           this.setItem(recoveredData);
           return recoveredData;

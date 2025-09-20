@@ -19,7 +19,7 @@ router.get('/versions', (req, res) => {
     versioningMethods: [
       'URL path: /api/v1/endpoint',
       'Header: X-API-Version: v1',
-      'Accept header: application/vnd.mirabel.v1+json',
+      'Accept header: application/vnd.nectarstudio.v1+json',
       'Query parameter: ?version=v1',
     ],
     migrationGuide: {

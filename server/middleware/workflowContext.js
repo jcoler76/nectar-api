@@ -63,7 +63,7 @@ function createWorkflowRequest(baseOptions = {}, workflowId, workflowRunId, node
     'x-workflow-node-type': nodeType,
     'x-workflow-node-id': nodeId,
     'x-workflow-correlation-id': `${workflowId}:${workflowRunId}:${nodeId}`,
-    'user-agent': `Mirabel-Workflow/${nodeType} (Workflow: ${workflowId})`,
+    'user-agent': `NectarStudio-Workflow/${nodeType} (Workflow: ${workflowId})`,
   };
 
   return {

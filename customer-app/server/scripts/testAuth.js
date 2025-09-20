@@ -15,7 +15,7 @@ async function testAuth() {
     console.log('Connected to MongoDB');
 
     // Test email - replace with the email you're trying to log in with
-    const testEmail = 'jcoler@mirabeltechnologies.com'; // Change this to your login email
+    const testEmail = 'jcoler@nectarstudio.ai'; // Change this to your login email
     const testPassword = 'your-password'; // Change this to your password
 
     console.log(`Testing authentication for: ${testEmail}`);

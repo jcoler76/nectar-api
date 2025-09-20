@@ -12,9 +12,8 @@ const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS
   ? process.env.ALLOWED_DOMAINS.split(',').map(domain => domain.trim())
   : [
       // Production API domains
-      'api.mirabeltechnologies.com',
-      'staging-api.magazinemanager.biz',
-      'mirabelconnect.mirabeltechnologies.com',
+      'api.nectarstudio.ai',
+      'app.nectarstudio.ai',
       // Add other trusted external APIs as needed
       // 'api.stripe.com',
       // 'hooks.slack.com',

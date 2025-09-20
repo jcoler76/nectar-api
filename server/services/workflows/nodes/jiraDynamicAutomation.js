@@ -445,7 +445,7 @@ ${result.executionTime ? `**Execution Time**: ${result.executionTime} seconds` :
 ${result.status ? `**Status**: ${result.status}` : ''}
 ${result.message ? `**Message**: ${result.message}` : ''}
 
-_Automated by Mirabel Workflow System_`;
+_Automated by Nectar Studio Workflow System_`;
   } else {
     comment = `${responseConfig.failureMessage}
 
@@ -454,7 +454,7 @@ _Automated by Mirabel Workflow System_`;
 ${result.executionTime ? `**Execution Time**: ${result.executionTime} seconds` : ''}
 
 _Please review and run manually if needed._
-_Automated by Mirabel Workflow System_`;
+_Automated by Nectar Studio Workflow System_`;
   }
 
   // Add comment

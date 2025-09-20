@@ -214,8 +214,8 @@ Scans the entire codebase for potentially exposed credentials.
 
 ## 📞 Emergency Contacts
 
-- **Security Team**: security@mirabeltechnologies.com
-- **DevOps Team**: devops@mirabeltechnologies.com
+- **Security Team**: security@nectarstudio.ai
+- **DevOps Team**: devops@nectarstudio.ai
 - **On-Call Engineer**: +1-XXX-XXX-XXXX
 
 ## 📚 Additional Resources

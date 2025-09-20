@@ -64,8 +64,6 @@ On each server, edit `/home/ubuntu/nectar-api/.env.production`:
 # Critical settings to update:
 JWT_SECRET=<generate-random-32-char-string>
 ENCRYPTION_KEY=<generate-random-string>
-MONGO_ROOT_PASSWORD=<strong-password>
-MONGODB_URI=mongodb://mongodb:27017/mirabel
 
 # SQL Server (if using)
 SQL_SERVER_HOST=your-sql-server

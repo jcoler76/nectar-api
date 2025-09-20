@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-class MirabelQualityAnalyzer {
+class NectarStudioQualityAnalyzer {
   constructor() {
     this.results = {
       timestamp: new Date().toISOString(),
@@ -384,7 +384,7 @@ class MirabelQualityAnalyzer {
   // Generate final report
   generateReport() {
     console.log('\n' + '='.repeat(60));
-    console.log('🎯 MIRABEL API QUALITY ASSESSMENT REPORT');
+    console.log('🎯 NECTAR STUDIO API QUALITY ASSESSMENT REPORT');
     console.log('='.repeat(60));
     
     console.log(`\n📊 OVERALL SCORE: ${this.results.overallScore}/100 (${this.results.grade})`);
@@ -720,7 +720,7 @@ class MirabelQualityAnalyzer {
 async function runQualityAnalysis() {
   console.log('🚀 Starting Nectar Studio Quality Analysis...\n');
   
-  const analyzer = new MirabelQualityAnalyzer();
+  const analyzer = new NectarStudioQualityAnalyzer();
   
   try {
     await analyzer.analyzeAutomatedMetrics();
@@ -739,4 +739,4 @@ if (require.main === module) {
   runQualityAnalysis();
 }
 
-module.exports = { MirabelQualityAnalyzer };
+module.exports = { NectarStudioQualityAnalyzer };

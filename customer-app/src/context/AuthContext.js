@@ -57,8 +57,8 @@ export const AuthProvider = ({ children }) => {
   // Listen for storage changes (logout from another tab)
   useEffect(() => {
     const handleStorageChange = e => {
-      // Watch for both old 'user' key and new 'mirabel_session' key
-      if (e.key === 'user' || e.key === 'mirabel_session') {
+      // Watch for both old 'user' key and new 'nectar_session' key
+      if (e.key === 'user' || e.key === 'nectar_session') {
         if (!e.newValue) {
           // User was logged out from another tab
           setUser(null);

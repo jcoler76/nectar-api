@@ -61,7 +61,7 @@ class ZoomInfoService {
       const response = await axios.post(`${this.baseURL}${endpoint}`, authData, {
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -103,7 +103,7 @@ class ZoomInfoService {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -145,7 +145,7 @@ class ZoomInfoService {
         params,
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -189,7 +189,7 @@ class ZoomInfoService {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -224,7 +224,7 @@ class ZoomInfoService {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -254,7 +254,7 @@ class ZoomInfoService {
       const response = await axios.get(`${this.baseURL}/company/${companyId}/technologies`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -284,7 +284,7 @@ class ZoomInfoService {
       const response = await axios.get(`${this.baseURL}/company/${companyId}/news`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 30000,
       });
@@ -378,7 +378,7 @@ class ZoomInfoService {
       const response = await axios.get(`${this.baseURL}/user/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 10000,
       });
@@ -402,7 +402,7 @@ class ZoomInfoService {
       const response = await axios.get(`${this.baseURL}/user/usage`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'MirabelAPI/1.0',
+          'User-Agent': 'NectarStudio/1.0',
         },
         timeout: 10000,
       });

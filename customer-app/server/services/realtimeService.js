@@ -27,7 +27,7 @@ class RealtimeService {
       cors: {
         origin: [
           'http://localhost:3000',
-          'https://mirabelconnect.mirabeltechnologies.com',
+          'https://app.nectarstudio.ai',
           process.env.CLIENT_URL,
         ].filter(Boolean),
         credentials: true,
