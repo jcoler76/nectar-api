@@ -244,6 +244,162 @@ class DatabaseService {
   static getValidationRules(databaseType) {
     return DatabaseDriverFactory.getValidationRules(databaseType);
   }
+
+  /**
+   * Execute a raw SQL query
+   * @param {Object} connectionConfig - Connection configuration
+   * @param {string} query - SQL query to execute
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Object>} Query results
+   */
+  static async executeQuery(connectionConfig, query, params = {}) {
+    let driver, connection;
+    try {
+      const databaseType = connectionConfig.type || 'MSSQL';
+
+      logger.debug('Executing query', {
+        type: databaseType,
+        host: connectionConfig.host,
+        database: connectionConfig.database,
+        queryLength: query.length,
+        paramCount: Object.keys(params).length,
+      });
+
+      driver = DatabaseDriverFactory.createDriver(databaseType, connectionConfig);
+      connection = await driver.createConnection();
+
+      // Use driver's executeQuery method if available, otherwise fall back to raw query execution
+      if (typeof driver.executeQuery === 'function') {
+        return await driver.executeQuery(connection, query, params);
+      } else {
+        // Fallback for drivers that don't implement executeQuery
+        logger.warn(
+          `Driver ${databaseType} does not implement executeQuery, using basic execution`
+        );
+        return await driver.executeStoredProcedure(connection, query, params);
+      }
+    } catch (error) {
+      logger.error('Query execution failed:', {
+        error: error.message,
+        queryLength: query.length,
+        host: connectionConfig.host,
+        database: connectionConfig.database,
+      });
+      throw error;
+    } finally {
+      if (driver && connection) {
+        try {
+          await driver.closeConnection(connection);
+        } catch (error) {
+          logger.error('Error closing connection in executeQuery:', error.message);
+        }
+      }
+    }
+  }
+
+  /**
+   * Get database schema information
+   * @param {Object} connectionConfig - Connection configuration
+   * @returns {Promise<Object>} Schema information
+   */
+  static async getSchema(connectionConfig) {
+    let driver, connection;
+    try {
+      const databaseType = connectionConfig.type || 'MSSQL';
+
+      logger.debug('Getting database schema', {
+        type: databaseType,
+        host: connectionConfig.host,
+        database: connectionConfig.database,
+      });
+
+      driver = DatabaseDriverFactory.createDriver(databaseType, connectionConfig);
+      connection = await driver.createConnection();
+
+      // Use driver's getSchema method if available, otherwise get basic objects
+      if (typeof driver.getSchema === 'function') {
+        return await driver.getSchema(connection, connectionConfig.database);
+      } else {
+        // Fallback to getting database objects
+        const objects = await driver.getDatabaseObjects(connection, connectionConfig.database);
+        return {
+          database: connectionConfig.database,
+          objects: objects || [],
+          tables: objects?.filter(obj => obj.type_desc === 'USER_TABLE') || [],
+          views: objects?.filter(obj => obj.type_desc === 'VIEW') || [],
+          procedures: objects?.filter(obj => obj.type_desc === 'SQL_STORED_PROCEDURE') || [],
+        };
+      }
+    } catch (error) {
+      logger.error('Schema retrieval failed:', {
+        error: error.message,
+        host: connectionConfig.host,
+        database: connectionConfig.database,
+      });
+      throw error;
+    } finally {
+      if (driver && connection) {
+        try {
+          await driver.closeConnection(connection);
+        } catch (error) {
+          logger.error('Error closing connection in getSchema:', error.message);
+        }
+      }
+    }
+  }
+
+  /**
+   * Get list of tables and views
+   * @param {Object} connectionConfig - Connection configuration
+   * @returns {Promise<Array>} List of tables and views
+   */
+  static async getTables(connectionConfig) {
+    let driver, connection;
+    try {
+      const databaseType = connectionConfig.type || 'MSSQL';
+
+      logger.debug('Getting database tables', {
+        type: databaseType,
+        host: connectionConfig.host,
+        database: connectionConfig.database,
+      });
+
+      driver = DatabaseDriverFactory.createDriver(databaseType, connectionConfig);
+      connection = await driver.createConnection();
+
+      // Use driver's getTables method if available, otherwise get from database objects
+      if (typeof driver.getTables === 'function') {
+        return await driver.getTables(connection, connectionConfig.database);
+      } else {
+        // Fallback to getting database objects and filtering
+        const objects = await driver.getDatabaseObjects(connection, connectionConfig.database);
+        return (
+          objects
+            ?.filter(obj => obj.type_desc === 'USER_TABLE' || obj.type_desc === 'VIEW')
+            .map(obj => ({
+              name: obj.name,
+              schema: obj.schema_name,
+              type: obj.type_desc,
+            })) || []
+        );
+      }
+    } catch (error) {
+      logger.error('Tables retrieval failed:', {
+        error: error.message,
+        host: connectionConfig.host,
+        database: connectionConfig.database,
+      });
+      throw error;
+    } finally {
+      if (driver && connection) {
+        try {
+          await driver.closeConnection(connection);
+        } catch (error) {
+          logger.error('Error closing connection in getTables:', error.message);
+        }
+      }
+    }
+  }
 }
 
 // Export factory function for backward compatibility

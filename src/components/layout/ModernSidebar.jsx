@@ -80,17 +80,17 @@ const ModernSidebar = ({ collapsed, onToggle }) => {
     },
     { title: 'Roles', url: '/roles', icon: Sparkles, permission: 'canManageServices', badge: null },
     {
-      title: 'File Storage',
-      url: '/files',
-      icon: FileText,
-      permission: 'canViewDashboard',
-      badge: null,
-    },
-    {
       title: 'Applications',
       url: '/applications',
       icon: Grid3X3,
       permission: 'canManageApplications',
+      badge: null,
+    },
+    {
+      title: 'File Storage',
+      url: '/files',
+      icon: FileText,
+      permission: 'canViewDashboard',
       badge: null,
     },
     ...(user?.isAdmin

@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/client"
 }
 
 datasource db {
@@ -41,6 +40,7 @@ model Organization {
   rateLimitUsage          RateLimitUsage[]
   billingEvents           BillingEvent[]
   fileStorages            FileStorage[]
+  fileFolders             FileFolder[]
   // RBAC Relations
   roleChangeLogs          RoleChangeLog[]
 
@@ -86,6 +86,7 @@ model User {
   uploadedFiles              FileStorage[]
   fileVersionsCreated        FileVersion[]
   fileSharesCreated          FileShare[]
+  fileFoldersCreated         FileFolder[]
   // RBAC Audit Relations
   targetedRoleChanges        RoleChangeLog[] @relation("TargetedRoleChanges")
   performedRoleChanges       RoleChangeLog[] @relation("PerformedRoleChanges")
@@ -903,6 +904,7 @@ model FileStorage {
   expiresAt        DateTime?         // Optional expiration
   organizationId   String
   uploadedBy       String?
+  folderId         String?           // Folder association
 
   // Metadata
   metadata         String?           // JSON metadata (dimensions, etc.)
@@ -912,6 +914,7 @@ model FileStorage {
   // Relationships
   organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   uploader         User?             @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+  folder           FileFolder?       @relation("FolderFiles", fields: [folderId], references: [id], onDelete: SetNull)
 
   // File versions and thumbnails
   versions         FileVersion[]
@@ -924,6 +927,7 @@ model FileStorage {
   @@index([uploadedAt])
   @@index([mimeType])
   @@index([isPublic])
+  @@index([folderId])
 }
 
 model FileVersion {
@@ -980,6 +984,33 @@ model FileShare {
   @@index([shareToken])
   @@index([fileId])
   @@index([createdBy])
+}
+
+model FileFolder {
+  id             String   @id @default(uuid())
+  name           String
+  path           String
+  parentId       String?
+  depth          Int      @default(0)
+  isRoot         Boolean  @default(false)
+  organizationId String
+  createdBy      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creator        User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  parent         FileFolder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       FileFolder[]  @relation("FolderHierarchy")
+  files          FileStorage[] @relation("FolderFiles")
+
+  @@unique([organizationId, path])
+  @@unique([parentId, name])
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([path])
+  @@index([depth])
+  @@map("file_folders")
 }
 
 enum StorageProvider {

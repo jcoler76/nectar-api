@@ -21,6 +21,10 @@ const Login = () => {
     secret,
   } = useContext(AuthContext);
 
+  // Debug: Check what the environment variable contains
+  const marketingSiteUrl = process.env.REACT_APP_MARKETING_SITE_URL || 'http://localhost:5000';
+  console.log('Marketing site URL:', marketingSiteUrl);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
@@ -259,7 +263,7 @@ const Login = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-bold tracking-tight">
-            NectarStudio <span className="text-blue-600">.ai</span>
+            NectarStudio<span className="text-blue-600">.ai</span>
           </h2>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
         </div>
@@ -326,6 +330,29 @@ const Login = () => {
             </div>
           </FormFieldGroup>
         </FormSection>
+
+        <div className="text-center text-sm text-muted-foreground mb-4">
+          <p>
+            By signing in, you agree to our{' '}
+            <a
+              href={`${marketingSiteUrl}/terms`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+              href={`${marketingSiteUrl}/privacy`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Privacy Policy
+            </a>
+          </p>
+        </div>
 
         <FormActions align="center">
           <Button type="submit" variant="default" size="lg" disabled={loading} className="w-full">

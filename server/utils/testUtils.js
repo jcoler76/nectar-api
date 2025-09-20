@@ -5,49 +5,33 @@
  * without mocks. All database operations, API calls, and services use actual implementations.
  */
 
-const mongoose = require('mongoose');
 const request = require('supertest');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { PrismaClient } = require('@prisma/client');
 
-// Models
-const User = require('../models/User');
-const Service = require('../models/Service');
-const Connection = require('../models/Connection');
-const Workflow = require('../models/workflowModels');
-const Application = require('../models/Application');
-const Role = require('../models/Role');
+// Initialize Prisma client for testing
+const prisma = new PrismaClient();
 
 /**
  * Real Database Test Manager
  *
- * Manages real MongoDB connections for testing
+ * Manages real PostgreSQL connections for testing via Prisma
  */
 class RealDatabaseTestManager {
   constructor() {
-    this.mongoServer = null;
-    this.connection = null;
+    this.prisma = prisma;
   }
 
   /**
    * Connect to test database
    */
-  async connect(useInMemory = false) {
+  async connect() {
     try {
-      if (useInMemory) {
-        // Use in-memory MongoDB for faster tests
-        this.mongoServer = await MongoMemoryServer.create();
-        const uri = this.mongoServer.getUri();
-        this.connection = await mongoose.connect(uri);
-      } else {
-        // Use real test database
-        const testDbUri = process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/mirabel_test';
-        this.connection = await mongoose.connect(testDbUri);
-      }
-
-      console.log('Connected to test database');
-      return this.connection;
+      // Test the connection
+      await this.prisma.$connect();
+      console.log('Connected to test database (PostgreSQL via Prisma)');
+      return this.prisma;
     } catch (error) {
       console.error('Failed to connect to test database:', error);
       throw error;
@@ -55,22 +39,22 @@ class RealDatabaseTestManager {
   }
 
   /**
-   * Clear all collections in test database
+   * Clear all tables in test database
    */
   async clearDatabase() {
-    const collections = mongoose.connection.collections;
+    try {
+      // Clear all tables in reverse order to handle foreign key constraints
+      await this.prisma.databaseObject.deleteMany({});
+      await this.prisma.role.deleteMany({});
+      await this.prisma.service.deleteMany({});
+      await this.prisma.databaseConnection.deleteMany({});
+      await this.prisma.user.deleteMany({});
+      await this.prisma.organization.deleteMany({});
 
-    for (const key in collections) {
-      await collections[key].deleteMany({});
-    }
-  }
-
-  /**
-   * Drop test database
-   */
-  async dropDatabase() {
-    if (mongoose.connection.db) {
-      await mongoose.connection.db.dropDatabase();
+      console.log('Test database cleared');
+    } catch (error) {
+      console.error('Failed to clear test database:', error);
+      throw error;
     }
   }
 
@@ -78,10 +62,12 @@ class RealDatabaseTestManager {
    * Disconnect from test database
    */
   async disconnect() {
-    await mongoose.disconnect();
-
-    if (this.mongoServer) {
-      await this.mongoServer.stop();
+    try {
+      await this.prisma.$disconnect();
+      console.log('Disconnected from test database');
+    } catch (error) {
+      console.error('Failed to disconnect from test database:', error);
+      throw error;
     }
   }
 
@@ -89,166 +75,200 @@ class RealDatabaseTestManager {
    * Seed database with test data
    */
   async seed(data = {}) {
-    const seededData = {};
+    try {
+      const seededData = {};
 
-    if (data.users) {
-      seededData.users = await User.insertMany(data.users);
+      // Create organizations first (required for foreign keys)
+      if (data.organizations) {
+        seededData.organizations = [];
+        for (const orgData of data.organizations) {
+          const org = await this.prisma.organization.create({ data: orgData });
+          seededData.organizations.push(org);
+        }
+      }
+
+      // Create users
+      if (data.users) {
+        seededData.users = [];
+        for (const userData of data.users) {
+          const user = await this.prisma.user.create({ data: userData });
+          seededData.users.push(user);
+        }
+      }
+
+      // Create connections
+      if (data.connections) {
+        seededData.connections = [];
+        for (const connectionData of data.connections) {
+          const connection = await this.prisma.databaseConnection.create({ data: connectionData });
+          seededData.connections.push(connection);
+        }
+      }
+
+      // Create services
+      if (data.services) {
+        seededData.services = [];
+        for (const serviceData of data.services) {
+          const service = await this.prisma.service.create({ data: serviceData });
+          seededData.services.push(service);
+        }
+      }
+
+      // Create roles
+      if (data.roles) {
+        seededData.roles = [];
+        for (const roleData of data.roles) {
+          const role = await this.prisma.role.create({ data: roleData });
+          seededData.roles.push(role);
+        }
+      }
+
+      return seededData;
+    } catch (error) {
+      console.error('Failed to seed test database:', error);
+      throw error;
     }
-
-    if (data.services) {
-      seededData.services = await Service.insertMany(data.services);
-    }
-
-    if (data.connections) {
-      seededData.connections = await Connection.insertMany(data.connections);
-    }
-
-    if (data.workflows) {
-      seededData.workflows = await Workflow.insertMany(data.workflows);
-    }
-
-    if (data.applications) {
-      seededData.applications = await Application.insertMany(data.applications);
-    }
-
-    if (data.roles) {
-      seededData.roles = await Role.insertMany(data.roles);
-    }
-
-    return seededData;
   }
 }
 
 /**
  * Real Test Data Factory
  *
- * Creates real database records for testing
+ * Creates real database records for testing using Prisma
  */
 class RealTestDataFactory {
+  /**
+   * Create a test organization
+   */
+  static async createOrganization(data = {}) {
+    const defaultData = {
+      name: `Test Org ${Date.now()}`,
+      subdomain: `test${Date.now()}`,
+      isActive: true,
+    };
+
+    const orgData = { ...defaultData, ...data };
+    return await prisma.organization.create({ data: orgData });
+  }
+
   /**
    * Create a real user in database
    */
   static async createUser(data = {}) {
+    // Ensure we have an organization
+    let organizationId = data.organizationId;
+    if (!organizationId) {
+      const org = await this.createOrganization();
+      organizationId = org.id;
+    }
+
     const defaultData = {
       email: `test${Date.now()}@example.com`,
-      password: 'TestPassword123!',
+      passwordHash: 'TestPassword123!',
       firstName: 'Test',
       lastName: 'User',
-      isAdmin: false,
       isActive: true,
+      organizationId,
     };
 
     const userData = { ...defaultData, ...data };
 
     // Hash password with real bcrypt
-    if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
+    if (userData.passwordHash) {
+      userData.passwordHash = await bcrypt.hash(userData.passwordHash, 10);
     }
 
-    const user = new User(userData);
-    await user.save();
-
-    return user;
+    return await prisma.user.create({ data: userData });
   }
 
   /**
    * Create a real service in database
    */
   static async createService(data = {}) {
+    // Ensure we have required foreign keys
+    let organizationId = data.organizationId;
+    let connectionId = data.connectionId;
+
+    if (!organizationId) {
+      const org = await this.createOrganization();
+      organizationId = org.id;
+    }
+
+    if (!connectionId) {
+      const connection = await this.createConnection({ organizationId });
+      connectionId = connection.id;
+    }
+
     const defaultData = {
-      name: `Test Service ${Date.now()}`,
+      name: `test_service_${Date.now()}`,
+      label: 'Test Service',
       description: 'Test service description',
-      type: 'database',
-      active: true,
-      endpoints: [],
-      configuration: {},
+      database: 'test_db',
+      isActive: true,
+      organizationId,
+      connectionId,
     };
 
     const serviceData = { ...defaultData, ...data };
-    const service = new Service(serviceData);
-    await service.save();
-
-    return service;
+    return await prisma.service.create({ data: serviceData });
   }
 
   /**
    * Create a real connection in database
    */
   static async createConnection(data = {}) {
+    // Ensure we have an organization
+    let organizationId = data.organizationId;
+    if (!organizationId) {
+      const org = await this.createOrganization();
+      organizationId = org.id;
+    }
+
     const defaultData = {
-      name: `Test Connection ${Date.now()}`,
-      type: 'mongodb',
+      name: `test_connection_${Date.now()}`,
+      type: 'POSTGRESQL',
       host: 'localhost',
-      port: 27017,
+      port: 5432,
       database: 'test_db',
-      username: '',
-      password: '',
-      active: true,
+      username: 'test_user',
+      passwordEncrypted: 'encrypted_password',
+      isActive: true,
+      organizationId,
     };
 
     const connectionData = { ...defaultData, ...data };
-    const connection = new Connection(connectionData);
-    await connection.save();
-
-    return connection;
-  }
-
-  /**
-   * Create a real workflow in database
-   */
-  static async createWorkflow(data = {}) {
-    const defaultData = {
-      name: `Test Workflow ${Date.now()}`,
-      description: 'Test workflow description',
-      nodes: [],
-      edges: [],
-      trigger: { type: 'manual' },
-      active: true,
-    };
-
-    const workflowData = { ...defaultData, ...data };
-    const workflow = new Workflow(workflowData);
-    await workflow.save();
-
-    return workflow;
-  }
-
-  /**
-   * Create a real application in database
-   */
-  static async createApplication(data = {}) {
-    const defaultData = {
-      name: `Test Application ${Date.now()}`,
-      description: 'Test application description',
-      isActive: true,
-    };
-
-    const applicationData = { ...defaultData, ...data };
-    const application = new Application(applicationData);
-
-    // Generate real API key
-    application.apiKey = await application.generateApiKey();
-    await application.save();
-
-    return application;
+    return await prisma.databaseConnection.create({ data: connectionData });
   }
 
   /**
    * Create a real role in database
    */
   static async createRole(data = {}) {
+    // Ensure we have required foreign keys
+    let organizationId = data.organizationId;
+    let serviceId = data.serviceId;
+
+    if (!organizationId) {
+      const org = await this.createOrganization();
+      organizationId = org.id;
+    }
+
+    if (!serviceId) {
+      const service = await this.createService({ organizationId });
+      serviceId = service.id;
+    }
+
     const defaultData = {
-      name: `Test Role ${Date.now()}`,
+      name: `test_role_${Date.now()}`,
       description: 'Test role description',
-      permissions: [],
-      isSystem: false,
+      permissions: {},
+      isActive: true,
+      organizationId,
+      serviceId,
     };
 
     const roleData = { ...defaultData, ...data };
-    const role = new Role(roleData);
-    await role.save();
-
-    return role;
+    return await prisma.role.create({ data: roleData });
   }
 }
 
