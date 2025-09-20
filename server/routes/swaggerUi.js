@@ -1,7 +1,32 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
+const { logger } = require('../utils/logger');
 
 const router = express.Router();
+
+// Debug endpoint to test session authentication
+router.get('/debug/session', (req, res) => {
+  logger.info('Session debug request', {
+    hasSession: !!req.session,
+    hasUser: !!req.session?.user,
+    sessionUser: req.session?.user
+      ? {
+          id: req.session.user.id,
+          email: req.session.user.email,
+          organizationId: req.session.user.organizationId,
+        }
+      : null,
+    cookies: req.headers.cookie || 'none',
+    userAgent: req.headers['user-agent'],
+  });
+
+  res.json({
+    hasSession: !!req.session,
+    hasUser: !!req.session?.user,
+    sessionUser: req.session?.user || null,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Blueprints Swagger UI (loads spec from the JSON endpoint)
 router.use('/blueprints/ui', swaggerUi.serve, (req, res, next) => {

@@ -65,7 +65,7 @@ const RoleList = () => {
   const handleOpenSwaggerForRole = () => {
     if (!swaggerDialog.selectedRole?.id) return;
     const apiUrl = getApiUrl();
-    const url = `${apiUrl}/api/documentation/openapi/${encodeURIComponent(swaggerDialog.selectedRole.id)}/ui`;
+    const url = `${apiUrl}/api/swagger-ui/openapi/${encodeURIComponent(swaggerDialog.selectedRole.id)}/ui`;
     setDocViewer({
       open: true,
       url,
@@ -78,7 +78,7 @@ const RoleList = () => {
     const apiUrl = getApiUrl();
     setDocViewer({
       open: true,
-      url: `${apiUrl}/api/documentation/blueprints/ui`,
+      url: `${apiUrl}/api/swagger-ui/blueprints/ui`,
       title: 'Blueprints Documentation',
     });
     setSwaggerDialog(prev => ({ ...prev, open: false }));
@@ -282,7 +282,7 @@ const RoleList = () => {
           <DialogHeader className="p-4 pb-2">
             <DialogTitle>{docViewer.title}</DialogTitle>
             <DialogDescription>
-              Interactive API documentation using session-based authentication.
+              Interactive API documentation with session-based authentication.
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 w-full h-full min-h-[70vh]">
@@ -291,6 +291,7 @@ const RoleList = () => {
               className="w-full h-full border-0 rounded-b-lg"
               title={docViewer.title}
               style={{ minHeight: '70vh' }}
+              sandbox="allow-scripts allow-forms allow-popups"
             />
           </div>
         </DialogContent>

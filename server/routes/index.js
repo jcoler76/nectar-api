@@ -139,6 +139,10 @@ const mountRoutes = app => {
   );
   // SDK generation endpoints (auth required); build SDKs from OpenAPI
   app.use('/api/documentation/sdk', authMiddleware, csrfProtection(csrfOptions), require('./sdk'));
+
+  // Swagger UI pages (Blueprints and role-based) - Mount on specific paths without auth
+  app.use('/api/swagger-ui', require('./swaggerUi'));
+
   // API documentation & OpenAPI routes (enabled)
   app.use(
     '/api/documentation',
@@ -159,13 +163,6 @@ const mountRoutes = app => {
     authMiddleware,
     csrfProtection(csrfOptions),
     require('./documentationBlueprints')
-  );
-  // Swagger UI pages (Blueprints and role-based)
-  app.use(
-    '/api/documentation',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./swaggerUi')
   );
   // Re-enabled for BaaS analytics - imports/ai routes
   // TODO: Update imports route to use Prisma models instead of MongoDB models
