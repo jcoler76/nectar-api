@@ -355,6 +355,9 @@ const mountRoutes = app => {
   // Admin settings for security (header aliases) — self-service
   app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminSettings'));
 
+  // File Storage Folders
+  app.use('/api/folders', authMiddleware, csrfProtection(csrfOptions), require('./folders'));
+
   console.log('✅ All routes mounted successfully');
 };
 

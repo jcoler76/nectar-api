@@ -30,12 +30,12 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     }
 
     if (!apiKey) {
-      throw new AuthenticationError('API key required', 401);
+      throw new AuthenticationError('API key missing or invalid', 401);
     }
 
     // 2. Find and validate application
     // First try to find by prefix for efficiency
-    const apiKeyPrefix = apiKey.substring(0, 4);
+    const apiKeyPrefix = apiKey.substring(0, 8);
     const potentialApps = await prisma.application.findMany({
       where: { apiKeyPrefix },
       include: {

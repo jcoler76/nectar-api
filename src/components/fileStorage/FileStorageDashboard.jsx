@@ -10,6 +10,7 @@ import {
   Music,
   Archive,
   File,
+  FolderPlus,
 } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -34,6 +35,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../ui/switch';
 import { Textarea } from '../ui/textarea';
 
+import FolderBrowser from './FolderBrowser';
+
 const FileStorageDashboard = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,10 +44,13 @@ const FileStorageDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 });
 
+  // Folder navigation state
+  const [currentPath, setCurrentPath] = useState('/');
+
   // Filters
   const [search, setSearch] = useState('');
-  const [mimeTypeFilter, setMimeTypeFilter] = useState('');
-  const [isPublicFilter, setIsPublicFilter] = useState('');
+  const [mimeTypeFilter, setMimeTypeFilter] = useState('all');
+  const [isPublicFilter, setIsPublicFilter] = useState('all');
   const [sortBy, setSortBy] = useState('uploadedAt');
   const [sortOrder, setSortOrder] = useState('desc');
 
@@ -54,6 +60,10 @@ const FileStorageDashboard = () => {
   const [uploadDescription, setUploadDescription] = useState('');
   const [uploadIsPublic, setUploadIsPublic] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
+  // Folder creation state
+  const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
 
   // File share state
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -67,28 +77,35 @@ const FileStorageDashboard = () => {
     password: '',
   });
 
-  // Fetch files
+  // Fetch files for current folder
   const fetchFiles = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
 
+      // Use folder API instead of legacy files API
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
+        path: currentPath,
+        include: 'files',
         limit: pagination.limit.toString(),
-        sortBy,
-        sortOrder,
+        offset: ((pagination.page - 1) * pagination.limit).toString(),
       });
 
       if (search) params.append('search', search);
-      if (mimeTypeFilter) params.append('mimeType', mimeTypeFilter);
-      if (isPublicFilter !== '') params.append('isPublic', isPublicFilter);
+      if (mimeTypeFilter && mimeTypeFilter !== 'all') params.append('mimeType', mimeTypeFilter);
+      if (isPublicFilter && isPublicFilter !== 'all') params.append('isPublic', isPublicFilter);
 
-      const response = await api.get(`/files?${params}`);
+      const response = await api.get(`/api/folders?${params}`);
 
       if (response.data.success) {
-        setFiles(response.data.files);
-        setPagination(response.data.pagination);
+        const fileData = response.data.data.files || [];
+        setFiles(fileData);
+        // Update pagination based on actual results
+        setPagination(prev => ({
+          ...prev,
+          total: fileData.length,
+          pages: Math.ceil(fileData.length / prev.limit),
+        }));
       } else {
         setError(response.data.message || 'Failed to fetch files');
       }
@@ -97,19 +114,38 @@ const FileStorageDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [
-    pagination.page,
-    pagination.limit,
-    search,
-    mimeTypeFilter,
-    isPublicFilter,
-    sortBy,
-    sortOrder,
-  ]);
+  }, [currentPath, pagination.page, pagination.limit, search, mimeTypeFilter, isPublicFilter]);
 
   useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
+
+  // Handle folder navigation
+  const handlePathChange = newPath => {
+    setCurrentPath(newPath);
+    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+  };
+
+  // Create new folder
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+
+    try {
+      const response = await api.post('/api/folders', {
+        name: newFolderName.trim(),
+        parentPath: currentPath,
+      });
+
+      if (response.data.success) {
+        setNewFolderName('');
+        setShowCreateFolderDialog(false);
+        fetchFiles(); // Refresh the file list
+      }
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      setError('Failed to create folder: ' + (error.response?.data?.message || error.message));
+    }
+  };
 
   // Handle file upload
   const handleFileUpload = async () => {
@@ -222,78 +258,132 @@ const FileStorageDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">File Storage</h1>
-          <p className="text-muted-foreground">
+    <div className="flex flex-col h-full p-4 sm:p-6 space-y-4 sm:space-y-6">
+      {/* Header - BaseListView Style */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ocean-800">
+            File Storage
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Upload, manage, and share files with secure cloud storage
           </p>
         </div>
-
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Files
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Upload Files</DialogTitle>
-              <DialogDescription>Select files to upload to your secure storage</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="files">Select Files</Label>
-                <Input
-                  id="files"
-                  type="file"
-                  multiple
-                  onChange={e => setUploadFiles(e.target.files)}
-                  className="mt-1"
-                />
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
+          {/* New Folder Button */}
+          <Dialog open={showCreateFolderDialog} onOpenChange={setShowCreateFolderDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="ocean" className="flex-1 sm:flex-none">
+                <FolderPlus className="mr-2 h-4 w-4" />
+                <span className="sm:hidden">Folder</span>
+                <span className="hidden sm:inline">New Folder</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Folder</DialogTitle>
+                <DialogDescription>
+                  Create a new folder in {currentPath === '/' ? 'the root directory' : currentPath}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="newFolderName">Folder Name</Label>
+                  <Input
+                    id="newFolderName"
+                    value={newFolderName}
+                    onChange={e => setNewFolderName(e.target.value)}
+                    placeholder="Enter folder name"
+                    onKeyDown={e => e.key === 'Enter' && handleCreateFolder()}
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setShowCreateFolderDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateFolder}
+                    disabled={!newFolderName.trim()}
+                    variant="ocean"
+                  >
+                    Create
+                  </Button>
+                </div>
               </div>
+            </DialogContent>
+          </Dialog>
 
-              <div>
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input
-                  id="tags"
-                  value={uploadTags}
-                  onChange={e => setUploadTags(e.target.value)}
-                  placeholder="document, important, project"
-                  className="mt-1"
-                />
-              </div>
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="ocean" className="flex-1 sm:flex-none">
+                <Upload className="mr-2 h-4 w-4" />
+                <span className="sm:hidden">Upload</span>
+                <span className="hidden sm:inline">Upload Files</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Upload Files</DialogTitle>
+                <DialogDescription>Select files to upload to your secure storage</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="files">Select Files</Label>
+                  <Input
+                    id="files"
+                    type="file"
+                    multiple
+                    onChange={e => setUploadFiles(e.target.files)}
+                    className="mt-1"
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={uploadDescription}
-                  onChange={e => setUploadDescription(e.target.value)}
-                  placeholder="Optional description for the files"
-                  className="mt-1"
-                />
-              </div>
+                <div>
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Input
+                    id="tags"
+                    value={uploadTags}
+                    onChange={e => setUploadTags(e.target.value)}
+                    placeholder="document, important, project"
+                    className="mt-1"
+                  />
+                </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch id="public" checked={uploadIsPublic} onCheckedChange={setUploadIsPublic} />
-                <Label htmlFor="public">Make files public</Label>
-              </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={uploadDescription}
+                    onChange={e => setUploadDescription(e.target.value)}
+                    placeholder="Optional description for the files"
+                    className="mt-1"
+                  />
+                </div>
 
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleFileUpload} disabled={uploading || uploadFiles.length === 0}>
-                  {uploading ? <LoadingSpinner size="sm" /> : 'Upload'}
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="public"
+                    checked={uploadIsPublic}
+                    onCheckedChange={setUploadIsPublic}
+                  />
+                  <Label htmlFor="public">Make files public</Label>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleFileUpload}
+                    disabled={uploading || uploadFiles.length === 0}
+                  >
+                    {uploading ? <LoadingSpinner size="sm" /> : 'Upload'}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Error Alert */}
@@ -302,6 +392,13 @@ const FileStorageDashboard = () => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Folder Browser */}
+      <FolderBrowser
+        currentPath={currentPath}
+        onPathChange={handlePathChange}
+        onRefresh={fetchFiles}
+      />
 
       {/* Filters */}
       <Card>
@@ -331,7 +428,7 @@ const FileStorageDashboard = () => {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="image">Images</SelectItem>
                   <SelectItem value="video">Videos</SelectItem>
                   <SelectItem value="audio">Audio</SelectItem>
@@ -348,7 +445,7 @@ const FileStorageDashboard = () => {
                   <SelectValue placeholder="All files" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All files</SelectItem>
+                  <SelectItem value="all">All files</SelectItem>
                   <SelectItem value="true">Public</SelectItem>
                   <SelectItem value="false">Private</SelectItem>
                 </SelectContent>

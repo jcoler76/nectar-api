@@ -18,9 +18,9 @@ const apiKeyServiceMiddleware = async (req, res, next) => {
   const started = Date.now();
   try {
     const { apiKey } = getConfiguredApiKey(req);
-    if (!apiKey) throw new AuthenticationError('API key required', 401);
+    if (!apiKey) throw new AuthenticationError('API key missing or invalid', 401);
 
-    const prefix = apiKey.substring(0, 4);
+    const prefix = apiKey.substring(0, 8);
     const apps = await prisma.application.findMany({
       where: { apiKeyPrefix: prefix },
       include: { defaultRole: true, organization: true },

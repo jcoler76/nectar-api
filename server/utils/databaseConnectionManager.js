@@ -21,7 +21,9 @@ class DatabaseConnectionManager {
   }
 
   createConnectionKey(connectionData) {
-    return `${connectionData.server}:${connectionData.database}:${connectionData.username}`;
+    // Support both 'server' and 'host' field names for backward compatibility
+    const host = connectionData.host || connectionData.server;
+    return `${host}:${connectionData.database}:${connectionData.username}`;
   }
 
   async getConnection(connectionData) {
@@ -54,9 +56,12 @@ class DatabaseConnectionManager {
         throw new Error('No password provided for database connection');
       }
 
+      // Support both 'server' and 'host' field names for backward compatibility
+      const host = connectionData.host || connectionData.server;
+
       const config = {
         ...this.connectionConfig,
-        server: connectionData.server,
+        server: host, // MSSQL driver expects 'server' field
         database: connectionData.database,
         user: connectionData.username,
         password,

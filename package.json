@@ -134,16 +134,7 @@
     "prepare": "husky",
     "prisma:generate": "npx prisma generate --schema prisma/schema.prisma",
     "prisma:push": "npx prisma db push --schema prisma/schema.prisma",
-    "prisma:studio": "npx prisma studio --schema prisma/schema.prisma",
-    "docker:build:customer": "docker build -t nectar-customer-app .",
-    "docker:build:admin-backend": "cd admin-backend && docker build -t nectar-admin-backend .",
-    "docker:build:admin-frontend": "cd admin-frontend && docker build -t nectar-admin-frontend .",
-    "docker:build:marketing-backend": "cd marketing-site/backend && docker build -t nectar-marketing-backend .",
-    "docker:build:marketing-frontend": "cd marketing-site/frontend && docker build -t nectar-marketing-frontend .",
-    "docker:build:all": "npm run docker:build:customer && npm run docker:build:admin-backend && npm run docker:build:admin-frontend && npm run docker:build:marketing-backend && npm run docker:build:marketing-frontend",
-    "docker:customer:start": "docker-compose -f docker-compose.customer.yml up -d",
-    "docker:customer:stop": "docker-compose -f docker-compose.customer.yml down",
-    "docker:customer:logs": "docker-compose -f docker-compose.customer.yml logs -f"
+    "prisma:studio": "npx prisma studio --schema prisma/schema.prisma"
   },
   "browserslist": {
     "production": [
