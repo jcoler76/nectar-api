@@ -24,7 +24,7 @@ Fixed MongoDB model imports in the following files by replacing with Prisma clie
 ### Disabled Non-Critical Routes
 Temporarily disabled routes with MongoDB dependencies during migration:
 - ✅ Database objects, schema intelligence, AI generation routes
-- ✅ Template20 sync, workflow, developer routes  
+- ✅ Deprecated sync routes, workflow, developer routes
 - ✅ Webhooks, forms, email, files routes
 - ✅ Rate limit admin routes
 

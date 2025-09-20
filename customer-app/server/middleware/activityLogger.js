@@ -319,7 +319,7 @@ class ActivityLogger {
     const path = req.originalUrl || req.url;
     if (!path) return null;
 
-    // For Template20 procedure calls, extract the actual procedure name
+    // For procedure calls, extract the actual procedure name
     const procMatch = path.match(/\/([^\/]+)\/_proc\/([^\/\?]+)/);
     if (procMatch) {
       return procMatch[2]; // Return just the procedure name
@@ -335,7 +335,7 @@ class ActivityLogger {
     const path = req.originalUrl || req.url;
     if (!path) return 'unknown';
 
-    // For Template20 procedure calls, extract the actual procedure name
+    // For procedure calls, extract the actual procedure name
     const procMatch = path.match(/\/([^\/]+)\/_proc\/([^\/\?]+)/);
     if (procMatch) {
       const serviceName = procMatch[1];

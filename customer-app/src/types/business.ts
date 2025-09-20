@@ -1,12 +1,12 @@
 /**
- * Business Entity Types for Nectar Studio Template20 Intelligence
- * These types provide type safety for business data from Template20 database
+ * Business Entity Types for Nectar Studio
+ * These types provide type safety for business data and API integration
  */
 
 // Core business entity types
 export type BusinessEntityType = 'customer' | 'invoice' | 'contract' | 'opportunity' | 'payment';
 
-// Template20 Procedure Types
+// Database Procedure Types
 export interface ProcedureParameter {
   parameterName: string;
   dataType: 'varchar' | 'int' | 'datetime' | 'decimal' | 'bit';
@@ -96,8 +96,8 @@ export interface PaymentData {
   reference?: string;
 }
 
-// Template20 Intelligence Types
-export interface Template20Intelligence {
+// Business Intelligence Types
+export interface BusinessIntelligence {
   lastSyncDate: Date;
   entities: BusinessEntityType[];
   procedures: ProcedureRecommendation[];

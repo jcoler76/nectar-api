@@ -1,10 +1,10 @@
 /**
  * GraphQL Configuration for AI Coding Assistants
- * Configures schema discovery and IntelliSense for Template20 schemas
+ * Configures schema discovery and IntelliSense for GraphQL schemas
  */
 
 module.exports = {
-  name: 'Template20 Schema Intelligence',
+  name: 'Nectar API GraphQL Configuration',
   schemaPath: './server/graphql/generated/typeDefs.graphql',
   includes: [
     './src/**/*.{js,jsx,ts,tsx}',
@@ -33,23 +33,20 @@ module.exports = {
       }
     },
     
-    // AI Assistant Integration
+    // AI Assistant Integration (using OpenAI SDK)
     aiAssistant: {
       contextFiles: [
-        './server/docs/generated/README.md',
         './server/prisma/schema.prisma',
-        './MCP-SCHEMA-INTELLIGENCE-IMPLEMENTATION.md'
+        './README.md'
       ],
       businessEntities: [
         'customer',
-        'invoice', 
+        'invoice',
         'contract',
         'opportunity',
         'payment',
         'production'
-      ],
-      procedureEndpoint: 'http://localhost:3001/api/template20-sync/procedures',
-      intelligenceEndpoint: 'http://localhost:3001/api/template20-sync/status'
+      ]
     },
     
     // Code Generation
@@ -118,19 +115,19 @@ module.exports = {
     
     // Entity-specific schemas for AI context
     customer: {
-      schema: './server/prisma/generated/customer.prisma',
+      schema: './server/prisma/schema.prisma',
       documents: './src/components/customer/**/*.{js,jsx,ts,tsx}',
       businessEntity: 'customer'
     },
-    
+
     invoice: {
-      schema: './server/prisma/generated/invoice.prisma', 
+      schema: './server/prisma/schema.prisma',
       documents: './src/components/invoice/**/*.{js,jsx,ts,tsx}',
       businessEntity: 'invoice'
     },
-    
+
     contract: {
-      schema: './server/prisma/generated/contract.prisma',
+      schema: './server/prisma/schema.prisma',
       documents: './src/components/contract/**/*.{js,jsx,ts,tsx}',
       businessEntity: 'contract'
     }

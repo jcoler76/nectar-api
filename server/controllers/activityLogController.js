@@ -126,6 +126,14 @@ class ActivityLogController {
         orderBy[sort] = 'asc';
       }
 
+      // Debug logging
+      logger.info('Activity logs query:', {
+        where: JSON.stringify(where),
+        skip,
+        limit: parseInt(limit),
+        orderBy,
+      });
+
       // Execute query with Prisma
       const [logs, total] = await Promise.all([
         prisma.apiActivityLog.findMany({
@@ -146,6 +154,19 @@ class ActivityLogController {
         }),
         prisma.apiActivityLog.count({ where }),
       ]);
+
+      logger.info('Activity logs query results:', {
+        totalFound: total,
+        logsReturned: logs.length,
+        sampleLog: logs[0]
+          ? {
+              id: logs[0].id,
+              method: logs[0].method,
+              url: logs[0].url,
+              timestamp: logs[0].timestamp,
+            }
+          : null,
+      });
 
       // Calculate pagination info
       const totalPages = Math.ceil(total / parseInt(limit));

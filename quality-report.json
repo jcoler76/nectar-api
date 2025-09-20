@@ -4,7 +4,7 @@
     "complexity": {
       "metrics": {
         "frontendFiles": 230,
-        "backendFiles": 287,
+        "backendFiles": 283,
         "largeFiles": [
           {
             "path": "components\\ai\\BusinessIntelligenceChat.jsx",
@@ -99,10 +99,6 @@
             "lines": 691
           },
           {
-            "path": "models\\Template20Intelligence.js",
-            "lines": 721
-          },
-          {
             "path": "routes\\aiGeneration.js",
             "lines": 825
           },
@@ -129,10 +125,6 @@
           {
             "path": "routes\\schemaIntelligence.js",
             "lines": 691
-          },
-          {
-            "path": "routes\\schemaSelection.js",
-            "lines": 592
           },
           {
             "path": "scripts\\backupHealthCheck.js",
@@ -185,14 +177,6 @@
           {
             "path": "services\\SchemaIntelligenceService.js",
             "lines": 671
-          },
-          {
-            "path": "services\\Template20AnalysisService.js",
-            "lines": 715
-          },
-          {
-            "path": "services\\Template20SyncService.js",
-            "lines": 599
           },
           {
             "path": "services\\ViewAnalysisService.js",

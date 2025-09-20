@@ -174,26 +174,13 @@ const mountRoutes = app => {
   // );
   // Re-enabled for SILO C - workflows route (needs MongoDB model updates)
   app.use('/api/workflows', authMiddleware, csrfProtection(csrfOptions), require('./workflows'));
-  // Temporarily disabled during MongoDB to Prisma migration - template20Sync route
-  // app.use(
-  //   '/api/template20-sync',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./template20Sync')
-  // );
+  // Deprecated route removed during MongoDB to Prisma migration
   // Temporarily disabled during MongoDB to Prisma migration - ai-schema route
   // app.use(
   //   '/api/ai-schema',
   //   authMiddleware,
   //   csrfProtection(csrfOptions),
   //   require('./aiSchemaGeneration')
-  // );
-  // Temporarily disabled during MongoDB to Prisma migration - schema-selection route
-  // app.use(
-  //   '/api/schema-selection',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./schemaSelection')
   // );
   // Admin rate limit management routes
   app.use(

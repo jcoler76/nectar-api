@@ -33,7 +33,7 @@ const ActivityLogsReport = () => {
   });
 
   // Local state for activity-specific features
-  const [filterType, setFilterType] = useState('important');
+  const [filterType, setFilterType] = useState('all');
   const [timeframe, setTimeframe] = useState('24h');
 
   // Activity logs custom hook with pagination and statistics
@@ -67,7 +67,7 @@ const ActivityLogsReport = () => {
   const handleReset = () => {
     resetFilters();
     resetLogs();
-    setFilterType('important');
+    setFilterType('all');
     setTimeframe('24h');
   };
 
@@ -172,20 +172,20 @@ const ActivityLogsReport = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Activity (Including Internal)</SelectItem>
                 <SelectItem value="important">Important Only (Public APIs + Workflows)</SelectItem>
                 <SelectItem value="critical">Critical Only (Auth + API Procedures)</SelectItem>
-                <SelectItem value="all">All Activity (Including Internal)</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label className="text-blue-800 text-sm">What this shows:</Label>
             <div className="text-xs text-blue-700">
+              {filterType === 'all' && 'Everything including internal reports, dashboards'}
               {filterType === 'important' &&
                 'Client APIs, Workflows, Webhooks (High business value)'}
               {filterType === 'critical' &&
                 'Authentication, Public API procedures (Security critical)'}
-              {filterType === 'all' && 'Everything including internal reports, dashboards'}
             </div>
           </div>
         </div>

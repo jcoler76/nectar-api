@@ -1,191 +1,274 @@
-# Cursor AI Rules for Template20 Schema Intelligence
-# Enhanced context and intelligent code suggestions for business logic development
+# Cursor AI Rules for Nectar API Platform
+# Enhanced context and intelligent code suggestions for modern full-stack development
 
 ## Project Context
-You are working on the Nectar API platform with Template20 database schema intelligence. This system provides AI-powered schema discovery, Prisma generation, and GraphQL integration for business applications.
+You are working on the Nectar API platform, a modern business application platform with React frontend, Node.js backend, and PostgreSQL database using Prisma ORM. The system provides API management, workflow automation, and business intelligence features.
 
 ## Key Architecture Components
-- **MongoDB Intelligence**: Central store of Template20 database schema and business logic
-- **Prisma Schema Generation**: Type-safe database access with business entity organization  
-- **GraphQL Schema Generation**: AI-optimized schemas with procedure recommendations
-- **MCP (Model Context Protocol)**: Business intelligence tools and procedure discovery
-- **AI Documentation**: OpenAI-powered stored procedure documentation
+- **Frontend**: React 18 with ShadCN UI components and Tailwind CSS
+- **Backend**: Node.js with Express, Prisma ORM, and PostgreSQL
+- **Database**: PostgreSQL with Prisma schema management
+- **Authentication**: JWT with refresh tokens and role-based access control
+- **API**: RESTful APIs with procedure-based endpoints
+- **Workflows**: Custom workflow engine with node-based execution
+- **File Storage**: Secure file management with organization-based access
 
-## Business Entities and Core Tables
+## Core Business Entities
 ### Customer Entity
-- Primary Table: `gsCustomers`
-- Related Tables: `tblContact`
-- Key Procedures: `uspContactGet`, `uspContactByCriteriaGet`, `uspContactSave`
-- Business Focus: Customer relationship management, contact tracking
+- Primary focus: Customer relationship management and contact tracking
+- Key operations: Customer CRUD, contact management, relationship tracking
 
-### Invoice Entity  
-- Primary Table: `tblInvoice`
-- Related Tables: `tblInvoiceDetail`
-- Key Procedures: `uspInvoiceGet`, `uspInvoicePaymentGet`, `uspInvoiceSave`
-- Business Focus: Billing, accounts receivable, payment tracking
+### Invoice Entity
+- Primary focus: Billing, accounts receivable, payment tracking
+- Key operations: Invoice generation, payment processing, financial reporting
 
 ### Contract Entity
-- Primary Table: `gsContracts` 
-- Related Tables: `tblSalesOpportunity`
-- Key Procedures: `uspContractGet`, `uspReportSalesByCriteriaGet`
-- Business Focus: Sales contracts, opportunity management
+- Primary focus: Sales contracts and opportunity management
+- Key operations: Contract lifecycle, sales pipeline tracking
 
-### Opportunity Entity
-- Primary Table: `tblSalesOpportunity`
-- Key Procedures: `uspOpportunityGet`, `uspOpportunityActivityGet`
-- Business Focus: Sales pipeline, opportunity tracking
+### Workflow Entity
+- Primary focus: Business process automation
+- Key operations: Workflow execution, node management, trigger handling
 
-### Payment Entity
-- Primary Table: `tblPayment`
-- Key Procedures: `uspPaymentGet`, `uspPaymentSave`
-- Business Focus: Payment processing, transaction management
+### Organization Entity
+- Primary focus: Multi-tenant organization management
+- Key operations: Organization setup, user management, role assignment
 
 ## Development Patterns
 
 ### Database Operations
-ALWAYS use Template20 intelligence for database operations:
+Use Prisma ORM for type-safe database operations:
 
 ```javascript
-// ✅ CORRECT: Use intelligence-driven procedure discovery
-const Template20Intelligence = require('./models/Template20Intelligence');
-const intelligence = await Template20Intelligence.getLatestIntelligence();
-const procedures = intelligence.getProceduresForEntity('customer', 0.8);
-
-// ✅ CORRECT: Use high-confidence procedures
-const bestProcedure = procedures[0]; // Sorted by confidence
-const result = await dbService.executeProcedure(bestProcedure.procedureName, params);
-
-// ❌ INCORRECT: Hardcoding procedure names
-const result = await dbService.executeProcedure('mc_ContactsGet', params); // mc_ procedures don't exist
-```
-
-### Prisma Integration
-Use generated Prisma schemas for type safety:
-
-```typescript
-// ✅ CORRECT: Use generated Prisma client
+// ✅ CORRECT: Use Prisma client with proper error handling
 import { PrismaClient } from './prisma/generated/client';
 const prisma = new PrismaClient();
 
-// ✅ CORRECT: Use business entity models
-const customers = await prisma.gsCustomers.findMany({
+// ✅ CORRECT: Type-safe queries with relationships
+const customers = await prisma.customer.findMany({
   include: {
-    invoices: true,
-    contracts: true
+    organization: true,
+    invoices: {
+      where: { status: 'active' }
+    }
   }
 });
 
-// ✅ CORRECT: Use Prisma with intelligence recommendations
-const customerProcs = await intelligence.getProceduresForEntity('customer');
-// Use Prisma for reads, procedures for complex business logic
+// ✅ CORRECT: Transaction handling for complex operations
+const result = await prisma.$transaction(async (tx) => {
+  const customer = await tx.customer.create({ data: customerData });
+  const invoice = await tx.invoice.create({
+    data: { ...invoiceData, customerId: customer.id }
+  });
+  return { customer, invoice };
+});
 ```
 
-### GraphQL Development
-Leverage generated GraphQL schemas:
-
-```graphql
-# ✅ CORRECT: Use generated types with business context
-query GetCustomerWithIntelligence($id: ID!) {
-  customer(id: $id) {
-    id
-    name
-    # AI-generated relationship fields
-    invoices {
-      id
-      amount
-      status
-    }
-    # Procedure recommendations
-    _procedures {
-      name
-      confidence
-      type
-      parameters {
-        parameterName
-        dataType
-      }
-    }
-  }
-}
-```
-
-### API Integration
-Use intelligence APIs for dynamic discovery:
+### API Development
+Follow RESTful patterns with proper error handling:
 
 ```javascript
-// ✅ CORRECT: Dynamic entity discovery
-const entityResponse = await fetch('/api/template20-sync/entities');
-const entities = await entityResponse.json();
+// ✅ CORRECT: Proper route structure with middleware
+router.get('/api/v1/:orgSlug/_proc/:procedureName',
+  authMiddleware,
+  organizationMiddleware,
+  async (req, res) => {
+    try {
+      const { orgSlug, procedureName } = req.params;
+      const result = await procedureService.execute(procedureName, req.body);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      logger.error('Procedure execution failed', { error: error.message, procedureName });
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+);
 
-// ✅ CORRECT: Get procedures by entity with confidence filtering
-const procedureResponse = await fetch('/api/template20-sync/procedures/customer?minConfidence=0.8');
-const procedures = await procedureResponse.json();
+// ✅ CORRECT: Input validation with proper sanitization
+const { body, validationResult } = require('express-validator');
+
+router.post('/api/customers', [
+  body('name').notEmpty().trim().escape(),
+  body('email').isEmail().normalizeEmail(),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  // Process validated data
+});
 ```
 
-## Code Generation Guidelines
+### Frontend Development
+Use React 18 with ShadCN UI components:
 
-### When suggesting database queries:
-1. FIRST check Template20 intelligence for recommended procedures
-2. Use business entity context (customer, invoice, contract, etc.)
-3. Prefer high-confidence procedures (>0.8) for production code
-4. Include business context in comments
+```jsx
+// ✅ CORRECT: Modern React with hooks and proper error boundaries
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-### When generating GraphQL resolvers:
-1. Use procedure recommendation resolvers for dynamic discovery
-2. Include confidence scores and business entity metadata
-3. Leverage relationship intelligence from view analysis
-4. Add AI-friendly field descriptions
+const CustomerList = () => {
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-### When creating Prisma operations:
-1. Use generated business entity models
-2. Include relationship fields from intelligence
-3. Add business context comments
-4. Consider procedure integration for complex operations
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const response = await fetch('/api/customers');
+        const data = await response.json();
+        setCustomers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Customers</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {customers.map(customer => (
+          <div key={customer.id}>{customer.name}</div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+### Authentication & Authorization
+Implement secure authentication patterns:
+
+```javascript
+// ✅ CORRECT: JWT token management with refresh
+const authService = {
+  async login(credentials) {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(credentials)
+    });
+
+    if (!response.ok) {
+      throw new Error('Authentication failed');
+    }
+
+    const { accessToken, user } = await response.json();
+    localStorage.setItem('accessToken', accessToken);
+    return { user };
+  },
+
+  async refreshToken() {
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      const { accessToken } = await response.json();
+      localStorage.setItem('accessToken', accessToken);
+      return accessToken;
+    }
+
+    throw new Error('Token refresh failed');
+  }
+};
+```
 
 ## File Structure Understanding
 ```
-server/
-├── models/Template20Intelligence.js     # MongoDB schema intelligence model
-├── services/
-│   ├── Template20SyncService.js         # MongoDB sync without DB strain  
-│   ├── PrismaSchemaGenerator.js         # AI-optimized Prisma generation
-│   ├── GraphQLSchemaGenerator.js        # GraphQL with procedure integration
-│   └── AIDocumentationService.js        # OpenAI-powered docs
-├── prisma/
-│   ├── schema.prisma                    # Main generated schema
-│   └── generated/                       # Entity-specific schemas
-├── graphql/generated/                   # Generated GraphQL schemas
-├── docs/generated/                      # AI-generated procedure docs
-└── routes/
-    ├── template20Sync.js                # Intelligence sync API
-    └── aiSchemaGeneration.js            # Schema generation API
+nectar-api/
+├── src/                           # React frontend
+│   ├── components/
+│   │   ├── ui/                    # ShadCN UI components
+│   │   ├── auth/                  # Authentication components
+│   │   ├── customers/             # Customer management
+│   │   ├── workflows/             # Workflow management
+│   │   └── common/                # Shared components
+│   ├── hooks/                     # Custom React hooks
+│   ├── context/                   # React context providers
+│   └── utils/                     # Frontend utilities
+├── server/                        # Node.js backend
+│   ├── controllers/               # Request handlers
+│   ├── middleware/                # Express middleware
+│   ├── models/                    # Data models (if needed)
+│   ├── routes/                    # API routes
+│   ├── services/                  # Business logic
+│   ├── utils/                     # Backend utilities
+│   ├── prisma/                    # Database schema and migrations
+│   └── server.js                  # Main server file
+└── docs/                          # API documentation
 ```
 
-## Business Logic Priorities
-1. **Customer Management**: Highest priority, most mature procedures
-2. **Invoice/Billing**: High priority, financial accuracy critical  
-3. **Contract/Sales**: High priority, revenue impact
-4. **Opportunity Pipeline**: Medium priority, sales enablement
-5. **Production/Operations**: Medium priority, workflow optimization
+## Development Guidelines
+
+### Code Quality
+1. **Type Safety**: Use TypeScript where possible, leverage Prisma types
+2. **Error Handling**: Implement comprehensive error boundaries and try-catch blocks
+3. **Validation**: Validate all inputs on both frontend and backend
+4. **Security**: Sanitize inputs, use parameterized queries, implement CSRF protection
+5. **Performance**: Use React.memo, useCallback, and useMemo appropriately
+
+### API Design
+1. **RESTful Structure**: Follow REST conventions for resource endpoints
+2. **Procedure Endpoints**: Use `/_proc/` pattern for business logic procedures
+3. **Error Responses**: Consistent error response format with proper HTTP status codes
+4. **Rate Limiting**: Implement rate limiting for API endpoints
+5. **Documentation**: Use OpenAPI/Swagger for API documentation
+
+### Database Operations
+1. **Prisma First**: Use Prisma for all database operations
+2. **Transactions**: Use transactions for multi-step operations
+3. **Relationships**: Leverage Prisma relationships for data fetching
+4. **Migrations**: Use Prisma migrations for schema changes
+5. **Performance**: Use appropriate indexes and query optimization
+
+## Security Best Practices
+- Always validate and sanitize user inputs
+- Use parameterized queries to prevent SQL injection
+- Implement proper authentication and authorization
+- Use HTTPS in production
+- Sanitize data before logging
+- Implement rate limiting and CSRF protection
+- Use secure session management
+- Regular security audits and dependency updates
 
 ## Performance Considerations
-- Use MongoDB intelligence caching to avoid Template20 database strain
-- Batch AI documentation generation to manage OpenAI API costs
-- Prefer high-confidence procedures (>0.8) for better performance
-- Use view relationship intelligence for optimized JOINs
+- Use React.memo for expensive components
+- Implement proper caching strategies
+- Optimize database queries with proper indexes
+- Use connection pooling for database connections
+- Implement proper loading states and error boundaries
+- Use code splitting for large applications
 
 ## Error Handling
-- Always check procedure confidence before execution
-- Provide fallbacks when intelligence is unavailable
-- Log business entity context for debugging
-- Use graceful degradation when AI services fail
+- Implement comprehensive error boundaries in React
+- Use proper try-catch blocks in async operations
+- Provide meaningful error messages to users
+- Log errors appropriately for debugging
+- Implement fallback UI states for error conditions
 
 ## AI Assistant Optimization
 When generating code:
-1. Include business entity type in variable names
-2. Add confidence scores and procedure metadata in comments
-3. Use intelligence APIs for dynamic discovery
-4. Provide relationship context from view analysis
-5. Include usage examples from generated documentation
+1. Use modern React patterns (hooks, functional components)
+2. Implement proper TypeScript types when applicable
+3. Include proper error handling and validation
+4. Use ShadCN UI components for consistent design
+5. Follow security best practices
+6. Include proper testing patterns
+7. Use Prisma for all database operations
+8. Implement proper authentication and authorization
 
-This system is designed to provide comprehensive business context to AI coding assistants, enabling intelligent code generation that properly integrates with existing business logic and database structures.
+This system provides comprehensive guidance for developing modern, secure, and maintainable business applications with React, Node.js, and PostgreSQL.

@@ -320,12 +320,6 @@ app.use(
 );
 app.use('/api/services', authMiddleware, csrfProtection(csrfOptions), require('./routes/services'));
 app.use(
-  '/api/database-objects',
-  authMiddleware,
-  csrfProtection(csrfOptions),
-  require('./routes/databaseObjects')
-);
-app.use(
   '/api/schema-intelligence',
   authMiddleware,
   csrfProtection(csrfOptions),
@@ -360,18 +354,6 @@ app.use(
 app.use('/api/imports', authMiddleware, csrfProtection(csrfOptions), require('./routes/imports'));
 app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./routes/ai'));
 app.use('/api/workflows', authMiddleware, csrfProtection(csrfOptions), workflowsRoutes);
-app.use(
-  '/api/template20-sync',
-  authMiddleware,
-  csrfProtection(csrfOptions),
-  require('./routes/template20Sync')
-);
-app.use(
-  '/api/ai-schema',
-  authMiddleware,
-  csrfProtection(csrfOptions),
-  require('./routes/aiSchemaGeneration')
-);
 app.use(
   '/api/schema-selection',
   authMiddleware,

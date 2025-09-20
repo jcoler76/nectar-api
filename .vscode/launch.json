@@ -17,91 +17,7 @@
         "<node_internals>/**"
       ]
     },
-    
-    {
-      "name": "🧪 Debug Template20 Sync Test",
-      "type": "node", 
-      "request": "launch",
-      "program": "${workspaceFolder}/server/test-template20-sync.js",
-      "env": {
-        "NODE_ENV": "test"
-      },
-      "console": "integratedTerminal",
-      "skipFiles": [
-        "<node_internals>/**"
-      ]
-    },
-    
-    {
-      "name": "🤖 Debug AI Schema Generation Test",
-      "type": "node",
-      "request": "launch", 
-      "program": "${workspaceFolder}/server/test-ai-schema-generation.js",
-      "env": {
-        "NODE_ENV": "test"
-      },
-      "console": "integratedTerminal",
-      "skipFiles": [
-        "<node_internals>/**"
-      ]
-    },
-    
-    {
-      "name": "📋 Debug Prisma Schema Generator",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/services/PrismaSchemaGenerator.js",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "console": "integratedTerminal"
-    },
-    
-    {
-      "name": "🔗 Debug GraphQL Schema Generator", 
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/services/GraphQLSchemaGenerator.js",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "console": "integratedTerminal"
-    },
-    
-    {
-      "name": "📚 Debug AI Documentation Service",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/services/AIDocumentationService.js", 
-      "env": {
-        "NODE_ENV": "development",
-        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
-      },
-      "console": "integratedTerminal"
-    },
-    
-    {
-      "name": "🔄 Debug Template20 Sync Service",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/services/Template20SyncService.js",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "console": "integratedTerminal"
-    },
-    
-    {
-      "name": "📊 Debug MCP Tools",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/mcp/tools/businessIntelligenceTools.js",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "console": "integratedTerminal"
-    },
-    
+
     {
       "name": "🌐 Debug GraphQL Server",
       "type": "node",
@@ -116,7 +32,7 @@
         "<node_internals>/**"
       ]
     },
-    
+
     {
       "name": "🔧 Debug Prisma Generation",
       "type": "node",
@@ -130,21 +46,12 @@
       "console": "integratedTerminal"
     }
   ],
-  
+
   "compounds": [
     {
       "name": "🚀 Debug Full Stack",
       "configurations": [
         "🚀 Debug Backend Server"
-      ],
-      "stopAll": true
-    },
-    
-    {
-      "name": "🧪 Debug All Tests",
-      "configurations": [
-        "🧪 Debug Template20 Sync Test",
-        "🤖 Debug AI Schema Generation Test"
       ],
       "stopAll": true
     }

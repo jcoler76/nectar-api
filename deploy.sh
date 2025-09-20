@@ -190,8 +190,8 @@ else
   echo "⚠️  No .env.production backup found - will create new file"
 fi
 
-# Skip Template20 database checks - not required for current deployment
-echo "✅ Skipping Template20 database configuration (not required currently)"
+# Skip deprecated database checks - not required for current deployment
+echo "✅ Skipping deprecated database configuration (not required currently)"
 
 # Setup Prisma database configuration
 echo "Setting up Prisma database configuration..."
@@ -200,10 +200,10 @@ cd server
 # Generate Prisma client if schema exists
 if [ -f "prisma/schema.prisma" ]; then
   echo "Generating Prisma client..."
-  npx prisma generate || echo "⚠️  Prisma generate failed (Template20 DB not configured) - continuing with deployment"
+  npx prisma generate || echo "⚠️  Prisma generate failed (database not configured) - continuing with deployment"
   
   echo "Running Prisma database push to sync schema..."
-  npx prisma db push --accept-data-loss || echo "⚠️  Prisma db push failed (Template20 DB not configured) - continuing with deployment"
+  npx prisma db push --accept-data-loss || echo "⚠️  Prisma db push failed (database not configured) - continuing with deployment"
 else
   echo "⚠️  No Prisma schema found - skipping Prisma setup"
 fi
@@ -263,7 +263,7 @@ CSRF_COOKIE_SECURE=true
 CSRF_COOKIE_SAME_SITE=strict
 
 # Database Configuration
-TEMPLATE20_DATABASE_URL=${DATABASE_URL:-}
+DATABASE_URL=${DATABASE_URL:-}
 EOF
   echo "✅ Enhanced environment variables added"
 else

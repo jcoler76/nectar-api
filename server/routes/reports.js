@@ -70,7 +70,7 @@ router.get('/api-usage', async (req, res) => {
       };
     }
 
-    // Get API usage data with all necessary includes
+    // Get API usage data
     const apiLogs = await prisma.apiActivityLog.findMany({
       where,
       include: {
@@ -80,7 +80,6 @@ router.get('/api-usage', async (req, res) => {
         organization: {
           select: { id: true, name: true },
         },
-        endpointUsage: true,
       },
       orderBy: {
         timestamp: 'desc',
@@ -91,26 +90,52 @@ router.get('/api-usage', async (req, res) => {
 
     if (showDetails === 'true') {
       // Detailed view - return individual records
-      usageData = apiLogs.map(log => ({
-        serviceName: log.endpointUsage?.name || log.endpoint || 'Unknown Service',
-        roleName: 'N/A', // Role info not directly available in current schema
-        applicationName: 'N/A', // Application info not directly available
-        component: log.endpoint || 'Unknown Component',
-        method: log.method,
-        timestamp: log.timestamp,
-        requestSize: 0, // Not tracked in current schema
-        responseSize: 0, // Not tracked in current schema
-        url: log.url,
-        statusCode: log.statusCode,
-        responseTime: log.responseTime,
-        userEmail: log.user?.email || 'Unknown User',
-      }));
+
+      usageData = apiLogs.map(log => {
+        // Extract service name from URL pattern
+        let serviceName = 'Internal API';
+
+        // Check if this is a public API procedure call
+        const procMatch = log.url?.match(/\/api\/v[0-9]+\/([^\/]+)\/_proc\/([^\/\?]+)/);
+        if (procMatch) {
+          serviceName = procMatch[1]; // Service name from URL
+        } else if (log.url?.includes('/api/')) {
+          // For other API calls, classify as Internal API
+          serviceName = 'Internal API';
+        }
+
+        return {
+          serviceName,
+          roleName: 'N/A', // Role info not directly available in current schema
+          applicationName: 'N/A', // Application info not directly available
+          component: log.endpoint || 'Unknown Component',
+          method: log.method,
+          timestamp: log.timestamp,
+          requestSize: 0, // Not tracked in current schema
+          responseSize: 0, // Not tracked in current schema
+          url: log.url,
+          statusCode: log.statusCode,
+          responseTime: log.responseTime,
+          userEmail: log.user?.email || 'Unknown User',
+        };
+      });
     } else {
       // Summary view - group and count
+
       const groupedData = {};
 
       apiLogs.forEach(log => {
-        const serviceName = log.endpointUsage?.service?.name || 'Unknown Service';
+        // Extract service name from URL pattern
+        let serviceName = 'Internal API';
+
+        // Check if this is a public API procedure call
+        const procMatch = log.url?.match(/\/api\/v[0-9]+\/([^\/]+)\/_proc\/([^\/\?]+)/);
+        if (procMatch) {
+          serviceName = procMatch[1]; // Service name from URL
+        } else if (log.url?.includes('/api/')) {
+          // For other API calls, classify as Internal API
+          serviceName = 'Internal API';
+        }
         const component = log.endpoint || 'Unknown Component';
         const method = log.method;
         const key = `${serviceName}|${component}|${method}`;

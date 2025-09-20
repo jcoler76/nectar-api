@@ -3,10 +3,10 @@
   "generated": "2025-07-13T10:00:00.000Z",
   "procedures": [],
   "status": "no_data",
-  "message": "No Template20Intelligence data found. Please run template20-sync to generate procedure intelligence.",
+  "message": "No procedure data found. Please run database sync to generate procedure documentation.",
   "nextSteps": [
-    "Run template20-sync to analyze the template database",
-    "Generate AI documentation using the admin interface",
-    "Configure Template20 connection in MCP settings"
+    "Run database sync to analyze procedures",
+    "Generate API documentation using the admin interface",
+    "Configure database connection in settings"
   ]
 }

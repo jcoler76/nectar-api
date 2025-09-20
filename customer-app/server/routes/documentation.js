@@ -645,19 +645,8 @@ router.get('/comprehensive/:roleId', async (req, res) => {
       return acc;
     }, {});
 
-    // If AI Documentation Service is available, enhance with AI-generated docs
+    // AI Documentation Service has been deprecated in favor of OpenAI SDK integration
     let aiDocumentation = null;
-    try {
-      // AI Documentation Service has been deprecated
-      // It relied on template20 intelligence which is no longer available
-      // Use OpenAI SDK for AI-powered documentation generation instead
-      logger.info('AI Documentation Service is deprecated - skipping AI documentation generation');
-    } catch (aiError) {
-      logger.warn(
-        'AI documentation enhancement failed, continuing with basic docs',
-        aiError.message
-      );
-    }
 
     const comprehensiveDoc = {
       role: {

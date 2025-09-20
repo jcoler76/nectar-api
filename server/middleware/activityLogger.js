@@ -104,8 +104,43 @@ class ActivityLogger {
       // Determine error details
       const errorDetails = this.extractErrorDetails(error, res, responseBody);
 
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // Create activity log entry using Prisma
+      // Handle organization context for activity logging
+      // For unauthenticated requests, we'll need to either create a default org or skip logging
+      let organizationId = req.user?.organizationId || req.organization?.id;
+
+      if (!organizationId) {
+        // Try to find or create a default "anonymous" organization for unauthenticated requests
+        try {
+          let defaultOrg = await prisma.organization.findFirst({
+            where: { slug: 'anonymous-requests' },
+            select: { id: true },
+          });
+
+          if (!defaultOrg) {
+            // Create default organization for anonymous requests
+            defaultOrg = await prisma.organization.create({
+              data: {
+                name: 'Anonymous Requests',
+                slug: 'anonymous-requests',
+              },
+              select: { id: true },
+            });
+            logger.info('Created default organization for anonymous requests', {
+              organizationId: defaultOrg.id,
+            });
+          }
+
+          organizationId = defaultOrg.id;
+        } catch (orgError) {
+          logger.warn('Failed to handle anonymous organization, skipping activity log', {
+            error: orgError.message,
+            requestId: req.requestId,
+          });
+          return;
+        }
+      }
+
+      // Create activity log entry using Prisma for PostgreSQL
       const activityLogData = {
         timestamp: new Date(startTime),
         requestId: req.requestId,
@@ -114,46 +149,44 @@ class ActivityLogger {
         method: req.method,
         url: req.originalUrl || req.url,
         endpoint: this.getDisplayEndpoint(req),
-        procedureName: this.extractProcedureName(req),
-        normalizedEndpoint: this.normalizeEndpoint(req.route?.path || req.path),
+        statusCode: res.statusCode,
+        responseTime: duration,
         userAgent: req.headers['user-agent'],
         ipAddress: this.extractClientIP(req),
 
         // User Context
-        ...userContext,
+        userId: userContext.userId || null,
+        organizationId: organizationId,
 
         // Classification
         category: classification.category,
         endpointType: classification.endpointType,
         importance: classification.importance,
 
-        // Request/Response Data
-        requestHeaders: sanitizedHeaders,
-        requestBody: sanitizedRequestBody,
-        requestSize: req.headers['content-length'] ? parseInt(req.headers['content-length']) : 0,
-        responseStatus: res.statusCode,
-        responseHeaders: sanitizedResponseHeaders,
-        responseBody: sanitizedResponseBody,
-        responseSize,
+        // Error details
+        error: errorDetails.errorMessage || null,
 
-        // Performance & Errors
-        duration,
-        success,
-        ...errorDetails,
-
-        // Workflow Context (if applicable)
-        workflowId: req.workflowId || req.headers['x-workflow-id'],
-        workflowRunId: req.workflowRunId || req.headers['x-workflow-run-id'],
-        nodeType: req.nodeType || req.headers['x-workflow-node-type'],
-
-        // Additional Context
-        referer: req.headers.referer,
-        sessionId: req.sessionID,
-        correlationId:
-          req.headers['x-workflow-correlation-id'] ||
-          req.headers['x-correlation-id'] ||
-          req.requestId,
+        // Additional metadata
         metadata: {
+          procedureName: this.extractProcedureName(req),
+          normalizedEndpoint: this.normalizeEndpoint(req.route?.path || req.path),
+          requestHeaders: sanitizedHeaders,
+          requestBody: sanitizedRequestBody,
+          requestSize: req.headers['content-length'] ? parseInt(req.headers['content-length']) : 0,
+          responseHeaders: sanitizedResponseHeaders,
+          responseBody: sanitizedResponseBody,
+          responseSize,
+          success,
+          errorDetails,
+          workflowId: req.workflowId || req.headers['x-workflow-id'],
+          workflowRunId: req.workflowRunId || req.headers['x-workflow-run-id'],
+          nodeType: req.nodeType || req.headers['x-workflow-node-type'],
+          referer: req.headers.referer,
+          sessionId: req.sessionID,
+          correlationId:
+            req.headers['x-workflow-correlation-id'] ||
+            req.headers['x-correlation-id'] ||
+            req.requestId,
           query: req.query,
           params: req.params,
           protocol: req.protocol,
@@ -161,7 +194,14 @@ class ActivityLogger {
         },
       };
 
-      // await prisma.apiActivityLog.create({ data: activityLogData });
+      await prisma.apiActivityLog.create({ data: activityLogData });
+
+      logger.info('Activity log created successfully', {
+        requestId: req.requestId,
+        method: req.method,
+        url: req.originalUrl,
+        statusCode: res.statusCode,
+      });
 
       // Log errors for immediate attention
       if (!success) {
@@ -179,8 +219,11 @@ class ActivityLogger {
       // Don't let logging errors break the application
       logger.error('Failed to log API activity', {
         error: logError.message,
+        stack: logError.stack,
         requestId: req.requestId,
         url: req.originalUrl,
+        method: req.method,
+        statusCode: res.statusCode,
       });
     }
   }
@@ -319,7 +362,7 @@ class ActivityLogger {
     const path = req.originalUrl || req.url;
     if (!path) return null;
 
-    // For Template20 procedure calls, extract the actual procedure name
+    // For procedure calls, extract the actual procedure name
     const procMatch = path.match(/\/([^\/]+)\/_proc\/([^\/\?]+)/);
     if (procMatch) {
       return procMatch[2]; // Return just the procedure name
@@ -335,7 +378,7 @@ class ActivityLogger {
     const path = req.originalUrl || req.url;
     if (!path) return 'unknown';
 
-    // For Template20 procedure calls, extract the actual procedure name
+    // For procedure calls, extract the actual procedure name
     const procMatch = path.match(/\/([^\/]+)\/_proc\/([^\/\?]+)/);
     if (procMatch) {
       const serviceName = procMatch[1];
