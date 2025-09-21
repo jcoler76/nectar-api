@@ -13,12 +13,14 @@ const { apiRateLimiter, uploadRateLimiter } = require('../middleware/rateLimiter
 const trackApiUsage = require('../middleware/apiUsageTracker');
 const { validateFileContent } = require('../middleware/fileUploadSecurity');
 const EnhancedFileStorageService = require('../services/enhancedFileStorageService');
+const StorageBillingService = require('../services/storageBillingService');
 const { logger } = require('../utils/logger');
-const UsageTracker = require('../services/usageTracking');
+const { UsageTracker } = require('../services/usageTracking');
 const { getPrismaClient } = require('../config/prisma');
 
-// Initialize file storage service and usage tracker
+// Initialize services
 const fileStorageService = new EnhancedFileStorageService();
+const storageBillingService = new StorageBillingService();
 const usageTracker = new UsageTracker();
 const prisma = getPrismaClient();
 
@@ -120,55 +122,67 @@ router.post(
         });
       }
 
-      // Get organization subscription and check storage limits
-
-      const organization = await prisma.organization.findUnique({
-        where: { id: organizationId },
-        include: { subscription: true },
-      });
-
-      if (!organization) {
-        return res.status(404).json({
+      // Get organization ID
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      if (!organizationId) {
+        return res.status(400).json({
           success: false,
-          message: 'Organization not found',
+          message: 'Organization ID required',
         });
       }
-
-      // Define storage limits per plan (in bytes)
-      const storageLimit = {
-        FREE: 1024 * 1024 * 1024, // 1GB
-        STARTER: 10 * 1024 * 1024 * 1024, // 10GB
-        PROFESSIONAL: 100 * 1024 * 1024 * 1024, // 100GB
-        BUSINESS: 500 * 1024 * 1024 * 1024, // 500GB
-        ENTERPRISE: Number.MAX_SAFE_INTEGER, // Unlimited
-      };
-
-      const plan = organization.subscription?.plan || 'FREE';
-      const maxStorage = storageLimit[plan];
-
-      // Calculate current storage usage for upload validation
-      const uploadUsageCheck = await prisma.fileStorage.aggregate({
-        where: { organizationId, isActive: true },
-        _sum: { fileSize: true },
-      });
-
-      const currentStorageUsed = parseInt(uploadUsageCheck._sum.fileSize || 0);
 
       // Calculate total size of files being uploaded
       const uploadSize = req.files.reduce((total, file) => total + file.size, 0);
 
-      // Check if upload would exceed storage limit
-      if (currentStorageUsed + uploadSize > maxStorage) {
-        const currentMB = Math.round(currentStorageUsed / 1024 / 1024);
-        const limitMB = Math.round(maxStorage / 1024 / 1024);
-        const uploadMB = Math.round(uploadSize / 1024 / 1024);
+      // Check storage quota using billing service
+      const quotaCheck = await storageBillingService.checkEnhancedStorageQuota(
+        organizationId,
+        uploadSize
+      );
 
+      // Handle quota violations
+      if (quotaCheck.quotaStatus.level === 'blocked') {
         return res.status(413).json({
           success: false,
-          message: `Storage limit exceeded. Current usage: ${currentMB}MB, Limit: ${limitMB}MB, Upload size: ${uploadMB}MB`,
-          currentStorage: currentStorageUsed,
-          storageLimit: maxStorage,
+          message: quotaCheck.quotaStatus.message,
+          storageInfo: {
+            used: quotaCheck.usage.bytesUsed,
+            limit: quotaCheck.quota.includedBytes,
+            uploadSize,
+            plan: quotaCheck.organization.plan,
+          },
+          upgradeRequired: true,
+        });
+      }
+
+      // For maximum overage limit (10x plan limit)
+      const maxOverageBytes = quotaCheck.quota.includedBytes * 10;
+      if (
+        quotaCheck.usage.totalBytesWithUpload >
+        quotaCheck.quota.includedBytes + maxOverageBytes
+      ) {
+        return res.status(413).json({
+          success: false,
+          message: 'Maximum overage limit exceeded. Please contact support or upgrade your plan.',
+          storageInfo: {
+            used: quotaCheck.usage.bytesUsed,
+            limit: quotaCheck.quota.includedBytes,
+            maxOverage: maxOverageBytes,
+            uploadSize,
+          },
+          contactSupport: true,
+        });
+      }
+
+      // Log overage warning if applicable
+      if (quotaCheck.overage.isOverLimit) {
+        logger.warn('Storage overage detected during upload', {
+          organizationId,
+          plan: quotaCheck.organization.plan,
+          currentUsage: quotaCheck.usage.bytesUsed,
           uploadSize,
+          overageBytes: quotaCheck.overage.overageBytes,
+          estimatedCost: quotaCheck.overage.estimatedMonthlyCost,
         });
       }
 
@@ -179,14 +193,6 @@ router.post(
         generateThumbnails = true,
         metadata = {},
       } = req.body;
-
-      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
-      if (!organizationId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Organization ID required',
-        });
-      }
 
       // Process all files
       const uploadPromises = req.files.map(file =>
@@ -222,7 +228,7 @@ router.post(
         organizationId,
         userId: req.user.id,
         totalBytes,
-        totalStorageUsed,
+        totalStorageUsed: finalStorageUsed,
       });
 
       res.json({
@@ -372,46 +378,8 @@ router.get('/storage/usage', authMiddleware, async (req, res) => {
       });
     }
 
-    // Get organization with subscription plan
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: {
-        id: true,
-        name: true,
-        subscriptionPlan: true,
-      },
-    });
-
-    if (!organization) {
-      return res.status(404).json({
-        success: false,
-        message: 'Organization not found',
-      });
-    }
-
-    // Calculate current storage usage
-    const storageUsageQuery = await prisma.fileStorage.aggregate({
-      where: { organizationId, isActive: true },
-      _sum: { fileSize: true },
-      _count: { id: true },
-    });
-
-    const totalBytesUsed = parseInt(storageUsageQuery._sum.fileSize || 0);
-    const totalFileCount = storageUsageQuery._count.id || 0;
-
-    // Storage limits per plan
-    const storageLimits = {
-      FREE: 1024 * 1024 * 1024, // 1GB
-      STARTER: 10 * 1024 * 1024 * 1024, // 10GB
-      PROFESSIONAL: 100 * 1024 * 1024 * 1024, // 100GB
-      BUSINESS: 500 * 1024 * 1024 * 1024, // 500GB
-      ENTERPRISE: Number.MAX_SAFE_INTEGER, // Unlimited
-    };
-
-    const subscriptionPlan = organization.subscriptionPlan || 'FREE';
-    const maxStorageBytes = storageLimits[subscriptionPlan] || storageLimits.FREE;
-    const usagePercentage =
-      maxStorageBytes === Number.MAX_SAFE_INTEGER ? 0 : (totalBytesUsed / maxStorageBytes) * 100;
+    // Get comprehensive storage information from billing service
+    const quotaInfo = await storageBillingService.checkEnhancedStorageQuota(organizationId);
 
     // Helper function to format bytes
     function formatBytesToString(bytes) {
@@ -425,25 +393,32 @@ router.get('/storage/usage', authMiddleware, async (req, res) => {
     res.json({
       success: true,
       data: {
-        organizationId,
-        organizationName: organization.name,
-        subscriptionPlan,
+        organizationId: quotaInfo.organization.id,
+        organizationName: quotaInfo.organization.name,
+        subscriptionPlan: quotaInfo.organization.plan,
         storage: {
-          used: totalBytesUsed,
-          limit: maxStorageBytes,
-          usagePercentage: Math.round(usagePercentage * 100) / 100,
-          isUnlimited: maxStorageBytes === Number.MAX_SAFE_INTEGER,
+          used: quotaInfo.usage.bytesUsed,
+          limit: quotaInfo.quota.includedBytes,
+          usagePercentage:
+            Math.round((quotaInfo.usage.bytesUsed / quotaInfo.quota.includedBytes) * 10000) / 100,
+          isOverLimit: quotaInfo.overage.isOverLimit,
+          overageBytes: quotaInfo.overage.overageBytes,
+          overageRate: quotaInfo.quota.overageRate,
+          estimatedMonthlyCost: quotaInfo.overage.estimatedMonthlyCost,
+          allowsOverages: quotaInfo.quota.allowsOverages,
         },
         files: {
-          total: totalFileCount,
+          total: quotaInfo.usage.fileCount,
         },
         formattedStorage: {
-          used: formatBytesToString(totalBytesUsed),
-          limit:
-            maxStorageBytes === Number.MAX_SAFE_INTEGER
-              ? 'Unlimited'
-              : formatBytesToString(maxStorageBytes),
+          used: formatBytesToString(quotaInfo.usage.bytesUsed),
+          limit: formatBytesToString(quotaInfo.quota.includedBytes),
+          overage: quotaInfo.overage.isOverLimit
+            ? formatBytesToString(quotaInfo.overage.overageBytes)
+            : '0 Bytes',
         },
+        quotaStatus: quotaInfo.quotaStatus,
+        costs: quotaInfo.costs,
       },
     });
   } catch (error) {
@@ -813,6 +788,152 @@ router.get('/shared/:shareToken', apiRateLimiter, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to access shared file',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/files/storage/packages
+ * Get available storage add-on packages
+ */
+router.get('/storage/packages', apiRateLimiter, trackApiUsage, async (req, res) => {
+  try {
+    const packages = storageBillingService.getStorageAddOnPacks();
+
+    res.json({
+      success: true,
+      message: 'Storage packages retrieved successfully',
+      packages,
+    });
+  } catch (error) {
+    logger.error('Failed to get storage packages', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get storage packages',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/files/storage/purchase
+ * Purchase storage add-on package
+ */
+router.post(
+  '/storage/purchase',
+  apiRateLimiter,
+  trackApiUsage,
+  authMiddleware,
+  body('packId').notEmpty().withMessage('Package ID is required'),
+  body('paymentMethodId').optional().isString().withMessage('Payment method ID must be a string'),
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const { packId, paymentMethodId } = req.body;
+
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const purchase = await storageBillingService.purchaseStorageAddOn(
+        organizationId,
+        packId,
+        paymentMethodId
+      );
+
+      logger.info('Storage add-on purchased', {
+        organizationId,
+        packId,
+        userId: req.user.id,
+        invoiceId: purchase.invoice.id,
+      });
+
+      res.json({
+        success: true,
+        message: 'Storage add-on purchased successfully',
+        purchase: {
+          id: purchase.purchase.id,
+          packId: purchase.addOnPack.id,
+          name: purchase.addOnPack.name,
+          storageGb: purchase.addOnPack.storageGb,
+          totalCost: purchase.addOnPack.priceUsd,
+          expirationDate: purchase.purchase.expirationDate,
+          invoiceId: purchase.invoice.id,
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to purchase storage add-on', {
+        error: error.message,
+        userId: req.user?.id,
+        packId: req.body.packId,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to purchase storage add-on',
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/files/storage/info
+ * Get enhanced storage information including add-ons
+ */
+router.get('/storage/info', apiRateLimiter, trackApiUsage, authMiddleware, async (req, res) => {
+  try {
+    const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID required',
+      });
+    }
+
+    const storageInfo = await storageBillingService.checkEnhancedStorageQuota(organizationId);
+
+    res.json({
+      success: true,
+      message: 'Storage information retrieved successfully',
+      storage: {
+        organization: storageInfo.organization,
+        usage: {
+          bytesUsed: storageInfo.usage.bytesUsed,
+          megabytesUsed: storageInfo.usage.megabytesUsed,
+          gigabytesUsed: storageInfo.usage.gigabytesUsed,
+          fileCount: storageInfo.usage.fileCount,
+        },
+        limits: {
+          baseStorageBytes: storageInfo.storage.baseStorageBytes,
+          addOnStorageBytes: storageInfo.storage.addOnStorageBytes,
+          totalStorageBytes: storageInfo.storage.totalStorageBytes,
+        },
+        activePurchases: storageInfo.storage.activePurchases.map(purchase => ({
+          id: purchase.id,
+          packId: purchase.packId,
+          storageGb: purchase.storageGb,
+          totalCost: purchase.totalCost,
+          purchaseDate: purchase.purchaseDate,
+          expirationDate: purchase.expirationDate,
+        })),
+        quota: storageInfo.quota,
+        overage: storageInfo.overage,
+        quotaStatus: storageInfo.quotaStatus,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get enhanced storage info', {
+      error: error.message,
+      userId: req.user?.id,
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get storage information',
       error: error.message,
     });
   }

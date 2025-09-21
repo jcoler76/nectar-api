@@ -27,7 +27,7 @@ import licenseRoutes from '@/routes/licenses'
 // import billingRoutes from '@/routes/billing'
 // import webhookRoutes from '@/routes/webhooks'
 // import marketingBillingRoutes from '@/routes/marketingBilling'
-// import crmRoutes from '@/routes/crm'
+import crmRoutes from '@/routes/crm'
 
 const app: Application = express()
 const PORT = Number(process.env.PORT || process.env.ADMIN_PORT || 4001)
@@ -70,7 +70,7 @@ app.use(cors({
       return callback(null, true)
     }
 
-    if (allowedOrigins.includes(origin)) {
+    if (origin && allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
@@ -126,7 +126,7 @@ app.use('/api/licenses', licenseRoutes)
 // app.use('/api/billing', billingRoutes)
 // app.use('/api/webhooks', webhookRoutes)
 // app.use('/api/marketing', marketingBillingRoutes)
-// app.use('/api/crm', crmRoutes)
+app.use('/api/crm', crmRoutes)
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -241,3 +241,4 @@ process.on('SIGINT', () => {
 export default app
 
 
+// trigger restart

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const prismaService = require('./prismaService');
 const { logger } = require('../utils/logger');
 const crypto = require('crypto');
+const trackingService = require('./trackingService');
 
 class AuthService {
   constructor() {
@@ -25,23 +26,82 @@ class AuthService {
 
       if (!user) {
         logger.warn('Login failed - user not found', { email, ipAddress });
+
+        // Track failed login - user not found
+        try {
+          await trackingService.trackLoginActivity({
+            email,
+            loginType: 'failed',
+            ipAddress,
+            userAgent,
+            failureReason: 'user_not_found',
+          });
+        } catch (trackingError) {
+          logger.warn('Failed to track login failure', { trackingError: trackingError.message });
+        }
+
         throw new Error('Invalid email or password');
       }
 
       if (!user.isActive) {
         logger.warn('Login failed - user inactive', { email, userId: user.id, ipAddress });
+
+        // Track failed login - account inactive
+        try {
+          await trackingService.trackLoginActivity({
+            userId: user.id,
+            email,
+            loginType: 'failed',
+            ipAddress,
+            userAgent,
+            failureReason: 'account_inactive',
+          });
+        } catch (trackingError) {
+          logger.warn('Failed to track login failure', { trackingError: trackingError.message });
+        }
+
         throw new Error('Account is inactive');
       }
 
       // Verify password
       if (!user.passwordHash) {
         logger.warn('Login failed - no password set', { email, userId: user.id, ipAddress });
+
+        // Track failed login - no password set
+        try {
+          await trackingService.trackLoginActivity({
+            userId: user.id,
+            email,
+            loginType: 'failed',
+            ipAddress,
+            userAgent,
+            failureReason: 'no_password_set',
+          });
+        } catch (trackingError) {
+          logger.warn('Failed to track login failure', { trackingError: trackingError.message });
+        }
+
         throw new Error('Invalid email or password');
       }
 
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
       if (!isValidPassword) {
         logger.warn('Login failed - invalid password', { email, userId: user.id, ipAddress });
+
+        // Track failed login - invalid password
+        try {
+          await trackingService.trackLoginActivity({
+            userId: user.id,
+            email,
+            loginType: 'failed',
+            ipAddress,
+            userAgent,
+            failureReason: 'invalid_password',
+          });
+        } catch (trackingError) {
+          logger.warn('Failed to track login failure', { trackingError: trackingError.message });
+        }
+
         throw new Error('Invalid email or password');
       }
 
@@ -52,6 +112,21 @@ class AuthService {
           userId: user.id,
           ipAddress,
         });
+
+        // Track failed login - no organization access
+        try {
+          await trackingService.trackLoginActivity({
+            userId: user.id,
+            email,
+            loginType: 'failed',
+            ipAddress,
+            userAgent,
+            failureReason: 'no_organization_access',
+          });
+        } catch (trackingError) {
+          logger.warn('Failed to track login failure', { trackingError: trackingError.message });
+        }
+
         throw new Error('No organization access found');
       }
 
@@ -89,6 +164,24 @@ class AuthService {
         role: primaryMembership.role,
         ipAddress,
       });
+
+      // Track successful login
+      try {
+        await trackingService.trackLoginActivity({
+          userId: user.id,
+          organizationId: organization.id,
+          email: user.email,
+          loginType: 'success',
+          ipAddress,
+          userAgent,
+          metadata: {
+            role: primaryMembership.role,
+            organizationSlug: organization.slug,
+          },
+        });
+      } catch (trackingError) {
+        logger.warn('Failed to track login activity', { trackingError: trackingError.message });
+      }
 
       return {
         user: {

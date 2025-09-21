@@ -22,10 +22,8 @@ router.get('/', async (req: Request, res: Response) => {
     const take = Math.min(Number(limit), 100) // Max 100 per request
 
     // Build where clause for filters
-    // Exclude super admins by default - we're managing regular users
-    const where: any = {
-      isSuperAdmin: false
-    }
+    // Include all users (regular users and super admins)
+    const where: any = {}
 
     if (search) {
       where.OR = [
@@ -74,8 +72,8 @@ router.get('/', async (req: Request, res: Response) => {
         ...user,
         fullName: `${user.firstName} ${user.lastName}`,
         organization,
-        // For frontend compatibility - using isSuperAdmin field from User model
-        isAdmin: false, // Regular users are not admins
+        // For frontend compatibility - show super admin status
+        isAdmin: user.isSuperAdmin || false,
         roles: [] // Roles would come from memberships if needed
       }
     })

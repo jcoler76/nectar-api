@@ -877,6 +877,153 @@ const initializeScheduler = async () => {
     } else {
       logger.info('ℹ️ PostgreSQL backup is disabled (DB_BACKUP_ENABLED=false)');
     }
+
+    // Initialize storage billing service for monitoring
+    const StorageBillingService = require('./storageBillingService');
+    const storageBillingService = new StorageBillingService();
+
+    // Schedule daily storage usage tracking at 1 AM UTC
+    cron.schedule(
+      '0 1 * * *',
+      async () => {
+        try {
+          logger.info('📊 Starting daily storage usage tracking');
+
+          // Get all active organizations
+          const organizations = await prisma.organization.findMany({
+            where: { isActive: true },
+            select: { id: true, name: true },
+          });
+
+          let recordedCount = 0;
+          for (const org of organizations) {
+            try {
+              await storageBillingService.recordDailyUsage(org.id);
+              recordedCount++;
+            } catch (error) {
+              logger.error('Failed to record storage usage for organization', {
+                organizationId: org.id,
+                organizationName: org.name,
+                error: error.message,
+              });
+            }
+          }
+
+          logger.info(
+            `✅ Daily storage usage recorded for ${recordedCount}/${organizations.length} organizations`
+          );
+        } catch (error) {
+          logger.error('❌ Error in daily storage usage tracking:', error);
+        }
+      },
+      {
+        timezone: 'UTC',
+      }
+    );
+    logger.info('📅 Daily storage usage tracking scheduled for 1 AM UTC');
+
+    // Schedule monthly overage calculation on the 1st of each month at 6 AM UTC
+    cron.schedule(
+      '0 6 1 * *',
+      async () => {
+        try {
+          logger.info('💰 Starting monthly storage overage calculation');
+
+          // Get previous month
+          const now = new Date();
+          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+          // Get all active organizations
+          const organizations = await prisma.organization.findMany({
+            where: { isActive: true },
+            include: { subscription: true },
+          });
+
+          let processedCount = 0;
+          let totalOverageCost = 0;
+
+          for (const org of organizations) {
+            try {
+              const overageData = await storageBillingService.calculateMonthlyOverage(
+                org.id,
+                lastMonth
+              );
+
+              if (overageData.overage.overageCost > 0) {
+                logger.info('Storage overage calculated', {
+                  organizationId: org.id,
+                  organizationName: org.name,
+                  plan: org.subscription?.plan || 'FREE',
+                  overageCost: overageData.overage.overageCost,
+                  overageGB: overageData.overage.overageGB,
+                });
+                totalOverageCost += overageData.overage.overageCost;
+              }
+
+              processedCount++;
+            } catch (error) {
+              logger.error('Failed to calculate monthly overage for organization', {
+                organizationId: org.id,
+                organizationName: org.name,
+                error: error.message,
+              });
+            }
+          }
+
+          logger.info(
+            `✅ Monthly overage calculated for ${processedCount}/${organizations.length} organizations`,
+            {
+              totalOverageCost: Math.round(totalOverageCost * 100) / 100,
+              month: lastMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            }
+          );
+        } catch (error) {
+          logger.error('❌ Error in monthly overage calculation:', error);
+        }
+      },
+      {
+        timezone: 'UTC',
+      }
+    );
+    logger.info(
+      '📅 Monthly storage overage calculation scheduled for 1st of each month at 6 AM UTC'
+    );
+
+    // Schedule storage cleanup - remove old usage records quarterly
+    cron.schedule(
+      '0 4 1 */3 *', // Every 3 months on the 1st at 4 AM UTC
+      async () => {
+        try {
+          logger.info('🧹 Starting quarterly storage usage cleanup');
+          const deletedCount = await storageBillingService.cleanupOldRecords(365); // Keep 1 year
+          logger.info(`✅ Cleaned up ${deletedCount} old storage usage records`);
+        } catch (error) {
+          logger.error('❌ Error in storage usage cleanup:', error);
+        }
+      },
+      {
+        timezone: 'UTC',
+      }
+    );
+    logger.info('📅 Quarterly storage usage cleanup scheduled');
+
+    // Schedule daily storage purchase expiration check at 2 AM UTC
+    cron.schedule(
+      '0 2 * * *',
+      async () => {
+        try {
+          logger.info('⏰ Starting daily storage purchase expiration check');
+          const expiredCount = await storageBillingService.expireOldPurchases();
+          logger.info(`✅ Expired ${expiredCount} old storage purchases`);
+        } catch (error) {
+          logger.error('❌ Error in storage purchase expiration check:', error);
+        }
+      },
+      {
+        timezone: 'UTC',
+      }
+    );
+    logger.info('📅 Daily storage purchase expiration check scheduled for 2 AM UTC');
   } catch (error) {
     logger.error('❌ Failed to initialize scheduler:', error);
   }

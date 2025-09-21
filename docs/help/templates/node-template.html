@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{TITLE}}</title>
+    <style>
+      :root {
+        --text: #0f172a;
+        --muted: #475569;
+        --accent: #0ea5e9;
+        --bg: #ffffff;
+        --code-bg: #0b1020;
+        --code-fg: #e2e8f0;
+        --border: #e2e8f0;
+      }
+      * { box-sizing: border-box; }
+      body { font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); margin: 0; }
+      header { border-bottom: 1px solid var(--border); padding: 24px 20px; }
+      header h1 { margin: 0 0 4px; font-size: 24px; }
+      header .meta { color: var(--muted); font-size: 14px; }
+      main { max-width: 960px; margin: 0 auto; padding: 24px 20px 64px; }
+      h2 { margin-top: 28px; font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+      ul { padding-left: 20px; }
+      .lead { color: var(--muted); margin-top: 6px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+      .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff; }
+      pre { background: var(--code-bg); color: var(--code-fg); padding: 12px 14px; border-radius: 8px; overflow: auto; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+      .screenshot img { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; }
+      .pill { display: inline-block; padding: 2px 8px; font-size: 12px; border-radius: 999px; background: #f1f5f9; color: #0f172a; border: 1px solid var(--border); }
+      .muted { color: var(--muted); }
+      .kbd { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; background: #e2e8f0; border: 1px solid #cbd5e1; padding: 0 5px; border-radius: 4px; }
+      .note { background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; padding: 12px 14px; border-radius: 8px; }
+      a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>{{TITLE}}</h1>
+      <div class="meta">Category: <span class="pill">{{CATEGORY}}</span> • Type: <span class="pill">{{TYPE}}</span></div>
+      <p class="lead">{{DESCRIPTION}}</p>
+    </header>
+    <main>
+      <section>
+        <h2>Overview</h2>
+        <p>{{OVERVIEW}}</p>
+      </section>
+
+      <section>
+        <h2>When To Use</h2>
+        <ul>
+          {{WHEN_TO_USE_ITEMS}}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Setup Steps</h2>
+        <ol>
+          {{SETUP_STEPS}}
+        </ol>
+        <p class="note">Tip: Use the <span class="kbd">Add Node</span> button in the builder, then select <strong>{{TITLE}}</strong> from the palette.</p>
+      </section>
+
+      <section>
+        <h2>Configuration</h2>
+        <div class="grid">
+          {{CONFIG_CARDS}}
+        </div>
+      </section>
+
+      <section>
+        <h2>Examples</h2>
+        <pre><code>{{EXAMPLE_JSON}}</code></pre>
+      </section>
+
+      <section class="screenshot">
+        <h2>Screenshots</h2>
+        <p class="muted">Screenshots are auto-generated and stored alongside this doc.</p>
+        <img src="../assets/screenshots/{{SLUG}}-doc.png" alt="{{TITLE}} help page" />
+        <img src="../assets/screenshots/{{SLUG}}-panel.png" alt="{{TITLE}} configuration panel" />
+      </section>
+
+      <section>
+        <h2>Troubleshooting</h2>
+        <ul>
+          <li>Validation errors: ensure required fields are filled and formats match expectations.</li>
+          <li>Downstream failures: add a Logger node and review execution history.</li>
+          <li>Idempotency: consider the Idempotency node to prevent duplicate work.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Related Nodes</h2>
+        <ul>
+          {{RELATED_NODES}}
+        </ul>
+      </section>
+    </main>
+  </body>
+  </html>
+

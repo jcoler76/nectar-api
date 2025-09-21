@@ -40,7 +40,7 @@ class LicenseController {
         throw new Error(`License server error: ${response.status} ${response.statusText}`);
       }
 
-      return await response.json();
+      return await response.json() as LicenseServerResponse;
     } catch (error) {
       console.error('License server request failed:', error);
       throw new Error('Failed to communicate with license server');

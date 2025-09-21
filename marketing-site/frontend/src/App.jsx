@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
+import usePageTracking from './hooks/usePageTracking';
 
 import AboutPage from './components/marketing/AboutPage';
 import APIPage from './components/marketing/APIPage';
@@ -43,6 +44,8 @@ function ScrollToTop() {
 }
 
 function AppRoutes() {
+  usePageTracking();
+
   return (
     <>
       <ScrollToTop />

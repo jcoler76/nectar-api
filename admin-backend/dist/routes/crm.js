@@ -1,98 +1,39 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminAuth_1 = require("@/middleware/adminAuth");
 const database_1 = require("@/utils/database");
-const crypto_1 = __importDefault(require("crypto"));
+const client_1 = require("@prisma/client");
 const router = (0, express_1.Router)();
-async function ensureTables() {
-    await database_1.prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS contacts (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      email TEXT,
-      company TEXT,
-      phone TEXT,
-      source TEXT,
-      url TEXT,
-      utm JSONB,
-      lead_score INTEGER DEFAULT 0,
-      lead_status TEXT DEFAULT 'new',
-      owner TEXT,
-      tags JSONB DEFAULT '[]',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-    // Backfill columns if table already existed
-    await database_1.prisma.$executeRawUnsafe(`ALTER TABLE contacts ADD COLUMN IF NOT EXISTS lead_status TEXT DEFAULT 'new';`);
-    await database_1.prisma.$executeRawUnsafe(`ALTER TABLE contacts ADD COLUMN IF NOT EXISTS owner TEXT;`);
-    await database_1.prisma.$executeRawUnsafe(`ALTER TABLE contacts ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]';`);
-    await database_1.prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS contact_conversations (
-      id TEXT PRIMARY KEY,
-      contact_id TEXT NOT NULL,
-      status TEXT DEFAULT 'open',
-      assigned_to TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW(),
-      last_message_at TIMESTAMPTZ,
-      CONSTRAINT fk_contact FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
-    );
-  `);
-    await database_1.prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS contact_messages (
-      id TEXT PRIMARY KEY,
-      conversation_id TEXT NOT NULL,
-      role TEXT NOT NULL,
-      content TEXT NOT NULL,
-      metadata JSONB,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT fk_conversation FOREIGN KEY(conversation_id) REFERENCES contact_conversations(id) ON DELETE CASCADE
-    );
-  `);
-    await database_1.prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS contact_notes (
-      id TEXT PRIMARY KEY,
-      contact_id TEXT NOT NULL,
-      body TEXT NOT NULL,
-      created_by TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      CONSTRAINT fk_note_contact FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
-    );
-  `);
-}
 router.use(adminAuth_1.authenticateAdmin);
 router.get('/contacts', async (req, res) => {
     try {
-        await ensureTables();
         const q = req.query.q?.toLowerCase();
-        const status = req.query.status || undefined;
-        const owner = req.query.owner || undefined;
-        const limit = Number(req.query.limit || 50);
+        const status = req.query.status;
+        const owner = req.query.owner;
+        const limit = Math.min(Number(req.query.limit || 50), 100);
         const offset = Number(req.query.offset || 0);
-        const clauses = [];
-        const params = [];
+        const where = {};
         if (q) {
-            params.push(`%${q}%`);
-            clauses.push(`(lower(email) LIKE $${params.length} OR lower(name) LIKE $${params.length} OR lower(company) LIKE $${params.length})`);
+            where.OR = [
+                { email: { contains: q, mode: 'insensitive' } },
+                { name: { contains: q, mode: 'insensitive' } },
+                { company: { contains: q, mode: 'insensitive' } }
+            ];
         }
         if (status) {
-            params.push(status);
-            clauses.push(`lead_status = $${params.length}`);
+            where.leadStatus = status;
         }
         if (owner) {
-            params.push(owner.toLowerCase());
-            clauses.push(`lower(owner) = $${params.length}`);
+            where.owner = { contains: owner, mode: 'insensitive' };
         }
-        const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-        params.push(limit);
-        params.push(offset);
-        const rows = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contacts ${where} ORDER BY updated_at DESC LIMIT $${params.length - 1} OFFSET $${params.length};`, ...params);
-        res.json({ success: true, data: rows });
+        const contacts = await database_1.prisma.contact.findMany({
+            where,
+            orderBy: { updatedAt: 'desc' },
+            take: limit,
+            skip: offset
+        });
+        res.json({ success: true, data: contacts });
     }
     catch (e) {
         res.status(500).json({ success: false, error: e?.message || 'Failed to list contacts' });
@@ -100,13 +41,23 @@ router.get('/contacts', async (req, res) => {
 });
 router.post('/contacts', async (req, res) => {
     try {
-        await ensureTables();
-        const { id, name, email, company, phone, source, url, utm, lead_score, lead_status, owner, tags } = req.body || {};
-        const newId = id || crypto_1.default.randomUUID();
-        await database_1.prisma.$executeRawUnsafe(`INSERT INTO contacts (id,name,email,company,phone,source,url,utm,lead_score,lead_status,owner,tags,created_at,updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,COALESCE($9,0),COALESCE($10,'new'),$11,COALESCE($12,'[]'::jsonb),NOW(),NOW());`, newId, name || null, email || null, company || null, phone || null, source || null, url || null, utm ? JSON.stringify(utm) : null, typeof lead_score === 'number' ? lead_score : 0, lead_status || 'new', owner || null, Array.isArray(tags) ? JSON.stringify(tags) : '[]');
-        const rows = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contacts WHERE id=$1;`, newId);
-        res.status(201).json({ success: true, data: rows[0] });
+        const { name, email, company, phone, source, url, utm, leadScore, leadStatus, owner, tags } = req.body || {};
+        const contact = await database_1.prisma.contact.create({
+            data: {
+                name: name || null,
+                email: email || null,
+                company: company || null,
+                phone: phone || null,
+                source: source || null,
+                url: url || null,
+                utm: utm || null,
+                leadScore: typeof leadScore === 'number' ? leadScore : 0,
+                leadStatus: leadStatus || client_1.ContactStatus.NEW,
+                owner: owner || null,
+                tags: Array.isArray(tags) ? tags : []
+            }
+        });
+        res.status(201).json({ success: true, data: contact });
     }
     catch (e) {
         res.status(500).json({ success: false, error: e?.message || 'Failed to create contact' });
@@ -114,13 +65,22 @@ router.post('/contacts', async (req, res) => {
 });
 router.get('/contacts/:id', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        const rows = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contacts WHERE id=$1 LIMIT 1;`, id);
-        if (!rows.length) {
-            return res.status(404).json({ success: false, error: 'Not found' });
+        const contact = await database_1.prisma.contact.findUnique({
+            where: { id },
+            include: {
+                conversations: {
+                    include: {
+                        messages: true
+                    }
+                },
+                notes: true
+            }
+        });
+        if (!contact) {
+            return res.status(404).json({ success: false, error: 'Contact not found' });
         }
-        res.json({ success: true, data: rows[0] });
+        res.json({ success: true, data: contact });
     }
     catch (e) {
         res.status(500).json({ success: false, error: e?.message || 'Failed to get contact' });
@@ -128,41 +88,78 @@ router.get('/contacts/:id', async (req, res) => {
 });
 router.patch('/contacts/:id', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        const { name, email, company, phone, lead_score, lead_status, owner, tags } = req.body || {};
-        await database_1.prisma.$executeRawUnsafe(`UPDATE contacts SET name=COALESCE($1,name), email=COALESCE($2,email), company=COALESCE($3,company), phone=COALESCE($4,phone), lead_score=COALESCE($5,lead_score), lead_status=COALESCE($6,lead_status), owner=COALESCE($7,owner), tags=COALESCE($8,tags), updated_at=NOW() WHERE id=$9;`, name || null, email || null, company || null, phone || null, typeof lead_score === 'number' ? lead_score : null, lead_status || null, owner || null, Array.isArray(tags) ? JSON.stringify(tags) : null, id);
-        const rows = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contacts WHERE id=$1 LIMIT 1;`, id);
-        res.json({ success: true, data: rows[0] || null });
+        const { name, email, company, phone, leadScore, leadStatus, owner, tags } = req.body || {};
+        const updateData = {};
+        if (name !== undefined)
+            updateData.name = name;
+        if (email !== undefined)
+            updateData.email = email;
+        if (company !== undefined)
+            updateData.company = company;
+        if (phone !== undefined)
+            updateData.phone = phone;
+        if (typeof leadScore === 'number')
+            updateData.leadScore = leadScore;
+        if (leadStatus)
+            updateData.leadStatus = leadStatus;
+        if (owner !== undefined)
+            updateData.owner = owner;
+        if (Array.isArray(tags))
+            updateData.tags = tags;
+        const contact = await database_1.prisma.contact.update({
+            where: { id },
+            data: updateData
+        });
+        res.json({ success: true, data: contact });
     }
     catch (e) {
+        if (e.code === 'P2025') {
+            return res.status(404).json({ success: false, error: 'Contact not found' });
+        }
         res.status(500).json({ success: false, error: e?.message || 'Failed to update contact' });
     }
 });
 router.delete('/contacts/:id', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        await database_1.prisma.$executeRawUnsafe(`DELETE FROM contacts WHERE id=$1;`, id);
+        await database_1.prisma.contact.delete({
+            where: { id }
+        });
         res.json({ success: true });
     }
     catch (e) {
+        if (e.code === 'P2025') {
+            return res.status(404).json({ success: false, error: 'Contact not found' });
+        }
         res.status(500).json({ success: false, error: e?.message || 'Failed to delete contact' });
     }
 });
 router.get('/conversations', async (req, res) => {
     try {
-        await ensureTables();
         const status = req.query.status;
-        const limit = Number(req.query.limit || 50);
+        const limit = Math.min(Number(req.query.limit || 50), 100);
         const offset = Number(req.query.offset || 0);
-        const sql = status
-            ? `SELECT c.*, ct.email, ct.name, ct.company FROM contact_conversations c JOIN contacts ct ON ct.id=c.contact_id WHERE c.status=$1 ORDER BY c.updated_at DESC LIMIT $2 OFFSET $3;`
-            : `SELECT c.*, ct.email, ct.name, ct.company FROM contact_conversations c JOIN contacts ct ON ct.id=c.contact_id ORDER BY c.updated_at DESC LIMIT $1 OFFSET $2;`;
-        const rows = status
-            ? await database_1.prisma.$queryRawUnsafe(sql, status, limit, offset)
-            : await database_1.prisma.$queryRawUnsafe(sql, limit, offset);
-        res.json({ success: true, data: rows });
+        const where = {};
+        if (status) {
+            where.status = status;
+        }
+        const conversations = await database_1.prisma.contactConversation.findMany({
+            where,
+            include: {
+                contact: {
+                    select: {
+                        email: true,
+                        name: true,
+                        company: true
+                    }
+                }
+            },
+            orderBy: { updatedAt: 'desc' },
+            take: limit,
+            skip: offset
+        });
+        res.json({ success: true, data: conversations });
     }
     catch (e) {
         res.status(500).json({ success: false, error: e?.message || 'Failed to list conversations' });
@@ -170,11 +167,26 @@ router.get('/conversations', async (req, res) => {
 });
 router.get('/conversations/:id', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        const convo = await database_1.prisma.$queryRawUnsafe(`SELECT c.*, ct.email, ct.name, ct.company FROM contact_conversations c JOIN contacts ct ON ct.id=c.contact_id WHERE c.id=$1 LIMIT 1;`, id);
-        const messages = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contact_messages WHERE conversation_id=$1 ORDER BY created_at ASC;`, id);
-        res.json({ success: true, data: { conversation: convo[0] || null, messages } });
+        const conversation = await database_1.prisma.contactConversation.findUnique({
+            where: { id },
+            include: {
+                contact: {
+                    select: {
+                        email: true,
+                        name: true,
+                        company: true
+                    }
+                },
+                messages: {
+                    orderBy: { createdAt: 'asc' }
+                }
+            }
+        });
+        if (!conversation) {
+            return res.status(404).json({ success: false, error: 'Conversation not found' });
+        }
+        res.json({ success: true, data: conversation });
     }
     catch (e) {
         res.status(500).json({ success: false, error: e?.message || 'Failed to get conversation' });
@@ -182,35 +194,51 @@ router.get('/conversations/:id', async (req, res) => {
 });
 router.patch('/conversations/:id', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        const { status, assigned_to } = req.body || {};
-        await database_1.prisma.$executeRawUnsafe(`UPDATE contact_conversations SET status=COALESCE($1,status), assigned_to=COALESCE($2,assigned_to), updated_at=NOW() WHERE id=$3;`, status || null, assigned_to || null, id);
+        const { status, assignedTo } = req.body || {};
+        const updateData = {};
+        if (status)
+            updateData.status = status;
+        if (assignedTo !== undefined)
+            updateData.assignedTo = assignedTo;
+        await database_1.prisma.contactConversation.update({
+            where: { id },
+            data: updateData
+        });
         res.json({ success: true });
     }
     catch (e) {
+        if (e.code === 'P2025') {
+            return res.status(404).json({ success: false, error: 'Conversation not found' });
+        }
         res.status(500).json({ success: false, error: e?.message || 'Failed to update conversation' });
     }
 });
 // Convert lead to customer (simple: mark as converted; optional: future user/org creation)
 router.post('/contacts/:id/convert', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        await database_1.prisma.$executeRawUnsafe(`UPDATE contacts SET lead_status='converted', updated_at=NOW() WHERE id=$1;`, id);
-        const rows = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contacts WHERE id=$1;`, id);
-        res.json({ success: true, data: rows[0] || null });
+        const contact = await database_1.prisma.contact.update({
+            where: { id },
+            data: { leadStatus: client_1.ContactStatus.CONVERTED }
+        });
+        res.json({ success: true, data: contact });
     }
     catch (e) {
+        if (e.code === 'P2025') {
+            return res.status(404).json({ success: false, error: 'Contact not found' });
+        }
         res.status(500).json({ success: false, error: e?.message || 'Failed to convert lead' });
     }
 });
 // Notes endpoints
 router.get('/contacts/:id/notes', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        const notes = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contact_notes WHERE contact_id=$1 ORDER BY created_at DESC;`, id);
+        const notes = await database_1.prisma.contactNote.findMany({
+            where: { contactId: id },
+            orderBy: { createdAt: 'desc' }
+        });
         res.json({ success: true, data: notes });
     }
     catch (e) {
@@ -219,14 +247,17 @@ router.get('/contacts/:id/notes', async (req, res) => {
 });
 router.post('/contacts/:id/notes', async (req, res) => {
     try {
-        await ensureTables();
         const id = req.params.id;
-        const noteId = crypto_1.default.randomUUID();
         const body = req.body?.body || '';
         const createdBy = req.admin?.id || null;
-        await database_1.prisma.$executeRawUnsafe(`INSERT INTO contact_notes (id,contact_id,body,created_by,created_at) VALUES ($1,$2,$3,$4,NOW());`, noteId, id, body, createdBy);
-        const rows = await database_1.prisma.$queryRawUnsafe(`SELECT * FROM contact_notes WHERE id=$1;`, noteId);
-        res.status(201).json({ success: true, data: rows[0] });
+        const note = await database_1.prisma.contactNote.create({
+            data: {
+                contactId: id,
+                body,
+                createdBy
+            }
+        });
+        res.status(201).json({ success: true, data: note });
     }
     catch (e) {
         res.status(500).json({ success: false, error: e?.message || 'Failed to create note' });
@@ -234,11 +265,18 @@ router.post('/contacts/:id/notes', async (req, res) => {
 });
 router.delete('/contacts/:id/notes/:noteId', async (req, res) => {
     try {
-        await ensureTables();
-        await database_1.prisma.$executeRawUnsafe(`DELETE FROM contact_notes WHERE id=$1 AND contact_id=$2;`, req.params.noteId, req.params.id);
+        await database_1.prisma.contactNote.delete({
+            where: {
+                id: req.params.noteId,
+                contactId: req.params.id
+            }
+        });
         res.json({ success: true });
     }
     catch (e) {
+        if (e.code === 'P2025') {
+            return res.status(404).json({ success: false, error: 'Note not found' });
+        }
         res.status(500).json({ success: false, error: e?.message || 'Failed to delete note' });
     }
 });

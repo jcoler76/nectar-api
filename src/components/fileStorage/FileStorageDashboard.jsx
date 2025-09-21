@@ -123,30 +123,10 @@ const FileStorageDashboard = () => {
   // Fetch storage usage
   const fetchStorageUsage = useCallback(async () => {
     try {
-      // Temporarily disabled due to backend issues
-      // const response = await api.get('/api/files/storage/usage');
-      // if (response.data.success) {
-      //   setStorageUsage(response.data.data);
-      // }
-
-      // Mock data for now
-      setStorageUsage({
-        organizationName: 'Demo Org',
-        subscriptionPlan: 'FREE',
-        storage: {
-          used: 0,
-          limit: 1024 * 1024 * 1024, // 1GB
-          usagePercentage: 0,
-          isUnlimited: false,
-        },
-        files: {
-          total: 0,
-        },
-        formattedStorage: {
-          used: '0 Bytes',
-          limit: '1 GB',
-        },
-      });
+      const response = await api.get('/api/files/storage/usage');
+      if (response.data.success) {
+        setStorageUsage(response.data.data);
+      }
     } catch (error) {
       console.error('Error fetching storage usage:', error);
     }

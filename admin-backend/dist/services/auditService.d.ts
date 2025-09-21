@@ -50,7 +50,7 @@ declare function logRoleChange(options: {
     reason: string | null;
     performedById: string | null;
     approvedById: string | null;
-    status: import("../../../server/prisma/generated/client").$Enums.RoleChangeStatus;
+    status: import(".prisma/client").$Enums.RoleChangeStatus;
 }>;
 /**
  * Log admin user login events

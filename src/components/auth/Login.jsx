@@ -23,7 +23,7 @@ const Login = () => {
 
   // Debug: Check what the environment variable contains
   const marketingSiteUrl = process.env.REACT_APP_MARKETING_SITE_URL || 'http://localhost:5000';
-  console.log('Marketing site URL:', marketingSiteUrl);
+  // Marketing site URL is configured and ready to use
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

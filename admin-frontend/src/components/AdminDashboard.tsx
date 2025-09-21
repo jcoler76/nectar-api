@@ -17,6 +17,7 @@ import RevenueDashboard from './analytics/RevenueDashboard'
 import UserAnalytics from './analytics/UserAnalytics'
 import ChurnAnalysis from './analytics/ChurnAnalysis'
 import UserManagement from './users/UserManagement'
+import AdminUsers from './users/AdminUsers'
 import OrganizationManagement from './users/OrganizationManagement'
 import SubscriptionManagement from './users/SubscriptionManagement'
 import BillingDashboard from './billing/BillingDashboard'
@@ -121,6 +122,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case '/users/all': return 'All Users'
       case '/users/organizations': return 'Organizations'
       case '/users/subscriptions': return 'Subscriptions'
+      case '/admin-users': return 'Admin Users'
       case '/billing': return 'Billing'
       case '/billing/overview': return 'Billing Overview'
       case '/billing/transactions': return 'Transactions'
@@ -159,6 +161,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             {currentPage === '/dashboard' ? 'Overview of system metrics and activity' :
              currentPage.startsWith('/analytics') ? 'Revenue and usage analytics' :
              currentPage.startsWith('/users') ? 'User and organization management' :
+             currentPage === '/admin-users' ? 'Manage admin portal users and permissions' :
              currentPage.startsWith('/billing') ? 'Billing and subscription management' :
              currentPage.startsWith('/licensing') ? 'License management and monitoring' :
              currentPage.startsWith('/system') ? 'System configuration and maintenance' :
@@ -267,6 +270,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         {currentPage === '/users/all' && <UserManagement />}
         {currentPage === '/users/organizations' && <OrganizationManagement />}
         {currentPage === '/users/subscriptions' && <SubscriptionManagement />}
+
+        {/* Admin Users Page */}
+        {currentPage === '/admin-users' && <AdminUsers />}
         
         {/* CRM Pages */}
         {currentPage === '/crm/leads' && <LeadList />}
@@ -298,6 +304,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
          currentPage !== '/users/all' &&
          currentPage !== '/users/organizations' &&
          currentPage !== '/users/subscriptions' &&
+         currentPage !== '/admin-users' &&
          currentPage !== '/billing/overview' &&
          currentPage !== '/billing/transactions' &&
          currentPage !== '/billing/stripe' &&

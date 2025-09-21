@@ -29,7 +29,7 @@ const licenses_1 = __importDefault(require("@/routes/licenses"));
 // import billingRoutes from '@/routes/billing'
 // import webhookRoutes from '@/routes/webhooks'
 // import marketingBillingRoutes from '@/routes/marketingBilling'
-// import crmRoutes from '@/routes/crm'
+const crm_1 = __importDefault(require("@/routes/crm"));
 const app = (0, express_1.default)();
 const PORT = Number(process.env.PORT || process.env.ADMIN_PORT || 4001);
 let httpServer;
@@ -64,7 +64,7 @@ app.use((0, cors_1.default)({
         if (!origin && isDevelopment) {
             return callback(null, true);
         }
-        if (allowedOrigins.includes(origin)) {
+        if (origin && allowedOrigins.includes(origin)) {
             callback(null, true);
         }
         else {
@@ -113,7 +113,7 @@ app.use('/api/licenses', licenses_1.default);
 // app.use('/api/billing', billingRoutes)
 // app.use('/api/webhooks', webhookRoutes)
 // app.use('/api/marketing', marketingBillingRoutes)
-// app.use('/api/crm', crmRoutes)
+app.use('/api/crm', crm_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({

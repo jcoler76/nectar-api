@@ -208,7 +208,7 @@ export default function AdminTopBar({
                   >
                     Profile Settings
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       setShowUserMenu(false)
                       onNavigate?.('/admin/account')
@@ -217,8 +217,17 @@ export default function AdminTopBar({
                   >
                     Account
                   </button>
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      onNavigate?.('/admin-users')
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Admin Users
+                  </button>
                   <hr className="my-1" />
-                  <button 
+                  <button
                     onClick={onLogout}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                   >

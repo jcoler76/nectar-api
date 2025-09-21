@@ -8,14 +8,20 @@ import {
   Workflow,
   Globe,
 } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DemoRequestModal from './DemoRequestModal';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   const handleTryNow = () => {
     navigate('/pricing');
+  };
+
+  const handleWatchDemo = () => {
+    setIsDemoModalOpen(true);
   };
 
   const features = [
@@ -95,8 +101,11 @@ const HomePage = () => {
               Start Free Trial
               <ArrowRight className="w-5 h-5" />
             </button>
-            <button className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-xl font-semibold text-lg border border-gray-200 transition-all hover:scale-105 shadow-lg">
-              Watch Demo
+            <button
+              onClick={handleWatchDemo}
+              className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-4 rounded-xl font-semibold text-lg border border-gray-200 transition-all hover:scale-105 shadow-lg"
+            >
+              Request Demo
             </button>
           </div>
           <p className="text-sm text-gray-500 mt-6">
@@ -206,6 +215,13 @@ const HomePage = () => {
       </section>
 
       {/* Footer provided by MarketingLayout */}
+
+      {/* Demo Request Modal */}
+      <DemoRequestModal
+        isOpen={isDemoModalOpen}
+        onClose={() => setIsDemoModalOpen(false)}
+        source="homepage"
+      />
     </div>
   );
 };

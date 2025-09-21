@@ -43,6 +43,11 @@ model Organization {
   webhooks                Webhook[]
   workflows               Workflow[]
   fileFolders             FileFolder[]
+  storageUsages           StorageUsage[]
+  storageOverages         StorageOverage[]
+  storagePurchases        StoragePurchase[]
+  appUsageLogs            AppUsageLog[]            @relation("AppUsageOrganization")
+  loginActivityLogs       LoginActivityLog[]       @relation("LoginActivityOrganization")
 
   @@index([slug])
   @@index([createdAt])
@@ -90,6 +95,8 @@ model User {
   termsAcceptances           TermsAcceptance[]
   workflowsCreated           Workflow[]
   fileFoldersCreated         FileFolder[]
+  appUsageLogs               AppUsageLog[]               @relation("AppUsageUser")
+  loginActivityLogs          LoginActivityLog[]          @relation("LoginActivityUser")
 
   @@index([email])
   @@index([createdAt])
@@ -194,6 +201,8 @@ model Subscription {
   maxApiCallsPerMonth    Int                @default(10000)
   maxUsersPerOrg         Int                @default(1)
   maxWorkflows           Int                @default(5)
+  storageIncludedBytes   BigInt             @default(0) // Storage included in plan
+  storageOverageRate     Decimal            @db.Decimal(6, 4) @default(0.0000) // Rate per GB/month
   organizationId         String             @unique
   monthlyRevenue         Decimal?           @db.Decimal(10, 2)
   billingEvents          BillingEvent[]
@@ -843,6 +852,68 @@ model FileFolder {
   @@map("file_folders")
 }
 
+model StorageUsage {
+  id             String       @id @default(uuid())
+  organizationId String
+  date           DateTime     @db.Date
+  bytesStored    BigInt       @default(0)
+  byteHours      BigInt       @default(0) // For prorated billing
+  fileCount      Int          @default(0)
+  costUsd        Decimal      @db.Decimal(10, 4) @default(0.0000)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date])
+  @@index([organizationId])
+  @@index([date])
+  @@index([createdAt])
+}
+
+model StorageOverage {
+  id             String       @id @default(uuid())
+  organizationId String
+  month          DateTime     @db.Date // First day of the month
+  includedBytes  BigInt       // Storage included in plan
+  usedBytes      BigInt       // Total storage used
+  overageBytes   BigInt       @default(0) // Bytes over the limit
+  overageRate    Decimal      @db.Decimal(6, 4) // Rate per GB/month
+  overageCost    Decimal      @db.Decimal(10, 2) @default(0.00)
+  billed         Boolean      @default(false)
+  billedAt       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, month])
+  @@index([organizationId])
+  @@index([month])
+  @@index([billed])
+}
+
+model StoragePurchase {
+  id                  String       @id @default(uuid())
+  organizationId      String
+  purchaseType        String       // 'addon_pack', 'overage_billing'
+  storageGb           Int          // Amount of storage purchased
+  pricePerGb          Decimal      @db.Decimal(6, 4)
+  totalCost           Decimal      @db.Decimal(10, 2)
+  validFrom           DateTime
+  validUntil          DateTime?    // For one-time purchases
+  isRecurring         Boolean      @default(false)
+  stripePaymentIntent String?
+  stripeSubscription  String?
+  status              String       @default("active") // active, expired, cancelled
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validUntil])
+}
+
 model RoleChangeLog {
   id                 String           @id @default(uuid())
   targetUserId       String?
@@ -1041,4 +1112,176 @@ enum RoleChangeStatus {
   APPROVED
   REJECTED
   COMPLETED
+}
+
+model AppUsageLog {
+  id             String        @id @default(uuid())
+  sessionId      String        // Browser session tracking
+  userId         String?       // null for anonymous users
+  organizationId String?       // null for anonymous users
+
+  // Event Details
+  eventType      String        // 'click', 'page_view', 'feature_use', 'form_submit'
+  elementId      String?       // button ID, page route, feature name
+  elementText    String?       // button text, link text
+  elementPath    String?       // CSS selector or component path
+  page           String        // current page/route
+
+  // Context
+  referrerPage   String?       // previous page
+  userAgent      String?
+  ipAddress      String?
+  metadata       Json?         // custom data per event
+
+  // Performance
+  pageLoadTime   Int?          // milliseconds
+  timeOnPage     Int?          // seconds spent on page
+  timestamp      DateTime      @default(now())
+
+  // Relations
+  user           User?         @relation("AppUsageUser", fields: [userId], references: [id])
+  organization   Organization? @relation("AppUsageOrganization", fields: [organizationId], references: [id])
+
+  @@index([userId, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([eventType])
+  @@index([page])
+  @@index([timestamp])
+}
+
+model LoginActivityLog {
+  id             String        @id @default(uuid())
+  userId         String?       // null for failed attempts
+  organizationId String?       // null for failed attempts
+  email          String?       // for tracking failed attempts
+
+  // Login Details
+  loginType      String        // 'success', 'failed', 'logout', 'session_expired', '2fa_required'
+  ipAddress      String?
+  userAgent      String?
+  deviceInfo     Json?         // browser, OS, device details
+  location       Json?         // geographic info (if available)
+
+  // Security Context
+  failureReason  String?       // invalid_password, user_not_found, etc.
+  sessionId      String?       // browser session ID
+  duration       Int?          // session duration in seconds (for logout)
+
+  // Metadata
+  metadata       Json?         // additional context
+  timestamp      DateTime      @default(now())
+
+  // Relations
+  user           User?         @relation("LoginActivityUser", fields: [userId], references: [id])
+  organization   Organization? @relation("LoginActivityOrganization", fields: [organizationId], references: [id])
+
+  @@index([userId, timestamp])
+  @@index([loginType])
+  @@index([ipAddress])
+  @@index([timestamp])
+  @@index([organizationId, timestamp])
+  @@index([email])
+}
+
+// CRM Models for Lead Management
+model Contact {
+  id                String                  @id @default(uuid())
+  name              String?
+  email             String?
+  company           String?
+  phone             String?
+  source            String?
+  url               String?
+  utm               Json?
+  leadScore         Int                     @default(0) @map("lead_score")
+  leadStatus        ContactStatus           @default(NEW) @map("lead_status")
+  owner             String?
+  tags              String[]                @default([])
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+
+  // Relations
+  conversations     ContactConversation[]
+  notes             ContactNote[]
+
+  @@index([email])
+  @@index([leadStatus])
+  @@index([owner])
+  @@index([source])
+  @@index([createdAt])
+  @@map("contacts")
+}
+
+model ContactConversation {
+  id              String                @id @default(uuid())
+  contactId       String                @map("contact_id")
+  status          ConversationStatus    @default(OPEN)
+  assignedTo      String?               @map("assigned_to")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  lastMessageAt   DateTime?             @map("last_message_at")
+
+  // Relations
+  contact         Contact               @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  messages        ContactMessage[]
+
+  @@index([contactId])
+  @@index([status])
+  @@index([assignedTo])
+  @@index([createdAt])
+  @@map("contact_conversations")
+}
+
+model ContactMessage {
+  id              String              @id @default(uuid())
+  conversationId  String              @map("conversation_id")
+  role            MessageRole
+  content         String
+  metadata        Json?
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  conversation    ContactConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model ContactNote {
+  id          String    @id @default(uuid())
+  contactId   String    @map("contact_id")
+  body        String
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  contact     Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("contact_notes")
+}
+
+// CRM Enums
+enum ContactStatus {
+  NEW
+  QUALIFIED
+  NEGOTIATING
+  CLOSED
+  CONVERTED
+}
+
+enum ConversationStatus {
+  OPEN
+  QUALIFIED
+  CLOSED
+}
+
+enum MessageRole {
+  USER
+  BOT
+  AGENT
 }

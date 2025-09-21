@@ -38,6 +38,10 @@ app.get('/health', (req, res) => {
 const marketingBillingRoutes = require('./routes/marketingBilling');
 app.use('/api/marketing', marketingBillingRoutes);
 
+// Contact and lead capture routes
+const contactRoutes = require('./routes/contact');
+app.use('/api/contact-chat', contactRoutes);
+
 // Auth proxy routes - forward to main API
 app.use('/api/auth', async (req, res) => {
   try {

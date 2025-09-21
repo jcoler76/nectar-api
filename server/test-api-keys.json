@@ -1,0 +1,77 @@
+{
+  "generated": "2025-09-21T15:45:55.343Z",
+  "testUsers": {
+    "test-free@example.com": {
+      "email": "test-free@example.com",
+      "plan": "FREE",
+      "apiKey": "test-free-key",
+      "apiCallLimit": 25000,
+      "organizationId": "54020949-d6c1-477e-8668-607380a64953",
+      "organizationName": "Free Tier Organization"
+    },
+    "test-starter@example.com": {
+      "email": "test-starter@example.com",
+      "plan": "STARTER",
+      "apiKey": "test-starter-key",
+      "apiCallLimit": 1000000,
+      "organizationId": "69416a5d-10bc-48ef-b4a3-e67619c39e45",
+      "organizationName": "Starter Plan Organization"
+    },
+    "test-team@example.com": {
+      "email": "test-team@example.com",
+      "plan": "PROFESSIONAL",
+      "apiKey": "test-professional-key",
+      "apiCallLimit": 5000000,
+      "organizationId": "8d7522b6-dee9-4a07-91f4-db3fea40b0e6",
+      "organizationName": "Team Plan Organization"
+    },
+    "test-business@example.com": {
+      "email": "test-business@example.com",
+      "plan": "BUSINESS",
+      "apiKey": "test-business-key",
+      "apiCallLimit": 10000000,
+      "organizationId": "276b7880-b6ff-413f-b467-c1f5e66bdf4e",
+      "organizationName": "Business Plan Organization"
+    },
+    "test-enterprise@example.com": {
+      "email": "test-enterprise@example.com",
+      "plan": "ENTERPRISE",
+      "apiKey": "test-enterprise-key",
+      "apiCallLimit": 999999999,
+      "organizationId": "a8277f0a-b8ef-40d9-8c0d-85428445e0cd",
+      "organizationName": "Enterprise Plan Organization"
+    }
+  },
+  "testConfig": {
+    "free": {
+      "email": "test-free@example.com",
+      "apiKey": "test-free-key",
+      "monthlyLimit": 25000,
+      "organizationId": "54020949-d6c1-477e-8668-607380a64953"
+    },
+    "starter": {
+      "email": "test-starter@example.com",
+      "apiKey": "test-starter-key",
+      "monthlyLimit": 1000000,
+      "organizationId": "69416a5d-10bc-48ef-b4a3-e67619c39e45"
+    },
+    "professional": {
+      "email": "test-team@example.com",
+      "apiKey": "test-professional-key",
+      "monthlyLimit": 5000000,
+      "organizationId": "8d7522b6-dee9-4a07-91f4-db3fea40b0e6"
+    },
+    "business": {
+      "email": "test-business@example.com",
+      "apiKey": "test-business-key",
+      "monthlyLimit": 10000000,
+      "organizationId": "276b7880-b6ff-413f-b467-c1f5e66bdf4e"
+    },
+    "enterprise": {
+      "email": "test-enterprise@example.com",
+      "apiKey": "test-enterprise-key",
+      "monthlyLimit": 999999999,
+      "organizationId": "a8277f0a-b8ef-40d9-8c0d-85428445e0cd"
+    }
+  }
+}

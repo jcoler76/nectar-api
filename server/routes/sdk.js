@@ -8,6 +8,29 @@ const { logger } = require('../middleware/logger');
 
 const router = express.Router();
 
+// Input validation to prevent path traversal attacks
+function validatePathInput(input, paramName) {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`${paramName} must be a non-empty string`);
+  }
+
+  // Check for path traversal sequences
+  if (input.includes('..') || input.includes('/') || input.includes('\\')) {
+    throw new Error(
+      `${paramName} contains invalid characters. Only alphanumeric characters, hyphens, and underscores are allowed`
+    );
+  }
+
+  // Validate against whitelist pattern (alphanumeric, hyphens, underscores only)
+  if (!/^[a-zA-Z0-9_-]+$/.test(input)) {
+    throw new Error(
+      `${paramName} contains invalid characters. Only alphanumeric characters, hyphens, and underscores are allowed`
+    );
+  }
+
+  return input;
+}
+
 // GET root: General info and Blueprints SDK commands
 router.get('/', async (req, res) => {
   try {
@@ -44,6 +67,9 @@ router.get('/', async (req, res) => {
 router.get('/:roleId', async (req, res) => {
   try {
     const { roleId } = req.params;
+
+    // Validate roleId to prevent path traversal attacks
+    validatePathInput(roleId, 'roleId');
     const host = `${req.protocol}://${req.get('host')}`;
 
     // We can’t assume documentation routes are mounted; provide a conventional URL
@@ -75,6 +101,18 @@ router.get('/:roleId', async (req, res) => {
       ],
     });
   } catch (err) {
+    if (err.message.includes('invalid characters')) {
+      logger.warn('Path traversal attempt detected in GET route', {
+        roleId: req.params.roleId,
+        error: err.message,
+        ip: req.ip,
+      });
+      return res.status(400).json({
+        error: {
+          message: err.message,
+        },
+      });
+    }
     logger.error('SDK info error', { error: err.message });
     res.status(500).json({ error: { message: 'Failed to build SDK info.' } });
   }
@@ -85,6 +123,24 @@ router.get('/:roleId', async (req, res) => {
 router.post('/:roleId', express.json({ limit: '2mb' }), async (req, res) => {
   const { roleId } = req.params;
   const { lang = 'typescript', openapiUrl, openapiSpec } = req.body || {};
+
+  try {
+    // Validate inputs to prevent path traversal attacks
+    validatePathInput(roleId, 'roleId');
+    validatePathInput(lang, 'lang');
+  } catch (validationError) {
+    logger.warn('Path traversal attempt detected', {
+      roleId,
+      lang,
+      error: validationError.message,
+      ip: req.ip,
+    });
+    return res.status(400).json({
+      error: {
+        message: validationError.message,
+      },
+    });
+  }
 
   const langMap = {
     typescript: 'typescript-axios',

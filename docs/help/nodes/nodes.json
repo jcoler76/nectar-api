@@ -1,0 +1,503 @@
+[
+  {
+    "slug": "trigger-webhook",
+    "type": "trigger:webhook",
+    "name": "Webhook",
+    "description": "Triggers the workflow when a webhook is received.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "event",
+      "httpMethod",
+      "authType",
+      "headerName",
+      "apiKeyValue"
+    ],
+    "title": "Webhook"
+  },
+  {
+    "slug": "trigger-schedule",
+    "type": "trigger:schedule",
+    "name": "Scheduler",
+    "description": "Triggers the workflow on a schedule (e.g., every day at 5pm).",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "pattern",
+      "timezone"
+    ],
+    "title": "Scheduler"
+  },
+  {
+    "slug": "trigger-hubspot-record",
+    "type": "trigger:hubspot:record",
+    "name": "HubSpot Record Trigger",
+    "description": "Triggers when HubSpot records are created or updated.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "connection",
+      "eventType",
+      "object",
+      "pollingInterval",
+      "propertiesToMonitor",
+      "filters",
+      "advanced"
+    ],
+    "title": "HubSpot Record Trigger"
+  },
+  {
+    "slug": "trigger-form",
+    "type": "trigger:form",
+    "name": "Form Submission",
+    "description": "Triggers the workflow when a form is submitted.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "formId",
+      "redirectUrl",
+      "passDataToRedirect"
+    ],
+    "title": "Form Submission"
+  },
+  {
+    "slug": "trigger-email",
+    "type": "trigger:email",
+    "name": "Email",
+    "description": "Triggers the workflow when an email is received.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "emailAddress"
+    ],
+    "title": "Email"
+  },
+  {
+    "slug": "trigger-file",
+    "type": "trigger:file",
+    "name": "File Upload",
+    "description": "Triggers the workflow when a file is uploaded.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label"
+    ],
+    "title": "File Upload"
+  },
+  {
+    "slug": "trigger-database",
+    "type": "trigger:database",
+    "name": "Database",
+    "description": "Triggers the workflow based on database events.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "eventType",
+      "connectionId",
+      "database",
+      "table",
+      "dateColumn",
+      "column",
+      "timeadd",
+      "cdcMode",
+      "batchSize",
+      "cleanupStrategy",
+      "enableBatching",
+      "minInterval",
+      "baseInterval",
+      "maxInterval"
+    ],
+    "title": "Database"
+  },
+  {
+    "slug": "trigger-s3bucket",
+    "type": "trigger:s3Bucket",
+    "name": "S3 Bucket Monitor",
+    "description": "Monitors an S3 bucket for new files and triggers the workflow when files are uploaded.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "bucketName",
+      "awsRegion",
+      "awsAccessKeyId",
+      "awsSecretAccessKey",
+      "filePattern",
+      "pollingInterval",
+      "processedFilesTracker",
+      "moveAfterProcessing",
+      "deleteAfterProcessing",
+      "prefix",
+      "maxFiles"
+    ],
+    "title": "S3 Bucket Monitor"
+  },
+  {
+    "slug": "trigger-zoominfo-intent",
+    "type": "trigger:zoominfo:intent",
+    "name": "ZoomInfo Intent Signals",
+    "description": "Triggers when companies show purchase intent signals in ZoomInfo.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "credentials",
+      "intentTopics",
+      "signalStrength",
+      "companyFilters",
+      "pollingInterval",
+      "advancedSettings"
+    ],
+    "title": "ZoomInfo Intent Signals"
+  },
+  {
+    "slug": "trigger-salesforce-record",
+    "type": "trigger:salesforce:record",
+    "name": "Salesforce Record Trigger",
+    "description": "Triggers on new or updated Salesforce records for a chosen object.",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "connection",
+      "eventType",
+      "object",
+      "pollingInterval",
+      "fieldsToMonitor",
+      "soqlWhere",
+      "advanced"
+    ],
+    "title": "Salesforce Record Trigger"
+  },
+  {
+    "slug": "trigger-salesforce-outboundmessage",
+    "type": "trigger:salesforce:outboundMessage",
+    "name": "Salesforce Outbound Message",
+    "description": "Triggers on Salesforce Outbound Message (SOAP webhook).",
+    "category": "triggers",
+    "defaultDataKeys": [
+      "label",
+      "auth",
+      "allowedIPs",
+      "requireTLS",
+      "responseAck"
+    ],
+    "title": "Salesforce Outbound Message"
+  },
+  {
+    "slug": "action-httprequest",
+    "type": "action:httpRequest",
+    "name": "HTTP Request",
+    "description": "Make a GET, POST, PUT or other HTTP request to an external URL.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "method",
+      "url",
+      "headers",
+      "body",
+      "auth"
+    ],
+    "title": "HTTP Request"
+  },
+  {
+    "slug": "action-hubspot-record",
+    "type": "action:hubspot:record",
+    "name": "HubSpot Action",
+    "description": "Create, update, find, or associate HubSpot records.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "connection",
+      "object",
+      "operation",
+      "search",
+      "association",
+      "list",
+      "note",
+      "email",
+      "call",
+      "dataMapping",
+      "errorHandling"
+    ],
+    "title": "HubSpot Action"
+  },
+  {
+    "slug": "action-delay",
+    "type": "action:delay",
+    "name": "Delay",
+    "description": "Pause the workflow for a specific amount of time.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "delay",
+      "unit"
+    ],
+    "title": "Delay"
+  },
+  {
+    "slug": "action-code",
+    "type": "action:code",
+    "name": "Code",
+    "description": "Run custom JavaScript code.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "code"
+    ],
+    "title": "Code"
+  },
+  {
+    "slug": "action-apisequence",
+    "type": "action:apiSequence",
+    "name": "API Sequence",
+    "description": "Execute a sequence of HTTP requests where the output of one can be used as input for the next.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "apiCalls"
+    ],
+    "title": "API Sequence"
+  },
+  {
+    "slug": "action-csvparse",
+    "type": "action:csvParse",
+    "name": "CSV Parse",
+    "description": "Parse CSV content from URL or inline/context into rows/objects",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "mode",
+      "text",
+      "url",
+      "delimiter",
+      "hasHeader",
+      "trim",
+      "skipEmpty",
+      "columns",
+      "outputMode",
+      "previewRows"
+    ],
+    "title": "CSV Parse"
+  },
+  {
+    "slug": "action-openai",
+    "type": "action:openAi",
+    "name": "OpenAI Action",
+    "description": "Process data using an OpenAI model with a custom prompt.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "prompt",
+      "model"
+    ],
+    "title": "OpenAI Action"
+  },
+  {
+    "slug": "action-email",
+    "type": "action:email",
+    "name": "Send Email",
+    "description": "Send an email with dynamic content from previous workflow steps.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "to",
+      "subject",
+      "htmlBody",
+      "attachments"
+    ],
+    "title": "Send Email"
+  },
+  {
+    "slug": "action-graphql-execute",
+    "type": "action:graphql:execute",
+    "name": "GraphQL Execute",
+    "description": "Execute a GraphQL query/mutation against the local schema.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "operationName",
+      "query",
+      "variables"
+    ],
+    "title": "GraphQL Execute"
+  },
+  {
+    "slug": "action-filegeneration",
+    "type": "action:fileGeneration",
+    "name": "File Generation",
+    "description": "Generate CSV, XML, or JSON files from workflow data.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "format",
+      "sourceData",
+      "filename",
+      "csvConfig",
+      "xmlConfig",
+      "jsonConfig"
+    ],
+    "title": "File Generation"
+  },
+  {
+    "slug": "action-ftpupload",
+    "type": "action:ftpUpload",
+    "name": "FTP Upload",
+    "description": "Upload files to FTP, FTPS, or SFTP servers.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "protocol",
+      "host",
+      "port",
+      "username",
+      "password",
+      "remotePath",
+      "filename",
+      "fileSource",
+      "fileId",
+      "passive",
+      "secure",
+      "timeout"
+    ],
+    "title": "FTP Upload"
+  },
+  {
+    "slug": "action-approval",
+    "type": "action:approval",
+    "name": "Approval",
+    "description": "Pauses the workflow and waits for a manual approval.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "instructions"
+    ],
+    "title": "Approval"
+  },
+  {
+    "slug": "action-logger",
+    "type": "action:logger",
+    "name": "Logger",
+    "description": "Logs data to the workflow execution history.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "logLevel",
+      "message"
+    ],
+    "title": "Logger"
+  },
+  {
+    "slug": "action-teams-notify",
+    "type": "action:teams:notify",
+    "name": "Teams Notify",
+    "description": "Send a message to a Microsoft Teams channel via Incoming Webhook.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "webhookUrl",
+      "title",
+      "message",
+      "color"
+    ],
+    "title": "Teams Notify"
+  },
+  {
+    "slug": "action-sqlserveradmin",
+    "type": "action:sqlServerAdmin",
+    "name": "SQL Server Admin",
+    "description": "Execute admin operations (backup, restore, create db/login, mirroring, raw SQL).",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "connection",
+      "action",
+      "options"
+    ],
+    "title": "SQL Server Admin"
+  },
+  {
+    "slug": "action-idempotency",
+    "type": "action:idempotency",
+    "name": "Idempotency",
+    "description": "Prevent duplicate processing using a Redis-backed idempotency key.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "key",
+      "ttlSeconds"
+    ],
+    "title": "Idempotency"
+  },
+  {
+    "slug": "action-transform",
+    "type": "action:transform",
+    "name": "Transform",
+    "description": "Map fields from prior steps into a structured output; optional required fields validation.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "mappings",
+      "requireFields"
+    ],
+    "title": "Transform"
+  },
+  {
+    "slug": "action-zoominfo-contactdiscovery",
+    "type": "action:zoominfo:contactDiscovery",
+    "name": "ZoomInfo Contact Discovery",
+    "description": "Search for and enrich contact data from ZoomInfo.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "credentials",
+      "searchCriteria",
+      "enrichmentOptions",
+      "outputFormat"
+    ],
+    "title": "ZoomInfo Contact Discovery"
+  },
+  {
+    "slug": "action-salesforce-record",
+    "type": "action:salesforce:record",
+    "name": "Salesforce Record Action",
+    "description": "Create, update, upsert, find, or attach records in Salesforce.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "connection",
+      "operation",
+      "object",
+      "externalIdField",
+      "recordId",
+      "search",
+      "campaign",
+      "attachment",
+      "dataMapping",
+      "errorHandling"
+    ],
+    "title": "Salesforce Record Action"
+  },
+  {
+    "slug": "action-crm-integration",
+    "type": "action:crm:integration",
+    "name": "CRM Integration",
+    "description": "Send data to CRM systems like Salesforce, HubSpot, Pipedrive, or Dynamics.",
+    "category": "actions",
+    "defaultDataKeys": [
+      "label",
+      "crmType",
+      "connection",
+      "operation",
+      "dataMapping",
+      "batchSettings",
+      "errorHandling"
+    ],
+    "title": "CRM Integration"
+  },
+  {
+    "slug": "logic-router",
+    "type": "logic:router",
+    "name": "Router",
+    "description": "Branch the workflow based on one or more conditions.",
+    "category": "logic",
+    "defaultDataKeys": [],
+    "title": "Router"
+  }
+]

@@ -9,6 +9,7 @@ import {
   verify2FA,
   verify2FASetup,
 } from '../services/authService';
+import appTracker from '../utils/appTracking';
 import { checkAuthStatus } from '../utils/authMigration';
 
 const AuthContext = createContext(null);
@@ -132,6 +133,20 @@ export const AuthProvider = ({ children }) => {
           } catch {
             // Ignore authorization header errors
           }
+
+          // Track successful login from frontend
+          try {
+            appTracker.setUserInfo(data.user.id || data.user.userId, data.user.organizationId);
+            appTracker.trackEvent('login_success', 'auth_system', {
+              userId: data.user.id || data.user.userId,
+              organizationId: data.user.organizationId,
+              email: data.user.email,
+              loginMethod: 'password',
+            });
+          } catch (error) {
+            // Silently handle tracking errors - login still successful
+          }
+
           navigate('/dashboard');
         } else {
           // Unexpected response format
@@ -194,6 +209,37 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(
     (redirect = true) => {
+      // Track logout before clearing user data
+      if (user) {
+        try {
+          // Calculate session duration
+          const loginTime = user.lastLoginAt ? new Date(user.lastLoginAt) : null;
+          const sessionDuration = loginTime
+            ? Math.round((Date.now() - loginTime.getTime()) / 1000)
+            : null;
+
+          // Track logout event via API (async, don't wait)
+          api
+            .post('/api/tracking/app-usage', {
+              sessionId: appTracker.sessionId,
+              eventType: 'logout',
+              elementId: 'logout_action',
+              page: window.location.pathname,
+              metadata: {
+                sessionDuration,
+                userId: user.id || user.userId,
+                organizationId: user.organizationId,
+                redirectAfterLogout: redirect,
+              },
+            })
+            .catch(error => {
+              // Silently handle logout tracking errors
+            });
+        } catch (error) {
+          // Silently handle logout tracking errors
+        }
+      }
+
       logoutUser();
       setUser(null);
       setIsAuthenticated(false);
@@ -205,11 +251,15 @@ export const AuthProvider = ({ children }) => {
       } catch {
         // Ignore storage cleanup errors
       }
+
+      // Clear tracking user info
+      appTracker.clearUserInfo();
+
       if (redirect) {
         navigate('/login');
       }
     },
-    [navigate]
+    [navigate, user]
   );
 
   const updatePassword = async (currentPassword, newPassword) => {

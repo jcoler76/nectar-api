@@ -1,7 +1,6 @@
 import {
   UserIcon,
   EyeIcon,
-  UserPlusIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import { useState, useEffect, useCallback } from 'react'
@@ -37,15 +36,7 @@ export default function UserManagement() {
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false)
-  const [addModalOpen, setAddModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-
-  // Form states
-  const [newUser, setNewUser] = useState({
-    email: '',
-    firstName: '',
-    lastName: ''
-  })
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -235,32 +226,6 @@ export default function UserManagement() {
     }
   }
 
-  const handleAddUser = () => {
-    setNewUser({ email: '', firstName: '', lastName: '' })
-    setAddModalOpen(true)
-  }
-
-  const handleSubmitNewUser = async () => {
-    if (!newUser.email.trim()) {
-      setError('Email is required')
-      return
-    }
-
-    try {
-      await adminApi.createUser({
-        email: newUser.email.trim(),
-        firstName: newUser.firstName.trim(),
-        lastName: newUser.lastName.trim(),
-        isActive: true
-      })
-      await fetchUsers()
-      setAddModalOpen(false)
-      setNewUser({ email: '', firstName: '', lastName: '' })
-    } catch (e) {
-      console.error('Create user failed', e)
-      setError('Failed to create user')
-    }
-  }
 
   if (loading) {
     return (
@@ -339,19 +304,10 @@ export default function UserManagement() {
       {/* User Management Table */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <UserIcon className="h-5 w-5" />
-              User Management ({users.length} users)
-            </CardTitle>
-            <Button 
-              onClick={handleAddUser}
-              className="flex items-center gap-2"
-            >
-              <UserPlusIcon className="h-4 w-4" />
-              Add User
-            </Button>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <UserIcon className="h-5 w-5" />
+            Main Application Users ({users.length} users)
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <LazyDataTable
@@ -435,59 +391,6 @@ export default function UserManagement() {
         )}
       </Modal>
 
-      {/* Add User Modal */}
-      <Modal
-        open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        title="Add New User"
-        size="md"
-        footer={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setAddModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmitNewUser}>
-              Create User
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <Input
-              type="email"
-              value={newUser.email}
-              onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="user@example.com"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-            <Input
-              type="text"
-              value={newUser.firstName}
-              onChange={(e) => setNewUser(prev => ({ ...prev, firstName: e.target.value }))}
-              placeholder="John"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-            <Input
-              type="text"
-              value={newUser.lastName}
-              onChange={(e) => setNewUser(prev => ({ ...prev, lastName: e.target.value }))}
-              placeholder="Doe"
-            />
-          </div>
-          <p className="text-sm text-gray-500">
-            The new user will be created with active status and will receive an email to set up their password.
-          </p>
-        </div>
-      </Modal>
     </div>
   )
 }

@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getCaptchaToken } from '../../utils/captcha';
+import DemoRequestModal from './DemoRequestModal';
 
 const PricingPage = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [userCount, setUserCount] = useState(5);
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   const handleSelectPlan = async planId => {
     if (planId === 'free') {
@@ -16,8 +18,8 @@ const PricingPage = () => {
     }
 
     if (planId === 'enterprise') {
-      // Enterprise is contact-only
-      window.location.href = 'mailto:sales@nectarstudio.ai?subject=Enterprise%20Plan%20Inquiry';
+      // Enterprise is contact-only - show demo modal
+      setIsDemoModalOpen(true);
       return;
     }
 
@@ -73,6 +75,7 @@ const PricingPage = () => {
         '1 user',
         '1 datasource',
         '25k API calls/month',
+        '100MB file storage',
         'Full BaaS functionality',
         'Basic workflows',
         'Community support',
@@ -92,6 +95,8 @@ const PricingPage = () => {
         '1 user included',
         'Unlimited datasources',
         '1M API calls/month',
+        '5GB file storage included',
+        '$0.10/GB overage rate',
         'Full BaaS functionality',
         'Complete workflow engine',
         'NL→API generator',
@@ -114,6 +119,8 @@ const PricingPage = () => {
         '10 users included',
         'Unlimited datasources',
         '5M API calls/month',
+        '50GB file storage included',
+        '$0.08/GB overage rate',
         'Everything in Starter, plus:',
         'Staging environments',
         'AI Workflow Copilot',
@@ -137,6 +144,8 @@ const PricingPage = () => {
         '25 users included',
         'Unlimited datasources',
         '10M API calls/month',
+        '250GB file storage included',
+        '$0.06/GB overage rate',
         'Everything in Team, plus:',
         'Advanced RBAC/ABAC',
         'Data masking & encryption',
@@ -160,6 +169,8 @@ const PricingPage = () => {
         'Unlimited users (fair use)',
         'Unlimited datasources',
         'Unlimited API calls',
+        '1TB file storage included',
+        '$0.05/GB overage rate',
         'Everything in Business, plus:',
         'SSO/SAML/SCIM',
         'On-premise deployment',
@@ -475,6 +486,121 @@ const PricingPage = () => {
             </div>
           </div>
 
+          {/* Storage Calculator Section */}
+          <div className="mt-20">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">Storage Cost Calculator</h2>
+                <p className="text-xl text-gray-600">
+                  Estimate your monthly storage costs with our transparent pricing
+                </p>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-200 p-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Calculator Input */}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-6">Storage Usage</h3>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Expected Storage Usage
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max="10000"
+                            value={userCount}
+                            onChange={(e) => setUserCount(Math.max(0, parseInt(e.target.value) || 0))}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter GB"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                            GB
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-2">Storage Examples:</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          <li>• ~100 high-res photos = 1GB</li>
+                          <li>• ~250 documents/PDFs = 1GB</li>
+                          <li>• ~1 hour of 4K video = 8GB</li>
+                          <li>• ~1000 spreadsheets = 1GB</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cost Breakdown */}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-6">Cost Breakdown</h3>
+                    <div className="space-y-4">
+                      {plans.slice(0, 4).map(plan => {
+                        const storageUsage = userCount || 0;
+                        const storageInfo = {
+                          'free': { included: 0.1, rate: null },
+                          'starter': { included: 5, rate: 0.10 },
+                          'team': { included: 50, rate: 0.08 },
+                          'business': { included: 250, rate: 0.06 },
+                          'enterprise': { included: 1000, rate: 0.05 }
+                        };
+
+                        const info = storageInfo[plan.id];
+                        const overage = Math.max(0, storageUsage - info.included);
+                        const overageCost = info.rate ? overage * info.rate : 0;
+                        const planPrice = getPrice(plan) || 0;
+                        const totalCost = planPrice + overageCost;
+
+                        return (
+                          <div key={plan.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div>
+                              <div className="font-medium text-gray-900">{plan.name}</div>
+                              <div className="text-sm text-gray-600">
+                                {info.included === 0.1 ? '100MB' : `${info.included}GB`} included
+                                {info.rate && `, $${info.rate}/GB overage`}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              {plan.id === 'free' && storageUsage > info.included ? (
+                                <div className="text-red-600 font-medium">Upgrade Required</div>
+                              ) : plan.id === 'enterprise' ? (
+                                <div className="text-blue-600 font-medium">Contact Sales</div>
+                              ) : (
+                                <div>
+                                  <div className="text-lg font-bold text-gray-900">
+                                    ${totalCost.toFixed(2)}/mo
+                                  </div>
+                                  {overage > 0 && (
+                                    <div className="text-sm text-gray-600">
+                                      +${overageCost.toFixed(2)} overage
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">💡 Storage Tips</h4>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• Storage is billed monthly based on average usage</li>
+                        <li>• Deleted files are removed from billing immediately</li>
+                        <li>• All plans include secure, encrypted file storage</li>
+                        <li>• Enterprise plans can negotiate custom rates</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* FAQ Section */}
           <div className="mt-20">
             <div className="max-w-3xl mx-auto text-center">
@@ -505,10 +631,11 @@ const PricingPage = () => {
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-2">How do overages work?</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">How do storage overages work?</h3>
                   <p className="text-gray-600">
-                    If you exceed your included API calls, additional usage is billed in blocks
-                    (e.g., $3–$5 per extra 1M calls). You can set alerts and caps in settings.
+                    Each plan includes generous file storage. If you exceed your limit, overage rates are:
+                    Starter $0.10/GB, Team $0.08/GB, Business $0.06/GB, Enterprise $0.05/GB per month.
+                    Free plans require upgrading when limits are reached.
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -545,7 +672,7 @@ const PricingPage = () => {
               Our Enterprise plan can be customized to fit your specific requirements.
             </p>
             <button
-              onClick={() => navigate('/contact')}
+              onClick={() => setIsDemoModalOpen(true)}
               className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:scale-105"
             >
               Contact Sales
@@ -554,6 +681,13 @@ const PricingPage = () => {
         </div>
       </section>
       {/* Footer provided by MarketingLayout */}
+
+      {/* Demo Request Modal */}
+      <DemoRequestModal
+        isOpen={isDemoModalOpen}
+        onClose={() => setIsDemoModalOpen(false)}
+        source="pricing"
+      />
     </div>
   );
 };

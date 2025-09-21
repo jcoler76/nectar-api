@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -24,10 +24,11 @@ import { NotificationProvider } from './context/NotificationContext';
 import { SelectionProvider } from './context/SelectionContext';
 import { BreadcrumbProvider } from './contexts/BreadcrumbContext';
 import WorkflowList from './features/workflows/WorkflowList';
+import { usePageTracking, useSessionTracking } from './hooks/useAppTracking';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 // Marketing routes removed from product app to avoid duplication
-import './utils/cssOptimizer';
 import './utils/bundleSplitValidation';
+import './utils/cssOptimizer';
 
 // Lazier routes to reduce initial bundle size
 const ApiDocViewer = lazy(() => import('./components/documentation/ApiDocViewer'));
@@ -123,6 +124,21 @@ function App() {
 
   // Enable session timeout management
   useSessionTimeout();
+
+  // Enable automatic page tracking
+  usePageTracking();
+
+  // Enable user session tracking
+  const { updateUserInfo, clearUserInfo } = useSessionTracking();
+
+  // Update tracking user info when auth state changes
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      updateUserInfo(user.id || user.userId, user.organizationId);
+    } else {
+      clearUserInfo();
+    }
+  }, [isAuthenticated, user, updateUserInfo, clearUserInfo]);
 
   return (
     <HelmetProvider>
