@@ -2,17 +2,17 @@
 
 ## 🚀 Overview
 
-This guide explains the automated deployment process for Nectar API, replacing manual PuTTY deployments with GitHub Actions CI/CD pipeline.
+This guide explains the deployment process for Nectar API using GitHub Actions CI/CD pipeline.
 
 ## 📋 Deployment Architecture
 
 ```
-Windows Dev → GitHub → GitHub Actions → Docker Image → Linux Servers (Staging/Production)
+Windows Dev → GitHub → GitHub Actions → Build → Linux Servers (Staging/Production)
 ```
 
 ### Key Benefits
 - **One-click deployments** via GitHub push
-- **Consistent builds** - "build once, deploy anywhere"
+- **Consistent builds** across environments
 - **Zero-downtime deployments** with health checks
 - **Automatic rollback** capability
 - **No more manual SSH/PuTTY sessions**
@@ -31,7 +31,7 @@ chmod +x setup-deployment.sh
 ```
 
 This script will:
-- Install Docker and Docker Compose
+- Install Node.js and npm
 - Setup MongoDB tools for backups
 - Create necessary directories
 - Generate sample configuration files
@@ -87,11 +87,10 @@ git push origin main
 
 The GitHub Actions workflow will:
 1. Run quality checks (linting, tests, security)
-2. Build Docker image
-3. Push to GitHub Container Registry
-4. Deploy to appropriate server
-5. Run health checks
-6. Reload nginx
+2. Build production bundle
+3. Deploy to appropriate server
+4. Run health checks
+5. Restart application services
 
 ### Manual Deployment
 
@@ -109,15 +108,15 @@ If GitHub Actions is unavailable:
 
 ```bash
 # On your Windows machine
-docker build -t nectar-api:latest .
-docker save nectar-api:latest | gzip > nectar-api.tar.gz
+npm run build
+tar -czf nectar-api-build.tar.gz build/
 
 # Transfer to server
-scp nectar-api.tar.gz ubuntu@server:/home/ubuntu/
+scp nectar-api-build.tar.gz ubuntu@server:/home/ubuntu/
 
 # On server
-docker load < nectar-api.tar.gz
-docker compose up -d nectar-api
+tar -xzf nectar-api-build.tar.gz
+pm2 restart nectar-api
 ```
 
 ## 🔄 Deployment Workflow
@@ -136,18 +135,17 @@ feature/*    → No automatic deployment
 graph LR
     A[Git Push] --> B[GitHub Actions]
     B --> C[Quality Gates]
-    C --> D[Build Docker Image]
-    D --> E[Push to Registry]
-    E --> F[Deploy to Server]
-    F --> G[Health Check]
-    G --> H[Nginx Reload]
+    C --> D[Build Application]
+    D --> E[Deploy to Server]
+    E --> F[Health Check]
+    F --> G[Restart Services]
 ```
 
 ### Zero-Downtime Deployment
 
 The deployment uses blue-green strategy:
-1. New container starts alongside old one
-2. Health checks verify new container
+1. New application version deployed alongside current one
+2. Health checks verify new deployment
 3. Traffic switches to new container
 4. Old container is removed
 
@@ -160,8 +158,8 @@ The deployment uses blue-green strategy:
 # https://github.com/yourusername/nectar-api/actions
 
 # On server
-docker compose ps
-docker compose logs -f nectar-api
+pm2 status
+pm2 logs nectar-api --lines 50
 ```
 
 ### Health Checks
@@ -170,24 +168,24 @@ docker compose logs -f nectar-api
 # Check application health
 curl http://localhost:3001/health
 
-# Check container health
-docker inspect nectar-api | grep -A 5 Health
+# Check application process
+pm2 show nectar-api
 ```
 
 ### Common Issues & Solutions
 
-#### Issue: Deployment fails at "Pull Image"
+#### Issue: Deployment fails at "Authentication"
 **Solution**: Check GitHub token permissions
 ```bash
-# Re-login to registry
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+# Re-authenticate with GitHub
+echo $GITHUB_TOKEN | gh auth login --with-token
 ```
 
 #### Issue: Health check fails after deployment
 **Solution**: Check logs and environment variables
 ```bash
-docker compose logs --tail=100 nectar-api
-docker compose exec nectar-api env | grep -E "(NODE_ENV|PORT|MONGODB)"
+pm2 logs nectar-api --lines 100
+env | grep -E "(NODE_ENV|PORT|MONGODB)"
 ```
 
 #### Issue: "Permission denied" errors
@@ -216,13 +214,13 @@ If deployment fails, the system automatically maintains the previous version.
 # On server
 cd /home/ubuntu/nectar-api
 
-# View available images
-docker images | grep nectar-api
+# View available backups
+ls -la /home/ubuntu/deployment-backups/
 
 # Rollback to specific version
-docker compose down
-sed -i 's|image: .*|image: ghcr.io/username/nectar-api:previous-tag|g' docker-compose.yml
-docker compose up -d
+pm2 stop nectar-api
+cp /home/ubuntu/deployment-backups/YYYYMMDD_HHMMSS/* /home/ubuntu/nectar-api/
+pm2 start nectar-api
 
 # Or restore from backup
 cd /home/ubuntu/deployment-backups/
@@ -232,37 +230,36 @@ cp YYYYMMDD_HHMMSS/.env* /home/ubuntu/nectar-api/
 
 ## 📈 Performance Optimization
 
-### Docker Image Optimization
-- Multi-stage builds reduce image size by ~60%
-- Layer caching speeds up builds
-- Production dependencies only in final image
+### Application Optimization
+- Tree-shaking reduces bundle size
+- Code splitting improves load times
+- Production builds only include necessary dependencies
 
-### Resource Limits
+### Resource Monitoring
 ```yaml
-# docker-compose.yml
+# PM2 ecosystem file
 deploy:
-  resources:
-    limits:
-      cpus: '2'
-      memory: 2G
+  max_memory_restart: '2G'
+  instances: 2
+  exec_mode: 'cluster'
 ```
 
 ### Monitoring Commands
 ```bash
 # Check resource usage
-docker stats nectar-api
+pm2 monit
 
 # Check disk usage
-docker system df
+df -h
 
-# Clean up unused resources
-docker system prune -af
+# Clean up old logs
+journalctl --vacuum-time=7d
 ```
 
 ## 🎯 Migration from Current Setup
 
 ### Phase 1: Test in Staging (Week 1)
-1. Set up staging server with Docker
+1. Set up staging server with Node.js and PM2
 2. Configure GitHub Secrets
 3. Test automated deployments
 4. Verify all features work
@@ -270,7 +267,7 @@ docker system prune -af
 ### Phase 2: Production Preparation (Week 2)
 1. Schedule maintenance window
 2. Backup production database
-3. Install Docker on production
+3. Install Node.js and PM2 on production
 4. Test rollback procedures
 
 ### Phase 3: Go Live (Week 3)
@@ -316,10 +313,10 @@ git push origin staging
 git push origin main
 
 # Check deployment status
-docker compose ps
+pm2 status
 
 # View logs
-docker compose logs -f nectar-api
+pm2 logs nectar-api
 
 # Rollback
 ./deploy.sh previous-version

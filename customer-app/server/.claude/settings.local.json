@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Read(/C:\\Users\\JColer\\nectar-api\\src\\components\\dashboard/**)"
-    ],
-    "deny": [],
-    "ask": []
-  }
-}

@@ -33,5 +33,5 @@
 ## Security & Configuration
 - Env: Copy `server/.env.example` to `server/.env` and set secrets. Do not commit secrets.
 - Rate limits, headers, and file upload hardening live under `server/middleware/` and `server/docs/` — follow existing patterns.
-- Optional: Use Docker (`docker-compose.yml`) for local services if needed.
+- Use Node.js and npm for local development services.
 

@@ -103,7 +103,7 @@ class LicenseValidator {
         timeout: 10000,
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': `Nectar-Customer-App/${this.version}`,
+          'User-Agent': `Nectar-Self-Hosted/${this.version}`,
         },
       }
     );
@@ -230,7 +230,7 @@ class LicenseValidator {
           timeout: 5000,
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': `Nectar-Customer-App/${this.version}`,
+            'User-Agent': `Nectar-Self-Hosted/${this.version}`,
           },
         }
       );

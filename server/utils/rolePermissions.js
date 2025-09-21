@@ -52,37 +52,37 @@ const PERMISSIONS = {
 const ROLE_HIERARCHY = {
   SUPER_ADMIN: {
     level: 100,
-    inherits: ['ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN', 'DEVELOPER', 'MEMBER', 'VIEWER']
+    inherits: ['ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN', 'DEVELOPER', 'MEMBER', 'VIEWER'],
   },
   ORGANIZATION_OWNER: {
     level: 80,
-    inherits: ['ORGANIZATION_ADMIN', 'DEVELOPER', 'MEMBER', 'VIEWER']
+    inherits: ['ORGANIZATION_ADMIN', 'DEVELOPER', 'MEMBER', 'VIEWER'],
   },
   ORGANIZATION_ADMIN: {
     level: 60,
-    inherits: ['DEVELOPER', 'MEMBER', 'VIEWER']
+    inherits: ['DEVELOPER', 'MEMBER', 'VIEWER'],
   },
   DEVELOPER: {
     level: 40,
-    inherits: ['MEMBER', 'VIEWER']
+    inherits: ['MEMBER', 'VIEWER'],
   },
   MEMBER: {
     level: 20,
-    inherits: ['VIEWER']
+    inherits: ['VIEWER'],
   },
   VIEWER: {
     level: 10,
-    inherits: []
+    inherits: [],
   },
   // Legacy roles for backward compatibility
   OWNER: {
     level: 80,
-    inherits: ['ADMIN', 'MEMBER', 'VIEWER']
+    inherits: ['ADMIN', 'MEMBER', 'VIEWER'],
   },
   ADMIN: {
     level: 60,
-    inherits: ['MEMBER', 'VIEWER']
-  }
+    inherits: ['MEMBER', 'VIEWER'],
+  },
 };
 
 /**
@@ -114,18 +114,9 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.API_MANAGE,
     PERMISSIONS.BILLING_VIEW,
   ],
-  DEVELOPER: [
-    PERMISSIONS.API_MANAGE,
-    PERMISSIONS.API_KEYS,
-  ],
-  MEMBER: [
-    PERMISSIONS.API_USE,
-    PERMISSIONS.ORG_READ,
-  ],
-  VIEWER: [
-    PERMISSIONS.API_VIEW,
-    PERMISSIONS.ORG_READ,
-  ],
+  DEVELOPER: [PERMISSIONS.API_MANAGE, PERMISSIONS.API_KEYS],
+  MEMBER: [PERMISSIONS.API_USE, PERMISSIONS.ORG_READ],
+  VIEWER: [PERMISSIONS.API_VIEW, PERMISSIONS.ORG_READ],
   // Legacy role mappings
   OWNER: [
     PERMISSIONS.ORG_ADMIN,
@@ -203,9 +194,7 @@ function userHasPermission(user, permission, organizationId = null) {
 
   // Fallback to memberships if roles array not available
   if (user.memberships) {
-    return user.memberships.some(membership =>
-      hasPermission(membership.role, permission)
-    );
+    return user.memberships.some(membership => hasPermission(membership.role, permission));
   }
 
   return false;
@@ -265,9 +254,11 @@ function getUserAdminOrganizations(user) {
 
   const adminRoles = ['OWNER', 'ADMIN', 'ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN'];
 
-  return user.memberships
-    ?.filter(membership => adminRoles.includes(membership.role))
-    ?.map(membership => membership.organizationId) || [];
+  return (
+    user.memberships
+      ?.filter(membership => adminRoles.includes(membership.role))
+      ?.map(membership => membership.organizationId) || []
+  );
 }
 
 /**

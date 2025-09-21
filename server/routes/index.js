@@ -313,29 +313,29 @@ const mountRoutes = app => {
   //   require('./email')
   // );
 
-  // TODO: Re-enable after updating to use Prisma models instead of MongoDB models
-  // app.use(
-  //   '/api/files',
-  //   (req, res, next) => {
-  //     // Apply upload rate limiting for upload endpoints
-  //     if (req.path.includes('/upload')) {
-  //       return uploadLimiter(req, res, () => {
-  //         // Apply CSRF only to non-public endpoints
-  //         if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-  //           return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-  //         }
-  //         next();
-  //       });
-  //     }
-  //
-  //     // Apply CSRF only to non-public endpoints
-  //     if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-  //       return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
-  //     }
-  //     next();
-  //   },
-  //   require('./files')
-  // );
+  // File Storage routes - Re-enabled with Prisma support
+  app.use(
+    '/api/files',
+    (req, res, next) => {
+      // Apply upload rate limiting for upload endpoints
+      if (req.path.includes('/upload')) {
+        return uploadLimiter(req, res, () => {
+          // Apply CSRF only to non-public endpoints
+          if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
+            return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+          }
+          next();
+        });
+      }
+
+      // Apply CSRF only to non-public endpoints
+      if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
+        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+      }
+      next();
+    },
+    require('./fileStorage')
+  );
 
   // Admin CRM endpoints for contact chatbot management
   app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminContacts'));

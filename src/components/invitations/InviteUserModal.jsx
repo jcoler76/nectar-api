@@ -89,13 +89,11 @@ const InviteUserModal = ({ organizationId, userRole, onClose, onSuccess }) => {
         return allRoles.filter(r => !['SUPER_ADMIN'].includes(r.value));
       case 'ADMIN':
       case 'ORGANIZATION_ADMIN':
-        return allRoles.filter(r =>
-          !['SUPER_ADMIN', 'OWNER', 'ORGANIZATION_OWNER'].includes(r.value)
+        return allRoles.filter(
+          r => !['SUPER_ADMIN', 'OWNER', 'ORGANIZATION_OWNER'].includes(r.value)
         );
       case 'DEVELOPER':
-        return allRoles.filter(r =>
-          ['MEMBER', 'VIEWER'].includes(r.value)
-        );
+        return allRoles.filter(r => ['MEMBER', 'VIEWER'].includes(r.value));
       default:
         return allRoles.filter(r => r.value === 'VIEWER'); // Minimal permissions
     }

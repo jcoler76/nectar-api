@@ -14,9 +14,13 @@ const trackApiUsage = require('../middleware/apiUsageTracker');
 const { validateFileContent } = require('../middleware/fileUploadSecurity');
 const EnhancedFileStorageService = require('../services/enhancedFileStorageService');
 const { logger } = require('../utils/logger');
+const UsageTracker = require('../services/usageTracking');
+const { getPrismaClient } = require('../config/prisma');
 
-// Initialize file storage service
+// Initialize file storage service and usage tracker
 const fileStorageService = new EnhancedFileStorageService();
+const usageTracker = new UsageTracker();
+const prisma = getPrismaClient();
 
 // Configure multer for memory storage
 const upload = multer({
@@ -116,6 +120,58 @@ router.post(
         });
       }
 
+      // Get organization subscription and check storage limits
+
+      const organization = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        include: { subscription: true },
+      });
+
+      if (!organization) {
+        return res.status(404).json({
+          success: false,
+          message: 'Organization not found',
+        });
+      }
+
+      // Define storage limits per plan (in bytes)
+      const storageLimit = {
+        FREE: 1024 * 1024 * 1024, // 1GB
+        STARTER: 10 * 1024 * 1024 * 1024, // 10GB
+        PROFESSIONAL: 100 * 1024 * 1024 * 1024, // 100GB
+        BUSINESS: 500 * 1024 * 1024 * 1024, // 500GB
+        ENTERPRISE: Number.MAX_SAFE_INTEGER, // Unlimited
+      };
+
+      const plan = organization.subscription?.plan || 'FREE';
+      const maxStorage = storageLimit[plan];
+
+      // Calculate current storage usage for upload validation
+      const uploadUsageCheck = await prisma.fileStorage.aggregate({
+        where: { organizationId, isActive: true },
+        _sum: { fileSize: true },
+      });
+
+      const currentStorageUsed = parseInt(uploadUsageCheck._sum.fileSize || 0);
+
+      // Calculate total size of files being uploaded
+      const uploadSize = req.files.reduce((total, file) => total + file.size, 0);
+
+      // Check if upload would exceed storage limit
+      if (currentStorageUsed + uploadSize > maxStorage) {
+        const currentMB = Math.round(currentStorageUsed / 1024 / 1024);
+        const limitMB = Math.round(maxStorage / 1024 / 1024);
+        const uploadMB = Math.round(uploadSize / 1024 / 1024);
+
+        return res.status(413).json({
+          success: false,
+          message: `Storage limit exceeded. Current usage: ${currentMB}MB, Limit: ${limitMB}MB, Upload size: ${uploadMB}MB`,
+          currentStorage: currentStorageUsed,
+          storageLimit: maxStorage,
+          uploadSize,
+        });
+      }
+
       const {
         tags = [],
         description = null,
@@ -145,10 +201,28 @@ router.post(
 
       const uploadResults = await Promise.all(uploadPromises);
 
+      // Calculate total bytes uploaded and update storage usage
+      const totalBytes = uploadResults.reduce(
+        (total, file) => total + parseInt(file.fileSize || 0),
+        0
+      );
+
+      // Get current organization storage usage for tracking
+
+      const postUploadUsage = await prisma.fileStorage.aggregate({
+        where: { organizationId, isActive: true },
+        _sum: { fileSize: true },
+      });
+
+      const finalStorageUsed = parseInt(postUploadUsage._sum.fileSize || 0);
+      usageTracker.recordStorageUsage(finalStorageUsed);
+
       logger.info('Files uploaded successfully', {
         fileCount: uploadResults.length,
         organizationId,
         userId: req.user.id,
+        totalBytes,
+        totalStorageUsed,
       });
 
       res.json({
@@ -285,6 +359,107 @@ router.get(
 );
 
 /**
+ * GET /api/files/storage/usage
+ * Get storage usage and limits for organization
+ */
+router.get('/storage/usage', authMiddleware, async (req, res) => {
+  try {
+    const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID required',
+      });
+    }
+
+    // Get organization with subscription plan
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        id: true,
+        name: true,
+        subscriptionPlan: true,
+      },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Calculate current storage usage
+    const storageUsageQuery = await prisma.fileStorage.aggregate({
+      where: { organizationId, isActive: true },
+      _sum: { fileSize: true },
+      _count: { id: true },
+    });
+
+    const totalBytesUsed = parseInt(storageUsageQuery._sum.fileSize || 0);
+    const totalFileCount = storageUsageQuery._count.id || 0;
+
+    // Storage limits per plan
+    const storageLimits = {
+      FREE: 1024 * 1024 * 1024, // 1GB
+      STARTER: 10 * 1024 * 1024 * 1024, // 10GB
+      PROFESSIONAL: 100 * 1024 * 1024 * 1024, // 100GB
+      BUSINESS: 500 * 1024 * 1024 * 1024, // 500GB
+      ENTERPRISE: Number.MAX_SAFE_INTEGER, // Unlimited
+    };
+
+    const subscriptionPlan = organization.subscriptionPlan || 'FREE';
+    const maxStorageBytes = storageLimits[subscriptionPlan] || storageLimits.FREE;
+    const usagePercentage =
+      maxStorageBytes === Number.MAX_SAFE_INTEGER ? 0 : (totalBytesUsed / maxStorageBytes) * 100;
+
+    // Helper function to format bytes
+    function formatBytesToString(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    res.json({
+      success: true,
+      data: {
+        organizationId,
+        organizationName: organization.name,
+        subscriptionPlan,
+        storage: {
+          used: totalBytesUsed,
+          limit: maxStorageBytes,
+          usagePercentage: Math.round(usagePercentage * 100) / 100,
+          isUnlimited: maxStorageBytes === Number.MAX_SAFE_INTEGER,
+        },
+        files: {
+          total: totalFileCount,
+        },
+        formattedStorage: {
+          used: formatBytesToString(totalBytesUsed),
+          limit:
+            maxStorageBytes === Number.MAX_SAFE_INTEGER
+              ? 'Unlimited'
+              : formatBytesToString(maxStorageBytes),
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to get storage usage', {
+      error: error.message,
+      organizationId: req.user?.organizationId,
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve storage usage',
+      error: error.message,
+    });
+  }
+});
+
+/**
  * GET /api/files/:fileId
  * Get file metadata and download URL
  */
@@ -309,8 +484,6 @@ router.get(
       }
 
       // Get file metadata from database
-      const { getPrismaClient } = require('../config/prisma');
-      const prisma = getPrismaClient();
 
       const file = await prisma.fileStorage.findFirst({
         where: { id: fileId, organizationId },
@@ -384,10 +557,21 @@ router.delete(
 
       await fileStorageService.deleteFile(fileId, organizationId);
 
+      // Update storage usage after deletion
+
+      const postDeleteUsage = await prisma.fileStorage.aggregate({
+        where: { organizationId, isActive: true },
+        _sum: { fileSize: true },
+      });
+
+      const remainingStorageUsed = parseInt(postDeleteUsage._sum.fileSize || 0);
+      usageTracker.recordStorageUsage(remainingStorageUsed);
+
       logger.info('File deleted successfully', {
         fileId,
         organizationId,
         userId: req.user.id,
+        totalStorageUsed: remainingStorageUsed,
       });
 
       res.json({
@@ -446,8 +630,6 @@ router.post(
       }
 
       // Verify file exists and belongs to organization
-      const { getPrismaClient } = require('../config/prisma');
-      const prisma = getPrismaClient();
 
       const file = await prisma.fileStorage.findFirst({
         where: { id: fileId, organizationId },
@@ -532,9 +714,6 @@ router.get('/shared/:shareToken', apiRateLimiter, async (req, res) => {
   try {
     const { shareToken } = req.params;
     const { password, download = false } = req.query;
-
-    const { getPrismaClient } = require('../config/prisma');
-    const prisma = getPrismaClient();
 
     // Get share record with file info
     const share = await prisma.fileShare.findUnique({

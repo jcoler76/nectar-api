@@ -3,7 +3,7 @@ require('dotenv').config();
 
 // Use raw SQL to avoid Prisma client generation issues
 const client = new Client({
-  connectionString: "postgresql://nectar_admin:nectar_dev_2024!@localhost:5432/nectarstudio_ai"
+  connectionString: 'postgresql://nectar_admin:nectar_dev_2024!@localhost:5432/nectarstudio_ai',
 });
 
 async function migrateUserRoles() {
@@ -47,10 +47,9 @@ async function migrateUserRoles() {
     console.log('\n2. 🚀 Updating user to Super Admin...');
 
     if (!user.isuperadmin) {
-      await client.query(
-        'UPDATE "User" SET "isSuperAdmin" = true WHERE email = $1',
-        ['jestin@jestincoler.com']
-      );
+      await client.query('UPDATE "User" SET "isSuperAdmin" = true WHERE email = $1', [
+        'jestin@jestincoler.com',
+      ]);
       console.log('   ✅ Updated user.isSuperAdmin to true');
     } else {
       console.log('   ℹ️  User already has isSuperAdmin = true');
@@ -97,10 +96,9 @@ async function migrateUserRoles() {
     console.log('\n4. 👤 Creating AdminUser record...');
 
     // Check if AdminUser already exists
-    const adminUserCheck = await client.query(
-      'SELECT id FROM "AdminUser" WHERE email = $1',
-      ['jestin@jestincoler.com']
-    );
+    const adminUserCheck = await client.query('SELECT id FROM "AdminUser" WHERE email = $1', [
+      'jestin@jestincoler.com',
+    ]);
 
     if (adminUserCheck.rows.length === 0) {
       // Get user details
@@ -112,10 +110,13 @@ async function migrateUserRoles() {
       if (userDetails.rows.length > 0) {
         const { firstName, lastName, passwordHash } = userDetails.rows[0];
 
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO "AdminUser" (id, email, "passwordHash", "firstName", "lastName", role, "isActive", "createdAt", "updatedAt")
           VALUES (gen_random_uuid(), $1, $2, $3, $4, 'SUPER_ADMIN', true, NOW(), NOW())
-        `, ['jestin@jestincoler.com', passwordHash, firstName, lastName]);
+        `,
+          ['jestin@jestincoler.com', passwordHash, firstName, lastName]
+        );
 
         console.log('   ✅ Created AdminUser with SUPER_ADMIN role');
       } else {
@@ -152,7 +153,6 @@ async function migrateUserRoles() {
     });
 
     console.log('\n🎉 Migration completed successfully!');
-
   } catch (error) {
     console.error('❌ Migration failed:', error);
   } finally {

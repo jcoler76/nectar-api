@@ -34,7 +34,7 @@ async function logAuditEvent(options) {
       newValues,
       metadata,
       ipAddress,
-      userAgent
+      userAgent,
     } = options;
 
     await prisma.auditLog.create({
@@ -49,8 +49,8 @@ async function logAuditEvent(options) {
         newValues,
         metadata,
         ipAddress,
-        userAgent
-      }
+        userAgent,
+      },
     });
 
     console.log(`Audit log created: ${action} on ${entityType} ${entityId}`);
@@ -90,7 +90,7 @@ async function logRoleChange(options) {
       approvedById,
       status = 'COMPLETED',
       ipAddress,
-      userAgent
+      userAgent,
     } = options;
 
     // Create detailed role change log
@@ -107,8 +107,8 @@ async function logRoleChange(options) {
         approvedById,
         status,
         ipAddress,
-        userAgent
-      }
+        userAgent,
+      },
     });
 
     // Also log as general audit event
@@ -124,13 +124,15 @@ async function logRoleChange(options) {
       metadata: {
         reason,
         roleChangeLogId: roleChangeLog.id,
-        status
+        status,
       },
       ipAddress,
-      userAgent
+      userAgent,
     });
 
-    console.log(`Role change logged: ${oldRole} -> ${newRole} for ${targetUserId || targetAdminId}`);
+    console.log(
+      `Role change logged: ${oldRole} -> ${newRole} for ${targetUserId || targetAdminId}`
+    );
     return roleChangeLog;
   } catch (error) {
     console.error('Failed to log role change:', error);
@@ -149,14 +151,7 @@ async function logRoleChange(options) {
  * @param {Object} [options.metadata] - Additional metadata
  */
 async function logUserLogin(options) {
-  const {
-    userId,
-    adminUserId,
-    success = true,
-    ipAddress,
-    userAgent,
-    metadata = {}
-  } = options;
+  const { userId, adminUserId, success = true, ipAddress, userAgent, metadata = {} } = options;
 
   await logAuditEvent({
     action: success ? 'LOGIN' : 'LOGIN_FAILED',
@@ -166,10 +161,10 @@ async function logUserLogin(options) {
     adminUserId,
     metadata: {
       success,
-      ...metadata
+      ...metadata,
     },
     ipAddress,
-    userAgent
+    userAgent,
   });
 }
 
@@ -185,15 +180,7 @@ async function logUserLogin(options) {
  * @param {Object} [options.metadata] - Additional metadata
  */
 async function logApiKeyEvent(options) {
-  const {
-    action,
-    apiKeyId,
-    userId,
-    organizationId,
-    ipAddress,
-    userAgent,
-    metadata = {}
-  } = options;
+  const { action, apiKeyId, userId, organizationId, ipAddress, userAgent, metadata = {} } = options;
 
   await logAuditEvent({
     action: `API_KEY_${action}`,
@@ -203,7 +190,7 @@ async function logApiKeyEvent(options) {
     organizationId,
     metadata,
     ipAddress,
-    userAgent
+    userAgent,
   });
 }
 
@@ -228,7 +215,7 @@ async function logInvitationEvent(options) {
     organizationId,
     role,
     ipAddress,
-    userAgent
+    userAgent,
   } = options;
 
   await logAuditEvent({
@@ -239,10 +226,10 @@ async function logInvitationEvent(options) {
     organizationId,
     metadata: {
       invitedEmail,
-      role
+      role,
     },
     ipAddress,
-    userAgent
+    userAgent,
   });
 }
 
@@ -271,7 +258,7 @@ async function getAuditLogs(options = {}) {
     page = 1,
     limit = 50,
     orderBy = 'timestamp',
-    orderDir = 'desc'
+    orderDir = 'desc',
   } = options;
 
   const where = {};
@@ -295,17 +282,17 @@ async function getAuditLogs(options = {}) {
       take: limit,
       include: {
         user: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         adminPerformedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         organization: {
-          select: { id: true, name: true, slug: true }
-        }
-      }
+          select: { id: true, name: true, slug: true },
+        },
+      },
     }),
-    prisma.auditLog.count({ where })
+    prisma.auditLog.count({ where }),
   ]);
 
   return {
@@ -314,8 +301,8 @@ async function getAuditLogs(options = {}) {
       page,
       limit,
       total,
-      pages: Math.ceil(total / limit)
-    }
+      pages: Math.ceil(total / limit),
+    },
   };
 }
 
@@ -342,7 +329,7 @@ async function getRoleChangeLogs(options = {}) {
     startDate,
     endDate,
     page = 1,
-    limit = 50
+    limit = 50,
   } = options;
 
   const where = {};
@@ -367,26 +354,26 @@ async function getRoleChangeLogs(options = {}) {
       take: limit,
       include: {
         targetUser: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         targetAdmin: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         performedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         adminPerformedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         approvedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true }
+          select: { id: true, email: true, firstName: true, lastName: true },
         },
         organization: {
-          select: { id: true, name: true, slug: true }
-        }
-      }
+          select: { id: true, name: true, slug: true },
+        },
+      },
     }),
-    prisma.roleChangeLog.count({ where })
+    prisma.roleChangeLog.count({ where }),
   ]);
 
   return {
@@ -395,8 +382,8 @@ async function getRoleChangeLogs(options = {}) {
       page,
       limit,
       total,
-      pages: Math.ceil(total / limit)
-    }
+      pages: Math.ceil(total / limit),
+    },
   };
 }
 
@@ -407,5 +394,5 @@ module.exports = {
   logApiKeyEvent,
   logInvitationEvent,
   getAuditLogs,
-  getRoleChangeLogs
+  getRoleChangeLogs,
 };

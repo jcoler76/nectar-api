@@ -17,12 +17,12 @@ async function checkCurrentData() {
             role: true,
             organization: {
               select: {
-                name: true
-              }
-            }
-          }
-        }
-      }
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     console.log('📊 Current Users:');
@@ -43,15 +43,14 @@ async function checkCurrentData() {
     const membershipRoles = await prisma.membership.groupBy({
       by: ['role'],
       _count: {
-        role: true
-      }
+        role: true,
+      },
     });
 
     console.log('📈 Current MemberRole distribution:');
     membershipRoles.forEach(role => {
       console.log(`  - ${role.role}: ${role._count.role} memberships`);
     });
-
   } catch (error) {
     console.error('❌ Error checking data:', error);
   }
@@ -68,10 +67,10 @@ async function migrateUserToSuperAdmin() {
       include: {
         memberships: {
           include: {
-            organization: true
-          }
-        }
-      }
+            organization: true,
+          },
+        },
+      },
     });
 
     console.log(`✅ Updated user ${user.email} to isSuperAdmin: ${user.isSuperAdmin}`);
@@ -82,7 +81,6 @@ async function migrateUserToSuperAdmin() {
     user.memberships.forEach(membership => {
       console.log(`  - ${membership.organization.name}: ${membership.role} -> SUPER_ADMIN`);
     });
-
   } catch (error) {
     console.error('❌ Error migrating user:', error);
   }

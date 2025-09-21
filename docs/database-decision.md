@@ -93,7 +93,7 @@ Subscriptions → Invoices (one-to-many)
 ## Migration Strategy
 
 ### Phase 1: Setup (Week 1)
-1. Set up PostgreSQL with Docker
+1. Set up PostgreSQL database
 2. Install Prisma ORM
 3. Design schema with multi-tenancy
 

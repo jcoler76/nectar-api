@@ -39,7 +39,7 @@ class LicenseService {
     const token = jwt.sign(payload, this.jwtSecret, {
       expiresIn: this.jwtExpiresIn,
       issuer: 'nectar-license-server',
-      audience: 'nectar-customer-app'
+      audience: 'nectar-self-hosted'
     });
 
     // Add additional encoding/obfuscation
@@ -90,7 +90,7 @@ class LicenseService {
       try {
         decoded = jwt.verify(token, this.jwtSecret, {
           issuer: 'nectar-license-server',
-          audience: 'nectar-customer-app'
+          audience: 'nectar-self-hosted'
         });
       } catch (jwtError) {
         if (jwtError.name === 'TokenExpiredError') {

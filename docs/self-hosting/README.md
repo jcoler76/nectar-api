@@ -15,8 +15,8 @@ Nginx Header Mapping Example
 Envoy Header Mapping Example
 - See `envoy-header-map.yaml` for a basic HTTP filter chain that sets the canonical header from a custom header if present.
 
-Docker Compose
-- See `../../deploy/docker-compose.yml` for a minimal local deployment with environment variables.
+PM2 Process Manager
+- Use PM2 ecosystem configuration for production deployment setup.
 
 Steps
 - Configure your reverse proxy (Nginx/Envoy) to forward the API key in header `x-nectarstudio-api-key`. Optionally accept a vanity header and map it.

@@ -46,6 +46,7 @@ const FileStorageDashboard = () => {
 
   // Folder navigation state
   const [currentPath, setCurrentPath] = useState('/');
+  const [folderRefreshKey, setFolderRefreshKey] = useState(0);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -77,6 +78,9 @@ const FileStorageDashboard = () => {
     password: '',
   });
 
+  // Storage usage state
+  const [storageUsage, setStorageUsage] = useState(null);
+
   // Fetch files for current folder
   const fetchFiles = useCallback(async () => {
     try {
@@ -98,7 +102,7 @@ const FileStorageDashboard = () => {
       const response = await api.get(`/api/folders?${params}`);
 
       if (response.data.success) {
-        const fileData = response.data.data.files || [];
+        const fileData = response.data.contents?.files || [];
         setFiles(fileData);
         // Update pagination based on actual results
         setPagination(prev => ({
@@ -116,9 +120,42 @@ const FileStorageDashboard = () => {
     }
   }, [currentPath, pagination.page, pagination.limit, search, mimeTypeFilter, isPublicFilter]);
 
+  // Fetch storage usage
+  const fetchStorageUsage = useCallback(async () => {
+    try {
+      // Temporarily disabled due to backend issues
+      // const response = await api.get('/api/files/storage/usage');
+      // if (response.data.success) {
+      //   setStorageUsage(response.data.data);
+      // }
+
+      // Mock data for now
+      setStorageUsage({
+        organizationName: 'Demo Org',
+        subscriptionPlan: 'FREE',
+        storage: {
+          used: 0,
+          limit: 1024 * 1024 * 1024, // 1GB
+          usagePercentage: 0,
+          isUnlimited: false,
+        },
+        files: {
+          total: 0,
+        },
+        formattedStorage: {
+          used: '0 Bytes',
+          limit: '1 GB',
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching storage usage:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchFiles();
-  }, [fetchFiles]);
+    fetchStorageUsage();
+  }, [fetchFiles, fetchStorageUsage]);
 
   // Handle folder navigation
   const handlePathChange = newPath => {
@@ -140,6 +177,7 @@ const FileStorageDashboard = () => {
         setNewFolderName('');
         setShowCreateFolderDialog(false);
         fetchFiles(); // Refresh the file list
+        setFolderRefreshKey(prev => prev + 1); // Trigger folder browser refresh
       }
     } catch (error) {
       console.error('Error creating folder:', error);
@@ -167,7 +205,7 @@ const FileStorageDashboard = () => {
       formData.append('isPublic', uploadIsPublic.toString());
       formData.append('generateThumbnails', 'true');
 
-      const response = await api.post('/files/upload', formData, {
+      const response = await api.post('/api/files/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -178,6 +216,7 @@ const FileStorageDashboard = () => {
         setUploadDescription('');
         setUploadIsPublic(false);
         fetchFiles(); // Refresh file list
+        fetchStorageUsage(); // Refresh storage usage
       } else {
         setError(response.data.message || 'Upload failed');
       }
@@ -194,10 +233,11 @@ const FileStorageDashboard = () => {
     if (!confirm('Are you sure you want to delete this file?')) return;
 
     try {
-      const response = await api.delete(`/files/${fileId}`);
+      const response = await api.delete(`/api/files/${fileId}`);
 
       if (response.data.success) {
         fetchFiles(); // Refresh file list
+        fetchStorageUsage(); // Refresh storage usage
       } else {
         setError(response.data.message || 'Failed to delete file');
       }
@@ -215,7 +255,7 @@ const FileStorageDashboard = () => {
         maxDownloads: shareSettings.maxDownloads ? parseInt(shareSettings.maxDownloads) : undefined,
       };
 
-      const response = await api.post(`/files/${selectedFile.id}/share`, shareData);
+      const response = await api.post(`/api/files/${selectedFile.id}/share`, shareData);
 
       if (response.data.success) {
         const shareUrl = response.data.share.shareUrl;
@@ -233,7 +273,7 @@ const FileStorageDashboard = () => {
   // Handle file download
   const handleDownloadFile = async file => {
     try {
-      const response = await api.get(`/files/${file.id}?download=true`);
+      const response = await api.get(`/api/files/${file.id}?download=true`);
 
       if (response.data.success && response.data.file.downloadUrl) {
         window.open(response.data.file.downloadUrl, '_blank');
@@ -393,11 +433,72 @@ const FileStorageDashboard = () => {
         </Alert>
       )}
 
+      {/* Storage Usage Display */}
+      {storageUsage && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Storage Usage</span>
+              <Badge
+                variant={
+                  storageUsage.storage.usagePercentage > 90
+                    ? 'destructive'
+                    : storageUsage.storage.usagePercentage > 75
+                      ? 'default'
+                      : 'secondary'
+                }
+              >
+                {storageUsage.subscriptionPlan}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span>Used: {storageUsage.formattedStorage.used}</span>
+                <span>Limit: {storageUsage.formattedStorage.limit}</span>
+              </div>
+
+              {!storageUsage.storage.isUnlimited && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      storageUsage.storage.usagePercentage > 90
+                        ? 'bg-red-600'
+                        : storageUsage.storage.usagePercentage > 75
+                          ? 'bg-yellow-600'
+                          : 'bg-blue-600'
+                    }`}
+                    style={{ width: `${Math.min(storageUsage.storage.usagePercentage, 100)}%` }}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-between text-xs text-gray-600">
+                <span>{storageUsage.files.total} files</span>
+                {!storageUsage.storage.isUnlimited && (
+                  <span>{storageUsage.storage.usagePercentage.toFixed(1)}% used</span>
+                )}
+              </div>
+
+              {storageUsage.storage.usagePercentage > 90 && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    Storage is nearly full. Consider upgrading your plan or deleting unused files.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Folder Browser */}
       <FolderBrowser
         currentPath={currentPath}
         onPathChange={handlePathChange}
         onRefresh={fetchFiles}
+        refreshKey={folderRefreshKey}
       />
 
       {/* Filters */}

@@ -16,45 +16,45 @@ const testUsers = {
     email: 'superadmin@test.com',
     role: 'SUPER_ADMIN',
     firstName: 'Super',
-    lastName: 'Admin'
+    lastName: 'Admin',
   },
   orgOwner: {
     email: 'owner@test.com',
     role: 'ORGANIZATION_OWNER',
     firstName: 'Org',
-    lastName: 'Owner'
+    lastName: 'Owner',
   },
   orgAdmin: {
     email: 'admin@test.com',
     role: 'ORGANIZATION_ADMIN',
     firstName: 'Org',
-    lastName: 'Admin'
+    lastName: 'Admin',
   },
   developer: {
     email: 'dev@test.com',
     role: 'DEVELOPER',
     firstName: 'Dev',
-    lastName: 'User'
+    lastName: 'User',
   },
   member: {
     email: 'member@test.com',
     role: 'MEMBER',
     firstName: 'Member',
-    lastName: 'User'
+    lastName: 'User',
   },
   viewer: {
     email: 'viewer@test.com',
     role: 'VIEWER',
     firstName: 'View',
-    lastName: 'User'
-  }
+    lastName: 'User',
+  },
 };
 
 // Test organization
 const testOrg = {
   name: 'Test Organization',
   slug: 'test-org',
-  description: 'Test organization for role testing'
+  description: 'Test organization for role testing',
 };
 
 class RoleSystemTester {
@@ -72,7 +72,7 @@ class RoleSystemTester {
     try {
       // Create test organization
       this.createdOrg = await prisma.organization.create({
-        data: testOrg
+        data: testOrg,
       });
       console.log(`✅ Created test organization: ${this.createdOrg.id}`);
 
@@ -87,8 +87,8 @@ class RoleSystemTester {
             lastName: userData.lastName,
             passwordHash,
             isVerified: true,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         // Create organization membership with the specified role
@@ -97,8 +97,8 @@ class RoleSystemTester {
             organizationId: this.createdOrg.id,
             userId: user.id,
             role: userData.role,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         this.createdUsers.push({ ...user, testKey: key, membership });
@@ -118,8 +118,8 @@ class RoleSystemTester {
             lastName: role.split('_').slice(1).join('_') || 'ADMIN',
             role: role,
             passwordHash,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         this.adminUsers.push({ ...adminUser, testKey: role });
@@ -137,15 +137,15 @@ class RoleSystemTester {
     console.log('🧪 Testing Role Hierarchy...');
 
     const roleHierarchy = {
-      'SUPER_ADMIN': 7,
-      'ORGANIZATION_OWNER': 6,
-      'ORGANIZATION_ADMIN': 5,
-      'DEVELOPER': 4,
-      'MEMBER': 3,
-      'VIEWER': 1,
+      SUPER_ADMIN: 7,
+      ORGANIZATION_OWNER: 6,
+      ORGANIZATION_ADMIN: 5,
+      DEVELOPER: 4,
+      MEMBER: 3,
+      VIEWER: 1,
       // Legacy roles
-      'OWNER': 6,
-      'ADMIN': 5
+      OWNER: 6,
+      ADMIN: 5,
     };
 
     // Test that roles have correct hierarchy levels
@@ -159,10 +159,12 @@ class RoleSystemTester {
           test: `Role hierarchy: ${role}`,
           expected: expectedLevel,
           actual: actualLevel,
-          passed
+          passed,
         });
 
-        console.log(`${passed ? '✅' : '❌'} ${role}: Level ${actualLevel} (expected ${expectedLevel})`);
+        console.log(
+          `${passed ? '✅' : '❌'} ${role}: Level ${actualLevel} (expected ${expectedLevel})`
+        );
       }
     }
 
@@ -174,7 +176,7 @@ class RoleSystemTester {
       ['DEVELOPER', 'MEMBER', true],
       ['MEMBER', 'VIEWER', true],
       ['VIEWER', 'MEMBER', false], // Should not inherit upward
-      ['DEVELOPER', 'ORGANIZATION_ADMIN', false] // Should not inherit upward
+      ['DEVELOPER', 'ORGANIZATION_ADMIN', false], // Should not inherit upward
     ];
 
     for (const [higherRole, lowerRole, shouldInherit] of inheritanceTests) {
@@ -185,10 +187,12 @@ class RoleSystemTester {
         test: `Role inheritance: ${higherRole} -> ${lowerRole}`,
         expected: shouldInherit,
         actual: canInherit,
-        passed
+        passed,
       });
 
-      console.log(`${passed ? '✅' : '❌'} ${higherRole} ${shouldInherit ? 'can' : 'cannot'} inherit ${lowerRole} permissions: ${canInherit}`);
+      console.log(
+        `${passed ? '✅' : '❌'} ${higherRole} ${shouldInherit ? 'can' : 'cannot'} inherit ${lowerRole} permissions: ${canInherit}`
+      );
     }
 
     console.log('');
@@ -199,17 +203,27 @@ class RoleSystemTester {
 
     // Define permissions for each role
     const rolePermissions = {
-      'SUPER_ADMIN': ['*'], // All permissions
-      'ORGANIZATION_OWNER': [
-        'organization:manage', 'member:invite', 'member:remove', 'member:manage_roles',
-        'apikey:create', 'apikey:revoke', 'billing:manage', 'analytics:view'
+      SUPER_ADMIN: ['*'], // All permissions
+      ORGANIZATION_OWNER: [
+        'organization:manage',
+        'member:invite',
+        'member:remove',
+        'member:manage_roles',
+        'apikey:create',
+        'apikey:revoke',
+        'billing:manage',
+        'analytics:view',
       ],
-      'ORGANIZATION_ADMIN': [
-        'member:invite', 'member:manage_roles', 'apikey:create', 'apikey:revoke', 'analytics:view'
+      ORGANIZATION_ADMIN: [
+        'member:invite',
+        'member:manage_roles',
+        'apikey:create',
+        'apikey:revoke',
+        'analytics:view',
       ],
-      'DEVELOPER': ['apikey:create', 'apikey:view', 'analytics:view'],
-      'MEMBER': ['apikey:view', 'organization:view'],
-      'VIEWER': ['organization:view']
+      DEVELOPER: ['apikey:create', 'apikey:view', 'analytics:view'],
+      MEMBER: ['apikey:view', 'organization:view'],
+      VIEWER: ['organization:view'],
     };
 
     // Test permission checking
@@ -225,7 +239,7 @@ class RoleSystemTester {
           test: `Permission: ${role} has ${permission}`,
           expected: true,
           actual: hasPermission,
-          passed
+          passed,
         });
 
         console.log(`${passed ? '✅' : '❌'} ${role} has ${permission}: ${hasPermission}`);
@@ -241,10 +255,12 @@ class RoleSystemTester {
           test: `Permission denied: ${role} lacks ${permission}`,
           expected: false,
           actual: hasPermission,
-          passed
+          passed,
         });
 
-        console.log(`${passed ? '✅' : '❌'} ${role} correctly denied ${permission}: ${!hasPermission}`);
+        console.log(
+          `${passed ? '✅' : '❌'} ${role} correctly denied ${permission}: ${!hasPermission}`
+        );
       }
     }
 
@@ -256,11 +272,11 @@ class RoleSystemTester {
 
     // Test admin role hierarchy
     const adminHierarchy = {
-      'SUPER_ADMIN': 5,
-      'ADMIN': 4,
-      'BILLING_ADMIN': 3,
-      'SUPPORT_AGENT': 2,
-      'ANALYST': 1
+      SUPER_ADMIN: 5,
+      ADMIN: 4,
+      BILLING_ADMIN: 3,
+      SUPPORT_AGENT: 2,
+      ANALYST: 1,
     };
 
     for (const adminUser of this.adminUsers) {
@@ -272,19 +288,27 @@ class RoleSystemTester {
         test: `Admin role hierarchy: ${adminUser.role}`,
         expected: expectedLevel,
         actual: actualLevel,
-        passed
+        passed,
       });
 
-      console.log(`${passed ? '✅' : '❌'} Admin ${adminUser.role}: Level ${actualLevel} (expected ${expectedLevel})`);
+      console.log(
+        `${passed ? '✅' : '❌'} Admin ${adminUser.role}: Level ${actualLevel} (expected ${expectedLevel})`
+      );
     }
 
     // Test admin permissions
     const adminPermissions = {
-      'SUPER_ADMIN': ['admin:manage', 'user:manage', 'license:manage', 'billing:manage', 'analytics:view'],
-      'ADMIN': ['user:manage', 'license:manage', 'analytics:view'],
-      'BILLING_ADMIN': ['billing:manage', 'license:view', 'analytics:view'],
-      'SUPPORT_AGENT': ['user:view', 'license:view'],
-      'ANALYST': ['analytics:view']
+      SUPER_ADMIN: [
+        'admin:manage',
+        'user:manage',
+        'license:manage',
+        'billing:manage',
+        'analytics:view',
+      ],
+      ADMIN: ['user:manage', 'license:manage', 'analytics:view'],
+      BILLING_ADMIN: ['billing:manage', 'license:view', 'analytics:view'],
+      SUPPORT_AGENT: ['user:view', 'license:view'],
+      ANALYST: ['analytics:view'],
     };
 
     for (const [role, permissions] of Object.entries(adminPermissions)) {
@@ -299,7 +323,7 @@ class RoleSystemTester {
           test: `Admin permission: ${role} has ${permission}`,
           expected: true,
           actual: hasPermission,
-          passed
+          passed,
         });
 
         console.log(`${passed ? '✅' : '❌'} Admin ${role} has ${permission}: ${hasPermission}`);
@@ -323,7 +347,7 @@ class RoleSystemTester {
         reason: 'Test role change for audit logging',
         performedById: testUser.id,
         ipAddress: '127.0.0.1',
-        userAgent: 'Test Suite'
+        userAgent: 'Test Suite',
       });
 
       const passed = roleChangeResult && roleChangeResult.id;
@@ -331,7 +355,7 @@ class RoleSystemTester {
         test: 'Audit logging: Role change logged',
         expected: true,
         actual: passed,
-        passed
+        passed,
       });
 
       console.log(`${passed ? '✅' : '❌'} Role change audit log created: ${passed}`);
@@ -345,7 +369,7 @@ class RoleSystemTester {
         organizationId: this.createdOrg.id,
         metadata: { test: true },
         ipAddress: '127.0.0.1',
-        userAgent: 'Test Suite'
+        userAgent: 'Test Suite',
       });
 
       console.log('✅ General audit event logged successfully');
@@ -353,13 +377,10 @@ class RoleSystemTester {
       // Verify audit logs were created
       const auditLogs = await prisma.auditLog.findMany({
         where: {
-          OR: [
-            { action: 'ROLE_CHANGE' },
-            { action: 'TEST_ACTION' }
-          ]
+          OR: [{ action: 'ROLE_CHANGE' }, { action: 'TEST_ACTION' }],
         },
         orderBy: { timestamp: 'desc' },
-        take: 10
+        take: 10,
       });
 
       const auditLogsFound = auditLogs.length >= 2;
@@ -367,11 +388,12 @@ class RoleSystemTester {
         test: 'Audit logging: Logs retrievable',
         expected: true,
         actual: auditLogsFound,
-        passed: auditLogsFound
+        passed: auditLogsFound,
       });
 
-      console.log(`${auditLogsFound ? '✅' : '❌'} Audit logs retrievable: ${auditLogs.length} logs found`);
-
+      console.log(
+        `${auditLogsFound ? '✅' : '❌'} Audit logs retrievable: ${auditLogs.length} logs found`
+      );
     } catch (error) {
       console.error('❌ Audit logging test failed:', error.message);
       this.testResults.push({
@@ -379,7 +401,7 @@ class RoleSystemTester {
         expected: false,
         actual: true,
         passed: false,
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -394,7 +416,7 @@ class RoleSystemTester {
       ['VIEWER', 'MEMBER'],
       ['MEMBER', 'DEVELOPER'],
       ['DEVELOPER', 'ORGANIZATION_ADMIN'],
-      ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']
+      ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'],
     ];
 
     for (const [fromRole, toRole] of validTransitions) {
@@ -405,7 +427,7 @@ class RoleSystemTester {
         test: `Role transition: ${fromRole} -> ${toRole}`,
         expected: true,
         actual: isValid,
-        passed
+        passed,
       });
 
       console.log(`${passed ? '✅' : '❌'} Valid transition ${fromRole} -> ${toRole}: ${isValid}`);
@@ -415,7 +437,7 @@ class RoleSystemTester {
     const invalidTransitions = [
       ['ORGANIZATION_OWNER', 'MEMBER'],
       ['SUPER_ADMIN', 'VIEWER'],
-      ['ORGANIZATION_ADMIN', 'VIEWER']
+      ['ORGANIZATION_ADMIN', 'VIEWER'],
     ];
 
     for (const [fromRole, toRole] of invalidTransitions) {
@@ -426,10 +448,12 @@ class RoleSystemTester {
         test: `Invalid role transition: ${fromRole} -> ${toRole}`,
         expected: false,
         actual: isValid,
-        passed
+        passed,
       });
 
-      console.log(`${passed ? '✅' : '❌'} Invalid transition ${fromRole} -> ${toRole} blocked: ${!isValid}`);
+      console.log(
+        `${passed ? '✅' : '❌'} Invalid transition ${fromRole} -> ${toRole} blocked: ${!isValid}`
+      );
     }
 
     console.log('');
@@ -438,23 +462,25 @@ class RoleSystemTester {
   // Helper methods for role validation
   getRoleLevel(role) {
     const levels = {
-      'SUPER_ADMIN': 7,
-      'ORGANIZATION_OWNER': 6, 'OWNER': 6, // Legacy mapping
-      'ORGANIZATION_ADMIN': 5, 'ADMIN': 5, // Legacy mapping
-      'DEVELOPER': 4,
-      'MEMBER': 3,
-      'VIEWER': 1
+      SUPER_ADMIN: 7,
+      ORGANIZATION_OWNER: 6,
+      OWNER: 6, // Legacy mapping
+      ORGANIZATION_ADMIN: 5,
+      ADMIN: 5, // Legacy mapping
+      DEVELOPER: 4,
+      MEMBER: 3,
+      VIEWER: 1,
     };
     return levels[role] || 0;
   }
 
   getAdminRoleLevel(role) {
     const levels = {
-      'SUPER_ADMIN': 5,
-      'ADMIN': 4,
-      'BILLING_ADMIN': 3,
-      'SUPPORT_AGENT': 2,
-      'ANALYST': 1
+      SUPER_ADMIN: 5,
+      ADMIN: 4,
+      BILLING_ADMIN: 3,
+      SUPPORT_AGENT: 2,
+      ANALYST: 1,
     };
     return levels[role] || 0;
   }
@@ -467,11 +493,26 @@ class RoleSystemTester {
     if (role === 'SUPER_ADMIN' || permission === '*') return true;
 
     const rolePermissions = {
-      'ORGANIZATION_OWNER': ['organization:manage', 'member:invite', 'member:remove', 'member:manage_roles', 'apikey:create', 'apikey:revoke', 'billing:manage', 'analytics:view'],
-      'ORGANIZATION_ADMIN': ['member:invite', 'member:manage_roles', 'apikey:create', 'apikey:revoke', 'analytics:view'],
-      'DEVELOPER': ['apikey:create', 'apikey:view', 'analytics:view'],
-      'MEMBER': ['apikey:view', 'organization:view'],
-      'VIEWER': ['organization:view']
+      ORGANIZATION_OWNER: [
+        'organization:manage',
+        'member:invite',
+        'member:remove',
+        'member:manage_roles',
+        'apikey:create',
+        'apikey:revoke',
+        'billing:manage',
+        'analytics:view',
+      ],
+      ORGANIZATION_ADMIN: [
+        'member:invite',
+        'member:manage_roles',
+        'apikey:create',
+        'apikey:revoke',
+        'analytics:view',
+      ],
+      DEVELOPER: ['apikey:create', 'apikey:view', 'analytics:view'],
+      MEMBER: ['apikey:view', 'organization:view'],
+      VIEWER: ['organization:view'],
     };
 
     const permissions = rolePermissions[role] || [];
@@ -492,11 +533,17 @@ class RoleSystemTester {
 
   checkAdminPermission(role, permission) {
     const adminPermissions = {
-      'SUPER_ADMIN': ['admin:manage', 'user:manage', 'license:manage', 'billing:manage', 'analytics:view'],
-      'ADMIN': ['user:manage', 'license:manage', 'analytics:view'],
-      'BILLING_ADMIN': ['billing:manage', 'license:view', 'analytics:view'],
-      'SUPPORT_AGENT': ['user:view', 'license:view'],
-      'ANALYST': ['analytics:view']
+      SUPER_ADMIN: [
+        'admin:manage',
+        'user:manage',
+        'license:manage',
+        'billing:manage',
+        'analytics:view',
+      ],
+      ADMIN: ['user:manage', 'license:manage', 'analytics:view'],
+      BILLING_ADMIN: ['billing:manage', 'license:view', 'analytics:view'],
+      SUPPORT_AGENT: ['user:view', 'license:view'],
+      ANALYST: ['analytics:view'],
     };
 
     const permissions = adminPermissions[role] || [];
@@ -545,45 +592,42 @@ class RoleSystemTester {
       // Delete test audit logs
       await prisma.auditLog.deleteMany({
         where: {
-          OR: [
-            { action: 'ROLE_CHANGE' },
-            { action: 'TEST_ACTION' }
-          ]
-        }
+          OR: [{ action: 'ROLE_CHANGE' }, { action: 'TEST_ACTION' }],
+        },
       });
 
       // Delete role change logs
       await prisma.roleChangeLog.deleteMany({
         where: {
-          targetUserId: { in: this.createdUsers.map(u => u.id) }
-        }
+          targetUserId: { in: this.createdUsers.map(u => u.id) },
+        },
       });
 
       // Delete memberships
       await prisma.organizationMembership.deleteMany({
         where: {
-          id: { in: this.createdMemberships.map(m => m.id) }
-        }
+          id: { in: this.createdMemberships.map(m => m.id) },
+        },
       });
 
       // Delete test users
       await prisma.user.deleteMany({
         where: {
-          id: { in: this.createdUsers.map(u => u.id) }
-        }
+          id: { in: this.createdUsers.map(u => u.id) },
+        },
       });
 
       // Delete admin users
       await prisma.adminUser.deleteMany({
         where: {
-          id: { in: this.adminUsers.map(u => u.id) }
-        }
+          id: { in: this.adminUsers.map(u => u.id) },
+        },
       });
 
       // Delete test organization
       if (this.createdOrg) {
         await prisma.organization.delete({
-          where: { id: this.createdOrg.id }
+          where: { id: this.createdOrg.id },
         });
       }
 
@@ -622,7 +666,7 @@ class RoleSystemTester {
       total: totalTests,
       passed: passedTests,
       failed: failedTests,
-      successRate: (passedTests / totalTests) * 100
+      successRate: (passedTests / totalTests) * 100,
     };
   }
 
@@ -656,7 +700,8 @@ module.exports = { RoleSystemTester };
 // Run tests if called directly
 if (require.main === module) {
   const tester = new RoleSystemTester();
-  tester.runAllTests()
+  tester
+    .runAllTests()
     .then(report => {
       console.log(`\n🎉 Test suite completed with ${report.successRate.toFixed(1)}% success rate`);
       process.exit(report.failed === 0 ? 0 : 1);

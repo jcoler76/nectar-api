@@ -17,27 +17,57 @@ class IntegrationTester {
     this.testResults = [];
     this.testTokens = {};
     this.testUsers = {
-      superAdmin: { id: 'super-admin-id', email: 'superadmin@test.com', memberships: [{ role: 'SUPER_ADMIN', organizationId: 'test-org' }] },
-      orgOwner: { id: 'owner-id', email: 'owner@test.com', memberships: [{ role: 'ORGANIZATION_OWNER', organizationId: 'test-org' }] },
-      orgAdmin: { id: 'admin-id', email: 'admin@test.com', memberships: [{ role: 'ORGANIZATION_ADMIN', organizationId: 'test-org' }] },
-      developer: { id: 'dev-id', email: 'dev@test.com', memberships: [{ role: 'DEVELOPER', organizationId: 'test-org' }] },
-      member: { id: 'member-id', email: 'member@test.com', memberships: [{ role: 'MEMBER', organizationId: 'test-org' }] },
-      viewer: { id: 'viewer-id', email: 'viewer@test.com', memberships: [{ role: 'VIEWER', organizationId: 'test-org' }] }
+      superAdmin: {
+        id: 'super-admin-id',
+        email: 'superadmin@test.com',
+        memberships: [{ role: 'SUPER_ADMIN', organizationId: 'test-org' }],
+      },
+      orgOwner: {
+        id: 'owner-id',
+        email: 'owner@test.com',
+        memberships: [{ role: 'ORGANIZATION_OWNER', organizationId: 'test-org' }],
+      },
+      orgAdmin: {
+        id: 'admin-id',
+        email: 'admin@test.com',
+        memberships: [{ role: 'ORGANIZATION_ADMIN', organizationId: 'test-org' }],
+      },
+      developer: {
+        id: 'dev-id',
+        email: 'dev@test.com',
+        memberships: [{ role: 'DEVELOPER', organizationId: 'test-org' }],
+      },
+      member: {
+        id: 'member-id',
+        email: 'member@test.com',
+        memberships: [{ role: 'MEMBER', organizationId: 'test-org' }],
+      },
+      viewer: {
+        id: 'viewer-id',
+        email: 'viewer@test.com',
+        memberships: [{ role: 'VIEWER', organizationId: 'test-org' }],
+      },
     };
   }
 
   generateTestToken(user) {
-    return jwt.sign({
-      userId: user.id,
-      email: user.email,
-      memberships: user.memberships,
-      isSuperAdmin: user.memberships?.some(m => m.role === 'SUPER_ADMIN'),
-      isAdmin: user.memberships?.some(m => ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role))
-    }, JWT_SECRET, {
-      expiresIn: '1h',
-      issuer: 'nectar-api',
-      audience: 'nectar-client'
-    });
+    return jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        memberships: user.memberships,
+        isSuperAdmin: user.memberships?.some(m => m.role === 'SUPER_ADMIN'),
+        isAdmin: user.memberships?.some(m =>
+          ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER', 'ADMIN', 'OWNER'].includes(m.role)
+        ),
+      },
+      JWT_SECRET,
+      {
+        expiresIn: '1h',
+        issuer: 'nectar-api',
+        audience: 'nectar-client',
+      }
+    );
   }
 
   async setup() {
@@ -82,10 +112,12 @@ class IntegrationTester {
         actual: response.status,
         passed,
         method,
-        url
+        url,
       });
 
-      console.log(`${passed ? '✅' : '❌'} ${testName}: ${response.status} (expected ${expectedStatus})`);
+      console.log(
+        `${passed ? '✅' : '❌'} ${testName}: ${response.status} (expected ${expectedStatus})`
+      );
 
       return { passed, status: response.status, data: response.data };
     } catch (error) {
@@ -98,7 +130,7 @@ class IntegrationTester {
         passed,
         error: error.message,
         method,
-        url
+        url,
       });
 
       console.log(`❌ ${testName}: ERROR - ${error.message}`);
@@ -109,8 +141,20 @@ class IntegrationTester {
   async testHealthEndpoints() {
     console.log('🏥 Testing Health Endpoints:');
 
-    await this.testEndpointAccess('GET', `${API_BASE_URL}/health`, 200, null, 'Main API health check');
-    await this.testEndpointAccess('GET', `${ADMIN_BASE_URL}/health`, 200, null, 'Admin API health check');
+    await this.testEndpointAccess(
+      'GET',
+      `${API_BASE_URL}/health`,
+      200,
+      null,
+      'Main API health check'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      `${ADMIN_BASE_URL}/health`,
+      200,
+      null,
+      'Admin API health check'
+    );
 
     console.log('');
   }
@@ -119,11 +163,29 @@ class IntegrationTester {
     console.log('🔐 Testing Authentication Endpoints:');
 
     // Test endpoints that require authentication
-    await this.testEndpointAccess('GET', `${API_BASE_URL}/api/user/profile`, 401, null, 'Profile access without token');
-    await this.testEndpointAccess('GET', `${API_BASE_URL}/api/user/profile`, 200, this.testTokens.member, 'Profile access with valid token');
+    await this.testEndpointAccess(
+      'GET',
+      `${API_BASE_URL}/api/user/profile`,
+      401,
+      null,
+      'Profile access without token'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      `${API_BASE_URL}/api/user/profile`,
+      200,
+      this.testTokens.member,
+      'Profile access with valid token'
+    );
 
     // Test with invalid token
-    await this.testEndpointAccess('GET', `${API_BASE_URL}/api/user/profile`, 401, 'invalid-token', 'Profile access with invalid token');
+    await this.testEndpointAccess(
+      'GET',
+      `${API_BASE_URL}/api/user/profile`,
+      401,
+      'invalid-token',
+      'Profile access with invalid token'
+    );
 
     console.log('');
   }
@@ -134,21 +196,81 @@ class IntegrationTester {
     const orgUrl = `${API_BASE_URL}/api/organizations/test-org`;
 
     // Test organization access by different roles
-    await this.testEndpointAccess('GET', orgUrl, 200, this.testTokens.superAdmin, 'Super Admin org access');
-    await this.testEndpointAccess('GET', orgUrl, 200, this.testTokens.orgOwner, 'Org Owner org access');
-    await this.testEndpointAccess('GET', orgUrl, 200, this.testTokens.orgAdmin, 'Org Admin org access');
-    await this.testEndpointAccess('GET', orgUrl, 200, this.testTokens.developer, 'Developer org access');
+    await this.testEndpointAccess(
+      'GET',
+      orgUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin org access'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      orgUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner org access'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      orgUrl,
+      200,
+      this.testTokens.orgAdmin,
+      'Org Admin org access'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      orgUrl,
+      200,
+      this.testTokens.developer,
+      'Developer org access'
+    );
     await this.testEndpointAccess('GET', orgUrl, 200, this.testTokens.member, 'Member org access');
     await this.testEndpointAccess('GET', orgUrl, 200, this.testTokens.viewer, 'Viewer org access');
 
     // Test organization management (should be restricted)
     const orgManageUrl = `${API_BASE_URL}/api/organizations/test-org/settings`;
-    await this.testEndpointAccess('PUT', orgManageUrl, 200, this.testTokens.superAdmin, 'Super Admin org management');
-    await this.testEndpointAccess('PUT', orgManageUrl, 200, this.testTokens.orgOwner, 'Org Owner org management');
-    await this.testEndpointAccess('PUT', orgManageUrl, 403, this.testTokens.orgAdmin, 'Org Admin org management (should fail)');
-    await this.testEndpointAccess('PUT', orgManageUrl, 403, this.testTokens.developer, 'Developer org management (should fail)');
-    await this.testEndpointAccess('PUT', orgManageUrl, 403, this.testTokens.member, 'Member org management (should fail)');
-    await this.testEndpointAccess('PUT', orgManageUrl, 403, this.testTokens.viewer, 'Viewer org management (should fail)');
+    await this.testEndpointAccess(
+      'PUT',
+      orgManageUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin org management'
+    );
+    await this.testEndpointAccess(
+      'PUT',
+      orgManageUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner org management'
+    );
+    await this.testEndpointAccess(
+      'PUT',
+      orgManageUrl,
+      403,
+      this.testTokens.orgAdmin,
+      'Org Admin org management (should fail)'
+    );
+    await this.testEndpointAccess(
+      'PUT',
+      orgManageUrl,
+      403,
+      this.testTokens.developer,
+      'Developer org management (should fail)'
+    );
+    await this.testEndpointAccess(
+      'PUT',
+      orgManageUrl,
+      403,
+      this.testTokens.member,
+      'Member org management (should fail)'
+    );
+    await this.testEndpointAccess(
+      'PUT',
+      orgManageUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer org management (should fail)'
+    );
 
     console.log('');
   }
@@ -160,20 +282,92 @@ class IntegrationTester {
     const membersUrl = `${API_BASE_URL}/api/organizations/test-org/members`;
 
     // Test member invitation (requires admin level)
-    await this.testEndpointAccess('POST', inviteUrl, 200, this.testTokens.superAdmin, 'Super Admin invite member');
-    await this.testEndpointAccess('POST', inviteUrl, 200, this.testTokens.orgOwner, 'Org Owner invite member');
-    await this.testEndpointAccess('POST', inviteUrl, 200, this.testTokens.orgAdmin, 'Org Admin invite member');
-    await this.testEndpointAccess('POST', inviteUrl, 403, this.testTokens.developer, 'Developer invite member (should fail)');
-    await this.testEndpointAccess('POST', inviteUrl, 403, this.testTokens.member, 'Member invite member (should fail)');
-    await this.testEndpointAccess('POST', inviteUrl, 403, this.testTokens.viewer, 'Viewer invite member (should fail)');
+    await this.testEndpointAccess(
+      'POST',
+      inviteUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin invite member'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      inviteUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner invite member'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      inviteUrl,
+      200,
+      this.testTokens.orgAdmin,
+      'Org Admin invite member'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      inviteUrl,
+      403,
+      this.testTokens.developer,
+      'Developer invite member (should fail)'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      inviteUrl,
+      403,
+      this.testTokens.member,
+      'Member invite member (should fail)'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      inviteUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer invite member (should fail)'
+    );
 
     // Test member list access
-    await this.testEndpointAccess('GET', membersUrl, 200, this.testTokens.superAdmin, 'Super Admin view members');
-    await this.testEndpointAccess('GET', membersUrl, 200, this.testTokens.orgOwner, 'Org Owner view members');
-    await this.testEndpointAccess('GET', membersUrl, 200, this.testTokens.orgAdmin, 'Org Admin view members');
-    await this.testEndpointAccess('GET', membersUrl, 200, this.testTokens.developer, 'Developer view members');
-    await this.testEndpointAccess('GET', membersUrl, 200, this.testTokens.member, 'Member view members');
-    await this.testEndpointAccess('GET', membersUrl, 403, this.testTokens.viewer, 'Viewer view members (should fail)');
+    await this.testEndpointAccess(
+      'GET',
+      membersUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin view members'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      membersUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner view members'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      membersUrl,
+      200,
+      this.testTokens.orgAdmin,
+      'Org Admin view members'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      membersUrl,
+      200,
+      this.testTokens.developer,
+      'Developer view members'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      membersUrl,
+      200,
+      this.testTokens.member,
+      'Member view members'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      membersUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer view members (should fail)'
+    );
 
     console.log('');
   }
@@ -185,20 +379,92 @@ class IntegrationTester {
     const createKeyUrl = `${API_BASE_URL}/api/organizations/test-org/api-keys`;
 
     // Test API key viewing (most roles should have access)
-    await this.testEndpointAccess('GET', apiKeysUrl, 200, this.testTokens.superAdmin, 'Super Admin view API keys');
-    await this.testEndpointAccess('GET', apiKeysUrl, 200, this.testTokens.orgOwner, 'Org Owner view API keys');
-    await this.testEndpointAccess('GET', apiKeysUrl, 200, this.testTokens.orgAdmin, 'Org Admin view API keys');
-    await this.testEndpointAccess('GET', apiKeysUrl, 200, this.testTokens.developer, 'Developer view API keys');
-    await this.testEndpointAccess('GET', apiKeysUrl, 200, this.testTokens.member, 'Member view API keys');
-    await this.testEndpointAccess('GET', apiKeysUrl, 403, this.testTokens.viewer, 'Viewer view API keys (should fail)');
+    await this.testEndpointAccess(
+      'GET',
+      apiKeysUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin view API keys'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      apiKeysUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner view API keys'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      apiKeysUrl,
+      200,
+      this.testTokens.orgAdmin,
+      'Org Admin view API keys'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      apiKeysUrl,
+      200,
+      this.testTokens.developer,
+      'Developer view API keys'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      apiKeysUrl,
+      200,
+      this.testTokens.member,
+      'Member view API keys'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      apiKeysUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer view API keys (should fail)'
+    );
 
     // Test API key creation (requires developer level)
-    await this.testEndpointAccess('POST', createKeyUrl, 200, this.testTokens.superAdmin, 'Super Admin create API key');
-    await this.testEndpointAccess('POST', createKeyUrl, 200, this.testTokens.orgOwner, 'Org Owner create API key');
-    await this.testEndpointAccess('POST', createKeyUrl, 200, this.testTokens.orgAdmin, 'Org Admin create API key');
-    await this.testEndpointAccess('POST', createKeyUrl, 200, this.testTokens.developer, 'Developer create API key');
-    await this.testEndpointAccess('POST', createKeyUrl, 403, this.testTokens.member, 'Member create API key (should fail)');
-    await this.testEndpointAccess('POST', createKeyUrl, 403, this.testTokens.viewer, 'Viewer create API key (should fail)');
+    await this.testEndpointAccess(
+      'POST',
+      createKeyUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin create API key'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      createKeyUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner create API key'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      createKeyUrl,
+      200,
+      this.testTokens.orgAdmin,
+      'Org Admin create API key'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      createKeyUrl,
+      200,
+      this.testTokens.developer,
+      'Developer create API key'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      createKeyUrl,
+      403,
+      this.testTokens.member,
+      'Member create API key (should fail)'
+    );
+    await this.testEndpointAccess(
+      'POST',
+      createKeyUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer create API key (should fail)'
+    );
 
     console.log('');
   }
@@ -210,25 +476,57 @@ class IntegrationTester {
     const licensesUrl = `${ADMIN_BASE_URL}/api/licenses`;
 
     // Generate admin tokens
-    const superAdminToken = jwt.sign({
-      adminId: 'super-admin-id',
-      email: 'superadmin@admin.test',
-      role: 'SUPER_ADMIN'
-    }, JWT_SECRET, { expiresIn: '1h' });
+    const superAdminToken = jwt.sign(
+      {
+        adminId: 'super-admin-id',
+        email: 'superadmin@admin.test',
+        role: 'SUPER_ADMIN',
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
-    const supportAgentToken = jwt.sign({
-      adminId: 'support-id',
-      email: 'support@admin.test',
-      role: 'SUPPORT_AGENT'
-    }, JWT_SECRET, { expiresIn: '1h' });
+    const supportAgentToken = jwt.sign(
+      {
+        adminId: 'support-id',
+        email: 'support@admin.test',
+        role: 'SUPPORT_AGENT',
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     // Test admin user management (SUPER_ADMIN only)
-    await this.testEndpointAccess('GET', adminUsersUrl, 200, superAdminToken, 'Super Admin view admin users');
-    await this.testEndpointAccess('GET', adminUsersUrl, 403, supportAgentToken, 'Support Agent view admin users (should fail)');
+    await this.testEndpointAccess(
+      'GET',
+      adminUsersUrl,
+      200,
+      superAdminToken,
+      'Super Admin view admin users'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      adminUsersUrl,
+      403,
+      supportAgentToken,
+      'Support Agent view admin users (should fail)'
+    );
 
     // Test license management
-    await this.testEndpointAccess('GET', licensesUrl, 200, superAdminToken, 'Super Admin view licenses');
-    await this.testEndpointAccess('GET', licensesUrl, 200, supportAgentToken, 'Support Agent view licenses');
+    await this.testEndpointAccess(
+      'GET',
+      licensesUrl,
+      200,
+      superAdminToken,
+      'Super Admin view licenses'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      licensesUrl,
+      200,
+      supportAgentToken,
+      'Support Agent view licenses'
+    );
 
     console.log('');
   }
@@ -239,12 +537,48 @@ class IntegrationTester {
     // Test that higher roles can access lower role endpoints
     const memberOnlyUrl = `${API_BASE_URL}/api/organizations/test-org/member-dashboard`;
 
-    await this.testEndpointAccess('GET', memberOnlyUrl, 200, this.testTokens.superAdmin, 'Super Admin access member endpoint');
-    await this.testEndpointAccess('GET', memberOnlyUrl, 200, this.testTokens.orgOwner, 'Org Owner access member endpoint');
-    await this.testEndpointAccess('GET', memberOnlyUrl, 200, this.testTokens.orgAdmin, 'Org Admin access member endpoint');
-    await this.testEndpointAccess('GET', memberOnlyUrl, 200, this.testTokens.developer, 'Developer access member endpoint');
-    await this.testEndpointAccess('GET', memberOnlyUrl, 200, this.testTokens.member, 'Member access member endpoint');
-    await this.testEndpointAccess('GET', memberOnlyUrl, 403, this.testTokens.viewer, 'Viewer access member endpoint (should fail)');
+    await this.testEndpointAccess(
+      'GET',
+      memberOnlyUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin access member endpoint'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      memberOnlyUrl,
+      200,
+      this.testTokens.orgOwner,
+      'Org Owner access member endpoint'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      memberOnlyUrl,
+      200,
+      this.testTokens.orgAdmin,
+      'Org Admin access member endpoint'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      memberOnlyUrl,
+      200,
+      this.testTokens.developer,
+      'Developer access member endpoint'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      memberOnlyUrl,
+      200,
+      this.testTokens.member,
+      'Member access member endpoint'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      memberOnlyUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer access member endpoint (should fail)'
+    );
 
     console.log('');
   }
@@ -255,12 +589,48 @@ class IntegrationTester {
     // Test access to different organization (should fail for non-super-admins)
     const otherOrgUrl = `${API_BASE_URL}/api/organizations/other-org`;
 
-    await this.testEndpointAccess('GET', otherOrgUrl, 200, this.testTokens.superAdmin, 'Super Admin access other org');
-    await this.testEndpointAccess('GET', otherOrgUrl, 403, this.testTokens.orgOwner, 'Org Owner access other org (should fail)');
-    await this.testEndpointAccess('GET', otherOrgUrl, 403, this.testTokens.orgAdmin, 'Org Admin access other org (should fail)');
-    await this.testEndpointAccess('GET', otherOrgUrl, 403, this.testTokens.developer, 'Developer access other org (should fail)');
-    await this.testEndpointAccess('GET', otherOrgUrl, 403, this.testTokens.member, 'Member access other org (should fail)');
-    await this.testEndpointAccess('GET', otherOrgUrl, 403, this.testTokens.viewer, 'Viewer access other org (should fail)');
+    await this.testEndpointAccess(
+      'GET',
+      otherOrgUrl,
+      200,
+      this.testTokens.superAdmin,
+      'Super Admin access other org'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      otherOrgUrl,
+      403,
+      this.testTokens.orgOwner,
+      'Org Owner access other org (should fail)'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      otherOrgUrl,
+      403,
+      this.testTokens.orgAdmin,
+      'Org Admin access other org (should fail)'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      otherOrgUrl,
+      403,
+      this.testTokens.developer,
+      'Developer access other org (should fail)'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      otherOrgUrl,
+      403,
+      this.testTokens.member,
+      'Member access other org (should fail)'
+    );
+    await this.testEndpointAccess(
+      'GET',
+      otherOrgUrl,
+      403,
+      this.testTokens.viewer,
+      'Viewer access other org (should fail)'
+    );
 
     console.log('');
   }
@@ -292,14 +662,20 @@ class IntegrationTester {
 
     // Group results by category
     const categories = {
-      'Health': this.testResults.filter(t => t.test.includes('health')),
-      'Authentication': this.testResults.filter(t => t.test.includes('token') || t.test.includes('Profile')),
-      'Organization': this.testResults.filter(t => t.test.includes('org') && !t.test.includes('member')),
-      'Member Management': this.testResults.filter(t => t.test.includes('member') || t.test.includes('invite')),
+      Health: this.testResults.filter(t => t.test.includes('health')),
+      Authentication: this.testResults.filter(
+        t => t.test.includes('token') || t.test.includes('Profile')
+      ),
+      Organization: this.testResults.filter(
+        t => t.test.includes('org') && !t.test.includes('member')
+      ),
+      'Member Management': this.testResults.filter(
+        t => t.test.includes('member') || t.test.includes('invite')
+      ),
       'API Keys': this.testResults.filter(t => t.test.includes('API key')),
       'Admin Portal': this.testResults.filter(t => t.test.includes('Admin')),
       'Role Inheritance': this.testResults.filter(t => t.test.includes('access member endpoint')),
-      'Cross-Organization': this.testResults.filter(t => t.test.includes('other org'))
+      'Cross-Organization': this.testResults.filter(t => t.test.includes('other org')),
     };
 
     console.log('\n📈 RESULTS BY CATEGORY:');
@@ -320,7 +696,7 @@ class IntegrationTester {
       passed: passedTests,
       failed: failedTests,
       successRate: (passedTests / totalTests) * 100,
-      categories
+      categories,
     };
   }
 
@@ -340,7 +716,9 @@ class IntegrationTester {
 
       const report = this.generateReport();
 
-      console.log(`\n🎯 Integration tests completed with ${report.successRate.toFixed(1)}% success rate`);
+      console.log(
+        `\n🎯 Integration tests completed with ${report.successRate.toFixed(1)}% success rate`
+      );
 
       return report;
     } catch (error) {

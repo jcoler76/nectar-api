@@ -20,9 +20,15 @@ router.use(AuthFactory.createJWTMiddleware());
  * GET /api/organizations/:orgId/api-keys
  * List API keys - requires MEMBER level or higher
  */
-router.get('/',
+router.get(
+  '/',
   AuthFactory.requireMinimumRole('MEMBER'),
-  AuthFactory.requireOrganizationAccess(['MEMBER', 'DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
+  AuthFactory.requireOrganizationAccess([
+    'MEMBER',
+    'DEVELOPER',
+    'ORGANIZATION_ADMIN',
+    'ORGANIZATION_OWNER',
+  ]),
   async (req, res) => {
     try {
       const { orgId } = req.params;
@@ -32,11 +38,11 @@ router.get('/',
       // Different visibility based on role
       const includeOptions = {
         organization: {
-          select: { id: true, name: true }
+          select: { id: true, name: true },
         },
         createdBy: {
-          select: { id: true, email: true, firstName: true, lastName: true }
-        }
+          select: { id: true, email: true, firstName: true, lastName: true },
+        },
       };
 
       // Members can only see their own keys
@@ -57,7 +63,7 @@ router.get('/',
         expiresAt: true,
         permissions: true,
         organizationId: true,
-        createdById: true
+        createdById: true,
       };
 
       // Only show partial key for security (except for owners/admins)
@@ -72,31 +78,31 @@ router.get('/',
         where: whereClause,
         select: selectOptions,
         include: includeOptions,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
 
       // Add usage statistics for developers and above
       const keysWithStats = await Promise.all(
-        apiKeys.map(async (key) => {
+        apiKeys.map(async key => {
           if (['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(userRole)) {
             // Get usage stats for the last 30 days
             const usageStats = await prisma.apiUsage.aggregate({
               where: {
                 apiKeyId: key.id,
                 createdAt: {
-                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                }
+                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                },
               },
               _count: { id: true },
-              _sum: { requestCount: true }
+              _sum: { requestCount: true },
             });
 
             return {
               ...key,
               usage: {
                 totalRequests: usageStats._sum.requestCount || 0,
-                last30Days: usageStats._count.id || 0
-              }
+                last30Days: usageStats._count.id || 0,
+              },
             };
           }
           return key;
@@ -107,14 +113,13 @@ router.get('/',
         apiKeys: keysWithStats,
         canCreate: ['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(userRole),
         canRevoke: ['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(userRole),
-        canRotate: ['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(userRole)
+        canRotate: ['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(userRole),
       });
-
     } catch (error) {
       console.error('Error fetching API keys:', error);
       res.status(500).json({
         error: 'Failed to fetch API keys',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -124,7 +129,8 @@ router.get('/',
  * POST /api/organizations/:orgId/api-keys
  * Create new API key - requires DEVELOPER level or higher
  */
-router.post('/',
+router.post(
+  '/',
   AuthFactory.requireMinimumRole('DEVELOPER'),
   AuthFactory.requireOrganizationAccess(['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
   async (req, res) => {
@@ -138,12 +144,12 @@ router.post('/',
         description,
         environment = 'development',
         permissions = [],
-        expiresIn = '1y' // Default 1 year expiration
+        expiresIn = '1y', // Default 1 year expiration
       } = req.body;
 
       if (!name || name.trim().length === 0) {
         return res.status(400).json({
-          error: 'API key name is required'
+          error: 'API key name is required',
         });
       }
 
@@ -151,30 +157,30 @@ router.post('/',
       const validEnvironments = ['development', 'staging', 'production'];
       if (!validEnvironments.includes(environment)) {
         return res.status(400).json({
-          error: 'Invalid environment. Must be: development, staging, or production'
+          error: 'Invalid environment. Must be: development, staging, or production',
         });
       }
 
       // Role-based restrictions
       const restrictions = {
-        'DEVELOPER': {
+        DEVELOPER: {
           maxKeys: 10,
           allowedEnvironments: ['development', 'staging'],
           maxPermissions: 5,
-          maxExpirationMonths: 12
+          maxExpirationMonths: 12,
         },
-        'ORGANIZATION_ADMIN': {
+        ORGANIZATION_ADMIN: {
           maxKeys: 50,
           allowedEnvironments: ['development', 'staging', 'production'],
           maxPermissions: 20,
-          maxExpirationMonths: 24
+          maxExpirationMonths: 24,
         },
-        'ORGANIZATION_OWNER': {
+        ORGANIZATION_OWNER: {
           maxKeys: 100,
           allowedEnvironments: ['development', 'staging', 'production'],
           maxPermissions: -1, // unlimited
-          maxExpirationMonths: -1 // unlimited
-        }
+          maxExpirationMonths: -1, // unlimited
+        },
       };
 
       const userRestrictions = restrictions[userRole] || restrictions['DEVELOPER'];
@@ -182,7 +188,7 @@ router.post('/',
       // Check environment restrictions
       if (!userRestrictions.allowedEnvironments.includes(environment)) {
         return res.status(403).json({
-          error: `${userRole} cannot create ${environment} API keys`
+          error: `${userRole} cannot create ${environment} API keys`,
         });
       }
 
@@ -191,13 +197,13 @@ router.post('/',
         where: {
           organizationId: orgId,
           createdById: userId,
-          isActive: true
-        }
+          isActive: true,
+        },
       });
 
       if (existingKeysCount >= userRestrictions.maxKeys) {
         return res.status(403).json({
-          error: `Maximum API key limit reached (${userRestrictions.maxKeys})`
+          error: `Maximum API key limit reached (${userRestrictions.maxKeys})`,
         });
       }
 
@@ -205,7 +211,7 @@ router.post('/',
       if (permissions.length > 0 && userRestrictions.maxPermissions > 0) {
         if (permissions.length > userRestrictions.maxPermissions) {
           return res.status(403).json({
-            error: `Maximum ${userRestrictions.maxPermissions} permissions allowed`
+            error: `Maximum ${userRestrictions.maxPermissions} permissions allowed`,
           });
         }
       }
@@ -214,13 +220,14 @@ router.post('/',
       let expiresAt = null;
       if (expiresIn && expiresIn !== 'never') {
         const expirationMs = parseExpiration(expiresIn);
-        const maxMs = userRestrictions.maxExpirationMonths > 0
-          ? userRestrictions.maxExpirationMonths * 30 * 24 * 60 * 60 * 1000
-          : null;
+        const maxMs =
+          userRestrictions.maxExpirationMonths > 0
+            ? userRestrictions.maxExpirationMonths * 30 * 24 * 60 * 60 * 1000
+            : null;
 
         if (maxMs && expirationMs > maxMs) {
           return res.status(403).json({
-            error: `Maximum expiration period is ${userRestrictions.maxExpirationMonths} months`
+            error: `Maximum expiration period is ${userRestrictions.maxExpirationMonths} months`,
           });
         }
 
@@ -243,16 +250,16 @@ router.post('/',
           organizationId: orgId,
           createdById: userId,
           expiresAt,
-          isActive: true
+          isActive: true,
         },
         include: {
           organization: {
-            select: { id: true, name: true }
+            select: { id: true, name: true },
           },
           createdBy: {
-            select: { id: true, email: true, firstName: true, lastName: true }
-          }
-        }
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+        },
       });
 
       // Log API key creation
@@ -265,28 +272,27 @@ router.post('/',
           name: createdKey.name,
           environment: createdKey.environment,
           permissions: createdKey.permissions,
-          expiresAt: createdKey.expiresAt
+          expiresAt: createdKey.expiresAt,
         },
         ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
       });
 
       res.status(201).json({
         message: 'API key created successfully',
         apiKey: {
           ...createdKey,
-          keyHash: undefined // Don't return hash
+          keyHash: undefined, // Don't return hash
         },
         // Return the actual key only once
         key: apiKey,
-        warning: 'Store this API key securely. It will not be shown again.'
+        warning: 'Store this API key securely. It will not be shown again.',
       });
-
     } catch (error) {
       console.error('Error creating API key:', error);
       res.status(500).json({
         error: 'Failed to create API key',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -296,7 +302,8 @@ router.post('/',
  * PUT /api/organizations/:orgId/api-keys/:keyId/revoke
  * Revoke API key - requires ORGANIZATION_ADMIN or higher
  */
-router.put('/:keyId/revoke',
+router.put(
+  '/:keyId/revoke',
   AuthFactory.requireMinimumRole('ORGANIZATION_ADMIN'),
   AuthFactory.requireOrganizationAccess(['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
   async (req, res) => {
@@ -308,24 +315,24 @@ router.put('/:keyId/revoke',
       const apiKey = await prisma.apiKey.findFirst({
         where: {
           id: keyId,
-          organizationId: orgId
+          organizationId: orgId,
         },
         include: {
           createdBy: {
-            select: { id: true, email: true, firstName: true, lastName: true }
-          }
-        }
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+        },
       });
 
       if (!apiKey) {
         return res.status(404).json({
-          error: 'API key not found'
+          error: 'API key not found',
         });
       }
 
       if (!apiKey.isActive) {
         return res.status(400).json({
-          error: 'API key is already revoked'
+          error: 'API key is already revoked',
         });
       }
 
@@ -336,8 +343,8 @@ router.put('/:keyId/revoke',
           isActive: false,
           revokedAt: new Date(),
           revokedById: userId,
-          revokeReason: reason
-        }
+          revokeReason: reason,
+        },
       });
 
       // Log revocation
@@ -349,21 +356,20 @@ router.put('/:keyId/revoke',
         metadata: {
           name: apiKey.name,
           reason: reason,
-          revokedBy: userId
+          revokedBy: userId,
         },
         ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
       });
 
       res.json({
-        message: 'API key revoked successfully'
+        message: 'API key revoked successfully',
       });
-
     } catch (error) {
       console.error('Error revoking API key:', error);
       res.status(500).json({
         error: 'Failed to revoke API key',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -373,7 +379,8 @@ router.put('/:keyId/revoke',
  * PUT /api/organizations/:orgId/api-keys/:keyId/rotate
  * Rotate API key - requires DEVELOPER level or higher
  */
-router.put('/:keyId/rotate',
+router.put(
+  '/:keyId/rotate',
   AuthFactory.requireMinimumRole('DEVELOPER'),
   AuthFactory.requireOrganizationAccess(['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
   async (req, res) => {
@@ -385,26 +392,26 @@ router.put('/:keyId/rotate',
       const apiKey = await prisma.apiKey.findFirst({
         where: {
           id: keyId,
-          organizationId: orgId
-        }
+          organizationId: orgId,
+        },
       });
 
       if (!apiKey) {
         return res.status(404).json({
-          error: 'API key not found'
+          error: 'API key not found',
         });
       }
 
       if (!apiKey.isActive) {
         return res.status(400).json({
-          error: 'Cannot rotate inactive API key'
+          error: 'Cannot rotate inactive API key',
         });
       }
 
       // Developers can only rotate their own keys
       if (userRole === 'DEVELOPER' && apiKey.createdById !== userId) {
         return res.status(403).json({
-          error: 'Can only rotate your own API keys'
+          error: 'Can only rotate your own API keys',
         });
       }
 
@@ -419,8 +426,8 @@ router.put('/:keyId/rotate',
           keyHash: newKeyHash,
           keyPreview: `${newApiKey.substring(0, 8)}...${newApiKey.slice(-4)}`,
           lastRotatedAt: new Date(),
-          rotatedById: userId
-        }
+          rotatedById: userId,
+        },
       });
 
       // Log rotation
@@ -431,23 +438,22 @@ router.put('/:keyId/rotate',
         organizationId: orgId,
         metadata: {
           name: apiKey.name,
-          rotatedBy: userId
+          rotatedBy: userId,
         },
         ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
       });
 
       res.json({
         message: 'API key rotated successfully',
         key: newApiKey,
-        warning: 'Update your applications with the new API key. The old key is now invalid.'
+        warning: 'Update your applications with the new API key. The old key is now invalid.',
       });
-
     } catch (error) {
       console.error('Error rotating API key:', error);
       res.status(500).json({
         error: 'Failed to rotate API key',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -471,10 +477,10 @@ function parseExpiration(expiresIn) {
 
   const [, amount, unit] = match;
   const multipliers = {
-    'd': 24 * 60 * 60 * 1000,
-    'w': 7 * 24 * 60 * 60 * 1000,
-    'm': 30 * 24 * 60 * 60 * 1000,
-    'y': 365 * 24 * 60 * 60 * 1000
+    d: 24 * 60 * 60 * 1000,
+    w: 7 * 24 * 60 * 60 * 1000,
+    m: 30 * 24 * 60 * 60 * 1000,
+    y: 365 * 24 * 60 * 60 * 1000,
   };
 
   return parseInt(amount) * multipliers[unit];

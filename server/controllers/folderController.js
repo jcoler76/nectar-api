@@ -9,7 +9,15 @@ class FolderController {
   async createFolder(req, res) {
     try {
       const { name, parentPath = '/', description } = req.body;
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
       const userId = req.user.id;
 
       // Validate input
@@ -107,7 +115,14 @@ class FolderController {
   async listFolderContents(req, res) {
     try {
       const { path = '/', include = 'files,subfolders', limit = 50, offset = 0 } = req.query;
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
 
       const includeFiles = include.includes('files');
       const includeSubfolders = include.includes('subfolders');
@@ -253,8 +268,8 @@ class FolderController {
 
         response.contents.files = files.map(f => ({
           ...f,
-          User: f.uploadedBy ? usersById[f.uploadedBy] || null : null,
-          FileThumbnail: thumbnailsByFileId[f.id] || [],
+          uploader: f.uploadedBy ? usersById[f.uploadedBy] || null : null,
+          thumbnails: thumbnailsByFileId[f.id] || [],
         }));
       }
 
@@ -275,7 +290,14 @@ class FolderController {
   async getFolderDetails(req, res) {
     try {
       const { folderId } = req.params;
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
 
       const folder = await prisma.fileFolder.findFirst({
         where: {
@@ -338,7 +360,14 @@ class FolderController {
     try {
       const { folderId } = req.params;
       const { name, description } = req.body;
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
 
       // Find existing folder
       const existingFolder = await prisma.fileFolder.findFirst({
@@ -425,7 +454,14 @@ class FolderController {
     try {
       const { folderId } = req.params;
       const { newParentPath } = req.body;
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
 
       // Find the folder to move
       const folder = await prisma.fileFolder.findFirst({
@@ -533,7 +569,14 @@ class FolderController {
     try {
       const { folderId } = req.params;
       const { recursive = 'false', deleteFiles = 'false' } = req.query;
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
 
       const isRecursive = recursive === 'true';
       const shouldDeleteFiles = deleteFiles === 'true';
@@ -614,7 +657,15 @@ class FolderController {
    */
   async getFolderTree(req, res) {
     try {
-      const { organizationId } = req.user;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
       const { maxDepth = 5 } = req.query;
 
       const folders = await prisma.fileFolder.findMany({

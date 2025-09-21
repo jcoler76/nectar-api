@@ -19,7 +19,7 @@ import {
 } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
 
-const FolderBrowser = ({ currentPath, onPathChange, onRefresh }) => {
+const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => {
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingFolder, setEditingFolder] = useState(null);
@@ -44,7 +44,7 @@ const FolderBrowser = ({ currentPath, onPathChange, onRefresh }) => {
 
   useEffect(() => {
     loadFolders();
-  }, [loadFolders]);
+  }, [loadFolders, refreshKey]);
 
   // Update folder name
   const handleUpdateFolder = async folderId => {
