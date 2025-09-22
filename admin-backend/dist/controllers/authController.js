@@ -36,10 +36,11 @@ class AuthController {
                 });
                 return;
             }
-            // Generate JWT token
-            const token = adminAuth_1.AdminAuthService.generateToken(admin);
-            // Set secure httpOnly cookie
-            res.cookie('adminToken', token, {
+            // Generate JWT tokens
+            const sessionToken = adminAuth_1.AdminAuthService.generateToken(admin);
+            const apiToken = adminAuth_1.AdminAuthService.generateApiToken(admin);
+            // Set secure httpOnly cookie for session management
+            res.cookie('adminToken', sessionToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
@@ -64,6 +65,8 @@ class AuthController {
                     role: admin.role,
                     lastLoginAt: admin.lastLoginAt,
                 },
+                // Include API token for GraphQL requests
+                apiToken: apiToken,
             });
         }
         catch (error) {

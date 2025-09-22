@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const subscriptionLimitService = require('../services/subscriptionLimitService');
-const { authenticateUser } = require('../middleware/auth');
+const { authMiddleware: authenticateUser } = require('../middleware/auth');
 const { getUsageInfo, addUsageWarnings } = require('../middleware/userLimitMiddleware');
 const { logger } = require('../middleware/logger');
 

@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const adminAuth_1 = require("@/middleware/adminAuth");
+const serviceAuth_1 = require("@/middleware/serviceAuth");
 const database_1 = require("@/utils/database");
 const client_1 = require("@prisma/client");
 const router = (0, express_1.Router)();
-router.use(adminAuth_1.authenticateAdmin);
-router.get('/contacts', async (req, res) => {
+router.get('/contacts', (0, serviceAuth_1.authenticateAdminOrService)(['crm:read']), async (req, res) => {
     try {
         const q = req.query.q?.toLowerCase();
         const status = req.query.status;
@@ -39,7 +38,7 @@ router.get('/contacts', async (req, res) => {
         res.status(500).json({ success: false, error: e?.message || 'Failed to list contacts' });
     }
 });
-router.post('/contacts', async (req, res) => {
+router.post('/contacts', (0, serviceAuth_1.authenticateAdminOrService)(['contacts:create']), async (req, res) => {
     try {
         const { name, email, company, phone, source, url, utm, leadScore, leadStatus, owner, tags } = req.body || {};
         const contact = await database_1.prisma.contact.create({
@@ -245,11 +244,11 @@ router.get('/contacts/:id/notes', async (req, res) => {
         res.status(500).json({ success: false, error: e?.message || 'Failed to list notes' });
     }
 });
-router.post('/contacts/:id/notes', async (req, res) => {
+router.post('/contacts/:id/notes', (0, serviceAuth_1.authenticateAdminOrService)(['notes:create']), async (req, res) => {
     try {
         const id = req.params.id;
         const body = req.body?.body || '';
-        const createdBy = req.admin?.id || null;
+        const createdBy = req.admin?.id || (req.service ? `service:${req.service.name}` : null);
         const note = await database_1.prisma.contactNote.create({
             data: {
                 contactId: id,

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const invitationService = require('../services/invitationService');
 const { authMiddleware: authenticate } = require('../middleware/auth');
+const { checkUserLimit } = require('../middleware/userLimitMiddleware');
 const { body, param, validationResult } = require('express-validator');
 const { logger } = require('../utils/logger');
 const rateLimiter = require('express-rate-limit');
@@ -76,6 +77,7 @@ const checkInvitePermission = async (req, res, next) => {
 router.post(
   '/send',
   authenticate,
+  checkUserLimit,
   invitationRateLimiter,
   validateInvitation,
   checkValidation,

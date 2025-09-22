@@ -20,7 +20,7 @@ const {
 const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
 const validationRules = require('../middleware/validationRules');
-const { checkFreemiumLimits } = require('../middleware/freemiumLimits');
+const { checkDatasourceLimit } = require('../middleware/userLimitMiddleware');
 
 // Get all connections using GraphQL
 router.get('/', createListHandler(CONNECTION_QUERIES.GET_ALL, 'connections'));
@@ -31,7 +31,7 @@ router.get('/:id', createGetHandler(CONNECTION_QUERIES.GET_BY_ID, 'connection'))
 // Create new connection using GraphQL
 router.post(
   '/',
-  checkFreemiumLimits('connections'),
+  checkDatasourceLimit,
   validate(validationRules.connection.create),
   async (req, res) => {
     const {

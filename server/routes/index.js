@@ -228,6 +228,10 @@ const mountRoutes = app => {
 
   // Freemium limits and usage tracking
   app.use('/api/freemium', require('./freemium'));
+  app.use('/api/usage', authMiddleware, csrfProtection(csrfOptions), require('./usage'));
+
+  // Billing management routes (subscription portal, invoices, etc.)
+  app.use('/api/billing', authMiddleware, csrfProtection(csrfOptions), require('./billing'));
 
   // Activity logs API (admin/monitor access)
   app.use('/api/activity-logs', require('./activityLogs'));

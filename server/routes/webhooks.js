@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const { executeWorkflow } = require('../services/workflows/engine');
 const { getFileStorageService } = require('../services/fileStorageService');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const crypto = require('crypto');
 
 const router = express.Router();
 
@@ -418,5 +419,372 @@ router.post('/s3/:workflowId', async (req, res) => {
       .json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to process S3 event' } });
   }
 });
+
+// In-memory processed event cache for Stripe webhook idempotency
+const processedStripeEvents = new Set();
+
+/**
+ * Stripe webhook endpoint for handling subscription lifecycle events
+ * This endpoint processes webhook events from Stripe and updates the database
+ */
+router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  const secret = process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!secret || !webhookSecret) {
+    logger.error('Stripe not configured - missing environment variables');
+    return res.status(501).json({ error: 'Stripe not configured' });
+  }
+
+  let Stripe;
+  try {
+    Stripe = require('stripe');
+  } catch (e) {
+    logger.error('Stripe SDK not installed on server');
+    return res.status(500).json({ error: 'Stripe SDK not installed on server' });
+  }
+
+  const stripe = new Stripe(secret, { apiVersion: '2024-06-20' });
+  const sig = req.headers['stripe-signature'];
+
+  if (!sig) {
+    logger.error('Missing Stripe signature in webhook request');
+    return res.status(400).json({ error: 'Missing signature' });
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    logger.error('Webhook signature verification failed:', err.message);
+    return res.status(400).json({ error: 'Invalid signature' });
+  }
+
+  try {
+    // Best-effort idempotency guard (process lifetime)
+    if (processedStripeEvents.has(event.id)) {
+      logger.info(`Stripe event ${event.id} already processed, skipping`);
+      return res.json({ received: true, skipped: true });
+    }
+
+    // Persist billing event for audit trail
+    try {
+      let subscriptionId = null;
+      let organizationId = null;
+
+      // Try to find the related subscription and organization
+      if (event.type.includes('subscription') || event.type.includes('invoice')) {
+        const stripeObject = event.data.object;
+        const customerId = stripeObject.customer;
+        const subscriptionIdFromEvent = stripeObject.subscription || stripeObject.id;
+
+        if (customerId) {
+          const subscription = await prisma.subscription.findFirst({
+            where: { stripeCustomerId: String(customerId) },
+          });
+
+          if (subscription) {
+            subscriptionId = subscription.id;
+            organizationId = subscription.organizationId;
+          }
+        }
+      }
+
+      // Store the billing event
+      await prisma.billingEvent.create({
+        data: {
+          eventType: event.type,
+          stripeEventId: event.id,
+          metadata: event,
+          organizationId,
+          subscriptionId,
+        },
+      });
+    } catch (e) {
+      logger.warn('Failed to persist billing event:', e.message);
+      // Continue processing even if billing event creation fails
+    }
+
+    // Process specific event types
+    switch (event.type) {
+      case 'customer.subscription.created':
+        await handleSubscriptionCreated(event, prisma, stripe);
+        break;
+
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event, prisma, stripe);
+        break;
+
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event, prisma, stripe);
+        break;
+
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaymentSucceeded(event, prisma, stripe);
+        break;
+
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event, prisma, stripe);
+        break;
+
+      case 'checkout.session.completed':
+        // This is handled by the marketing site webhook
+        logger.info(`Checkout session completed: ${event.data.object.id}`);
+        break;
+
+      default:
+        logger.info(`Unhandled Stripe webhook event type: ${event.type}`);
+    }
+
+    // Mark event as processed
+    processedStripeEvents.add(event.id);
+
+    logger.info(`Successfully processed Stripe webhook event: ${event.type} (${event.id})`);
+    return res.json({ received: true });
+  } catch (err) {
+    logger.error('Stripe webhook handler error:', err);
+    return res.status(500).json({ error: 'Webhook processing failed' });
+  }
+});
+
+/**
+ * Handle subscription creation events
+ */
+async function handleSubscriptionCreated(event, prisma, stripe) {
+  const subscription = event.data.object;
+  const customerId = String(subscription.customer);
+
+  logger.info(`Processing subscription creation: ${subscription.id}`);
+
+  try {
+    // Find existing subscription by customer ID
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: { stripeCustomerId: customerId },
+    });
+
+    if (existingSubscription) {
+      // Update existing subscription
+      await updateSubscriptionFromStripe(existingSubscription.id, subscription, prisma);
+    } else {
+      logger.warn(
+        `No existing subscription found for customer ${customerId} during subscription creation`
+      );
+    }
+  } catch (error) {
+    logger.error('Failed to handle subscription creation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle subscription update events
+ */
+async function handleSubscriptionUpdated(event, prisma, stripe) {
+  const subscription = event.data.object;
+  const subscriptionId = String(subscription.id);
+
+  logger.info(`Processing subscription update: ${subscriptionId}`);
+
+  try {
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: { stripeSubscriptionId: subscriptionId },
+    });
+
+    if (existingSubscription) {
+      await updateSubscriptionFromStripe(existingSubscription.id, subscription, prisma);
+    } else {
+      logger.warn(`No existing subscription found for Stripe subscription ${subscriptionId}`);
+    }
+  } catch (error) {
+    logger.error('Failed to handle subscription update:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle subscription deletion events
+ */
+async function handleSubscriptionDeleted(event, prisma, stripe) {
+  const subscription = event.data.object;
+  const subscriptionId = String(subscription.id);
+
+  logger.info(`Processing subscription deletion: ${subscriptionId}`);
+
+  try {
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: { stripeSubscriptionId: subscriptionId },
+    });
+
+    if (existingSubscription) {
+      await prisma.subscription.update({
+        where: { id: existingSubscription.id },
+        data: {
+          status: 'CANCELED',
+          canceledAt: new Date(),
+          cancelAtPeriodEnd: false,
+        },
+      });
+      logger.info(`Subscription ${subscriptionId} marked as canceled`);
+    } else {
+      logger.warn(
+        `No existing subscription found for deleted Stripe subscription ${subscriptionId}`
+      );
+    }
+  } catch (error) {
+    logger.error('Failed to handle subscription deletion:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle successful invoice payments
+ */
+async function handleInvoicePaymentSucceeded(event, prisma, stripe) {
+  const invoice = event.data.object;
+  const subscriptionId = invoice.subscription ? String(invoice.subscription) : null;
+
+  logger.info(`Processing successful invoice payment: ${invoice.id}`);
+
+  try {
+    if (subscriptionId) {
+      const subscription = await prisma.subscription.findFirst({
+        where: { stripeSubscriptionId: subscriptionId },
+      });
+
+      if (subscription) {
+        // Create or update invoice record
+        await upsertInvoice(invoice, subscription.id, prisma);
+
+        // Update subscription status if it was past due
+        if (subscription.status === 'PAST_DUE') {
+          await prisma.subscription.update({
+            where: { id: subscription.id },
+            data: { status: 'ACTIVE' },
+          });
+          logger.info(
+            `Subscription ${subscriptionId} status updated to ACTIVE after successful payment`
+          );
+        }
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to handle invoice payment success:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle failed invoice payments
+ */
+async function handleInvoicePaymentFailed(event, prisma, stripe) {
+  const invoice = event.data.object;
+  const subscriptionId = invoice.subscription ? String(invoice.subscription) : null;
+
+  logger.info(`Processing failed invoice payment: ${invoice.id}`);
+
+  try {
+    if (subscriptionId) {
+      const subscription = await prisma.subscription.findFirst({
+        where: { stripeSubscriptionId: subscriptionId },
+      });
+
+      if (subscription) {
+        // Create or update invoice record
+        await upsertInvoice(invoice, subscription.id, prisma);
+
+        // Update subscription status to past due
+        await prisma.subscription.update({
+          where: { id: subscription.id },
+          data: { status: 'PAST_DUE' },
+        });
+        logger.info(
+          `Subscription ${subscriptionId} status updated to PAST_DUE after failed payment`
+        );
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to handle invoice payment failure:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update subscription from Stripe data
+ */
+async function updateSubscriptionFromStripe(subscriptionId, stripeSubscription, prisma) {
+  const statusMap = {
+    trialing: 'TRIALING',
+    active: 'ACTIVE',
+    past_due: 'PAST_DUE',
+    canceled: 'CANCELED',
+    unpaid: 'UNPAID',
+    incomplete: 'INCOMPLETE',
+    incomplete_expired: 'INCOMPLETE_EXPIRED',
+  };
+
+  const priceId = stripeSubscription.items?.data?.[0]?.price?.id || null;
+  const status = statusMap[stripeSubscription.status] || null;
+
+  const updateData = {
+    stripeSubscriptionId: String(stripeSubscription.id),
+    stripePriceId: priceId,
+    currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
+    currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+    cancelAtPeriodEnd: !!stripeSubscription.cancel_at_period_end,
+    trialEndsAt: stripeSubscription.trial_end
+      ? new Date(stripeSubscription.trial_end * 1000)
+      : null,
+  };
+
+  if (status) {
+    updateData.status = status;
+  }
+
+  if (stripeSubscription.canceled_at) {
+    updateData.canceledAt = new Date(stripeSubscription.canceled_at * 1000);
+  }
+
+  await prisma.subscription.update({
+    where: { id: subscriptionId },
+    data: updateData,
+  });
+
+  logger.info(`Subscription ${subscriptionId} updated from Stripe data`);
+}
+
+/**
+ * Create or update invoice record
+ */
+async function upsertInvoice(stripeInvoice, subscriptionId, prisma) {
+  const stripeInvoiceId = String(stripeInvoice.id);
+  const amount = stripeInvoice.amount_paid || stripeInvoice.amount_due || 0;
+
+  const invoiceData = {
+    invoiceNumber: stripeInvoice.number || stripeInvoiceId,
+    amount: amount / 100, // Convert from cents
+    currency: (stripeInvoice.currency || 'USD').toUpperCase(),
+    status: stripeInvoice.paid ? 'PAID' : 'PENDING',
+    dueDate: new Date(stripeInvoice.due_date * 1000 || Date.now()),
+    paidAt: stripeInvoice.status_transitions?.paid_at
+      ? new Date(stripeInvoice.status_transitions.paid_at * 1000)
+      : null,
+    stripeInvoiceId,
+    stripePaymentIntentId: stripeInvoice.payment_intent
+      ? String(stripeInvoice.payment_intent)
+      : null,
+    hostedInvoiceUrl: stripeInvoice.hosted_invoice_url || null,
+  };
+
+  await prisma.invoice.upsert({
+    where: { stripeInvoiceId },
+    update: invoiceData,
+    create: {
+      ...invoiceData,
+      subscriptionId,
+    },
+  });
+
+  logger.info(`Invoice ${stripeInvoiceId} upserted`);
+}
 
 module.exports = router;

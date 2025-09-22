@@ -17,7 +17,7 @@ class SubscriptionLimitService {
       },
       STARTER: {
         userLimit: 1,
-        datasourceLimit: -1, // Unlimited
+        datasourceLimit: 3,
         apiCallLimit: 1000000,
         userOveragePrice: 10.0,
       },

@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 import { LazyDataTable } from '../ui/LazyDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { LineChartComponent, BarChartComponent, DonutChartComponent } from '../ui/charts'
-import { graphqlRequest } from '../../services/graphql'
+import { apiService } from '../../services/api'
 
 interface BillingMetrics {
   dailyRevenue: number
@@ -64,47 +64,26 @@ export default function BillingDashboard() {
     let mounted = true
     const load = async () => {
       try {
-        const now = new Date()
-        const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        const [metricsRes, eventsRes] = await Promise.all([
-          graphqlRequest<{ billingMetrics: { dailyRevenue: number; monthlyRevenue: number; yearlyRevenue: number; totalEvents: number } }>(`query { billingMetrics { dailyRevenue monthlyRevenue yearlyRevenue totalEvents } }`),
-          graphqlRequest<{ billingEvents: { edges: { node: { createdAt: string; amount: number } }[] } }>(
-            `query Events($since: Date) { billingEvents(pagination: { limit: 1000, offset: 0 }, since: $since) { edges { node { createdAt amount } } } }`,
-            { since: since.toISOString() }
-          ),
-        ])
+        const response = await apiService.get<{
+          success: boolean
+          data: {
+            metrics: BillingMetrics
+            revenueData: RevenueData[]
+            paymentMethods: PaymentMethod[]
+            failedPayments: FailedPayment[]
+            geoRevenue: GeographicRevenue[]
+          }
+        }>('/billing/metrics')
 
         if (!mounted) return
 
-        const m = metricsRes.billingMetrics
-        setMetrics({
-          dailyRevenue: m.dailyRevenue,
-          monthlyRevenue: m.monthlyRevenue,
-          yearlyRevenue: m.yearlyRevenue,
-          paymentSuccessRate: 0,
-          failedPayments: 0,
-          totalRefunds: 0,
-          averageTransactionValue: 0,
-          pendingPayments: 0,
-        })
-
-        // Bucket events by date
-        const byDate: Record<string, { revenue: number; transactions: number }> = {}
-        eventsRes.billingEvents.edges.forEach(({ node }) => {
-          const d = new Date(node.createdAt).toISOString().slice(0, 10)
-          byDate[d] = byDate[d] || { revenue: 0, transactions: 0 }
-          byDate[d].revenue += Number(node.amount || 0)
-          byDate[d].transactions += 1
-        })
-        const days: string[] = []
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-          days.push(d)
+        if (response.success) {
+          setMetrics(response.data.metrics)
+          setRevenueData(response.data.revenueData)
+          setPaymentMethods(response.data.paymentMethods)
+          setFailedPayments(response.data.failedPayments)
+          setGeoRevenue(response.data.geoRevenue)
         }
-        setRevenueData(days.map(d => ({ date: d, revenue: byDate[d]?.revenue || 0, transactions: byDate[d]?.transactions || 0 })))
-        setPaymentMethods([])
-        setFailedPayments([])
-        setGeoRevenue([])
       } catch (e) {
         console.error('Failed to load billing dashboard', e)
       } finally {

@@ -72,7 +72,7 @@ export default function StripeConfiguration() {
     try {
       setError(null)
       const token = localStorage.getItem('admin_token')
-      const response = await fetch('http://localhost:3003/api/stripe/config', {
+      const response = await fetch('http://localhost:4001/api/stripe/config', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
 
@@ -87,10 +87,6 @@ export default function StripeConfiguration() {
             defaultCurrency: data.data.defaultCurrency,
             taxRateId: data.data.taxRateId || ''
           })
-          
-          if (data.data.publishableKey) {
-            void testConnection()
-          }
         }
       }
     } catch (err: unknown) {
@@ -99,7 +95,7 @@ export default function StripeConfiguration() {
     } finally {
       setLoading(false)
     }
-  }, [testConnection])
+  }, [])
 
   useEffect(() => {
     void loadConfiguration()
@@ -108,7 +104,7 @@ export default function StripeConfiguration() {
   const loadWebhookEndpoints = useCallback(async () => {
     try {
       const token = localStorage.getItem('admin_token')
-      const response = await fetch('http://localhost:3003/api/stripe/webhook-endpoints', {
+      const response = await fetch('http://localhost:4001/api/stripe/webhook-endpoints', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
 
@@ -126,7 +122,7 @@ export default function StripeConfiguration() {
       setTesting(true)
       setError(null)
       const token = localStorage.getItem('admin_token')
-      const response = await fetch('http://localhost:3003/api/stripe/test-connection', {
+      const response = await fetch('http://localhost:4001/api/stripe/test-connection', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -156,7 +152,7 @@ export default function StripeConfiguration() {
       setSuccess(null)
       
       const token = localStorage.getItem('admin_token')
-      const response = await fetch('http://localhost:3003/api/stripe/config', {
+      const response = await fetch('http://localhost:4001/api/stripe/config', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

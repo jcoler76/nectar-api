@@ -12,9 +12,13 @@ export declare class AdminAuthService {
      */
     static validateAdmin(email: string, password: string): Promise<AdminUser | null>;
     /**
-     * Generate JWT token for admin user
+     * Generate JWT token for admin user (session token)
      */
     static generateToken(admin: AdminUser): string;
+    /**
+     * Generate API JWT token for GraphQL requests (compatible with main server)
+     */
+    static generateApiToken(admin: AdminUser): string;
     /**
      * Verify and decode JWT token
      */

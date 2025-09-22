@@ -41,11 +41,12 @@ export class AuthController {
         return
       }
 
-      // Generate JWT token
-      const token = AdminAuthService.generateToken(admin)
+      // Generate JWT tokens
+      const sessionToken = AdminAuthService.generateToken(admin)
+      const apiToken = AdminAuthService.generateApiToken(admin)
 
-      // Set secure httpOnly cookie
-      res.cookie('adminToken', token, {
+      // Set secure httpOnly cookie for session management
+      res.cookie('adminToken', sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
@@ -72,6 +73,8 @@ export class AuthController {
           role: admin.role,
           lastLoginAt: admin.lastLoginAt,
         },
+        // Include API token for GraphQL requests
+        apiToken: apiToken,
       })
     } catch (error) {
       // Log error internally without exposing details
@@ -132,6 +135,9 @@ export class AuthController {
         return
       }
 
+      // Generate API token for GraphQL requests if user is authenticated
+      const apiToken = AdminAuthService.generateApiToken(admin)
+
       res.json({
         success: true,
         admin: {
@@ -144,6 +150,8 @@ export class AuthController {
           lastLoginAt: admin.lastLoginAt,
           createdAt: admin.createdAt,
         },
+        // Include API token for GraphQL requests
+        apiToken: apiToken,
       })
     } catch (error) {
       // Log error internally without exposing details

@@ -21,12 +21,12 @@ import usersRoutes from '@/routes/users'
 import adminUsersRoutes from '@/routes/adminUsers'
 import adminRoutes from '@/routes/admin'
 import licenseRoutes from '@/routes/licenses'
-// Disabled Stripe-related routes until schema alignment
-// import analyticsRoutes from '@/routes/analytics'
-// import stripeConfigRoutes from '@/routes/stripeConfig'
-// import billingRoutes from '@/routes/billing'
-// import webhookRoutes from '@/routes/webhooks'
-// import marketingBillingRoutes from '@/routes/marketingBilling'
+// Re-enabled Stripe-related routes for production launch
+import analyticsRoutes from '@/routes/analytics'
+import stripeConfigRoutes from '@/routes/stripeConfig'
+import billingRoutes from '@/routes/billing'
+import webhookRoutes from '@/routes/webhooks'
+import marketingBillingRoutes from '@/routes/marketingBilling'
 import crmRoutes from '@/routes/crm'
 
 const app: Application = express()
@@ -120,12 +120,12 @@ app.use('/api/users', usersRoutes)
 app.use('/api/admin/users', adminUsersRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/licenses', licenseRoutes)
-// Disabled Stripe-related routes until schema alignment
-// app.use('/api/analytics', analyticsRoutes)
-// app.use('/api/stripe', stripeConfigRoutes)
-// app.use('/api/billing', billingRoutes)
-// app.use('/api/webhooks', webhookRoutes)
-// app.use('/api/marketing', marketingBillingRoutes)
+// Re-enabled Stripe-related routes for production launch
+app.use('/api/analytics', analyticsRoutes)
+app.use('/api/stripe', stripeConfigRoutes)
+app.use('/api/billing', billingRoutes)
+app.use('/api/webhooks', webhookRoutes)
+app.use('/api/marketing', marketingBillingRoutes)
 app.use('/api/crm', crmRoutes)
 
 // 404 handler
@@ -241,4 +241,5 @@ process.on('SIGINT', () => {
 export default app
 
 
+// trigger restart
 // trigger restart

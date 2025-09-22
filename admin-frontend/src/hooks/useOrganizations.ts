@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { graphqlRequest } from '../services/graphql'
+import { useGraphQL } from './useGraphQL'
 import type {
   Organization,
   OrganizationMetrics,
@@ -37,6 +37,8 @@ export function useOrganizations(): UseOrganizationsReturn {
   const [orgSizeData, setOrgSizeData] = useState<OrgSizeDistribution[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const { graphqlRequest } = useGraphQL()
 
   const handleError = useCallback((err: unknown) => {
     console.error('Organization API Error:', err)
@@ -85,11 +87,8 @@ export function useOrganizations(): UseOrganizationsReturn {
   const fetchMetrics = useCallback(async () => {
     try {
       setError(null)
-      // Ensure organizations are loaded for client-side metrics
-      if (organizations.length === 0) {
-        await fetchOrganizations()
-      }
-      const orgs = organizations.length ? organizations : []
+      // Get current organizations from state
+      const orgs = organizations
       const totalOrganizations = orgs.length
       const activeOrganizations = orgs.filter(org =>
         org.subscription?.status === 'ACTIVE' || org.subscription?.status === 'TRIALING'
@@ -105,15 +104,12 @@ export function useOrganizations(): UseOrganizationsReturn {
     } catch (err) {
       handleError(err)
     }
-  }, [handleError, organizations, fetchOrganizations])
+  }, [handleError, organizations])
 
   const fetchChartData = useCallback(async () => {
     try {
       setError(null)
-      if (organizations.length === 0) {
-        await fetchOrganizations()
-      }
-      const orgs = organizations.length ? organizations : []
+      const orgs = organizations
       // By plan
       const planCounts: Record<string, { count: number; revenue: number }> = {}
       const planRevenue: Record<string, number> = { FREE: 0, STARTER: 29, PROFESSIONAL: 99, BUSINESS: 199, ENTERPRISE: 499 }
@@ -144,7 +140,17 @@ export function useOrganizations(): UseOrganizationsReturn {
     } catch (err) {
       handleError(err)
     }
-  }, [handleError, organizations, fetchOrganizations])
+  }, [handleError, organizations])
+
+  const refreshData = useCallback(async () => {
+    setLoading(true)
+    try {
+      // First fetch organizations, then compute metrics and charts from the data
+      await fetchOrganizations()
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchOrganizations])
 
   const createOrganization = useCallback(async (data: CreateOrganizationRequest): Promise<Organization> => {
     const res = await graphqlRequest<{ createOrganization: Organization }>(
@@ -175,18 +181,13 @@ export function useOrganizations(): UseOrganizationsReturn {
     await fetchChartData()
   }, [fetchMetrics, fetchChartData])
 
-  const refreshData = useCallback(async () => {
-    setLoading(true)
-    try {
-      await Promise.all([
-        fetchOrganizations(),
-        fetchMetrics(),
-        fetchChartData()
-      ])
-    } finally {
-      setLoading(false)
+  // Compute metrics and chart data when organizations change
+  useEffect(() => {
+    if (organizations.length > 0) {
+      fetchMetrics()
+      fetchChartData()
     }
-  }, [fetchOrganizations, fetchMetrics, fetchChartData])
+  }, [organizations.length, fetchMetrics, fetchChartData])
 
   // Initial data load
   useEffect(() => {

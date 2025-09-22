@@ -23,12 +23,12 @@ const users_1 = __importDefault(require("@/routes/users"));
 const adminUsers_1 = __importDefault(require("@/routes/adminUsers"));
 const admin_1 = __importDefault(require("@/routes/admin"));
 const licenses_1 = __importDefault(require("@/routes/licenses"));
-// Disabled Stripe-related routes until schema alignment
-// import analyticsRoutes from '@/routes/analytics'
-// import stripeConfigRoutes from '@/routes/stripeConfig'
-// import billingRoutes from '@/routes/billing'
-// import webhookRoutes from '@/routes/webhooks'
-// import marketingBillingRoutes from '@/routes/marketingBilling'
+// Re-enabled Stripe-related routes for production launch
+const analytics_1 = __importDefault(require("@/routes/analytics"));
+const stripeConfig_1 = __importDefault(require("@/routes/stripeConfig"));
+const billing_1 = __importDefault(require("@/routes/billing"));
+const webhooks_1 = __importDefault(require("@/routes/webhooks"));
+const marketingBilling_1 = __importDefault(require("@/routes/marketingBilling"));
 const crm_1 = __importDefault(require("@/routes/crm"));
 const app = (0, express_1.default)();
 const PORT = Number(process.env.PORT || process.env.ADMIN_PORT || 4001);
@@ -107,12 +107,12 @@ app.use('/api/users', users_1.default);
 app.use('/api/admin/users', adminUsers_1.default);
 app.use('/api/admin', admin_1.default);
 app.use('/api/licenses', licenses_1.default);
-// Disabled Stripe-related routes until schema alignment
-// app.use('/api/analytics', analyticsRoutes)
-// app.use('/api/stripe', stripeConfigRoutes)
-// app.use('/api/billing', billingRoutes)
-// app.use('/api/webhooks', webhookRoutes)
-// app.use('/api/marketing', marketingBillingRoutes)
+// Re-enabled Stripe-related routes for production launch
+app.use('/api/analytics', analytics_1.default);
+app.use('/api/stripe', stripeConfig_1.default);
+app.use('/api/billing', billing_1.default);
+app.use('/api/webhooks', webhooks_1.default);
+app.use('/api/marketing', marketingBilling_1.default);
 app.use('/api/crm', crm_1.default);
 // 404 handler
 app.use((req, res) => {
@@ -233,4 +233,6 @@ process.on('SIGINT', () => {
     });
 });
 exports.default = app;
+// trigger restart
+// trigger restart
 //# sourceMappingURL=app.js.map

@@ -80,7 +80,7 @@ export class AdminAuthService {
   }
 
   /**
-   * Generate JWT token for admin user
+   * Generate JWT token for admin user (session token)
    */
   static generateToken(admin: AdminUser): string {
     const payload: JWTPayload = {
@@ -92,6 +92,22 @@ export class AdminAuthService {
 
     return jwt.sign(payload, this.JWT_SECRET, {
       expiresIn: this.JWT_EXPIRES_IN,
+    } as SignOptions)
+  }
+
+  /**
+   * Generate API JWT token for GraphQL requests (compatible with main server)
+   */
+  static generateApiToken(admin: AdminUser): string {
+    const payload: JWTPayload = {
+      userId: admin.id,
+      email: admin.email,
+      role: admin.role,
+      type: 'platform_admin',
+    }
+
+    return jwt.sign(payload, this.JWT_SECRET, {
+      expiresIn: '24h', // Longer expiry for API usage
     } as SignOptions)
   }
 

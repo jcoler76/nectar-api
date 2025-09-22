@@ -35,13 +35,14 @@ class APIService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         ...options.headers,
       },
+      credentials: 'include', // Include httpOnly cookies for admin auth
       ...options,
     }
 
@@ -121,7 +122,7 @@ class APIService {
 }
 
 // Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_ADMIN_API_BASE_URL || 'http://localhost:4001'
 
 // Create and export the API service instance
 export const apiService = new APIService(`${API_BASE_URL}/api`)

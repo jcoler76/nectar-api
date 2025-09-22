@@ -28,12 +28,12 @@ const HomePage = () => {
     {
       icon: <Workflow className="w-8 h-8 text-blue-600" />,
       title: 'Visual Workflow Builder',
-      description: 'Create complex business processes with our intuitive drag-and-drop interface',
+      description: 'Create complex business processes with our intuitive drag-and-drop, low-code workflow designer',
     },
     {
       icon: <BarChart3 className="w-8 h-8 text-green-600" />,
-      title: 'AI-Powered Analytics',
-      description: 'Get intelligent insights from your data with natural language queries',
+      title: 'AI-Powered Analytics & Business Intelligence',
+      description: 'Get intelligent insights from your data with natural language queries and automated reporting',
     },
     {
       icon: <Shield className="w-8 h-8 text-purple-600" />,
@@ -43,27 +43,27 @@ const HomePage = () => {
     },
     {
       icon: <Users className="w-8 h-8 text-orange-600" />,
-      title: 'Team Collaboration',
-      description: 'Work together seamlessly with role-based permissions and real-time updates',
+      title: 'Team Collaboration & Digital Transformation',
+      description: 'Empower citizen developers with role-based permissions, real-time collaboration, and seamless teamwork',
     },
     {
       icon: <Globe className="w-8 h-8 text-teal-600" />,
-      title: 'Instant API Creation',
-      description: 'Turn any database into a REST API in seconds. PostgreSQL, MySQL, MongoDB, and more - no coding required',
+      title: 'No-Code API Generation & iPaaS',
+      description: 'Turn any database into production-ready REST APIs in seconds. PostgreSQL, MySQL, MongoDB, and more - zero coding required with our integration platform',
     },
     {
       icon: <Zap className="w-8 h-8 text-yellow-600" />,
-      title: 'Lightning Fast',
-      description: 'Optimized performance with real-time processing and intelligent caching',
+      title: 'Lightning Fast Automation',
+      description: 'Optimized performance with real-time processing, intelligent caching, and automated workflows',
     },
   ];
 
   const benefits = [
-    'Create APIs from any database in under 30 seconds',
-    'Reduce manual work by up to 90%',
-    'Improve team productivity instantly',
-    'Scale operations without adding headcount',
-    'Get insights from your data in seconds',
+    'Create APIs from any database in under 30 seconds with no-code tools',
+    'Reduce manual work by up to 90% through intelligent automation',
+    'Improve team productivity instantly with low-code workflows',
+    'Scale operations without adding headcount using digital transformation',
+    'Get insights from your data in seconds with AI-powered analytics',
   ];
 
   return (
@@ -90,8 +90,8 @@ const HomePage = () => {
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 mb-10 max-w-4xl mx-auto leading-relaxed">
             Automate repetitive tasks, integrate all your tools seamlessly, and elevate your team's
-            performance to new heights. The all-in-one platform that transforms how modern
-            businesses operate.
+            performance to new heights. The all-in-one low-code/no-code platform with AI-powered workflows
+            that transforms how modern businesses operate.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button

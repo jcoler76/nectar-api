@@ -14,6 +14,9 @@ model Organization {
   domain                  String?              @unique
   logo                    String?
   website                 String?
+  billingEmail            String?
+  stripeCustomerId        String?
+  country                 String?
   isActive                Boolean              @default(true)
   createdAt               DateTime             @default(now())
   updatedAt               DateTime             @updatedAt
@@ -173,6 +176,10 @@ model BillingEvent {
   eventType      String
   stripeEventId  String        @unique
   metadata       Json
+  amount         Int?
+  currency       String?
+  description    String?
+  processedAt    DateTime?
   createdAt      DateTime      @default(now())
   organizationId String?
   subscriptionId String?
@@ -192,6 +199,7 @@ model Subscription {
   currentPeriodStart     DateTime
   currentPeriodEnd       DateTime
   canceledAt             DateTime?
+  cancelAtPeriodEnd      Boolean              @default(false)
   stripeCustomerId       String?            @unique
   stripeSubscriptionId   String?            @unique
   stripePriceId          String?
@@ -945,6 +953,42 @@ model RoleChangeLog {
   @@index([createdAt])
 }
 
+model StripeConfig {
+  id              String    @id @default(uuid())
+  isLive          Boolean   @default(false)
+  publishableKey  String
+  webhookSecret   String?
+  defaultCurrency String    @default("USD")
+  taxRateId       String?
+  updatedBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([isLive])
+}
+
+model RevenueMetric {
+  id                   String   @id @default(uuid())
+  date                 DateTime
+  period               String
+  totalRevenue         Int      @default(0)
+  newRevenue           Int      @default(0)
+  churnedRevenue       Int      @default(0)
+  upgradeRevenue       Int      @default(0)
+  downgradeRevenue     Int      @default(0)
+  activeSubscriptions  Int      @default(0)
+  churnedSubscriptions Int      @default(0)
+  newSubscriptions     Int      @default(0)
+  trialSubscriptions   Int      @default(0)
+  churnRate            Float    @default(0.0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([date, period], name: "date_period")
+  @@index([period])
+  @@index([date])
+}
+
 enum ExposedEntityType {
   TABLE
   VIEW
@@ -975,6 +1019,7 @@ enum SubscriptionPlan {
   PROFESSIONAL
   BUSINESS
   ENTERPRISE
+  CUSTOM
 }
 
 enum SubscriptionStatus {
@@ -983,6 +1028,8 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELED
   UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
 }
 
 enum InvoiceStatus {
@@ -990,6 +1037,7 @@ enum InvoiceStatus {
   PAID
   FAILED
   CANCELED
+  OPEN
 }
 
 enum DatabaseType {

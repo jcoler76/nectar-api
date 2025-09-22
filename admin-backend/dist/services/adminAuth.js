@@ -66,7 +66,7 @@ class AdminAuthService {
         return adminUser;
     }
     /**
-     * Generate JWT token for admin user
+     * Generate JWT token for admin user (session token)
      */
     static generateToken(admin) {
         const payload = {
@@ -77,6 +77,20 @@ class AdminAuthService {
         };
         return jsonwebtoken_1.default.sign(payload, this.JWT_SECRET, {
             expiresIn: this.JWT_EXPIRES_IN,
+        });
+    }
+    /**
+     * Generate API JWT token for GraphQL requests (compatible with main server)
+     */
+    static generateApiToken(admin) {
+        const payload = {
+            userId: admin.id,
+            email: admin.email,
+            role: admin.role,
+            type: 'platform_admin',
+        };
+        return jsonwebtoken_1.default.sign(payload, this.JWT_SECRET, {
+            expiresIn: '24h', // Longer expiry for API usage
         });
     }
     /**

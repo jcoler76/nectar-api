@@ -1,95 +1,40 @@
-import { Eye, EyeOff, Loader2, Lock, Mail, Shield } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react'
+import { useState } from 'react'
 import './App.css'
 import AdminDashboard from './components/AdminDashboard'
+import { useAuth, AuthProvider } from './contexts/AuthContext'
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+function AppContent() {
+  const { user, isAuthenticated, isLoading, login, logout } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-
-  // Check for existing authentication on app load
-  useEffect(() => {
-    const checkAuthToken = async () => {
-      try {
-        // Check authentication status by calling the profile endpoint
-        // This will use the httpOnly cookie automatically
-        const apiUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
-        const response = await fetch(`${apiUrl}/api/auth/profile`, {
-          method: 'GET',
-          credentials: 'include', // Include httpOnly cookies
-        })
-
-        if (response.ok) {
-          setIsAuthenticated(true)
-        }
-      } catch (error) {
-        // User is not authenticated or network error
-        setIsAuthenticated(false)
-      }
-      setInitialLoading(false)
-    }
-    checkAuthToken()
-  }, [])
+  const [loginLoading, setLoginLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
-    
+    setLoginLoading(true)
+
     try {
-      const apiUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include cookies in request
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed')
-      }
-
-      // Authentication token is now stored in secure httpOnly cookie
-      // No need to manually store anything in localStorage
-      setIsAuthenticated(true)
-      
+      await login(email, password)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Login failed. Please check your credentials.'
       setError(msg)
     } finally {
-      setLoading(false)
+      setLoginLoading(false)
     }
   }
 
   const handleLogout = async () => {
-    try {
-      const apiUrl = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
-      await fetch(`${apiUrl}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include', // Include httpOnly cookies
-      })
-    } catch (error) {
-      // Even if logout API fails, clear the local state
-      console.error('Logout request failed:', error)
-    }
-
-    // Clear local state regardless of API response
-    setIsAuthenticated(false)
+    await logout()
     setEmail('')
     setPassword('')
     setError('')
   }
 
-  if (initialLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -200,10 +145,10 @@ function App() {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loginLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (
+              {loginLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing In...
@@ -223,6 +168,14 @@ function App() {
         </div>
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

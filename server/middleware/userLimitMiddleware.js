@@ -148,6 +148,61 @@ const updateUserCount = async (req, res, next) => {
 };
 
 /**
+ * Check if organization can add new datasources
+ * Use this middleware on datasource/connection creation endpoints
+ */
+const checkDatasourceLimit = async (req, res, next) => {
+  try {
+    const organizationId = req.user?.organizationId || req.params.organizationId;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_ORGANIZATION_ID',
+          message: 'Organization ID is required',
+        },
+      });
+    }
+
+    const limits = await subscriptionLimitService.getOrganizationLimits(organizationId);
+
+    // If unlimited datasources, allow
+    if (limits.datasourceLimit === -1) {
+      return next();
+    }
+
+    // Count current datasources
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+
+    const currentCount = await prisma.connection.count({
+      where: { organizationId },
+    });
+
+    if (currentCount >= limits.datasourceLimit) {
+      return res.status(403).json({
+        error: {
+          code: 'DATASOURCE_LIMIT_EXCEEDED',
+          message: `You've reached the ${limits.datasourceLimit} datasource limit for your ${limits.plan} plan. Please upgrade to add more datasources.`,
+          details: {
+            currentDatasources: currentCount,
+            datasourceLimit: limits.datasourceLimit,
+            plan: limits.plan,
+            upgradeUrl: '/pricing',
+          },
+        },
+      });
+    }
+
+    next();
+  } catch (error) {
+    logger.error('Datasource limit check failed:', error);
+    // Don't block the request on middleware errors, just log and continue
+    next();
+  }
+};
+
+/**
  * Get organization limits and usage for API responses
  * Use this middleware on billing/usage endpoints
  */
@@ -180,6 +235,7 @@ const getUsageInfo = async (req, res, next) => {
 
 module.exports = {
   checkUserLimit,
+  checkDatasourceLimit,
   addUsageWarnings,
   trackApiUsage,
   updateUserCount,
