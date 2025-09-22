@@ -236,6 +236,9 @@ const mountRoutes = app => {
   // Activity logs API (admin/monitor access)
   app.use('/api/activity-logs', require('./activityLogs'));
 
+  // App usage tracking (no auth required for basic tracking)
+  app.use('/api/tracking', apiLimiter, require('./tracking'));
+
   // GitHub Issue Poller API (development only)
   app.use('/api/issue-poller', require('./issue-poller'));
 

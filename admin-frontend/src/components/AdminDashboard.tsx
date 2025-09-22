@@ -13,6 +13,8 @@ import SecuritySettings from './system/SecuritySettings'
 import ApplicationKeyManager from './system/ApplicationKeyManager'
 import LeadList from './crm/LeadList'
 import ConversationView from './crm/ConversationView'
+import PipelineView from './crm/PipelineView'
+import LeadAnalytics from './crm/LeadAnalytics'
 import RevenueDashboard from './analytics/RevenueDashboard'
 import UserAnalytics from './analytics/UserAnalytics'
 import ChurnAnalysis from './analytics/ChurnAnalysis'
@@ -132,6 +134,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case '/system/app-keys': return 'Application Keys'
       case '/crm/leads': return 'Leads'
       case '/crm/conversations': return 'Conversations'
+      case '/crm/pipeline': return 'Sales Pipeline'
+      case '/crm/analytics': return 'Lead Analytics'
       case '/system/config': return 'System Configuration'
       case '/system/audit': return 'Audit Logs'
       case '/system/announcements': return 'Announcements'
@@ -277,6 +281,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         {/* CRM Pages */}
         {currentPage === '/crm/leads' && <LeadList />}
         {currentPage === '/crm/conversations' && <ConversationView />}
+        {currentPage === '/crm/pipeline' && <PipelineView />}
+        {currentPage === '/crm/analytics' && <LeadAnalytics />}
 
         {/* Billing Pages */}
         {currentPage === '/billing/overview' && <BillingDashboard />}
@@ -310,6 +316,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
          currentPage !== '/billing/stripe' &&
          currentPage !== '/system/security' &&
          currentPage !== '/system/app-keys' &&
+         currentPage !== '/crm/leads' &&
+         currentPage !== '/crm/conversations' &&
+         currentPage !== '/crm/pipeline' &&
+         currentPage !== '/crm/analytics' &&
          currentPage !== '/licensing/overview' &&
          currentPage !== '/licensing/licenses' &&
          currentPage !== '/licensing/customers' &&
@@ -326,7 +336,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-blue-700 font-medium">Current Route: {currentPage}</p>
                 <p className="text-blue-600 text-sm mt-1">
-                  Multiple sections are now available: Analytics (Revenue, Users, Churn), User Management (Users, Organizations, Subscriptions), Billing Overview, and Licensing Management!
+                  Multiple sections are now available: Analytics, User Management, CRM (Leads, Conversations, Pipeline), Billing, and Licensing Management!
                 </p>
               </div>
             </div>

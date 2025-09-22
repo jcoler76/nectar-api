@@ -14,12 +14,20 @@ declare global {
 
 /**
  * Service API keys for internal communication
- * In production, these should be stored in environment variables or a secure key management system
+ * Environment variables are required - no fallback keys for security
  */
-const SERVICE_API_KEYS = {
-  'marketing-backend': {
-    key: process.env.MARKETING_SERVICE_API_KEY || 'marketing_service_key_dev_2024',
-    permissions: ['crm:read', 'crm:write', 'contacts:create', 'contacts:update', 'notes:create']
+const getServiceApiKeys = () => {
+  const marketingKey = process.env.MARKETING_SERVICE_API_KEY
+
+  if (!marketingKey) {
+    throw new Error('MARKETING_SERVICE_API_KEY environment variable is required')
+  }
+
+  return {
+    'marketing-backend': {
+      key: marketingKey,
+      permissions: ['crm:read', 'crm:write', 'contacts:create', 'contacts:update', 'notes:create', 'notes:read', 'notes:delete']
+    }
   }
 }
 
@@ -39,6 +47,9 @@ export const authenticateService = (requiredPermissions: string[] = []) => {
         })
         return
       }
+
+      // Get service API keys (will throw if env vars missing)
+      const SERVICE_API_KEYS = getServiceApiKeys()
 
       // Find matching service
       let matchedService: string | null = null

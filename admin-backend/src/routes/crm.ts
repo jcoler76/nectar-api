@@ -11,6 +11,11 @@ router.get('/contacts', authenticateAdminOrService(['crm:read']), async (req: Re
     const q = (req.query.q as string | undefined)?.toLowerCase()
     const status = req.query.status as keyof typeof ContactStatus | undefined
     const owner = (req.query.owner as string | undefined)
+    const source = (req.query.source as string | undefined)
+    const createdAfter = req.query.created_after as string | undefined
+    const createdBefore = req.query.created_before as string | undefined
+    const scoreMin = req.query.score_min ? Number(req.query.score_min) : undefined
+    const scoreMax = req.query.score_max ? Number(req.query.score_max) : undefined
     const limit = Math.min(Number(req.query.limit || 50), 100)
     const offset = Number(req.query.offset || 0)
 
@@ -30,6 +35,30 @@ router.get('/contacts', authenticateAdminOrService(['crm:read']), async (req: Re
 
     if (owner) {
       where.owner = { contains: owner, mode: 'insensitive' }
+    }
+
+    if (source) {
+      where.source = { contains: source, mode: 'insensitive' }
+    }
+
+    if (createdAfter || createdBefore) {
+      where.createdAt = {}
+      if (createdAfter) {
+        where.createdAt.gte = new Date(createdAfter)
+      }
+      if (createdBefore) {
+        where.createdAt.lte = new Date(createdBefore)
+      }
+    }
+
+    if (scoreMin !== undefined || scoreMax !== undefined) {
+      where.leadScore = {}
+      if (scoreMin !== undefined) {
+        where.leadScore.gte = scoreMin
+      }
+      if (scoreMax !== undefined) {
+        where.leadScore.lte = scoreMax
+      }
     }
 
     const contacts = await prisma.contact.findMany({
@@ -71,7 +100,7 @@ router.post('/contacts', authenticateAdminOrService(['contacts:create']), async 
   }
 })
 
-router.get('/contacts/:id', async (req: Request, res: Response) => {
+router.get('/contacts/:id', authenticateAdminOrService(['crm:read']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const contact = await prisma.contact.findUnique({
@@ -96,7 +125,7 @@ router.get('/contacts/:id', async (req: Request, res: Response) => {
   }
 })
 
-router.patch('/contacts/:id', async (req: Request, res: Response) => {
+router.patch('/contacts/:id', authenticateAdminOrService(['crm:write']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const { name, email, company, phone, leadScore, leadStatus, owner, tags } = req.body || {}
@@ -125,7 +154,7 @@ router.patch('/contacts/:id', async (req: Request, res: Response) => {
   }
 })
 
-router.delete('/contacts/:id', async (req: Request, res: Response) => {
+router.delete('/contacts/:id', authenticateAdminOrService(['crm:write']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     await prisma.contact.delete({
@@ -140,7 +169,56 @@ router.delete('/contacts/:id', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/conversations', async (req: Request, res: Response) => {
+// Bulk operations
+router.patch('/contacts/bulk', authenticateAdminOrService(['crm:write']), async (req: Request, res: Response) => {
+  try {
+    const { ids, action, value } = req.body
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'Invalid or empty IDs array' })
+    }
+
+    if (!action) {
+      return res.status(400).json({ success: false, error: 'Action is required' })
+    }
+
+    let updateData: any = {}
+    let result: any
+
+    switch (action) {
+      case 'status':
+        if (!value || !Object.values(ContactStatus).includes(value)) {
+          return res.status(400).json({ success: false, error: 'Invalid status value' })
+        }
+        updateData = { leadStatus: value }
+        break
+
+      case 'owner':
+        updateData = { owner: value || null }
+        break
+
+      case 'delete':
+        result = await prisma.contact.deleteMany({
+          where: { id: { in: ids } }
+        })
+        return res.json({ success: true, data: { deleted: result.count } })
+
+      default:
+        return res.status(400).json({ success: false, error: 'Invalid action' })
+    }
+
+    result = await prisma.contact.updateMany({
+      where: { id: { in: ids } },
+      data: updateData
+    })
+
+    res.json({ success: true, data: { updated: result.count } })
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e?.message || 'Failed to execute bulk operation' })
+  }
+})
+
+router.get('/conversations', authenticateAdminOrService(['crm:read']), async (req: Request, res: Response) => {
   try {
     const status = req.query.status as keyof typeof ConversationStatus | undefined
     const limit = Math.min(Number(req.query.limit || 50), 100)
@@ -173,7 +251,7 @@ router.get('/conversations', async (req: Request, res: Response) => {
   }
 })
 
-router.get('/conversations/:id', async (req: Request, res: Response) => {
+router.get('/conversations/:id', authenticateAdminOrService(['crm:read']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const conversation = await prisma.contactConversation.findUnique({
@@ -202,7 +280,7 @@ router.get('/conversations/:id', async (req: Request, res: Response) => {
   }
 })
 
-router.patch('/conversations/:id', async (req: Request, res: Response) => {
+router.patch('/conversations/:id', authenticateAdminOrService(['crm:write']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const { status, assignedTo } = req.body || {}
@@ -226,7 +304,7 @@ router.patch('/conversations/:id', async (req: Request, res: Response) => {
 })
 
 // Convert lead to customer (simple: mark as converted; optional: future user/org creation)
-router.post('/contacts/:id/convert', async (req: Request, res: Response) => {
+router.post('/contacts/:id/convert', authenticateAdminOrService(['crm:write']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const contact = await prisma.contact.update({
@@ -243,7 +321,7 @@ router.post('/contacts/:id/convert', async (req: Request, res: Response) => {
 })
 
 // Notes endpoints
-router.get('/contacts/:id/notes', async (req: Request, res: Response) => {
+router.get('/contacts/:id/notes', authenticateAdminOrService(['notes:read']), async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const notes = await prisma.contactNote.findMany({
@@ -276,7 +354,7 @@ router.post('/contacts/:id/notes', authenticateAdminOrService(['notes:create']),
   }
 })
 
-router.delete('/contacts/:id/notes/:noteId', async (req: Request, res: Response) => {
+router.delete('/contacts/:id/notes/:noteId', authenticateAdminOrService(['notes:delete']), async (req: Request, res: Response) => {
   try {
     await prisma.contactNote.delete({
       where: {
@@ -290,6 +368,104 @@ router.delete('/contacts/:id/notes/:noteId', async (req: Request, res: Response)
       return res.status(404).json({ success: false, error: 'Note not found' })
     }
     res.status(500).json({ success: false, error: e?.message || 'Failed to delete note' })
+  }
+})
+
+// Analytics endpoints
+router.get('/analytics', authenticateAdminOrService(['crm:read']), async (req: Request, res: Response) => {
+  try {
+    // Get basic metrics
+    const totalContacts = await prisma.contact.count()
+    const contactsByStatus = await prisma.contact.groupBy({
+      by: ['leadStatus'],
+      _count: { leadStatus: true }
+    })
+
+    // Get conversion funnel data
+    const conversionFunnel = Object.values(ContactStatus).map(status => ({
+      status,
+      count: contactsByStatus.find(item => item.leadStatus === status)?._count.leadStatus || 0
+    }))
+
+    // Get source attribution
+    const sourceData = await prisma.contact.groupBy({
+      by: ['source'],
+      _count: { source: true },
+      where: { source: { not: null } }
+    })
+
+    // Get lead creation over time (last 30 days)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const dailyLeads = await prisma.contact.groupBy({
+      by: ['createdAt'],
+      _count: { id: true },
+      where: {
+        createdAt: { gte: thirtyDaysAgo }
+      }
+    })
+
+    // Process daily leads data
+    const leadsByDay = dailyLeads.reduce((acc, item) => {
+      const date = new Date(item.createdAt).toISOString().split('T')[0]
+      acc[date] = (acc[date] || 0) + item._count.id
+      return acc
+    }, {} as Record<string, number>)
+
+    // Average lead score
+    const avgLeadScore = await prisma.contact.aggregate({
+      _avg: { leadScore: true }
+    })
+
+    res.json({
+      success: true,
+      data: {
+        totalContacts,
+        conversionFunnel,
+        sourceAttribution: sourceData.map(item => ({
+          source: item.source || 'Unknown',
+          count: item._count.source
+        })),
+        leadsByDay,
+        averageLeadScore: Math.round(avgLeadScore._avg.leadScore || 0)
+      }
+    })
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e?.message || 'Failed to get analytics' })
+  }
+})
+
+// Pipeline data endpoint
+router.get('/pipeline', authenticateAdminOrService(['crm:read']), async (req: Request, res: Response) => {
+  try {
+    const pipelineData = await Promise.all(
+      Object.values(ContactStatus).map(async (status) => {
+        const contacts = await prisma.contact.findMany({
+          where: { leadStatus: status },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            company: true,
+            leadScore: true,
+            owner: true,
+            updatedAt: true
+          },
+          orderBy: { updatedAt: 'desc' }
+        })
+
+        return {
+          status,
+          count: contacts.length,
+          contacts
+        }
+      })
+    )
+
+    res.json({ success: true, data: pipelineData })
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e?.message || 'Failed to get pipeline data' })
   }
 })
 

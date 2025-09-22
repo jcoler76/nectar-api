@@ -67,10 +67,31 @@ const BusinessImpactDashboard = () => {
         }),
       ]);
 
+      // Helper function to safely parse JSON responses
+      const safeJsonParse = async (response, defaultValue = { data: null }) => {
+        if (!response.ok) {
+          console.warn(`API request failed with status ${response.status}: ${response.statusText}`);
+          return defaultValue;
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.warn(`Expected JSON response but got: ${contentType}`);
+          return defaultValue;
+        }
+
+        try {
+          return await response.json();
+        } catch (parseError) {
+          console.warn('Failed to parse JSON response:', parseError);
+          return defaultValue;
+        }
+      };
+
       // Even if some requests fail, we can still show partial data
-      const workflowData = workflowsRes.ok ? await workflowsRes.json() : { data: null };
-      const usageData = usageRes.ok ? await usageRes.json() : { data: null };
-      const analyticsData = analyticsRes.ok ? await analyticsRes.json() : { data: null };
+      const workflowData = await safeJsonParse(workflowsRes);
+      const usageData = await safeJsonParse(usageRes);
+      const analyticsData = await safeJsonParse(analyticsRes);
 
       // Calculate business impact metrics
       const impact = calculateBusinessImpact(workflowData.data, usageData.data, analyticsData.data);

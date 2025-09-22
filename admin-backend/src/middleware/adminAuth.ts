@@ -220,14 +220,18 @@ function getAdminRolePermissions(role: string): string[] {
       'organization:create', 'organization:read', 'organization:update', 'organization:delete',
       'license:create', 'license:read', 'license:update', 'license:delete',
       'billing:create', 'billing:read', 'billing:update', 'billing:delete',
-      'audit:read', 'system:admin', 'admin:manage'
+      'audit:read', 'system:admin', 'admin:manage',
+      'crm:read', 'crm:write', 'contacts:create', 'contacts:update', 'contacts:delete',
+      'notes:create', 'notes:read', 'notes:update', 'notes:delete'
     ],
     ADMIN: [
       'user:read', 'user:update',
       'organization:read', 'organization:update',
       'license:read', 'license:update',
       'billing:read', 'billing:update',
-      'audit:read'
+      'audit:read',
+      'crm:read', 'crm:write', 'contacts:create', 'contacts:update', 'contacts:delete',
+      'notes:create', 'notes:read', 'notes:update', 'notes:delete'
     ],
     BILLING_ADMIN: [
       'user:read', 'organization:read',
@@ -236,12 +240,14 @@ function getAdminRolePermissions(role: string): string[] {
     ],
     SUPPORT_AGENT: [
       'user:read', 'organization:read',
-      'license:read', 'billing:read'
+      'license:read', 'billing:read',
+      'crm:read', 'notes:read'
     ],
     ANALYST: [
       'user:read', 'organization:read',
       'license:read', 'billing:read',
-      'audit:read'
+      'audit:read',
+      'crm:read'
     ]
   }
 

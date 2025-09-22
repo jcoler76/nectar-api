@@ -220,7 +220,8 @@ router.post('/batch', batchTrackingValidation, handleValidationErrors, async (re
  */
 router.get(
   '/session/:sessionId',
-  AuthFactory.createAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
+  AuthFactory.createJWTMiddleware(),
+  AuthFactory.requireMinimumRole('ADMIN'),
   async (req, res) => {
     try {
       const { sessionId } = req.params;
@@ -292,7 +293,8 @@ router.get(
  */
 router.get(
   '/analytics/app-usage',
-  AuthFactory.createAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
+  AuthFactory.createJWTMiddleware(),
+  AuthFactory.requireMinimumRole('ADMIN'),
   async (req, res) => {
     try {
       const { startDate, endDate, organizationId, userId, eventType, page } = req.query;
@@ -333,7 +335,8 @@ router.get(
  */
 router.get(
   '/analytics/login',
-  AuthFactory.createAuthMiddleware(['ADMIN', 'SUPER_ADMIN']),
+  AuthFactory.createJWTMiddleware(),
+  AuthFactory.requireMinimumRole('ADMIN'),
   async (req, res) => {
     try {
       const { startDate, endDate, organizationId, loginType } = req.query;
@@ -370,37 +373,42 @@ router.get(
  * POST /api/tracking/cleanup
  * Clean up old tracking data (super admin only)
  */
-router.post('/cleanup', AuthFactory.createAuthMiddleware(['SUPER_ADMIN']), async (req, res) => {
-  try {
-    const { retentionDays = 90 } = req.body;
+router.post(
+  '/cleanup',
+  AuthFactory.createJWTMiddleware(),
+  AuthFactory.requireSuperAdmin(),
+  async (req, res) => {
+    try {
+      const { retentionDays = 90 } = req.body;
 
-    if (retentionDays < 1 || retentionDays > 365) {
-      return res.status(400).json({
+      if (retentionDays < 1 || retentionDays > 365) {
+        return res.status(400).json({
+          success: false,
+          message: 'Retention days must be between 1 and 365',
+        });
+      }
+
+      const result = await trackingService.cleanupOldData(retentionDays);
+
+      res.json({
+        success: true,
+        message: 'Cleanup completed successfully',
+        data: result,
+      });
+    } catch (error) {
+      logger.error('Failed to cleanup tracking data', {
+        error: error.message,
+        retentionDays: req.body.retentionDays,
+        adminId: req.user?.userId,
+      });
+
+      res.status(500).json({
         success: false,
-        message: 'Retention days must be between 1 and 365',
+        message: 'Failed to cleanup tracking data',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
       });
     }
-
-    const result = await trackingService.cleanupOldData(retentionDays);
-
-    res.json({
-      success: true,
-      message: 'Cleanup completed successfully',
-      data: result,
-    });
-  } catch (error) {
-    logger.error('Failed to cleanup tracking data', {
-      error: error.message,
-      retentionDays: req.body.retentionDays,
-      adminId: req.user?.userId,
-    });
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to cleanup tracking data',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
-    });
   }
-});
+);
 
 module.exports = router;

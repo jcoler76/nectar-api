@@ -396,6 +396,12 @@ class AppTracker {
       await api.post('/api/tracking/batch', { events });
       // Successfully sent tracking events batch
     } catch (error) {
+      // Handle 404 error gracefully (endpoint might not be available)
+      if (error.response?.status === 404) {
+        console.warn('Tracking endpoint not available - events will be dropped');
+        return;
+      }
+
       console.warn('Failed to send tracking batch:', error);
       // Don't re-queue events to avoid infinite loops
     }

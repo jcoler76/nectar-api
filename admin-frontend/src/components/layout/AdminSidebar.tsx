@@ -1,6 +1,7 @@
 import {
   BarChart3,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Database,
   DollarSign,
@@ -201,29 +202,35 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-blue-400/30">
-          {!collapsed ? (
-            <>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-white" />
-                </div>
-                <div className="ml-3">
-                  <h1 className="text-white font-semibold text-lg">Admin Portal</h1>
-                  <p className="text-blue-200 text-xs">NectarStudio.ai</p>
-                </div>
+          {!collapsed && (
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Shield className="h-5 w-5 text-white" />
               </div>
-              <button 
-                onClick={onToggle}
-                className="p-1 rounded-md text-blue-200 hover:text-white hover:bg-white/10 transition-colors lg:hidden"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </>
-          ) : (
+              <div className="ml-3">
+                <h1 className="text-white font-semibold text-lg">Admin Portal</h1>
+                <p className="text-blue-200 text-xs">NectarStudio.ai</p>
+              </div>
+            </div>
+          )}
+
+          {collapsed && (
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto">
               <Shield className="h-5 w-5 text-white" />
             </div>
           )}
+
+          <button
+            onClick={onToggle}
+            className="p-1 rounded-md text-blue-200 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
         {/* Search */}
@@ -249,29 +256,21 @@ export default function AdminSidebar({ collapsed, onToggle, onLogout, currentPag
           ))}
         </nav>
 
-        {/* User section */}
+        {/* Settings/User Section */}
         <div className="border-t border-blue-400/30 p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <Users className="h-4 w-4 text-white" />
-            </div>
+          <button
+            onClick={() => onNavigate && onNavigate('/admin-settings')}
+            className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 group ${
+              currentPage === '/admin-settings'
+                ? 'bg-white/20 text-white shadow-lg'
+                : 'text-blue-100 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Settings className="h-5 w-5 flex-shrink-0" />
             {!collapsed && (
-              <div className="flex-1">
-                <p className="text-white text-sm font-medium">Administrator</p>
-                <p className="text-blue-200 text-xs">System Admin</p>
-              </div>
+              <span className="ml-3 flex-1 text-left">Administrator</span>
             )}
-          </div>
-          
-          {!collapsed && (
-            <button
-              onClick={onLogout}
-              className="w-full mt-3 flex items-center px-3 py-2 text-sm text-blue-100 hover:bg-white/10 hover:text-white rounded-lg transition-colors duration-200"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="ml-3">Sign Out</span>
-            </button>
-          )}
+          </button>
         </div>
       </div>
     </>

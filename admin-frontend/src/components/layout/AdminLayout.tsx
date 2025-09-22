@@ -34,22 +34,22 @@ export default function AdminLayout({
         onNavigate={onNavigate}
       />
 
+      {/* Top bar - moved outside main content area */}
+      <AdminTopBar
+        sidebarCollapsed={sidebarCollapsed}
+        onSidebarToggle={handleSidebarToggle}
+        currentPage={currentPage}
+        breadcrumbs={breadcrumbs}
+        onLogout={onLogout}
+        onNavigate={onNavigate}
+      />
+
       {/* Main content area */}
       <div className={`transition-all duration-300 ${
         sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'
       }`}>
-        {/* Top bar */}
-        <AdminTopBar 
-          sidebarCollapsed={sidebarCollapsed}
-          onSidebarToggle={handleSidebarToggle}
-          currentPage={currentPage}
-          breadcrumbs={breadcrumbs}
-          onLogout={onLogout}
-          onNavigate={onNavigate}
-        />
-
         {/* Page content */}
-        <main className="p-6">
+        <main className="p-6 pt-20">
           {children}
         </main>
       </div>

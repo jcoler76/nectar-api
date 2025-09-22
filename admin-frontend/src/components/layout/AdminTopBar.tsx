@@ -19,9 +19,9 @@ interface TopBarProps {
   onNavigate?: (url: string) => void
 }
 
-export default function AdminTopBar({ 
-  sidebarCollapsed, 
-  onSidebarToggle, 
+export default function AdminTopBar({
+  sidebarCollapsed,
+  onSidebarToggle,
   currentPage = 'Dashboard',
   breadcrumbs = [],
   onLogout,
@@ -32,6 +32,44 @@ export default function AdminTopBar({
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
 
+  // Map URLs to user-friendly names
+  const urlToNameMap: Record<string, string> = {
+    '/dashboard': 'Dashboard',
+    '/crm': 'CRM',
+    '/crm/leads': 'Leads',
+    '/crm/conversations': 'Conversations',
+    '/analytics': 'Analytics',
+    '/analytics/revenue': 'Revenue Dashboard',
+    '/analytics/users': 'User Analytics',
+    '/analytics/churn': 'Churn Analysis',
+    '/users': 'User Management',
+    '/users/all': 'All Users',
+    '/users/organizations': 'Organizations',
+    '/users/subscriptions': 'Subscriptions',
+    '/billing': 'Billing',
+    '/billing/overview': 'Billing Overview',
+    '/billing/transactions': 'Transactions',
+    '/billing/stripe': 'Stripe Configuration',
+    '/licensing': 'Licensing',
+    '/licensing/overview': 'License Overview',
+    '/licensing/licenses': 'All Licenses',
+    '/licensing/customers': 'Customer Licenses',
+    '/licensing/usage': 'Usage Analytics',
+    '/licensing/analytics': 'Advanced Analytics',
+    '/licensing/lifecycle': 'License Lifecycle',
+    '/licensing/health': 'System Health',
+    '/system': 'System',
+    '/system/config': 'Configuration',
+    '/system/audit': 'Audit Logs',
+    '/system/announcements': 'Announcements',
+    '/system/security': 'Security Settings',
+    '/system/app-keys': 'Application Keys'
+  }
+
+  const getFriendlyName = (url: string): string => {
+    return urlToNameMap[url] || url.replace(/^\//, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
   const notifications = [
     { id: 1, title: 'New user registration', time: '2 minutes ago', unread: true },
     { id: 2, title: 'Payment received', time: '1 hour ago', unread: true },
@@ -41,29 +79,18 @@ export default function AdminTopBar({
   const unreadCount = notifications.filter(n => n.unread).length
 
   return (
-    <header className={`sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm transition-all duration-300 ${
-      sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'
-    }`}>
+    <header
+      className="fixed top-0 z-30 bg-white border-b border-gray-200 shadow-sm transition-all duration-300"
+      style={{
+        left: sidebarCollapsed ? '4rem' : '18rem',
+        width: sidebarCollapsed ? 'calc(100% - 4rem)' : 'calc(100% - 18rem)',
+      }}
+    >
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* Left side */}
           <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <button
-              onClick={onSidebarToggle}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-
-            {/* Desktop sidebar toggle */}
-            <button
-              onClick={onSidebarToggle}
-              className="hidden lg:block p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
 
             {/* Breadcrumbs - Desktop */}
             <nav className="hidden sm:flex items-center space-x-2 text-sm">
@@ -75,10 +102,10 @@ export default function AdminTopBar({
                     <div key={index} className="flex items-center space-x-2">
                       {crumb.url ? (
                         <button className="text-gray-500 hover:text-gray-700">
-                          {crumb.title}
+                          {getFriendlyName(crumb.title)}
                         </button>
                       ) : (
-                        <span className="text-gray-900 font-medium">{crumb.title}</span>
+                        <span className="text-gray-900 font-medium">{getFriendlyName(crumb.title)}</span>
                       )}
                       {index < breadcrumbs.length - 1 && (
                         <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -90,14 +117,14 @@ export default function AdminTopBar({
               {breadcrumbs.length === 0 && (
                 <>
                   <ChevronRight className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-900 font-medium">{currentPage}</span>
+                  <span className="text-gray-900 font-medium">{getFriendlyName(currentPage)}</span>
                 </>
               )}
             </nav>
 
             {/* Page title - Mobile */}
             <h1 className="sm:hidden text-lg font-semibold text-gray-900">
-              {currentPage}
+              {getFriendlyName(currentPage)}
             </h1>
           </div>
 
