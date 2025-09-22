@@ -1,29 +1,45 @@
 import { useCallback } from 'react';
 
-// Type for CSV export data
-type CsvExportData = Record<string, string | number | boolean | null | undefined>[];
+import { exportTableToCSV, ExportData } from '../utils/exportUtils';
 
 interface UseCsvExportReturn {
-  exportToCsv: (data: CsvExportData, filename?: string) => void;
+  exportToCsv: (
+    data: ExportData,
+    filename?: string,
+    options?: {
+      includeTimestamp?: boolean;
+      customHeaders?: Record<string, string>;
+    }
+  ) => Promise<void>;
 }
 
 export const useCsvExport = (): UseCsvExportReturn => {
-  const exportToCsv = useCallback((data: CsvExportData, filename = 'export.csv') => {
-    if (!data || data.length === 0) return;
+  const exportToCsv = useCallback(
+    async (
+      data: ExportData,
+      filename = 'export',
+      options?: {
+        includeTimestamp?: boolean;
+        customHeaders?: Record<string, string>;
+      }
+    ) => {
+      if (!data || data.length === 0) {
+        console.warn('No data to export');
+        return;
+      }
 
-    const csv = [
-      Object.keys(data[0]).join(','),
-      ...data.map(row => Object.values(row).join(',')),
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }, []);
+      try {
+        await exportTableToCSV(data, filename, {
+          includeTimestamp: true,
+          ...options,
+        });
+      } catch (error) {
+        console.error('CSV export failed:', error);
+        // Could add toast notification here if available
+      }
+    },
+    []
+  );
 
   return { exportToCsv };
 };

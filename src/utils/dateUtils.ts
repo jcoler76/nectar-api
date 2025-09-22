@@ -3,7 +3,8 @@
  * Replaces duplicate date formatting logic found in 25+ files
  */
 
-import moment from 'moment-timezone';
+import { parseISO, isValid } from 'date-fns';
+import { formatInTimeZone, utcToZonedTime } from 'date-fns-tz';
 
 // Eastern Time Zone (handles both EST and EDT automatically)
 export const EASTERN_TIMEZONE = 'America/New_York';
@@ -27,18 +28,50 @@ export const formatDateForAPI = (date: DateInput): string => {
 
 /**
  * Formats a timestamp for display in Eastern Time
+ * Migrated from moment.js to date-fns for better performance and smaller bundle
  */
 export const formatTimestampEST = (
   timestamp: DateInput,
-  format: string = 'YYYY-MM-DD HH:mm:ss'
+  format: string = 'yyyy-MM-dd HH:mm:ss'
 ): string => {
   if (!timestamp) return 'N/A';
 
-  const momentDate = moment(timestamp).tz(EASTERN_TIMEZONE);
-  const formatted = momentDate.format(format);
-  const timezoneName = momentDate.isDST() ? 'EDT' : 'EST';
+  try {
+    // Parse the input timestamp
+    const dateObj = typeof timestamp === 'string' ? parseISO(timestamp) : new Date(timestamp);
 
-  return `${formatted} ${timezoneName}`;
+    if (!isValid(dateObj)) return 'Invalid Date';
+
+    // Convert moment format strings to date-fns format
+    const formatMap: Record<string, string> = {
+      'YYYY-MM-DD HH:mm:ss': 'yyyy-MM-dd HH:mm:ss',
+      'MM/DD/YYYY': 'MM/dd/yyyy',
+      'MM/DD/YY': 'MM/dd/yy',
+      'YYYY-MM-DD': 'yyyy-MM-dd',
+      'MM/DD/YYYY h:mm:ss A': 'MM/dd/yyyy h:mm:ss a',
+      'MM/DD/YY h:mm:ss A': 'MM/dd/yy h:mm:ss a',
+      'h:mm:ss A': 'h:mm:ss a',
+    };
+
+    const dateFnsFormat = formatMap[format] || format;
+
+    // Format in Eastern timezone
+    const formatted = formatInTimeZone(dateObj, EASTERN_TIMEZONE, dateFnsFormat);
+
+    // Determine if we're in daylight saving time (rough approximation)
+    const zonedDate = utcToZonedTime(dateObj, EASTERN_TIMEZONE);
+    const january = new Date(zonedDate.getFullYear(), 0, 1);
+    const july = new Date(zonedDate.getFullYear(), 6, 1);
+    const janOffset = utcToZonedTime(january, EASTERN_TIMEZONE).getTimezoneOffset();
+    const julOffset = utcToZonedTime(july, EASTERN_TIMEZONE).getTimezoneOffset();
+    const isDST = zonedDate.getTimezoneOffset() === Math.min(janOffset, julOffset);
+
+    const timezoneName = isDST ? 'EDT' : 'EST';
+    return `${formatted} ${timezoneName}`;
+  } catch (error) {
+    console.warn('Date formatting error:', error);
+    return 'Invalid Date';
+  }
 };
 
 /**

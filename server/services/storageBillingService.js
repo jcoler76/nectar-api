@@ -55,14 +55,18 @@ class StorageBillingService {
         _count: { id: true },
       });
 
-      const bytesUsed = parseInt(usageQuery._sum.fileSize || 0);
+      const rawFileSize = usageQuery._sum.fileSize;
+      const bytesUsed = rawFileSize ? parseInt(rawFileSize, 10) : 0;
       const fileCount = usageQuery._count.id || 0;
 
+      // Ensure no NaN values in calculations
+      const safeBytesUsed = isNaN(bytesUsed) ? 0 : bytesUsed;
+
       return {
-        bytesUsed,
+        bytesUsed: safeBytesUsed,
         fileCount,
-        megabytesUsed: Math.round(bytesUsed / 1024 / 1024),
-        gigabytesUsed: bytesUsed / (1024 * 1024 * 1024),
+        megabytesUsed: Math.round(safeBytesUsed / 1024 / 1024),
+        gigabytesUsed: safeBytesUsed / (1024 * 1024 * 1024),
       };
     } catch (error) {
       logger.error('Failed to calculate storage usage', { error: error.message, organizationId });
@@ -546,10 +550,10 @@ class StorageBillingService {
           storageGb: selectedPack.storageGb,
           pricePerGb: selectedPack.priceUsd / selectedPack.storageGb,
           totalCost: selectedPack.priceUsd,
-          purchaseDate: new Date(),
-          expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-          stripeInvoiceId: finalizedInvoice.id,
-          isActive: true,
+          validFrom: new Date(),
+          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          stripePaymentIntent: finalizedInvoice.id,
+          status: 'active',
         },
       });
 
@@ -594,8 +598,8 @@ class StorageBillingService {
       const activePurchases = await prisma.storagePurchase.findMany({
         where: {
           organizationId,
-          isActive: true,
-          expirationDate: { gt: new Date() },
+          status: 'active',
+          validUntil: { gt: new Date() },
         },
       });
 
@@ -695,11 +699,11 @@ class StorageBillingService {
 
       const expiredCount = await prisma.storagePurchase.updateMany({
         where: {
-          isActive: true,
-          expirationDate: { lte: now },
+          status: 'active',
+          validUntil: { lte: now },
         },
         data: {
-          isActive: false,
+          status: 'expired',
           updatedAt: now,
         },
       });

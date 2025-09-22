@@ -421,9 +421,9 @@ const FileStorageDashboard = () => {
               <span>Storage Usage</span>
               <Badge
                 variant={
-                  storageUsage.storage.usagePercentage > 90
+                  (storageUsage.storage.usagePercentage ?? 0) > 90
                     ? 'destructive'
-                    : storageUsage.storage.usagePercentage > 75
+                    : (storageUsage.storage.usagePercentage ?? 0) > 75
                       ? 'default'
                       : 'secondary'
                 }
@@ -443,13 +443,15 @@ const FileStorageDashboard = () => {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      storageUsage.storage.usagePercentage > 90
+                      (storageUsage.storage.usagePercentage ?? 0) > 90
                         ? 'bg-red-600'
-                        : storageUsage.storage.usagePercentage > 75
+                        : (storageUsage.storage.usagePercentage ?? 0) > 75
                           ? 'bg-yellow-600'
                           : 'bg-blue-600'
                     }`}
-                    style={{ width: `${Math.min(storageUsage.storage.usagePercentage, 100)}%` }}
+                    style={{
+                      width: `${Math.min(storageUsage.storage.usagePercentage ?? 0, 100)}%`,
+                    }}
                   />
                 </div>
               )}
@@ -457,11 +459,11 @@ const FileStorageDashboard = () => {
               <div className="flex justify-between text-xs text-gray-600">
                 <span>{storageUsage.files.total} files</span>
                 {!storageUsage.storage.isUnlimited && (
-                  <span>{storageUsage.storage.usagePercentage.toFixed(1)}% used</span>
+                  <span>{(storageUsage.storage.usagePercentage ?? 0).toFixed(1)}% used</span>
                 )}
               </div>
 
-              {storageUsage.storage.usagePercentage > 90 && (
+              {(storageUsage.storage.usagePercentage ?? 0) > 90 && (
                 <Alert variant="destructive">
                   <AlertDescription>
                     Storage is nearly full. Consider upgrading your plan or deleting unused files.

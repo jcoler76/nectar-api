@@ -46,10 +46,11 @@ const BaseListViewComponent = ({
 }) => {
   const { exportToCsv } = useCsvExport();
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (prepareExportData) {
       const exportData = prepareExportData();
-      exportToCsv(exportData, exportFilename);
+      const filenameWithoutExtension = exportFilename.replace(/\.csv$/, '');
+      await exportToCsv(exportData, filenameWithoutExtension);
     }
   };
 

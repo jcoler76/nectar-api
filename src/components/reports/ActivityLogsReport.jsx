@@ -1,10 +1,10 @@
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { Activity, Filter } from 'lucide-react';
-import moment from 'moment-timezone';
 import { memo, useEffect, useState } from 'react';
 
+import { nowInTimezone, subtractDaysFromDate } from '../../utils/dateUnified';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { DataTable } from '../ui/data-table';
@@ -22,8 +22,8 @@ import ReportLayout from './shared/ReportLayout';
 const ActivityLogsReport = () => {
   // Filter state management
   const { filters, updateFilter, resetFilters } = useReportFilters({
-    startDate: moment.tz('America/New_York').subtract(24, 'hours'),
-    endDate: moment.tz('America/New_York'),
+    startDate: subtractDaysFromDate(nowInTimezone(), 1),
+    endDate: nowInTimezone(),
     success: 'all',
     method: 'all',
     category: 'all',
@@ -95,14 +95,14 @@ const ActivityLogsReport = () => {
       >
         {/* Filter Row 1 - Date Range, Timeframe, and Records Per Page */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <LocalizationProvider dateAdapter={AdapterMoment}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
             <div className="space-y-2">
               <Label>Start Date</Label>
               <DatePicker
                 value={filters.startDate}
                 onChange={newDate => {
                   if (newDate) {
-                    updateFilter('startDate', moment.tz(newDate, 'America/New_York'));
+                    updateFilter('startDate', newDate);
                   } else {
                     updateFilter('startDate', null);
                   }
@@ -116,7 +116,7 @@ const ActivityLogsReport = () => {
                 value={filters.endDate}
                 onChange={newDate => {
                   if (newDate) {
-                    updateFilter('endDate', moment.tz(newDate, 'America/New_York'));
+                    updateFilter('endDate', newDate);
                   } else {
                     updateFilter('endDate', null);
                   }

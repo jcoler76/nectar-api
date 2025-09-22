@@ -1,4 +1,3 @@
-import ReactJson from '@microlink/react-json-view';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -22,7 +21,8 @@ import {
 import { format } from 'date-fns';
 import React, { useState, useEffect } from 'react';
 
-import { sanitizeWorkflowData, sanitizeString } from '../../../utils/xssProtection';
+import JsonViewer from '../../../components/ui/JsonViewer';
+import { sanitizeString } from '../../../utils/xssProtection';
 import { getWorkflowRuns } from '../api/workflowApi';
 
 const StatusIcon = ({ status }) => {
@@ -110,29 +110,20 @@ const ExecutionHistoryPanel = ({ open, onClose, workflowId }) => {
                     size="small"
                     sx={{ mb: 1 }}
                   />
-                  <Typography variant="body2">
-                    <strong>Trigger Data:</strong>
-                  </Typography>
-                  <ReactJson
-                    src={sanitizeWorkflowData(run.trigger) || {}}
-                    theme="rjv-default"
+                  <JsonViewer
+                    data={run.trigger || {}}
+                    title="Trigger Data"
                     collapsed={true}
-                    displayDataTypes={false}
-                    name={false}
-                    enableClipboard={false}
-                    displayObjectSize={false}
+                    enableClipboard={true}
+                    maxHeight="200px"
+                    className="mb-3"
                   />
-                  <Typography variant="body2" sx={{ mt: 2 }}>
-                    <strong>Steps:</strong>
-                  </Typography>
-                  <ReactJson
-                    src={sanitizeWorkflowData(Object.fromEntries(run.steps))}
-                    theme="rjv-default"
+                  <JsonViewer
+                    data={Object.fromEntries(run.steps)}
+                    title="Steps"
                     collapsed={1}
-                    displayDataTypes={false}
-                    name={false}
-                    enableClipboard={false}
-                    displayObjectSize={false}
+                    enableClipboard={true}
+                    maxHeight="300px"
                   />
                 </Box>
               </Collapse>

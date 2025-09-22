@@ -4,6 +4,7 @@ const prismaService = require('./prismaService');
 const { logger } = require('../utils/logger');
 const crypto = require('crypto');
 const trackingService = require('./trackingService');
+const { serializeBigInt } = require('../utils/bigintSerializer');
 
 class AuthService {
   constructor() {
@@ -193,12 +194,12 @@ class AuthService {
           emailVerified: user.emailVerified,
           lastLoginAt: new Date(),
         },
-        organization: {
+        organization: serializeBigInt({
           id: organization.id,
           name: organization.name,
           slug: organization.slug,
           subscription: organization.subscription,
-        },
+        }),
         membership: {
           role: primaryMembership.role,
           joinedAt: primaryMembership.joinedAt,
@@ -396,14 +397,16 @@ class AuthService {
         emailVerified: user.emailVerified,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
-        organizations: user.memberships.map(m => ({
-          id: m.organization.id,
-          name: m.organization.name,
-          slug: m.organization.slug,
-          role: m.role,
-          joinedAt: m.joinedAt,
-          subscription: m.organization.subscription,
-        })),
+        organizations: user.memberships.map(m =>
+          serializeBigInt({
+            id: m.organization.id,
+            name: m.organization.name,
+            slug: m.organization.slug,
+            role: m.role,
+            joinedAt: m.joinedAt,
+            subscription: m.organization.subscription,
+          })
+        ),
       };
     } catch (error) {
       logger.error('Get profile error', { error: error.message, userId });

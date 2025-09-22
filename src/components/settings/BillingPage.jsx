@@ -2,8 +2,6 @@ import {
   CreditCard,
   ExternalLink,
   AlertCircle,
-  Clock,
-  CheckCircle,
   AlertTriangle,
   Calendar,
   Users,
@@ -12,7 +10,6 @@ import {
   Receipt,
   Settings,
   ArrowUpCircle,
-  XCircle,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
@@ -22,12 +19,6 @@ export default function BillingPage() {
   const [error, setError] = useState('');
   const [subscriptionData, setSubscriptionData] = useState(null);
   const [invoices, setInvoices] = useState([]);
-  const [availablePlans, setAvailablePlans] = useState([]);
-
-  useEffect(() => {
-    loadSubscriptionData();
-    loadAvailablePlans();
-  }, []);
 
   const loadSubscriptionData = async () => {
     try {
@@ -41,12 +32,17 @@ export default function BillingPage() {
       } else {
         setError(data?.error || 'Unable to load subscription details');
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('Error loading subscription data:', error);
       setError('Unable to load subscription details');
     } finally {
       setSubscriptionLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadSubscriptionData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadInvoices = async () => {
     try {
@@ -58,19 +54,6 @@ export default function BillingPage() {
       }
     } catch (e) {
       console.error('Failed to load invoices:', e);
-    }
-  };
-
-  const loadAvailablePlans = async () => {
-    try {
-      const res = await fetch('/api/billing/plans');
-      const data = await res.json();
-
-      if (res.ok) {
-        setAvailablePlans(data.plans || []);
-      }
-    } catch (e) {
-      console.error('Failed to load available plans:', e);
     }
   };
 

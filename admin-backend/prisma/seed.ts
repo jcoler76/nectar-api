@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '../prisma/generated/client'
 import * as crypto from 'crypto'
 import { AdminAuthService } from '../src/services/adminAuth'
 

@@ -233,6 +233,7 @@ const RoleList = () => {
         exportFilename="roles-list.csv"
         searchable={true}
         filterable={true}
+        enableVirtualization={true}
         customActions={[
           {
             label: 'Role Info',

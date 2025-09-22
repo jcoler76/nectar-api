@@ -31,6 +31,10 @@ const configureApp = () => {
   app.use(express.json());
   app.use(require('cookie-parser')());
 
+  // Add BigInt serialization middleware for all JSON responses
+  const { bigIntMiddleware } = require('./utils/bigintSerializer');
+  app.use(bigIntMiddleware);
+
   // Session middleware for Passport OAuth
   const session = require('express-session');
   app.use(

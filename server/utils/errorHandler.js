@@ -201,6 +201,9 @@ function createSafeError(error, options = {}) {
  * Express error handling middleware
  */
 function errorMiddleware(err, req, res, next) {
+  // Import BigInt serializer
+  const { serializeBigInt } = require('./bigintSerializer');
+
   // Default to 500 if no status code
   const statusCode = err.statusCode || err.status || 500;
 
@@ -222,8 +225,8 @@ function errorMiddleware(err, req, res, next) {
     userId: req.user?.userId,
   });
 
-  // Send response
-  res.status(statusCode).json(safeError);
+  // Send response with BigInt serialization
+  res.status(statusCode).json(serializeBigInt(safeError));
 }
 
 /**

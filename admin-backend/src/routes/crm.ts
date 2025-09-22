@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express'
 import { authenticateAdmin } from '@/middleware/adminAuth'
 import { authenticateAdminOrService } from '@/middleware/serviceAuth'
 import { prisma } from '@/utils/database'
-import { ContactStatus, ConversationStatus } from '@prisma/client'
+import { ContactStatus, ConversationStatus } from '../../prisma/generated/client'
 
 const router = Router()
 

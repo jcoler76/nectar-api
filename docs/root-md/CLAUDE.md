@@ -8,95 +8,108 @@ Reuse shared components any time possible.
 
 Evaluate the agents available to you and add instructions on usage to CLAUDE.md. Make sure that the end of EVERY to do list is to use the CLAUDE.md checker, and ensure each stop point or new feature utilizes the quality control agent.
 
-## 🚨 CRITICAL DEPLOYMENT FIXES & PRISMA MIGRATION (Updated: 2025-09-18)
+## 🚨 UNIFIED PRISMA SCHEMA ARCHITECTURE (Updated: 2025-09-21)
 
-### 🔄 CRITICAL: Prisma Schema Synchronization Process
+### 🎯 SINGLE SOURCE OF TRUTH: Unified Schema Management
 
-**MANDATORY WORKFLOW**: Every Prisma schema change requires synchronization between root and admin-backend directories.
+**BREAKTHROUGH SOLUTION**: The schema synchronization issues have been permanently solved with a unified schema architecture.
 
-#### ⚠️ CRITICAL SCHEMA SYNC STEPS (NEVER SKIP)
+#### ✅ NEW UNIFIED ARCHITECTURE (September 21, 2025)
 
-**IMPORTANT**: The actual main schema is `./server/prisma/schema.prisma` (NOT root level)
+**Single Master Schema**: `./server/shared-schema.prisma`
+- **One schema file** generates clients for all applications
+- **No more synchronization** between multiple schema files
+- **Eliminates runtime mismatches** that caused field recognition errors
+- **Simplified maintenance** with unified generation script
 
-**1. Primary Schema Changes (Server Level)**
-- **Location**: `./server/prisma/schema.prisma` (MAIN APPLICATION SCHEMA)
-- **Import Pattern**: ALL files must use `@prisma/client` (never custom paths)
-
-```javascript
-// ✅ CORRECT: Standard import in ALL files
-const { PrismaClient } = require('@prisma/client');
-
-// ❌ WRONG: Custom paths (causes import errors)
-// const { PrismaClient } = require('./prisma/generated/client');
-// const { PrismaClient } = require('../server/prisma/generated/client');
+**1. Schema Location & Structure**
+```
+./server/shared-schema.prisma (SINGLE SOURCE OF TRUTH)
+├── Generator: server_client → ./server/prisma/generated/client
+├── Generator: admin_client → ./admin-backend/prisma/generated/client
+└── Generator: root_client → ./prisma/generated/client
 ```
 
-**2. MANDATORY Copy Process After Every Schema Change**
-```bash
-# After ANY change to ./server/prisma/schema.prisma:
-
-# Step 1: Copy schema to admin-backend (MANDATORY SYNC)
-cp ./server/prisma/schema.prisma ./admin-backend/prisma/schema.prisma
-
-# Step 2: Copy schema to root (MANDATORY SYNC)
-cp ./server/prisma/schema.prisma ./prisma/schema.prisma
-
-# Step 3: Generate server client
-cd server && npx prisma generate
-
-# Step 4: Generate admin-backend client
-cd ../admin-backend && npx prisma generate
-
-# Step 5: Apply database migrations from server
-cd ../server && npx prisma db push
-
-# CRITICAL: If you get permission errors (EPERM on Windows):
-# - Kill all Node processes first if they're using Prisma files
-# - Retry the generation commands above
-```
-
-**3. Why This Sync is CRITICAL**
-- **Root schema**: Used by main application (server/, src/)
-- **Admin-backend schema**: Used by admin portal (admin-backend/)
-- **Both must be identical**: Different schemas cause runtime errors
-- **Standard imports**: `@prisma/client` ensures compatibility across both
-
-#### 🚨 SCHEMA CHANGE PROTOCOL (MANDATORY)
-
-**EVERY TIME you modify `./server/prisma/schema.prisma`:**
-
-1. **Make changes** to main schema `./server/prisma/schema.prisma`
-2. **Copy to admin-backend**: `cp ./server/prisma/schema.prisma ./admin-backend/prisma/schema.prisma`
-3. **Copy to root**: `cp ./server/prisma/schema.prisma ./prisma/schema.prisma`
-4. **Generate server client**: `cd server && npx prisma generate`
-5. **Generate admin client**: `cd ../admin-backend && npx prisma generate`
-6. **Apply migrations**: `cd ../server && npx prisma db push`
-7. **Update imports**: Verify all files use `@prisma/client`
-8. **Test both apps**: Ensure main app and admin portal work
-
-**⚠️ FAILURE TO FOLLOW THIS PROCESS WILL CAUSE:**
-- Import errors in admin-backend
-- Runtime crashes during authentication
-- Schema mismatch errors
-- Database connection failures
-
-#### Import Pattern Migration (COMPLETED)
-
-**Recent Migration**: All files converted from custom Prisma paths to standard imports.
-
-**Before (Deprecated):**
+**2. Import Patterns by Application**
 ```javascript
-// These patterns were removed in 2025-09-18 migration
+// ✅ SERVER APPLICATION (server/*)
 const { PrismaClient } = require('./prisma/generated/client');
-const { PrismaClient } = require('../prisma/generated/client');
-const { PrismaClient } = require('../../server/prisma/generated/client');
+const { PrismaClient } = require('../prisma/generated/client'); // from graphql/
+
+// ✅ ADMIN BACKEND (admin-backend/src/*)
+import { PrismaClient } from '../../prisma/generated/client'
+import { AdminRole } from '../../prisma/generated/client'
+
+// ✅ ROOT APPLICATION (src/*)
+import { PrismaClient } from '../prisma/generated/client'
 ```
 
-**After (Current Standard):**
-```javascript
-// ALL files now use this pattern
-const { PrismaClient } = require('@prisma/client');
+#### 🎛️ UNIFIED SCHEMA MANAGEMENT COMMANDS
+
+**All operations now use the unified script:**
+
+```bash
+# Generate all Prisma clients from single schema
+npm run prisma:generate
+
+# Create and apply database migrations
+npm run prisma:migrate [migration-name]
+
+# Push schema changes directly to database (dev)
+npm run prisma:push
+
+# Open Prisma Studio
+npm run prisma:studio
+
+# Seed all databases
+npm run prisma:seed
+
+# Reset database with all migrations
+npm run prisma:reset
+
+# Check migration status
+npm run prisma:status
 ```
+
+#### 🚨 SCHEMA CHANGE PROTOCOL (SIMPLIFIED)
+
+**EVERY TIME you modify the schema:**
+
+1. **Edit master schema**: `./server/shared-schema.prisma`
+2. **Generate all clients**: `npm run prisma:generate`
+3. **Apply changes**: `npm run prisma:push` (dev) or `npm run prisma:migrate` (prod)
+4. **Test applications**: Verify main app and admin portal work
+
+**✅ BENEFITS OF NEW ARCHITECTURE:**
+- **No more sync issues**: One schema, multiple generated clients
+- **Consistent runtime**: All applications use same schema version
+- **Simplified workflow**: Single command generates everything
+- **Field recognition**: Eliminates "Unknown argument" runtime errors
+- **Version consistency**: All clients guaranteed to match database
+
+#### 🏗️ Technical Implementation Details
+
+**Unified Generation Script**: `./prisma-unified.js`
+- **Multi-generator schema**: Creates clients for all applications
+- **Single command execution**: Handles all generation automatically
+- **Error handling**: Provides clear feedback on issues
+- **Cross-platform**: Works on Windows with proper file handling
+
+#### 📊 Migration History & Problem Resolution
+
+**Previous Issues (SOLVED):**
+- ❌ ~~Schema synchronization between 3 files~~
+- ❌ ~~Runtime "cancelAtPeriodEnd" field errors~~
+- ❌ ~~Manual copy processes prone to errors~~
+- ❌ ~~Import path inconsistencies~~
+- ❌ ~~Version mismatches between clients~~
+
+**Current State (September 21, 2025):**
+- ✅ Single schema generates all clients
+- ✅ All field recognition issues resolved
+- ✅ Simplified one-command workflow
+- ✅ Consistent import patterns per application
+- ✅ Automated generation with error handling
 
 **Files Updated in Migration:**
 - All controllers (`server/controllers/`)

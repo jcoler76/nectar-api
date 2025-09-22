@@ -1,6 +1,7 @@
 import { CheckCircle, Copy, ExternalLink, Eye, FileText, Play, Send, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 
+import JsonViewer from '../ui/JsonViewer';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -15,6 +16,8 @@ import RealtimeApiDemo from './RealtimeApiDemo';
 const GeneratedApiExplorer = ({ apis, serviceName }) => {
   const [selectedApi, setSelectedApi] = useState(apis?.[0] || null);
   const [testResponse, setTestResponse] = useState('');
+  const [responseData, setResponseData] = useState(null);
+  const [isResponseError, setIsResponseError] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
   const [testMethod, setTestMethod] = useState('GET');
   const [testUrl, setTestUrl] = useState('');
@@ -32,6 +35,8 @@ const GeneratedApiExplorer = ({ apis, serviceName }) => {
 
     setTestLoading(true);
     setTestResponse('');
+    setResponseData(null);
+    setIsResponseError(false);
 
     try {
       const url = queryParams ? `${testUrl}?${queryParams}` : testUrl;
@@ -51,8 +56,13 @@ const GeneratedApiExplorer = ({ apis, serviceName }) => {
       const data = await response.json();
 
       setTestResponse(JSON.stringify(data, null, 2));
+      setResponseData(data);
+      setIsResponseError(!response.ok);
     } catch (err) {
-      setTestResponse(`Error: ${err.message}`);
+      const errorMessage = `Error: ${err.message}`;
+      setTestResponse(errorMessage);
+      setResponseData({ error: err.message, status: 'Failed to fetch' });
+      setIsResponseError(true);
     } finally {
       setTestLoading(false);
     }
@@ -297,12 +307,23 @@ const GeneratedApiExplorer = ({ apis, serviceName }) => {
                   {testResponse && (
                     <div className="space-y-2">
                       <Label>Response</Label>
-                      <Textarea
-                        value={testResponse}
-                        readOnly
-                        rows={12}
-                        className="font-mono text-sm"
-                      />
+                      {responseData && typeof responseData === 'object' ? (
+                        <JsonViewer
+                          data={responseData}
+                          title="API Response"
+                          enableActions={true}
+                          theme={isResponseError ? 'monokai' : 'rjv-default'}
+                          className={isResponseError ? 'border-red-200' : 'border-green-200'}
+                          maxHeight="400px"
+                        />
+                      ) : (
+                        <Textarea
+                          value={testResponse}
+                          readOnly
+                          rows={12}
+                          className="font-mono text-sm"
+                        />
+                      )}
                     </div>
                   )}
                 </div>

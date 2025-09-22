@@ -1,7 +1,7 @@
-import moment from 'moment-timezone';
 import { useCallback, useEffect, useState } from 'react';
 
 import api from '../../../services/api';
+import { getStartOfDay, getEndOfDay, toISOString } from '../../../utils/dateUnified';
 
 import useReportData from './useReportData';
 
@@ -51,12 +51,9 @@ const useActivityLogs = (filters, filterType) => {
       Object.keys(filters).forEach(key => {
         if (filters[key] && filters[key] !== 'all' && filters[key] !== '') {
           if (key === 'startDate') {
-            params.startDate = moment
-              .tz(filters[key], 'America/New_York')
-              .startOf('day')
-              .toISOString();
+            params.startDate = toISOString(getStartOfDay(filters[key]));
           } else if (key === 'endDate') {
-            params.endDate = moment.tz(filters[key], 'America/New_York').endOf('day').toISOString();
+            params.endDate = toISOString(getEndOfDay(filters[key]));
           } else {
             params[key] = filters[key];
           }
@@ -126,12 +123,9 @@ const useActivityLogs = (filters, filterType) => {
       Object.keys(filters).forEach(key => {
         if (filters[key] && filters[key] !== 'all' && filters[key] !== '') {
           if (key === 'startDate') {
-            params.startDate = moment
-              .tz(filters[key], 'America/New_York')
-              .startOf('day')
-              .toISOString();
+            params.startDate = toISOString(getStartOfDay(filters[key]));
           } else if (key === 'endDate') {
-            params.endDate = moment.tz(filters[key], 'America/New_York').endOf('day').toISOString();
+            params.endDate = toISOString(getEndOfDay(filters[key]));
           } else {
             params[key] = filters[key];
           }
@@ -148,7 +142,7 @@ const useActivityLogs = (filters, filterType) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `activity-logs-${moment().format('YYYY-MM-DD-HHmm')}.csv`;
+      a.download = `activity-logs-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

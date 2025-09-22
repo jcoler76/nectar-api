@@ -1,4 +1,4 @@
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { BarChart3 } from 'lucide-react';
@@ -323,7 +323,7 @@ const ApiUsageReport = () => {
         {/* Filter Row 2 - Date Pickers and Controls */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-            <LocalizationProvider dateAdapter={AdapterMoment}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
               <div className="space-y-2">
                 <Label>Start Date</Label>
                 <DatePicker

@@ -127,6 +127,10 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   lastTermsPromptedAt: 'lastTermsPromptedAt',
   requiresTermsAcceptance: 'requiresTermsAcceptance',
+  isActive: 'isActive',
+  billingEmail: 'billingEmail',
+  country: 'country',
+  stripeCustomerId: 'stripeCustomerId',
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -144,9 +148,9 @@ exports.Prisma.UserScalarFieldEnum = {
   twoFactorSecret: 'twoFactorSecret',
   phoneNumber: 'phoneNumber',
   phoneCarrier: 'phoneCarrier',
-  isSuperAdmin: 'isSuperAdmin',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  isSuperAdmin: 'isSuperAdmin',
 };
 
 exports.Prisma.AdminUserScalarFieldEnum = {
@@ -200,6 +204,10 @@ exports.Prisma.BillingEventScalarFieldEnum = {
   createdAt: 'createdAt',
   organizationId: 'organizationId',
   subscriptionId: 'subscriptionId',
+  amount: 'amount',
+  currency: 'currency',
+  description: 'description',
+  processedAt: 'processedAt',
 };
 
 exports.Prisma.SubscriptionScalarFieldEnum = {
@@ -213,7 +221,6 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   stripeSubscriptionId: 'stripeSubscriptionId',
   stripePriceId: 'stripePriceId',
-  monthlyRevenue: 'monthlyRevenue',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   maxDatabaseConnections: 'maxDatabaseConnections',
@@ -221,6 +228,10 @@ exports.Prisma.SubscriptionScalarFieldEnum = {
   maxUsersPerOrg: 'maxUsersPerOrg',
   maxWorkflows: 'maxWorkflows',
   organizationId: 'organizationId',
+  monthlyRevenue: 'monthlyRevenue',
+  storageIncludedBytes: 'storageIncludedBytes',
+  storageOverageRate: 'storageOverageRate',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
 };
 
 exports.Prisma.InvoiceScalarFieldEnum = {
@@ -256,16 +267,16 @@ exports.Prisma.DatabaseConnectionScalarFieldEnum = {
   organizationId: 'organizationId',
   createdBy: 'createdBy',
   databases: 'databases',
-  region: 'region',
+  accountId: 'accountId',
+  authMethod: 'authMethod',
   endpoint: 'endpoint',
   instanceConnectionName: 'instanceConnectionName',
-  accountId: 'accountId',
-  warehouseName: 'warehouseName',
-  authMethod: 'authMethod',
-  privateKeyEncrypted: 'privateKeyEncrypted',
-  passphraseEncrypted: 'passphraseEncrypted',
-  projectId: 'projectId',
   keyFileEncrypted: 'keyFileEncrypted',
+  passphraseEncrypted: 'passphraseEncrypted',
+  privateKeyEncrypted: 'privateKeyEncrypted',
+  projectId: 'projectId',
+  region: 'region',
+  warehouseName: 'warehouseName',
 };
 
 exports.Prisma.EndpointScalarFieldEnum = {
@@ -278,15 +289,15 @@ exports.Prisma.EndpointScalarFieldEnum = {
   queryParams: 'queryParams',
   bodySchema: 'bodySchema',
   responseSchema: 'responseSchema',
-  apiKey: 'apiKey',
   isActive: 'isActive',
   rateLimitPerMinute: 'rateLimitPerMinute',
   requiresAuth: 'requiresAuth',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  organizationId: 'organizationId',
-  createdBy: 'createdBy',
   connectionId: 'connectionId',
+  apiKey: 'apiKey',
+  createdBy: 'createdBy',
+  organizationId: 'organizationId',
 };
 
 exports.Prisma.ApiKeyScalarFieldEnum = {
@@ -364,8 +375,8 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   organizationId: 'organizationId',
   userId: 'userId',
   adminPerformedById: 'adminPerformedById',
-  oldValues: 'oldValues',
   newValues: 'newValues',
+  oldValues: 'oldValues',
 };
 
 exports.Prisma.ServiceScalarFieldEnum = {
@@ -603,6 +614,7 @@ exports.Prisma.FileStorageScalarFieldEnum = {
   metadata: 'metadata',
   tags: 'tags',
   description: 'description',
+  folderId: 'folderId',
 };
 
 exports.Prisma.FileVersionScalarFieldEnum = {
@@ -643,6 +655,63 @@ exports.Prisma.FileShareScalarFieldEnum = {
   createdBy: 'createdBy',
 };
 
+exports.Prisma.FileFolderScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  path: 'path',
+  parentId: 'parentId',
+  depth: 'depth',
+  isRoot: 'isRoot',
+  organizationId: 'organizationId',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.StorageUsageScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  bytesStored: 'bytesStored',
+  byteHours: 'byteHours',
+  fileCount: 'fileCount',
+  costUsd: 'costUsd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.StorageOverageScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  month: 'month',
+  includedBytes: 'includedBytes',
+  usedBytes: 'usedBytes',
+  overageBytes: 'overageBytes',
+  overageRate: 'overageRate',
+  overageCost: 'overageCost',
+  billed: 'billed',
+  billedAt: 'billedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.StoragePurchaseScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  purchaseType: 'purchaseType',
+  storageGb: 'storageGb',
+  pricePerGb: 'pricePerGb',
+  totalCost: 'totalCost',
+  validFrom: 'validFrom',
+  validUntil: 'validUntil',
+  isRecurring: 'isRecurring',
+  stripePaymentIntent: 'stripePaymentIntent',
+  stripeSubscription: 'stripeSubscription',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
 exports.Prisma.RoleChangeLogScalarFieldEnum = {
   id: 'id',
   targetUserId: 'targetUserId',
@@ -657,6 +726,116 @@ exports.Prisma.RoleChangeLogScalarFieldEnum = {
   status: 'status',
   ipAddress: 'ipAddress',
   userAgent: 'userAgent',
+  createdAt: 'createdAt',
+};
+
+exports.Prisma.StripeConfigScalarFieldEnum = {
+  id: 'id',
+  isLive: 'isLive',
+  publishableKey: 'publishableKey',
+  webhookSecret: 'webhookSecret',
+  defaultCurrency: 'defaultCurrency',
+  taxRateId: 'taxRateId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+};
+
+exports.Prisma.RevenueMetricScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  period: 'period',
+  totalRevenue: 'totalRevenue',
+  newRevenue: 'newRevenue',
+  churnedRevenue: 'churnedRevenue',
+  activeSubscriptions: 'activeSubscriptions',
+  churnedSubscriptions: 'churnedSubscriptions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  churnRate: 'churnRate',
+  newSubscriptions: 'newSubscriptions',
+  upgradeRevenue: 'upgradeRevenue',
+  downgradeRevenue: 'downgradeRevenue',
+  trialSubscriptions: 'trialSubscriptions',
+};
+
+exports.Prisma.AppUsageLogScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  eventType: 'eventType',
+  elementId: 'elementId',
+  elementText: 'elementText',
+  elementPath: 'elementPath',
+  page: 'page',
+  referrerPage: 'referrerPage',
+  userAgent: 'userAgent',
+  ipAddress: 'ipAddress',
+  metadata: 'metadata',
+  pageLoadTime: 'pageLoadTime',
+  timeOnPage: 'timeOnPage',
+  timestamp: 'timestamp',
+};
+
+exports.Prisma.LoginActivityLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  email: 'email',
+  loginType: 'loginType',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  deviceInfo: 'deviceInfo',
+  location: 'location',
+  failureReason: 'failureReason',
+  sessionId: 'sessionId',
+  duration: 'duration',
+  metadata: 'metadata',
+  timestamp: 'timestamp',
+};
+
+exports.Prisma.ContactScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  company: 'company',
+  phone: 'phone',
+  source: 'source',
+  url: 'url',
+  utm: 'utm',
+  leadScore: 'leadScore',
+  leadStatus: 'leadStatus',
+  owner: 'owner',
+  tags: 'tags',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.ContactConversationScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  status: 'status',
+  assignedTo: 'assignedTo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastMessageAt: 'lastMessageAt',
+};
+
+exports.Prisma.ContactMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  role: 'role',
+  content: 'content',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+};
+
+exports.Prisma.ContactNoteScalarFieldEnum = {
+  id: 'id',
+  contactId: 'contactId',
+  body: 'body',
+  createdBy: 'createdBy',
   createdAt: 'createdAt',
 };
 
@@ -714,6 +893,7 @@ exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   PROFESSIONAL: 'PROFESSIONAL',
   BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE',
+  CUSTOM: 'CUSTOM',
 };
 
 exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
@@ -722,6 +902,8 @@ exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
   PAST_DUE: 'PAST_DUE',
   CANCELED: 'CANCELED',
   UNPAID: 'UNPAID',
+  INCOMPLETE: 'INCOMPLETE',
+  INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED',
 };
 
 exports.InvoiceStatus = exports.$Enums.InvoiceStatus = {
@@ -729,6 +911,7 @@ exports.InvoiceStatus = exports.$Enums.InvoiceStatus = {
   PAID: 'PAID',
   FAILED: 'FAILED',
   CANCELED: 'CANCELED',
+  OPEN: 'OPEN',
 };
 
 exports.DatabaseType = exports.$Enums.DatabaseType = {
@@ -738,6 +921,10 @@ exports.DatabaseType = exports.$Enums.DatabaseType = {
   MSSQL: 'MSSQL',
   MONGODB: 'MONGODB',
   REDIS: 'REDIS',
+  SUPABASE: 'SUPABASE',
+  SNOWFLAKE: 'SNOWFLAKE',
+  BIGQUERY: 'BIGQUERY',
+  DYNAMODB: 'DYNAMODB',
   SQLITE: 'SQLITE',
   ORACLE: 'ORACLE',
   AWS_RDS_POSTGRESQL: 'AWS_RDS_POSTGRESQL',
@@ -754,10 +941,6 @@ exports.DatabaseType = exports.$Enums.DatabaseType = {
   GCP_CLOUD_SQL_MYSQL: 'GCP_CLOUD_SQL_MYSQL',
   GCP_CLOUD_SQL_MSSQL: 'GCP_CLOUD_SQL_MSSQL',
   GCP_SPANNER: 'GCP_SPANNER',
-  SUPABASE: 'SUPABASE',
-  SNOWFLAKE: 'SNOWFLAKE',
-  BIGQUERY: 'BIGQUERY',
-  DYNAMODB: 'DYNAMODB',
 };
 
 exports.HttpMethod = exports.$Enums.HttpMethod = {
@@ -831,6 +1014,26 @@ exports.RoleChangeStatus = exports.$Enums.RoleChangeStatus = {
   COMPLETED: 'COMPLETED',
 };
 
+exports.ContactStatus = exports.$Enums.ContactStatus = {
+  NEW: 'NEW',
+  QUALIFIED: 'QUALIFIED',
+  NEGOTIATING: 'NEGOTIATING',
+  CLOSED: 'CLOSED',
+  CONVERTED: 'CONVERTED',
+};
+
+exports.ConversationStatus = exports.$Enums.ConversationStatus = {
+  OPEN: 'OPEN',
+  QUALIFIED: 'QUALIFIED',
+  CLOSED: 'CLOSED',
+};
+
+exports.MessageRole = exports.$Enums.MessageRole = {
+  USER: 'USER',
+  BOT: 'BOT',
+  AGENT: 'AGENT',
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
@@ -867,7 +1070,19 @@ exports.Prisma.ModelName = {
   FileVersion: 'FileVersion',
   FileThumbnail: 'FileThumbnail',
   FileShare: 'FileShare',
+  FileFolder: 'FileFolder',
+  StorageUsage: 'StorageUsage',
+  StorageOverage: 'StorageOverage',
+  StoragePurchase: 'StoragePurchase',
   RoleChangeLog: 'RoleChangeLog',
+  StripeConfig: 'StripeConfig',
+  RevenueMetric: 'RevenueMetric',
+  AppUsageLog: 'AppUsageLog',
+  LoginActivityLog: 'LoginActivityLog',
+  Contact: 'Contact',
+  ContactConversation: 'ContactConversation',
+  ContactMessage: 'ContactMessage',
+  ContactNote: 'ContactNote',
 };
 
 /**

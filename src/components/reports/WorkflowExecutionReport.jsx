@@ -1,4 +1,4 @@
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { ChevronDown, Workflow } from 'lucide-react';
@@ -9,6 +9,7 @@ import { coy } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import api from '../../services/api';
 import { formatTimestampEST } from '../../utils/dateUtils';
 import LoadingSpinner from '../common/LoadingSpinner';
+import JsonViewer from '../ui/JsonViewer';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
@@ -54,18 +55,13 @@ const ExecutionDetailsModal = ({ row }) => {
 
         <div className="space-y-6">
           <div>
-            <h4 className="text-sm font-semibold mb-3">Trigger Data</h4>
-            <Card className="bg-muted/50">
-              <CardContent className="p-4 max-h-[300px] overflow-y-auto">
-                <SyntaxHighlighter
-                  language="json"
-                  style={coy}
-                  customStyle={{ margin: 0, fontSize: '12px' }}
-                >
-                  {JSON.stringify(row.trigger || {}, null, 2)}
-                </SyntaxHighlighter>
-              </CardContent>
-            </Card>
+            <JsonViewer
+              data={row.trigger || {}}
+              title="Trigger Data"
+              collapsed={false}
+              maxHeight="300px"
+              enableActions={true}
+            />
           </div>
 
           <div>
@@ -308,7 +304,7 @@ const WorkflowExecutionReport = () => {
         {/* Filter Row 2 - Date Pickers and Controls */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-            <LocalizationProvider dateAdapter={AdapterMoment}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
               <div className="space-y-2">
                 <Label>Start Date</Label>
                 <DatePicker

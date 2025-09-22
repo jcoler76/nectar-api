@@ -1,0 +1,1309 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id                      String               @id @default(uuid())
+  name                    String
+  slug                    String               @unique
+  domain                  String?              @unique
+  logo                    String?
+  website                 String?
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  lastTermsPromptedAt     DateTime?
+  requiresTermsAcceptance Boolean              @default(true)
+  isActive                Boolean              @default(true)
+  billingEmail            String?
+  country                 String?
+  stripeCustomerId        String?
+  apiActivityLogs         ApiActivityLog[]     @relation("ApiActivityOrganization")
+  apiKeys                 ApiKey[]
+  appUsageLogs            AppUsageLog[]        @relation("AppUsageOrganization")
+  applications            Application[]        @relation("ApplicationOrganization")
+  auditLogs               AuditLog[]
+  billingEvents           BillingEvent[]
+  databaseConnections     DatabaseConnection[]
+  databaseObjects         DatabaseObject[]     @relation("DatabaseObjectOrganization")
+  endpoints               Endpoint[]
+  exposedEntities         ExposedEntity[]
+  fileStorages            FileStorage[]
+  invitations             Invitation[]
+  loginActivityLogs       LoginActivityLog[]   @relation("LoginActivityOrganization")
+  memberships             Membership[]
+  notifications           Notification[]       @relation("NotificationOrganization")
+  rateLimitConfigs        RateLimitConfig[]
+  rateLimitUsage          RateLimitUsage[]
+  roles                   Role[]               @relation("RoleOrganization")
+  roleChangeLogs          RoleChangeLog[]
+  services                Service[]            @relation("ServiceOrganization")
+  storageOverages         StorageOverage[]
+  storagePurchases        StoragePurchase[]
+  storageUsages           StorageUsage[]
+  subscription            Subscription?
+  termsAcceptances        TermsAcceptance[]
+  usageMetrics            UsageMetric[]
+  webhooks                Webhook[]
+  workflows               Workflow[]
+  fileFolders             FileFolder[]
+
+  @@index([slug])
+  @@index([createdAt])
+}
+
+model User {
+  id                         String               @id @default(uuid())
+  email                      String               @unique
+  passwordHash               String?
+  firstName                  String
+  lastName                   String
+  avatarUrl                  String?
+  isActive                   Boolean              @default(true)
+  emailVerified              Boolean              @default(false)
+  emailVerifiedAt            DateTime?
+  lastLoginAt                DateTime?
+  twoFactorEnabled           Boolean              @default(false)
+  twoFactorSecret            String?
+  phoneNumber                String?
+  phoneCarrier               String?
+  createdAt                  DateTime             @default(now())
+  updatedAt                  DateTime             @updatedAt
+  isSuperAdmin               Boolean              @default(false)
+  apiActivityLogs            ApiActivityLog[]     @relation("ApiActivityUser")
+  apiKeysCreated             ApiKey[]
+  appUsageLogs               AppUsageLog[]        @relation("AppUsageUser")
+  applicationsCreated        Application[]        @relation("ApplicationCreator")
+  auditLogs                  AuditLog[]
+  databaseConnectionsCreated DatabaseConnection[]
+  endpointsCreated           Endpoint[]
+  exposedEntitiesCreated     ExposedEntity[]
+  fileSharesCreated          FileShare[]
+  uploadedFiles              FileStorage[]
+  fileVersionsCreated        FileVersion[]
+  invitationsSent            Invitation[]         @relation("InvitedBy")
+  loginActivityLogs          LoginActivityLog[]   @relation("LoginActivityUser")
+  memberships                Membership[]
+  notifications              Notification[]       @relation("NotificationUser")
+  rateLimitCreated           RateLimitConfig[]    @relation("RateLimitCreator")
+  rateLimitUpdated           RateLimitConfig[]    @relation("RateLimitUpdater")
+  rolesCreated               Role[]               @relation("RoleCreator")
+  approvedRoleChanges        RoleChangeLog[]      @relation("ApprovedRoleChanges")
+  performedRoleChanges       RoleChangeLog[]      @relation("PerformedRoleChanges")
+  targetedRoleChanges        RoleChangeLog[]      @relation("TargetedRoleChanges")
+  servicesCreated            Service[]            @relation("ServiceCreator")
+  socialAccounts             SocialAccount[]
+  termsAcceptances           TermsAcceptance[]
+  workflowsCreated           Workflow[]
+  fileFoldersCreated         FileFolder[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model AdminUser {
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  role                 AdminRole       @default(SUPPORT_AGENT)
+  isActive             Boolean         @default(true)
+  lastLoginAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  createdBy            String?
+  notes                String?
+  auditLogs            AuditLog[]
+  performedRoleChanges RoleChangeLog[] @relation("AdminPerformedRoleChanges")
+  targetedRoleChanges  RoleChangeLog[] @relation("TargetedAdminRoleChanges")
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Membership {
+  id             String       @id @default(uuid())
+  role           MemberRole   @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+  userId         String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model Invitation {
+  id             String       @id @default(uuid())
+  email          String
+  role           MemberRole   @default(MEMBER)
+  token          String       @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  organizationId String
+  invitedById    String
+  invitedBy      User         @relation("InvitedBy", fields: [invitedById], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([token])
+  @@index([organizationId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model BillingEvent {
+  id             String        @id @default(uuid())
+  eventType      String
+  stripeEventId  String        @unique
+  metadata       Json
+  createdAt      DateTime      @default(now())
+  organizationId String?
+  subscriptionId String?
+  amount         Int?
+  currency       String?
+  description    String?
+  processedAt    DateTime?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([stripeEventId])
+  @@index([eventType])
+  @@index([organizationId])
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  plan                   SubscriptionPlan   @default(FREE)
+  status                 SubscriptionStatus @default(TRIALING)
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  canceledAt             DateTime?
+  stripeCustomerId       String?            @unique
+  stripeSubscriptionId   String?            @unique
+  stripePriceId          String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  maxDatabaseConnections Int                @default(1)
+  maxApiCallsPerMonth    Int                @default(10000)
+  maxUsersPerOrg         Int                @default(1)
+  maxWorkflows           Int                @default(5)
+  organizationId         String             @unique
+  monthlyRevenue         Decimal?           @db.Decimal(10, 2)
+  storageIncludedBytes   BigInt             @default(0)
+  storageOverageRate     Decimal            @default(0.0000) @db.Decimal(6, 4)
+  cancelAtPeriodEnd      Boolean            @default(false)
+  billingEvents          BillingEvent[]
+  invoices               Invoice[]
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model Invoice {
+  id                    String        @id @default(uuid())
+  invoiceNumber         String        @unique
+  amount                Float
+  currency              String        @default("USD")
+  status                InvoiceStatus @default(PENDING)
+  dueDate               DateTime
+  paidAt                DateTime?
+  stripeInvoiceId       String?       @unique
+  stripePaymentIntentId String?
+  hostedInvoiceUrl      String?
+  createdAt             DateTime      @default(now())
+  subscriptionId        String
+  subscription          Subscription  @relation(fields: [subscriptionId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DatabaseConnection {
+  id                     String          @id @default(uuid())
+  name                   String
+  type                   DatabaseType
+  host                   String
+  port                   Int
+  database               String
+  username               String
+  passwordEncrypted      String
+  sslEnabled             Boolean         @default(false)
+  isActive               Boolean         @default(true)
+  lastTestedAt           DateTime?
+  lastTestResult         Boolean?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  organizationId         String
+  createdBy              String?
+  databases              Json?
+  accountId              String?
+  authMethod             String?         @default("password")
+  endpoint               String?
+  instanceConnectionName String?
+  keyFileEncrypted       String?
+  passphraseEncrypted    String?
+  privateKeyEncrypted    String?
+  projectId              String?
+  region                 String?
+  warehouseName          String?
+  creator                User?           @relation(fields: [createdBy], references: [id])
+  organization           Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  endpoints              Endpoint[]
+  exposedEntities        ExposedEntity[]
+  services               Service[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([type])
+}
+
+model Endpoint {
+  id                 String              @id @default(uuid())
+  path               String
+  method             HttpMethod
+  name               String              @unique
+  description        String?
+  query              String
+  queryParams        Json?
+  bodySchema         Json?
+  responseSchema     Json?
+  isActive           Boolean             @default(true)
+  rateLimitPerMinute Int                 @default(60)
+  requiresAuth       Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  connectionId       String?
+  apiKey             String              @unique
+  createdBy          String
+  organizationId     String
+  usageLogs          ApiActivityLog[]
+  connection         DatabaseConnection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  creator            User                @relation(fields: [createdBy], references: [id])
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, path, method])
+  @@index([connectionId])
+  @@index([path])
+  @@index([organizationId])
+}
+
+model ApiKey {
+  id             String        @id @default(uuid())
+  name           String
+  keyHash        String        @unique
+  keyPrefix      String
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  isActive       Boolean       @default(true)
+  permissions    String[]
+  createdAt      DateTime      @default(now())
+  organizationId String
+  createdById    String
+  createdBy      User          @relation(fields: [createdById], references: [id])
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  usageMetrics   UsageMetric[]
+
+  @@index([keyPrefix])
+  @@index([organizationId])
+}
+
+model UsageMetric {
+  id             String       @id @default(uuid())
+  endpoint       String
+  method         String
+  statusCode     Int
+  responseTimeMs Int
+  timestamp      DateTime     @default(now())
+  organizationId String
+  apiKeyId       String?
+  apiKey         ApiKey?      @relation(fields: [apiKeyId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, timestamp])
+  @@index([apiKeyId])
+  @@index([timestamp])
+}
+
+model Workflow {
+  id             String              @id @default(uuid())
+  name           String
+  description    String?
+  definition     Json
+  isActive       Boolean             @default(true)
+  trigger        Json
+  lastRunAt      DateTime?
+  runCount       Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  organizationId String
+  createdBy      String?
+  creator        User?               @relation(fields: [createdBy], references: [id])
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  executions     WorkflowExecution[]
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+model WorkflowExecution {
+  id          String          @id @default(uuid())
+  status      ExecutionStatus
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  error       String?
+  logs        Json?
+  workflowId  String
+  workflow    Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model Webhook {
+  id              String       @id @default(uuid())
+  url             String
+  events          String[]
+  secret          String
+  isActive        Boolean      @default(true)
+  lastTriggeredAt DateTime?
+  failureCount    Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([isActive])
+}
+
+model AuditLog {
+  id                 String       @id @default(uuid())
+  action             String
+  entityType         String
+  entityId           String
+  metadata           Json?
+  ipAddress          String?
+  userAgent          String?
+  timestamp          DateTime     @default(now())
+  organizationId     String
+  userId             String?
+  adminPerformedById String?
+  newValues          Json?
+  oldValues          Json?
+  adminPerformedBy   AdminUser?   @relation(fields: [adminPerformedById], references: [id])
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user               User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, timestamp])
+  @@index([userId])
+  @@index([adminPerformedById])
+  @@index([entityType, entityId])
+  @@index([timestamp])
+}
+
+model Service {
+  id                String              @id @default(uuid())
+  name              String
+  label             String?
+  description       String?
+  host              String?
+  port              Int?
+  database          String
+  username          String?
+  passwordEncrypted String?
+  isActive          Boolean             @default(true)
+  failoverHost      String?
+  objects           Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organizationId    String
+  createdBy         String
+  connectionId      String?
+  databaseObjects   DatabaseObject[]    @relation("DatabaseObjectService")
+  exposedEntities   ExposedEntity[]
+  roles             Role[]
+  connection        DatabaseConnection? @relation(fields: [connectionId], references: [id])
+  creator           User                @relation("ServiceCreator", fields: [createdBy], references: [id])
+  organization      Organization        @relation("ServiceOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model Application {
+  id              String       @id @default(uuid())
+  name            String
+  description     String?
+  apiKeyHash      String       @unique
+  apiKeyEncrypted String
+  apiKeyPrefix    String
+  apiKeyHint      String
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organizationId  String
+  createdBy       String
+  defaultRoleId   String
+  creator         User         @relation("ApplicationCreator", fields: [createdBy], references: [id])
+  defaultRole     Role         @relation("ApplicationDefaultRole", fields: [defaultRoleId], references: [id])
+  organization    Organization @relation("ApplicationOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model Role {
+  id                   String               @id @default(uuid())
+  name                 String
+  description          String?
+  isActive             Boolean              @default(true)
+  permissions          Json
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  organizationId       String
+  serviceId            String
+  createdBy            String
+  applications         Application[]        @relation("ApplicationDefaultRole")
+  exposedFieldPolicies ExposedFieldPolicy[]
+  exposedRowPolicies   ExposedRowPolicy[]
+  creator              User                 @relation("RoleCreator", fields: [createdBy], references: [id])
+  organization         Organization         @relation("RoleOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  service              Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, serviceId, name])
+  @@index([organizationId])
+  @@index([serviceId])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model Notification {
+  id             String               @id @default(uuid())
+  type           NotificationType
+  priority       NotificationPriority @default(MEDIUM)
+  title          String
+  message        String
+  isRead         Boolean              @default(false)
+  readAt         DateTime?
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+  organizationId String
+  userId         String
+  organization   Organization         @relation("NotificationOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                 @relation("NotificationUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model ApiActivityLog {
+  id             String       @id @default(uuid())
+  requestId      String       @unique
+  timestamp      DateTime     @default(now())
+  method         HttpMethod
+  url            String
+  endpoint       String?
+  statusCode     Int
+  responseTime   Int?
+  userAgent      String?
+  ipAddress      String?
+  category       String?
+  endpointType   String?
+  importance     String?
+  error          String?
+  metadata       Json?
+  organizationId String
+  userId         String?
+  endpointId     String?
+  endpointUsage  Endpoint?    @relation(fields: [endpointId], references: [id])
+  organization   Organization @relation("ApiActivityOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation("ApiActivityUser", fields: [userId], references: [id])
+
+  @@index([organizationId, timestamp])
+  @@index([userId])
+  @@index([timestamp])
+  @@index([endpoint])
+  @@index([statusCode])
+}
+
+model DatabaseObject {
+  id             String       @id @default(uuid())
+  name           String
+  schema         String?
+  type           String
+  path           String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organizationId String
+  serviceId      String?
+  organization   Organization @relation("DatabaseObjectOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  service        Service?     @relation("DatabaseObjectService", fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, serviceId, schema, name])
+  @@index([organizationId])
+  @@index([serviceId])
+  @@index([type])
+}
+
+model ExposedEntity {
+  id                String               @id @default(uuid())
+  serviceId         String
+  connectionId      String
+  organizationId    String
+  database          String
+  schema            String?
+  name              String
+  type              ExposedEntityType
+  primaryKey        String?
+  allowRead         Boolean              @default(true)
+  allowCreate       Boolean              @default(false)
+  allowUpdate       Boolean              @default(false)
+  allowDelete       Boolean              @default(false)
+  defaultSort       String?
+  softDeleteEnabled Boolean              @default(false)
+  softDeleteColumn  String?
+  softDeleteValue   String?
+  pathSlug          String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  createdBy         String?
+  connection        DatabaseConnection   @relation(fields: [connectionId], references: [id], onDelete: Cascade, map: "ExposedEntity_connection_fkey")
+  creator           User?                @relation(fields: [createdBy], references: [id], map: "ExposedEntity_creator_fkey")
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade, map: "ExposedEntity_organization_fkey")
+  service           Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade, map: "ExposedEntity_service_fkey")
+  fieldPolicies     ExposedFieldPolicy[]
+  rowPolicies       ExposedRowPolicy[]
+
+  @@unique([serviceId, schema, name], map: "ExposedEntity_service_schema_name_unique")
+  @@index([organizationId], map: "ExposedEntity_organization_idx")
+}
+
+model ExposedFieldPolicy {
+  id              String        @id @default(uuid())
+  exposedEntityId String
+  roleId          String?
+  includeFields   String[]
+  excludeFields   String[]
+  writeProtected  String[]
+  maskedFields    String[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  exposedEntity   ExposedEntity @relation(fields: [exposedEntityId], references: [id], onDelete: Cascade, map: "ExposedFieldPolicy_entity_fkey")
+  role            Role?         @relation(fields: [roleId], references: [id], map: "ExposedFieldPolicy_role_fkey")
+
+  @@index([exposedEntityId], map: "ExposedFieldPolicy_entity_idx")
+  @@index([roleId], map: "ExposedFieldPolicy_role_idx")
+}
+
+model ExposedRowPolicy {
+  id              String        @id @default(uuid())
+  exposedEntityId String
+  roleId          String?
+  filterTemplate  Json
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  exposedEntity   ExposedEntity @relation(fields: [exposedEntityId], references: [id], onDelete: Cascade, map: "ExposedRowPolicy_entity_fkey")
+  role            Role?         @relation(fields: [roleId], references: [id], map: "ExposedRowPolicy_role_fkey")
+
+  @@index([exposedEntityId], map: "ExposedRowPolicy_entity_idx")
+  @@index([roleId], map: "ExposedRowPolicy_role_idx")
+}
+
+model TermsAndConditions {
+  id            String            @id @default(uuid())
+  version       String            @unique
+  content       String
+  summary       String?
+  effectiveDate DateTime
+  isActive      Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  acceptances   TermsAcceptance[]
+
+  @@index([isActive, effectiveDate])
+}
+
+model TermsAcceptance {
+  id               String             @id @default(uuid())
+  acceptedAt       DateTime           @default(now())
+  ipAddress        String
+  userAgent        String?
+  geolocation      Json?
+  acceptanceMethod AcceptanceMethod   @default(CLICK)
+  organizationId   String
+  userId           String
+  termsId          String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  terms            TermsAndConditions @relation(fields: [termsId], references: [id])
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, termsId])
+  @@index([organizationId, acceptedAt])
+  @@index([userId])
+  @@index([termsId])
+}
+
+model RateLimitConfig {
+  id                String               @id @default(uuid())
+  name              String
+  displayName       String
+  type              RateLimitType
+  max               Int
+  windowMs          Int
+  keyStrategy       RateLimitKeyStrategy @default(IP)
+  enabled           Boolean              @default(true)
+  description       String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  applicationLimits Json?
+  roleLimits        Json?
+  componentLimits   Json?
+  changeHistory     Json?
+  changeReason      String?
+  organizationId    String
+  createdBy         String
+  updatedBy         String?
+  creator           User                 @relation("RateLimitCreator", fields: [createdBy], references: [id])
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  updater           User?                @relation("RateLimitUpdater", fields: [updatedBy], references: [id])
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([type])
+  @@index([enabled])
+  @@index([createdBy])
+}
+
+model RateLimitUsage {
+  id             String       @id @default(uuid())
+  configName     String
+  limitKey       String
+  currentCount   Int          @default(0)
+  resetAt        DateTime
+  blocked        Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, configName, limitKey])
+  @@index([organizationId])
+  @@index([configName])
+  @@index([resetAt])
+  @@index([blocked])
+}
+
+model SocialAccount {
+  id           String   @id @default(uuid())
+  userId       String
+  provider     String
+  providerId   String
+  email        String?
+  name         String?
+  profileUrl   String?
+  avatarUrl    String?
+  accessToken  String?
+  refreshToken String?
+  profileData  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+}
+
+model FileStorage {
+  id              String          @id @default(uuid())
+  filename        String
+  storageKey      String          @unique
+  mimeType        String
+  fileSize        BigInt
+  checksum        String
+  storageProvider StorageProvider @default(S3)
+  bucketName      String?
+  cdnUrl          String?
+  isPublic        Boolean         @default(false)
+  isActive        Boolean         @default(true)
+  uploadedAt      DateTime        @default(now())
+  lastAccessedAt  DateTime?
+  expiresAt       DateTime?
+  organizationId  String
+  uploadedBy      String?
+  metadata        String?
+  tags            String[]
+  description     String?
+  folderId        String?
+  shares          FileShare[]
+  folder          FileFolder?     @relation("FolderFiles", fields: [folderId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploader        User?           @relation(fields: [uploadedBy], references: [id])
+  thumbnails      FileThumbnail[]
+  versions        FileVersion[]
+
+  @@index([organizationId])
+  @@index([uploadedBy])
+  @@index([storageKey])
+  @@index([uploadedAt])
+  @@index([mimeType])
+  @@index([isPublic])
+  @@index([folderId])
+}
+
+model FileVersion {
+  id            String      @id @default(uuid())
+  fileId        String
+  versionNumber Int         @default(1)
+  storageKey    String      @unique
+  fileSize      BigInt
+  checksum      String
+  uploadedAt    DateTime    @default(now())
+  uploadedBy    String?
+  changelog     String?
+  file          FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  uploader      User?       @relation(fields: [uploadedBy], references: [id])
+
+  @@unique([fileId, versionNumber])
+  @@index([fileId])
+}
+
+model FileThumbnail {
+  id         String      @id @default(uuid())
+  fileId     String
+  size       String
+  storageKey String      @unique
+  fileSize   BigInt
+  mimeType   String
+  cdnUrl     String?
+  createdAt  DateTime    @default(now())
+  file       FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, size])
+  @@index([fileId])
+}
+
+model FileShare {
+  id            String      @id @default(uuid())
+  fileId        String
+  shareToken    String      @unique
+  isPublic      Boolean     @default(false)
+  allowDownload Boolean     @default(true)
+  allowPreview  Boolean     @default(true)
+  expiresAt     DateTime?
+  maxDownloads  Int?
+  downloadCount Int         @default(0)
+  password      String?
+  createdAt     DateTime    @default(now())
+  createdBy     String
+  creator       User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  file          FileStorage @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([shareToken])
+  @@index([fileId])
+  @@index([createdBy])
+}
+
+model FileFolder {
+  id             String        @id @default(uuid())
+  name           String
+  path           String
+  parentId       String?
+  depth          Int           @default(0)
+  isRoot         Boolean       @default(false)
+  organizationId String
+  createdBy      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  files          FileStorage[] @relation("FolderFiles")
+  creator        User?         @relation(fields: [createdBy], references: [id])
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent         FileFolder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children       FileFolder[]  @relation("FolderHierarchy")
+
+  @@unique([organizationId, path])
+  @@unique([parentId, name])
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([path])
+  @@index([depth])
+  @@map("file_folders")
+}
+
+model StorageUsage {
+  id             String       @id @default(uuid())
+  organizationId String
+  date           DateTime     @db.Date
+  bytesStored    BigInt       @default(0)
+  byteHours      BigInt       @default(0)
+  fileCount      Int          @default(0)
+  costUsd        Decimal      @default(0.0000) @db.Decimal(10, 4)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date])
+  @@index([organizationId])
+  @@index([date])
+  @@index([createdAt])
+}
+
+model StorageOverage {
+  id             String       @id @default(uuid())
+  organizationId String
+  month          DateTime     @db.Date
+  includedBytes  BigInt
+  usedBytes      BigInt
+  overageBytes   BigInt       @default(0)
+  overageRate    Decimal      @db.Decimal(6, 4)
+  overageCost    Decimal      @default(0.00) @db.Decimal(10, 2)
+  billed         Boolean      @default(false)
+  billedAt       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, month])
+  @@index([organizationId])
+  @@index([month])
+  @@index([billed])
+}
+
+model StoragePurchase {
+  id                  String       @id @default(uuid())
+  organizationId      String
+  purchaseType        String
+  storageGb           Int
+  pricePerGb          Decimal      @db.Decimal(6, 4)
+  totalCost           Decimal      @db.Decimal(10, 2)
+  validFrom           DateTime
+  validUntil          DateTime?
+  isRecurring         Boolean      @default(false)
+  stripePaymentIntent String?
+  stripeSubscription  String?
+  status              String       @default("active")
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validUntil])
+}
+
+model RoleChangeLog {
+  id                 String           @id @default(uuid())
+  targetUserId       String?
+  targetAdminId      String?
+  organizationId     String?
+  oldRole            String
+  newRole            String
+  reason             String?
+  performedById      String?
+  adminPerformedById String?
+  approvedById       String?
+  status             RoleChangeStatus @default(COMPLETED)
+  ipAddress          String?
+  userAgent          String?
+  createdAt          DateTime         @default(now())
+  adminPerformedBy   AdminUser?       @relation("AdminPerformedRoleChanges", fields: [adminPerformedById], references: [id])
+  approvedBy         User?            @relation("ApprovedRoleChanges", fields: [approvedById], references: [id])
+  organization       Organization?    @relation(fields: [organizationId], references: [id])
+  performedBy        User?            @relation("PerformedRoleChanges", fields: [performedById], references: [id])
+  targetAdmin        AdminUser?       @relation("TargetedAdminRoleChanges", fields: [targetAdminId], references: [id])
+  targetUser         User?            @relation("TargetedRoleChanges", fields: [targetUserId], references: [id])
+
+  @@index([targetUserId])
+  @@index([targetAdminId])
+  @@index([organizationId])
+  @@index([performedById])
+  @@index([adminPerformedById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model StripeConfig {
+  id              String   @id @default(uuid())
+  isLive          Boolean  @default(false)
+  publishableKey  String
+  webhookSecret   String?
+  defaultCurrency String   @default("USD")
+  taxRateId       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?
+
+  @@index([isLive])
+}
+
+model RevenueMetric {
+  id                   String   @id @default(uuid())
+  date                 DateTime
+  period               String
+  totalRevenue         Int      @default(0)
+  newRevenue           Int      @default(0)
+  churnedRevenue       Int      @default(0)
+  activeSubscriptions  Int      @default(0)
+  churnedSubscriptions Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  churnRate            Float    @default(0.0)
+  newSubscriptions     Int      @default(0)
+  upgradeRevenue       Int      @default(0)
+  downgradeRevenue     Int      @default(0)
+  trialSubscriptions   Int      @default(0)
+
+  @@unique([date, period], name: "date_period")
+  @@index([period])
+  @@index([date])
+}
+
+model AppUsageLog {
+  id             String        @id @default(uuid())
+  sessionId      String
+  userId         String?
+  organizationId String?
+  eventType      String
+  elementId      String?
+  elementText    String?
+  elementPath    String?
+  page           String
+  referrerPage   String?
+  userAgent      String?
+  ipAddress      String?
+  metadata       Json?
+  pageLoadTime   Int?
+  timeOnPage     Int?
+  timestamp      DateTime      @default(now())
+  organization   Organization? @relation("AppUsageOrganization", fields: [organizationId], references: [id])
+  user           User?         @relation("AppUsageUser", fields: [userId], references: [id])
+
+  @@index([userId, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([eventType])
+  @@index([page])
+  @@index([timestamp])
+}
+
+model LoginActivityLog {
+  id             String        @id @default(uuid())
+  userId         String?
+  organizationId String?
+  email          String?
+  loginType      String
+  ipAddress      String?
+  userAgent      String?
+  deviceInfo     Json?
+  location       Json?
+  failureReason  String?
+  sessionId      String?
+  duration       Int?
+  metadata       Json?
+  timestamp      DateTime      @default(now())
+  organization   Organization? @relation("LoginActivityOrganization", fields: [organizationId], references: [id])
+  user           User?         @relation("LoginActivityUser", fields: [userId], references: [id])
+
+  @@index([userId, timestamp])
+  @@index([loginType])
+  @@index([ipAddress])
+  @@index([timestamp])
+  @@index([organizationId, timestamp])
+  @@index([email])
+}
+
+model Contact {
+  id            String                @id @default(uuid())
+  name          String?
+  email         String?
+  company       String?
+  phone         String?
+  source        String?
+  url           String?
+  utm           Json?
+  leadScore     Int                   @default(0) @map("lead_score")
+  leadStatus    ContactStatus         @default(NEW) @map("lead_status")
+  owner         String?
+  tags          String[]              @default([])
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+  conversations ContactConversation[]
+  notes         ContactNote[]
+
+  @@index([email])
+  @@index([leadStatus])
+  @@index([owner])
+  @@index([source])
+  @@index([createdAt])
+  @@map("contacts")
+}
+
+model ContactConversation {
+  id            String             @id @default(uuid())
+  contactId     String             @map("contact_id")
+  status        ConversationStatus @default(OPEN)
+  assignedTo    String?            @map("assigned_to")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  lastMessageAt DateTime?          @map("last_message_at")
+  contact       Contact            @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  messages      ContactMessage[]
+
+  @@index([contactId])
+  @@index([status])
+  @@index([assignedTo])
+  @@index([createdAt])
+  @@map("contact_conversations")
+}
+
+model ContactMessage {
+  id             String              @id @default(uuid())
+  conversationId String              @map("conversation_id")
+  role           MessageRole
+  content        String
+  metadata       Json?
+  createdAt      DateTime            @default(now()) @map("created_at")
+  conversation   ContactConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model ContactNote {
+  id        String   @id @default(uuid())
+  contactId String   @map("contact_id")
+  body      String
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("contact_notes")
+}
+
+enum ExposedEntityType {
+  TABLE
+  VIEW
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+  SUPER_ADMIN
+  ORGANIZATION_OWNER
+  ORGANIZATION_ADMIN
+  DEVELOPER
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT_AGENT
+  BILLING_ADMIN
+  ANALYST
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+  CUSTOM
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+  OPEN
+}
+
+enum DatabaseType {
+  POSTGRESQL
+  MYSQL
+  MARIADB
+  MSSQL
+  MONGODB
+  REDIS
+  SUPABASE
+  SNOWFLAKE
+  BIGQUERY
+  DYNAMODB
+  SQLITE
+  ORACLE
+  AWS_RDS_POSTGRESQL
+  AWS_RDS_MYSQL
+  AWS_RDS_MSSQL
+  AWS_RDS_ORACLE
+  AWS_AURORA_POSTGRESQL
+  AWS_AURORA_MYSQL
+  AZURE_SQL_DATABASE
+  AZURE_SQL_MANAGED_INSTANCE
+  AZURE_POSTGRESQL
+  AZURE_MYSQL
+  GCP_CLOUD_SQL_POSTGRESQL
+  GCP_CLOUD_SQL_MYSQL
+  GCP_CLOUD_SQL_MSSQL
+  GCP_SPANNER
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+enum NotificationType {
+  SYSTEM
+  WORKFLOW
+  SECURITY
+  USER_MESSAGE
+}
+
+enum NotificationPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AcceptanceMethod {
+  CLICK
+  SCROLL
+  SIGNATURE
+}
+
+enum RateLimitType {
+  API
+  AUTH
+  UPLOAD
+  GRAPHQL
+  WEBSOCKET
+  CUSTOM
+}
+
+enum RateLimitKeyStrategy {
+  IP
+  USER_ID
+  API_KEY
+  SESSION
+  CUSTOM
+}
+
+enum StorageProvider {
+  S3
+  LOCAL
+  AZURE_BLOB
+  GOOGLE_CLOUD
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  ROLE_CHANGE
+  PERMISSION_GRANT
+  PERMISSION_REVOKE
+  INVITE_SENT
+  INVITE_ACCEPTED
+  PASSWORD_RESET
+  API_KEY_CREATED
+  API_KEY_REVOKED
+}
+
+enum EntityType {
+  USER
+  ADMIN_USER
+  ORGANIZATION
+  MEMBERSHIP
+  API_KEY
+  SERVICE
+  ENDPOINT
+  ROLE
+}
+
+enum RoleChangeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum ContactStatus {
+  NEW
+  QUALIFIED
+  NEGOTIATING
+  CLOSED
+  CONVERTED
+}
+
+enum ConversationStatus {
+  OPEN
+  QUALIFIED
+  CLOSED
+}
+
+enum MessageRole {
+  USER
+  BOT
+  AGENT
+}

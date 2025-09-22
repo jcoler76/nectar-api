@@ -381,40 +381,65 @@ router.get('/storage/usage', authMiddleware, async (req, res) => {
     // Get comprehensive storage information from billing service
     const quotaInfo = await storageBillingService.checkEnhancedStorageQuota(organizationId);
 
+    // Ensure data integrity
+    if (!quotaInfo || !quotaInfo.storage || !quotaInfo.usage) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve storage information',
+      });
+    }
+
     // Helper function to format bytes
     function formatBytesToString(bytes) {
+      // Handle null, undefined, NaN, or invalid values
+      if (bytes == null || isNaN(bytes) || bytes < 0) return '0 Bytes';
       if (bytes === 0) return '0 Bytes';
+
       const k = 1024;
       const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+      // Ensure we don't exceed array bounds
+      const sizeIndex = Math.min(i, sizes.length - 1);
+      const formattedValue = (bytes / Math.pow(k, sizeIndex)).toFixed(2);
+
+      return parseFloat(formattedValue) + ' ' + sizes[sizeIndex];
     }
+
+    // Extract values with safe defaults
+    const bytesUsed = quotaInfo.usage?.bytesUsed ?? 0;
+    const totalStorageBytes = quotaInfo.storage?.totalStorageBytes ?? 0;
+    const fileCount = quotaInfo.usage?.fileCount ?? 0;
+
+    // Calculate percentage safely
+    const usagePercentage =
+      totalStorageBytes > 0 ? Math.round((bytesUsed / totalStorageBytes) * 10000) / 100 : 0;
 
     res.json({
       success: true,
       data: {
-        organizationId: quotaInfo.organization.id,
-        organizationName: quotaInfo.organization.name,
-        subscriptionPlan: quotaInfo.organization.plan,
+        organizationId: quotaInfo.organization?.id || organizationId,
+        organizationName: quotaInfo.organization?.name || 'Unknown',
+        subscriptionPlan: quotaInfo.organization?.plan || 'FREE',
         storage: {
-          used: quotaInfo.usage.bytesUsed,
-          limit: quotaInfo.quota.includedBytes,
-          usagePercentage:
-            Math.round((quotaInfo.usage.bytesUsed / quotaInfo.quota.includedBytes) * 10000) / 100,
-          isOverLimit: quotaInfo.overage.isOverLimit,
-          overageBytes: quotaInfo.overage.overageBytes,
-          overageRate: quotaInfo.quota.overageRate,
-          estimatedMonthlyCost: quotaInfo.overage.estimatedMonthlyCost,
-          allowsOverages: quotaInfo.quota.allowsOverages,
+          used: bytesUsed,
+          limit: totalStorageBytes,
+          usagePercentage: usagePercentage,
+          isOverLimit: quotaInfo.overage?.isOverLimit ?? false,
+          overageBytes: quotaInfo.overage?.overageBytes ?? 0,
+          overageRate: quotaInfo.quota?.overageRate ?? null,
+          estimatedMonthlyCost: quotaInfo.overage?.estimatedMonthlyCost ?? 0,
+          allowsOverages: quotaInfo.quota?.allowsOverages ?? false,
+          isUnlimited: totalStorageBytes === Number.MAX_SAFE_INTEGER,
         },
         files: {
-          total: quotaInfo.usage.fileCount,
+          total: fileCount,
         },
         formattedStorage: {
-          used: formatBytesToString(quotaInfo.usage.bytesUsed),
-          limit: formatBytesToString(quotaInfo.quota.includedBytes),
-          overage: quotaInfo.overage.isOverLimit
-            ? formatBytesToString(quotaInfo.overage.overageBytes)
+          used: formatBytesToString(bytesUsed),
+          limit: formatBytesToString(totalStorageBytes),
+          overage: quotaInfo.overage?.isOverLimit
+            ? formatBytesToString(quotaInfo.overage?.overageBytes ?? 0)
             : '0 Bytes',
         },
         quotaStatus: quotaInfo.quotaStatus,

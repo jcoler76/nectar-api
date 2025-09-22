@@ -23,9 +23,27 @@ class DatabaseDriverFactory {
     ['MONGODB', MongoDBDriver],
     ['SQLITE', SQLiteDriver],
     ['ORACLE', OracleDriver],
+    // AWS RDS variants
     ['AWS_RDS', AWSRDSDriver],
+    ['AWS_RDS_POSTGRESQL', AWSRDSDriver],
+    ['AWS_RDS_MYSQL', AWSRDSDriver],
+    ['AWS_RDS_MSSQL', AWSRDSDriver],
+    ['AWS_RDS_ORACLE', AWSRDSDriver],
+    ['AWS_AURORA_POSTGRESQL', AWSRDSDriver],
+    ['AWS_AURORA_MYSQL', AWSRDSDriver],
+    // Azure SQL variants
     ['AZURE_SQL', AzureSQLDriver],
+    ['AZURE_SQL_DATABASE', AzureSQLDriver],
+    ['AZURE_SQL_MANAGED_INSTANCE', AzureSQLDriver],
+    ['AZURE_POSTGRESQL', AzureSQLDriver],
+    ['AZURE_MYSQL', AzureSQLDriver],
+    // Google Cloud SQL variants
     ['GOOGLE_CLOUD_SQL', GoogleCloudSQLDriver],
+    ['GCP_CLOUD_SQL_POSTGRESQL', GoogleCloudSQLDriver],
+    ['GCP_CLOUD_SQL_MYSQL', GoogleCloudSQLDriver],
+    ['GCP_CLOUD_SQL_MSSQL', GoogleCloudSQLDriver],
+    ['GCP_SPANNER', GoogleCloudSQLDriver],
+    // Analytics platforms
     ['BIGQUERY', BigQueryDriver],
     ['SNOWFLAKE', SnowflakeDriver],
   ]);
@@ -45,8 +63,97 @@ class DatabaseDriverFactory {
       );
     }
 
+    // Validate SDK availability before creating driver
+    this._validateSDKAvailability(normalizedType);
+
+    // Enhance connection config with engine information for cloud providers
+    const enhancedConfig = { ...connectionConfig };
+
+    // Map database types to underlying engines for cloud providers
+    if (normalizedType.startsWith('AWS_RDS_') || normalizedType.startsWith('AWS_AURORA_')) {
+      enhancedConfig.engine = this._mapToEngine(normalizedType);
+    } else if (normalizedType.startsWith('AZURE_')) {
+      enhancedConfig.engine = this._mapToEngine(normalizedType);
+    } else if (normalizedType.startsWith('GCP_')) {
+      enhancedConfig.engine = this._mapToEngine(normalizedType);
+    }
+
     const DriverClass = this.drivers.get(normalizedType);
-    return new DriverClass(connectionConfig);
+    return new DriverClass(enhancedConfig);
+  }
+
+  /**
+   * Validate SDK availability for database type
+   * @private
+   * @param {string} databaseType - Database type
+   * @throws {Error} If required SDK is not available
+   */
+  static _validateSDKAvailability(databaseType) {
+    const sdkRequirements = {
+      BIGQUERY: '@google-cloud/bigquery',
+      SNOWFLAKE: 'snowflake-sdk',
+      AWS_RDS_POSTGRESQL: 'aws-sdk',
+      AWS_RDS_MYSQL: 'aws-sdk',
+      AWS_RDS_MSSQL: 'aws-sdk',
+      AWS_RDS_ORACLE: 'aws-sdk',
+      AWS_AURORA_POSTGRESQL: 'aws-sdk',
+      AWS_AURORA_MYSQL: 'aws-sdk',
+      AZURE_SQL_DATABASE: '@azure/identity',
+      AZURE_SQL_MANAGED_INSTANCE: '@azure/identity',
+      AZURE_POSTGRESQL: '@azure/identity',
+      AZURE_MYSQL: '@azure/identity',
+      GCP_CLOUD_SQL_POSTGRESQL: '@google-cloud/storage',
+      GCP_CLOUD_SQL_MYSQL: '@google-cloud/storage',
+      GCP_CLOUD_SQL_MSSQL: '@google-cloud/storage',
+      GCP_SPANNER: '@google-cloud/spanner',
+      ORACLE: 'oracledb',
+      MONGODB: 'mongodb',
+      MYSQL: 'mysql2',
+      POSTGRESQL: 'pg',
+      MSSQL: 'mssql',
+      SQLITE: 'sqlite3',
+    };
+
+    const requiredSDK = sdkRequirements[databaseType];
+    if (requiredSDK) {
+      try {
+        require.resolve(requiredSDK);
+      } catch (error) {
+        throw new Error(
+          `Missing required SDK for ${databaseType}: ${requiredSDK}. Please install with: npm install ${requiredSDK}`
+        );
+      }
+    }
+  }
+
+  /**
+   * Map database types to underlying engines
+   * @private
+   * @param {string} databaseType - Database type
+   * @returns {string} Engine name
+   */
+  static _mapToEngine(databaseType) {
+    const engineMap = {
+      // AWS RDS engines
+      AWS_RDS_POSTGRESQL: 'postgres',
+      AWS_RDS_MYSQL: 'mysql',
+      AWS_RDS_MSSQL: 'sqlserver',
+      AWS_RDS_ORACLE: 'oracle',
+      AWS_AURORA_POSTGRESQL: 'aurora-postgresql',
+      AWS_AURORA_MYSQL: 'aurora-mysql',
+      // Azure engines
+      AZURE_SQL_DATABASE: 'sqlserver',
+      AZURE_SQL_MANAGED_INSTANCE: 'sqlserver',
+      AZURE_POSTGRESQL: 'postgres',
+      AZURE_MYSQL: 'mysql',
+      // Google Cloud engines
+      GCP_CLOUD_SQL_POSTGRESQL: 'postgres',
+      GCP_CLOUD_SQL_MYSQL: 'mysql',
+      GCP_CLOUD_SQL_MSSQL: 'sqlserver',
+      GCP_SPANNER: 'spanner',
+    };
+
+    return engineMap[databaseType] || 'unknown';
   }
 
   /**

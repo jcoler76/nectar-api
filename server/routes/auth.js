@@ -6,6 +6,7 @@ const { logger } = require('../utils/logger');
 const { body, validationResult } = require('express-validator');
 const { getPrismaClient } = require('../config/prisma');
 const bcrypt = require('bcryptjs');
+const { serializeBigInt } = require('../utils/bigintSerializer');
 
 // Validation rules
 const loginValidation = [
@@ -633,12 +634,12 @@ router.post('/set-password', setPasswordValidation, handleValidationErrors, asyn
         emailVerified: true,
         lastLoginAt: new Date(),
       },
-      organization: {
+      organization: serializeBigInt({
         id: organization.id,
         name: organization.name,
         slug: organization.slug,
         subscription: organization.subscription,
-      },
+      }),
       membership: {
         role: primaryMembership.role,
         joinedAt: primaryMembership.joinedAt,

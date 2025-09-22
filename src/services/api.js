@@ -100,9 +100,9 @@ api.interceptors.request.use(
           '/api/v1',
           '/api/v2',
           '/api/webhooks',
-          '/api/forms',
+          '/api/forms/public',
           '/api/email',
-          '/api/files',
+          '/api/files/upload/public',
         ];
         const excludedPatterns = [
           /\/refresh-schema$/,

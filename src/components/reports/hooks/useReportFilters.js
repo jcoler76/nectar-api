@@ -1,6 +1,7 @@
-import moment from 'moment-timezone';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+
+import { nowInTimezone, subtractDaysFromDate, parseISODate } from '../../../utils/dateUnified';
 
 const useReportFilters = (defaultFilters = {}) => {
   const location = useLocation();
@@ -9,9 +10,11 @@ const useReportFilters = (defaultFilters = {}) => {
 
   // Initialize dates based on URL parameter or defaults
   const defaultStartDate = dateParam
-    ? moment(dateParam)
-    : defaultFilters.startDate || moment().subtract(7, 'days');
-  const defaultEndDate = dateParam ? moment(dateParam) : defaultFilters.endDate || moment();
+    ? parseISODate(dateParam)
+    : defaultFilters.startDate || subtractDaysFromDate(nowInTimezone(), 7);
+  const defaultEndDate = dateParam
+    ? parseISODate(dateParam)
+    : defaultFilters.endDate || nowInTimezone();
 
   const [filters, setFilters] = useState({
     startDate: defaultStartDate,
@@ -39,8 +42,8 @@ const useReportFilters = (defaultFilters = {}) => {
 
   const resetFilters = useCallback(() => {
     setFilters({
-      startDate: moment().subtract(7, 'days'),
-      endDate: moment(),
+      startDate: subtractDaysFromDate(nowInTimezone(), 7),
+      endDate: nowInTimezone(),
       showDetails: false,
       ...defaultFilters,
     });
