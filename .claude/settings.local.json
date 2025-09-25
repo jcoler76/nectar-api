@@ -34,7 +34,7 @@
       "Read(/C:\\Users\\Jestin\\nectar-api\\src\\components\\ui/**)",
       "Read(/C:\\Users\\Jestin\\nectar-api\\server\\services\\salesforce/**)",
       "Read(/C:\\Users\\Jestin\\nectar-api\\server\\services\\salesforce/**)",
-      "Read(/C:\\Users\\Jestin\\nectar-api\\server\\services\\workflows\\nodes/**)",
+      "Read(/C:\\Users\\Jestin\\nectar-api\\server\\services\\workflows\\nodes\\**)",
       "Read(/C:\\Users\\Jestin\\nectar-api\\server/**)",
       "Read(/C:\\Users\\Jestin\\nectar-api\\server\\middleware/**)",
       "Read(/C:\\Users\\Jestin\\nectar-api\\server\\middleware/**)",

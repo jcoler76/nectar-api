@@ -91,7 +91,7 @@ const PricingPage = () => {
       icon: <Zap className="w-8 h-8" />,
       description: 'Full functionality for individuals and small teams',
       monthlyPrice: 29,
-      yearlyPrice: 290,
+      yearlyPrice: 296,
       features: [
         '1 user included',
         '3 datasources',
@@ -116,7 +116,7 @@ const PricingPage = () => {
       icon: <Crown className="w-8 h-8" />,
       description: 'Advanced features for growing teams',
       monthlyPrice: 99,
-      yearlyPrice: 990,
+      yearlyPrice: 1010,
       features: [
         '10 users included',
         'Unlimited datasources',
@@ -142,7 +142,7 @@ const PricingPage = () => {
       icon: <Building2 className="w-8 h-8" />,
       description: 'Enterprise security and governance features',
       monthlyPrice: 199,
-      yearlyPrice: 1990,
+      yearlyPrice: 2030,
       features: [
         '25 users included',
         'Unlimited datasources',
@@ -270,7 +270,7 @@ const PricingPage = () => {
               </span>
               {billingCycle === 'yearly' && (
                 <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
-                  Save up to 20%
+                  Save up to 15%
                 </span>
               )}
             </div>
