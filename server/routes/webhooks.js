@@ -1,7 +1,7 @@
 const express = require('express');
 const logger = require('../utils/logger');
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const { executeWorkflow } = require('../services/workflows/engine');
 const { getFileStorageService } = require('../services/fileStorageService');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');

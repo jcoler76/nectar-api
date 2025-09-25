@@ -2,8 +2,8 @@
 // const Connection = require('../models/Connection');
 // const Service = require('../models/Service');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const NotificationService = require('./notificationService');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const sql = require('mssql');

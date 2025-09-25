@@ -3,8 +3,8 @@
 // const SchemaIntelligence = require('../models/SchemaIntelligence');
 // const mongoose = require('mongoose');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 
 /**
  * DatabaseObjectService

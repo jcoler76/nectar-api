@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { prisma } from '@/utils/database'
+import { mainApiClient } from '@/services/apiClient'
 
 export class StripeService {
   private static stripe: Stripe | null = null
@@ -25,18 +25,16 @@ export class StripeService {
     return this.stripe
   }
 
-  /**
-   * Get Stripe configuration from database
-   */
   static async getStripeConfig() {
-    return prisma.stripeConfig.findFirst({
-      orderBy: { createdAt: 'desc' }
-    })
+    try {
+      const response = await mainApiClient.get<{ success: boolean; data: any }>('/api/admin-backend/billing/stripe-config')
+      return response.data
+    } catch (error) {
+      console.error('Failed to get Stripe config:', error)
+      return null
+    }
   }
 
-  /**
-   * Update Stripe configuration
-   */
   static async updateStripeConfig(data: {
     isLive?: boolean
     publishableKey: string
@@ -45,31 +43,17 @@ export class StripeService {
     taxRateId?: string
     updatedBy: string
   }) {
-    // Delete existing config and create new one
-    await prisma.stripeConfig.deleteMany({})
-    
-    return prisma.stripeConfig.create({
-      data: {
-        isLive: data.isLive ?? false,
-        publishableKey: data.publishableKey,
-        webhookSecret: data.webhookSecret,
-        defaultCurrency: data.defaultCurrency ?? 'USD',
-        taxRateId: data.taxRateId,
-        updatedBy: data.updatedBy
-      }
-    })
+    const response = await mainApiClient.put('/api/admin-backend/billing/stripe-config', data)
+    return response.data
   }
 
-  /**
-   * Create Stripe customer for organization
-   */
   static async createCustomer(organizationId: string, data: {
     email: string
     name: string
     metadata?: Record<string, string>
   }) {
     const stripe = await this.getStripeClient()
-    
+
     const customer = await stripe.customers.create({
       email: data.email,
       name: data.name,
@@ -79,31 +63,24 @@ export class StripeService {
       }
     })
 
-    // Update organization with Stripe customer ID
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { 
-        stripeCustomerId: customer.id,
-        billingEmail: data.email
-      }
+    await mainApiClient.post('/api/admin-backend/billing/create-customer', {
+      organizationId,
+      stripeCustomerId: customer.id,
+      billingEmail: data.email
     })
 
     return customer
   }
 
-  /**
-   * Create subscription for organization
-   */
   static async createSubscription(organizationId: string, data: {
     priceId: string
     trialPeriodDays?: number
     metadata?: Record<string, string>
   }) {
     const stripe = await this.getStripeClient()
-    
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId }
-    })
+
+    const orgResponse = await mainApiClient.get<{ success: boolean; data: any }>(`/api/admin-backend/billing/organization/${organizationId}`)
+    const organization = orgResponse.data
 
     if (!organization?.stripeCustomerId) {
       throw new Error('Organization must have a Stripe customer ID')
@@ -119,15 +96,11 @@ export class StripeService {
       }
     })
 
-    // Create subscription record in database
     await this.syncSubscription(subscription)
 
     return subscription
   }
 
-  /**
-   * Sync Stripe subscription with database
-   */
   static async syncSubscription(stripeSubscription: Stripe.Subscription) {
     const organizationId = stripeSubscription.metadata.organizationId
     if (!organizationId) {
@@ -148,16 +121,14 @@ export class StripeService {
       cancelAtPeriodEnd: (stripeSubscription as any).cancel_at_period_end,
     }
 
-    return prisma.subscription.upsert({
-      where: { stripeSubscriptionId: stripeSubscription.id },
-      update: subscriptionData,
-      create: subscriptionData
+    const response = await mainApiClient.post('/api/admin-backend/billing/sync-subscription', {
+      stripeSubscriptionId: stripeSubscription.id,
+      subscriptionData
     })
+
+    return response.data
   }
 
-  /**
-   * Handle Stripe webhook events
-   */
   static async handleWebhook(event: Stripe.Event) {
     try {
       switch (event.type) {
@@ -191,32 +162,22 @@ export class StripeService {
     }
   }
 
-  /**
-   * Log billing event
-   */
   private static async logBillingEvent(event: Stripe.Event, eventType: string) {
     const organizationId = this.extractOrganizationId(event.data.object)
     if (!organizationId) return
 
-    await prisma.billingEvent.create({
-      data: {
-        organizationId,
-        stripeEventId: event.id,
-        eventType: eventType as any,
-        amount: this.extractAmount(event.data.object),
-        currency: this.extractCurrency(event.data.object),
-        description: `Stripe webhook: ${event.type}`,
-        metadata: event.data.object as any,
-        processedAt: new Date()
-      }
+    await mainApiClient.post('/api/admin-backend/billing/billing-event', {
+      organizationId,
+      stripeEventId: event.id,
+      eventType,
+      amount: this.extractAmount(event.data.object),
+      currency: this.extractCurrency(event.data.object),
+      description: `Stripe webhook: ${event.type}`,
+      metadata: event.data.object
     })
   }
 
-  /**
-   * Map Stripe price ID to subscription plan
-   */
   private static mapStripePriceToPlan(priceId: string): 'FREE' | 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE' | 'CUSTOM' {
-    // This mapping should be configured based on your Stripe price IDs
     const priceMapping: Record<string, any> = {
       'price_starter_monthly': 'STARTER',
       'price_starter_yearly': 'STARTER',
@@ -225,13 +186,10 @@ export class StripeService {
       'price_enterprise_monthly': 'ENTERPRISE',
       'price_enterprise_yearly': 'ENTERPRISE',
     }
-    
+
     return priceMapping[priceId] || 'CUSTOM'
   }
 
-  /**
-   * Map Stripe subscription status to our enum
-   */
   private static mapStripeStatus(status: Stripe.Subscription.Status): 'TRIALING' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'UNPAID' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' {
     const statusMapping: Record<Stripe.Subscription.Status, any> = {
       'trialing': 'TRIALING',
@@ -243,180 +201,82 @@ export class StripeService {
       'incomplete_expired': 'INCOMPLETE_EXPIRED',
       'paused': 'CANCELED'
     }
-    
+
     return statusMapping[status] || 'INCOMPLETE'
   }
 
-  /**
-   * Handle subscription cancellation
-   */
   private static async handleSubscriptionCanceled(subscription: Stripe.Subscription) {
-    await prisma.subscription.updateMany({
-      where: { stripeSubscriptionId: subscription.id },
-      data: {
-        status: 'CANCELED',
-        canceledAt: new Date(subscription.canceled_at! * 1000)
-      }
+    await mainApiClient.put(`/api/admin-backend/billing/subscription/${subscription.id}/cancel`, {
+      canceledAt: subscription.canceled_at
     })
   }
 
-  /**
-   * Handle successful payment
-   */
   private static async handlePaymentSucceeded(invoice: Stripe.Invoice) {
     if ((invoice as any).subscription && typeof (invoice as any).subscription === 'string') {
-      const subscription = await prisma.subscription.findFirst({
-        where: { stripeSubscriptionId: (invoice as any).subscription }
-      })
-      
-      if (subscription) {
-        // Update revenue tracking
-        await this.updateRevenueMetrics(subscription.organizationId, invoice.amount_paid / 100)
+      const response = await mainApiClient.get<{ success: boolean; data: any }>(`/api/admin-backend/billing/subscription/${(invoice as any).subscription}`)
+
+      if (response.data) {
+        await this.updateRevenueMetrics(response.data.organizationId, invoice.amount_paid / 100)
       }
     }
   }
 
-  /**
-   * Handle failed payment
-   */
   private static async handlePaymentFailed(invoice: Stripe.Invoice) {
-    // Handle failed payment logic (send notifications, update subscription status, etc.)
     console.log('Payment failed for invoice:', invoice.id)
   }
 
-  /**
-   * Update revenue metrics
-   */
   private static async updateRevenueMetrics(organizationId: string, amount: number) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    await prisma.revenueMetric.upsert({
-      where: {
-        date_period: {
-          date: today,
-          period: 'DAILY'
-        }
-      },
-      update: {
-        totalRevenue: { increment: amount },
-        newRevenue: { increment: amount }
-      },
-      create: {
-        date: today,
-        period: 'DAILY',
-        totalRevenue: amount,
-        newRevenue: amount,
-        churnedRevenue: 0,
-        upgradeRevenue: 0,
-        downgradeRevenue: 0,
-        activeSubscriptions: 0,
-        trialSubscriptions: 0,
-        churnedSubscriptions: 0,
-        newSubscriptions: 1
-      }
+    await mainApiClient.post('/api/admin-backend/billing/revenue-metric', {
+      date: today,
+      period: 'DAILY',
+      totalRevenue: amount,
+      newRevenue: amount
     })
   }
 
-  /**
-   * Extract organization ID from Stripe object
-   */
   private static extractOrganizationId(stripeObject: any): string | null {
     return stripeObject.metadata?.organizationId || null
   }
 
-  /**
-   * Extract amount from Stripe object
-   */
   private static extractAmount(stripeObject: any): number | null {
     if (stripeObject.amount_paid) return stripeObject.amount_paid / 100
     if (stripeObject.amount) return stripeObject.amount / 100
     return null
   }
 
-  /**
-   * Extract currency from Stripe object
-   */
   private static extractCurrency(stripeObject: any): string | null {
     return stripeObject.currency || null
   }
 
-  /**
-   * Get revenue analytics
-   */
   static async getRevenueAnalytics(period: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY' = 'MONTHLY', limit = 12) {
-    return prisma.revenueMetric.findMany({
-      where: { period },
-      orderBy: { date: 'desc' },
-      take: limit
-    })
+    const response = await mainApiClient.get<{ success: boolean; data: any[] }>(`/api/admin-backend/billing/revenue-analytics?period=${period}&limit=${limit}`)
+    return response.data
   }
 
-  /**
-   * Get subscription analytics
-   */
   static async getSubscriptionAnalytics() {
-    const [total, active, trialing, pastDue, canceled] = await Promise.all([
-      prisma.subscription.count(),
-      prisma.subscription.count({ where: { status: 'ACTIVE' } }),
-      prisma.subscription.count({ where: { status: 'TRIALING' } }),
-      prisma.subscription.count({ where: { status: 'PAST_DUE' } }),
-      prisma.subscription.count({ where: { status: 'CANCELED' } })
-    ])
-
-    return {
-      total,
-      active,
-      trialing,
-      pastDue,
-      canceled,
-      healthScore: total > 0 ? (active / total) * 100 : 0
-    }
+    const response = await mainApiClient.get<{ success: boolean; data: any }>('/api/admin-backend/billing/subscription-analytics')
+    return response.data
   }
 
-  /**
-   * Get upcoming renewals
-   */
   static async getUpcomingRenewals(days = 30) {
-    const futureDate = new Date()
-    futureDate.setDate(futureDate.getDate() + days)
-
-    return prisma.subscription.findMany({
-      where: {
-        status: { in: ['ACTIVE', 'TRIALING'] },
-        currentPeriodEnd: {
-          gte: new Date(),
-          lte: futureDate
-        }
-      },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            billingEmail: true
-          }
-        }
-      },
-      orderBy: { currentPeriodEnd: 'asc' }
-    })
+    const response = await mainApiClient.get<{ success: boolean; data: any[] }>(`/api/admin-backend/billing/upcoming-renewals?days=${days}`)
+    return response.data
   }
 
-  /**
-   * Calculate churn rate
-   */
   static async calculateChurnRate(period = 'MONTHLY') {
     const metrics = await this.getRevenueAnalytics(period as any, 2)
-    
+
     if (metrics.length < 2) return 0
 
     const current = metrics[0]
     const previous = metrics[1]
-    
+
     if (previous.activeSubscriptions === 0) return 0
-    
+
     const churnRate = (current.churnedSubscriptions / previous.activeSubscriptions) * 100
-    return Math.round(churnRate * 100) / 100 // Round to 2 decimal places
+    return Math.round(churnRate * 100) / 100
   }
 }

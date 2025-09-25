@@ -1,5 +1,5 @@
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 
 // Define freemium limits
 const FREEMIUM_LIMITS = {

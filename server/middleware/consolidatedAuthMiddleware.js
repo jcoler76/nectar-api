@@ -1,7 +1,7 @@
-const { PrismaClient } = require('../prisma/generated/client');
+const prismaService = require('../services/prismaService');
 const bcryptjs = require('bcryptjs');
 
-const prisma = new PrismaClient();
+const systemPrisma = prismaService.getSystemClient();
 const { logger } = require('./logger');
 
 class AuthenticationError extends Error {
@@ -34,9 +34,9 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
     }
 
     // 2. Find and validate application
-    // First try to find by prefix for efficiency
+    // First try to find by prefix for efficiency (using system client for cross-org lookup)
     const apiKeyPrefix = apiKey.substring(0, 8);
-    const potentialApps = await prisma.application.findMany({
+    const potentialApps = await systemPrisma.application.findMany({
       where: { apiKeyPrefix },
       include: {
         defaultRole: {
@@ -87,13 +87,14 @@ const consolidatedApiKeyMiddleware = async (req, res, next) => {
       });
     }
 
-    // 4. Find and validate service
-    const service = await prisma.service.findFirst({
-      where: {
-        name: serviceName,
-        isActive: true,
-        organizationId: application.organizationId, // Multi-tenant security
-      },
+    // 4. Find and validate service (using tenant context now that we have organizationId)
+    const service = await prismaService.withTenantContext(application.organizationId, async tx => {
+      return await tx.service.findFirst({
+        where: {
+          name: serviceName,
+          isActive: true,
+        },
+      });
     });
 
     if (!service) {

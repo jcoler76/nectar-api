@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { logger } = require('../utils/logger');
 const { validateToken } = require('../utils/tokenService');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -40,6 +40,26 @@ const authMiddleware = async (req, res, next) => {
       }
     }
 
+    // TEMPORARY DEBUG: Check if session-based auth is being used for other routes
+    if (!token && req.session?.user) {
+      logger.warn('Session-based authentication detected for non-documentation route', {
+        path: req.path,
+        userId: req.session.user.id,
+        email: req.session.user.email,
+        organizationId: req.session.user.organizationId,
+      });
+
+      // Create a user object from session but log this suspicious activity
+      req.user = {
+        userId: req.session.user.id,
+        email: req.session.user.email,
+        isAdmin: req.session.user.isAdmin,
+        organizationId: req.session.user.organizationId,
+        sessionAuth: true, // Flag to indicate session-based auth
+      };
+      return next();
+    }
+
     if (!token) {
       logger.warn('Authentication failed: No token provided', {
         ip: req.ip,
@@ -58,9 +78,33 @@ const authMiddleware = async (req, res, next) => {
     if (!req.user.organizationId && (req.user.orgId || req.user.organization_id)) {
       req.user.organizationId = req.user.orgId || req.user.organization_id;
     }
-    logger.debug('Authentication successful', {
+
+    // Debug logging for organization ID
+    logger.debug('Token decoded', {
+      userId: req.user.userId,
+      email: req.user.email,
+      organizationId: req.user.organizationId,
+      orgId: req.user.orgId,
+      organization_id: req.user.organization_id,
+      path: req.path,
+    });
+
+    // For SuperAdmins, they already have organization context in their JWT token
+    // from the organization selection flow
+    if (req.user.isSuperAdmin && req.user.organizationId) {
+      req.user.inSupportMode = true;
+      logger.debug('SuperAdmin using organization context from JWT', {
+        superAdminId: req.user.userId,
+        organizationId: req.user.organizationId,
+        path: req.path,
+      });
+    }
+    logger.info('Authentication successful', {
       userId: decoded.userId,
       email: decoded.email,
+      organizationId: req.user.organizationId,
+      originalOrganizationId: req.user.originalOrganizationId,
+      inSupportMode: req.user.inSupportMode,
       path: req.path,
     });
     next();

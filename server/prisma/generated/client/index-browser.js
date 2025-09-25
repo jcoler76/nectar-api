@@ -151,6 +151,7 @@ exports.Prisma.UserScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isSuperAdmin: 'isSuperAdmin',
+  activeOrganizationId: 'activeOrganizationId',
 };
 
 exports.Prisma.AdminUserScalarFieldEnum = {

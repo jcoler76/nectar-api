@@ -8,10 +8,10 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const AuthFactory = require('../middleware/authFactory');
 const { logApiKeyEvent } = require('../services/auditService');
-const { PrismaClient } = require('@prisma/client');
+const prismaService = require('../services/prismaService');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = prismaService.getRLSClient();
 
 // Apply authentication to all routes
 router.use(AuthFactory.createJWTMiddleware());

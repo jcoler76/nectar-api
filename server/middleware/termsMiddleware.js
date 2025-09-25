@@ -31,8 +31,8 @@ const enforceTermsAcceptance = async (req, res, next) => {
     }
 
     // Check if organization requires terms acceptance
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
 
     const organization = await prisma.organization.findUnique({
       where: { id: req.user.organizationId || req.user.orgId },

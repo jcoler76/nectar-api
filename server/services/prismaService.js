@@ -1,11 +1,22 @@
-// Use the shared Prisma client to ensure identical table mappings
 const { PrismaClient } = require('../prisma/generated/client');
+const { logger } = require('../utils/logger');
 
-// Create a singleton Prisma client instance
 class PrismaService {
   constructor() {
     if (!PrismaService.instance) {
-      this.prisma = new PrismaClient({
+      // System Prisma: For infrastructure tables (no RLS) - uses admin/superuser
+      this.systemPrisma = new PrismaClient({
+        log:
+          process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+        datasources: {
+          db: {
+            url: process.env.ADMIN_DATABASE_URL || process.env.DATABASE_URL,
+          },
+        },
+      });
+
+      // Tenant Prisma: For tenant tables (RLS enforced) - uses regular app user
+      this.tenantPrisma = new PrismaClient({
         log:
           process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
         datasources: {
@@ -15,6 +26,11 @@ class PrismaService {
         },
       });
 
+      // Track current organization context
+      this.currentOrganizationId = null;
+
+      logger.info('✅ Dual Prisma service initialized (System + Tenant with RLS middleware)');
+
       PrismaService.instance = this;
     }
 
@@ -22,114 +38,81 @@ class PrismaService {
   }
 
   async connect() {
-    await this.prisma.$connect();
-    console.log('✅ Prisma connected to PostgreSQL');
+    await this.systemPrisma.$connect();
+    await this.tenantPrisma.$connect();
+    console.log('✅ Prisma connected to PostgreSQL (System + Tenant clients)');
   }
 
   async disconnect() {
-    await this.prisma.$disconnect();
+    await this.systemPrisma.$disconnect();
+    await this.tenantPrisma.$disconnect();
     console.log('🔌 Prisma disconnected from PostgreSQL');
   }
 
-  // Initialize method - alias for connect to match expected API
   async initialize() {
     await this.connect();
   }
 
-  // User operations
+  // Set organization context for tenant operations
+  setOrganizationContext(organizationId) {
+    this.currentOrganizationId = organizationId;
+  }
+
+  // Clear organization context
+  clearOrganizationContext() {
+    this.currentOrganizationId = null;
+  }
+
+  // Get system client (for infrastructure tables)
+  getSystemClient() {
+    return this.systemPrisma;
+  }
+
+  // Get tenant client with RLS context set
+  async withTenantContext(organizationId, callback) {
+    return await this.tenantPrisma.$transaction(async tx => {
+      // Set organization context for this transaction (must match RLS policy variable name)
+      // CONFIRMED: Database function uses app.current_organization_id
+      await tx.$executeRaw`
+        SELECT set_config('app.current_organization_id', ${organizationId}, true)
+      `;
+
+      // Execute callback with transaction client
+      return await callback(tx);
+    });
+  }
+
+  // Legacy method - Get tenant client (for tenant tables - RLS enforced)
+  getTenantClient() {
+    if (!this.currentOrganizationId) {
+      throw new Error(
+        'Organization context not set. Call setOrganizationContext() before using tenant client.'
+      );
+    }
+    return this.tenantPrisma;
+  }
+
+  // Legacy compatibility: getClient returns system client
+  getClient() {
+    return this.systemPrisma;
+  }
+
+  // Legacy compatibility: getRLSClient (deprecated - use withTenantContext directly)
+  // NOTE: This method is DEPRECATED and will be removed in a future update
+  // Use prismaService.withTenantContext(organizationId, callback) instead
+  getRLSClient() {
+    return {
+      withRLS: async (context, callback) => {
+        return await this.withTenantContext(context.organizationId, callback);
+      },
+    };
+  }
+
+  // User operations (infrastructure - no RLS)
   async findUserByEmail(email) {
-    return this.prisma.user.findUnique({
+    return this.systemPrisma.user.findUnique({
       where: { email },
       include: {
-        memberships: {
-          include: {
-            organization: {
-              include: { subscription: true },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  async findUserById(id) {
-    return this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        memberships: {
-          include: {
-            organization: {
-              include: { subscription: true },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  async createUser(userData) {
-    return this.prisma.user.create({
-      data: userData,
-      include: {
-        memberships: {
-          include: { organization: true },
-        },
-      },
-    });
-  }
-
-  async updateUser(id, userData) {
-    return this.prisma.user.update({
-      where: { id },
-      data: userData,
-      include: {
-        memberships: {
-          include: { organization: true },
-        },
-      },
-    });
-  }
-
-  async updateUserPassword(id, hashedPassword) {
-    return this.prisma.user.update({
-      where: { id },
-      data: {
-        passwordHash: hashedPassword,
-        updatedAt: new Date(),
-      },
-    });
-  }
-
-  // Organization operations
-  async findOrganizationBySlug(slug) {
-    return this.prisma.organization.findUnique({
-      where: { slug },
-      include: {
-        users: true,
-      },
-    });
-  }
-
-  async createOrganization(orgData) {
-    return this.prisma.organization.create({
-      data: orgData,
-    });
-  }
-
-  // Authentication specific operations
-  async findUserForAuth(email) {
-    // Return user with password for authentication
-    return this.prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        passwordHash: true,
-        firstName: true,
-        lastName: true,
-        isActive: true,
-        emailVerified: true,
-        lastLoginAt: true,
         memberships: {
           include: {
             organization: {
@@ -137,7 +120,6 @@ class PrismaService {
                 id: true,
                 name: true,
                 slug: true,
-                subscription: true,
               },
             },
           },
@@ -146,46 +128,93 @@ class PrismaService {
     });
   }
 
-  async updateUserLoginAttempts(id, attempts, lockedUntil = null) {
-    return this.prisma.user.update({
+  async findUserById(id) {
+    return this.systemPrisma.user.findUnique({
       where: { id },
-      data: {
-        loginAttempts: attempts,
-        lockedUntil: lockedUntil,
-        updatedAt: new Date(),
+      include: {
+        memberships: {
+          include: {
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async recordSuccessfulLogin(id) {
-    return this.prisma.user.update({
-      where: { id },
-      data: {
-        loginAttempts: 0,
-        lockedUntil: null,
-        lastLoginAt: new Date(),
-        updatedAt: new Date(),
+  async createUser(data) {
+    return this.systemPrisma.user.create({
+      data,
+      include: {
+        memberships: {
+          include: {
+            organization: true,
+          },
+        },
       },
     });
   }
 
-  // Expose raw Prisma client for transactions in other services
-  getClient() {
-    return this.prisma;
+  async updateUser(id, data) {
+    return this.systemPrisma.user.update({
+      where: { id },
+      data,
+    });
   }
 
-  // Convenience helper to update last login safely
   async updateUserLastLogin(id) {
-    return this.prisma.user.update({
+    return this.systemPrisma.user.update({
       where: { id },
       data: {
         lastLoginAt: new Date(),
         updatedAt: new Date(),
       },
     });
+  }
+
+  // Organization operations (infrastructure - no RLS)
+  async findOrganizationById(id) {
+    return this.systemPrisma.organization.findUnique({
+      where: { id },
+    });
+  }
+
+  async findOrganizationBySlug(slug) {
+    return this.systemPrisma.organization.findUnique({
+      where: { slug },
+    });
+  }
+
+  async createOrganization(data) {
+    return this.systemPrisma.organization.create({
+      data,
+    });
+  }
+
+  // Membership operations (TENANT SCOPED - RLS ENFORCED via withTenantContext)
+  // These methods should NOT be used directly - use withTenantContext instead
+  // Kept for backward compatibility but will throw error if used incorrectly
+  async findMembershipByUserAndOrganization(userId, organizationId) {
+    throw new Error('Use withTenantContext to query Membership with RLS');
+  }
+
+  async createMembership(data) {
+    // Membership creation during signup uses systemPrisma (before org context exists)
+    return this.systemPrisma.membership.create({
+      data,
+    });
+  }
+
+  async getUserMemberships(userId) {
+    throw new Error('Use withTenantContext to query Membership with RLS');
   }
 }
 
-// Export a singleton instance
 const prismaService = new PrismaService();
+
 module.exports = prismaService;

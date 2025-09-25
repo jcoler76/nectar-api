@@ -1,5 +1,4 @@
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const { executeWorkflow } = require('../services/workflows/engine');
 const { scheduleWorkflow, unscheduleWorkflow } = require('../services/scheduler');
 const { logger } = require('../middleware/logger');
@@ -7,20 +6,44 @@ const { logger } = require('../middleware/logger');
 // Get all workflows for the authenticated user
 exports.getWorkflows = async (req, res) => {
   try {
-    // Admin users can see all workflows, others only see their own
-    const whereClause = req.user.isAdmin ? {} : { organizationId: req.user.organizationId };
+    const organizationId = req.user.organizationId;
 
-    const workflows = await prisma.workflow.findMany({
-      where: whereClause,
-      orderBy: { updatedAt: 'desc' },
-      include: {
-        executions: {
-          take: 5,
-          orderBy: { startedAt: 'desc' },
-        },
-      },
+    logger.info('Getting workflows with filter', {
+      userId: req.user.userId,
+      email: req.user.email,
+      organizationId,
     });
-    res.json(workflows);
+
+    const workflows = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.workflow.findMany({
+        where: { organizationId },
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          executions: {
+            take: 5,
+            orderBy: { startedAt: 'desc' },
+          },
+        },
+      });
+    });
+
+    logger.info('Workflows query result', {
+      userId: req.user.userId,
+      email: req.user.email,
+      organizationId,
+      workflowCount: workflows.length,
+      workflowOrgIds: workflows.map(w => w.organizationId).slice(0, 5),
+    });
+
+    // Transform workflows to maintain compatibility with client expectations
+    // Extract nodes and edges from definition to top level for client compatibility
+    const transformedWorkflows = workflows.map(workflow => ({
+      ...workflow,
+      nodes: workflow.definition?.nodes || [],
+      edges: workflow.definition?.edges || [],
+    }));
+
+    res.json(transformedWorkflows);
   } catch (error) {
     logger.error('Failed to retrieve workflows:', { error: error.message });
     res.status(500).json({ message: 'Failed to retrieve workflows' });
@@ -31,31 +54,37 @@ exports.getWorkflows = async (req, res) => {
 exports.getWorkflowById = async (req, res) => {
   try {
     const { id } = req.params;
+    const organizationId = req.user.organizationId;
 
-    // Admin users can access any workflow, others only their own organization
-    const whereClause = req.user.isAdmin ? { id } : { id, organizationId: req.user.organizationId };
-
-    const workflow = await prisma.workflow.findUnique({
-      where: { id },
-      include: {
-        executions: {
-          orderBy: { startedAt: 'desc' },
-          take: 10,
+    const workflow = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.workflow.findFirst({
+        where: {
+          id,
+          organizationId,
         },
-        organization: true,
-      },
+        include: {
+          executions: {
+            orderBy: { startedAt: 'desc' },
+            take: 10,
+          },
+          organization: true,
+        },
+      });
     });
 
     if (!workflow) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
 
-    // Check organization access for non-admin users
-    if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+    // Transform the workflow to maintain compatibility with client expectations
+    // Extract nodes and edges from definition to top level for client compatibility
+    const transformedWorkflow = {
+      ...workflow,
+      nodes: workflow.definition?.nodes || [],
+      edges: workflow.definition?.edges || [],
+    };
 
-    res.json(workflow);
+    res.json(transformedWorkflow);
   } catch (error) {
     logger.error('Failed to retrieve workflow:', { error: error.message });
     res.status(500).json({ message: 'Failed to retrieve workflow' });
@@ -66,6 +95,7 @@ exports.getWorkflowById = async (req, res) => {
 exports.createWorkflow = async (req, res) => {
   try {
     const { name, description, definition, trigger, nodes, edges } = req.body;
+    const organizationId = req.user.organizationId;
 
     // Convert MongoDB-style structure to PostgreSQL format
     const workflowDefinition = definition ?? {
@@ -79,18 +109,20 @@ exports.createWorkflow = async (req, res) => {
       config: {},
     };
 
-    const newWorkflow = await prisma.workflow.create({
-      data: {
-        name,
-        description: description || null,
-        definition: workflowDefinition,
-        trigger: workflowTrigger,
-        organizationId: req.user.organizationId,
-      },
-      include: {
-        executions: true,
-        organization: true,
-      },
+    const newWorkflow = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.workflow.create({
+        data: {
+          name,
+          description: description || null,
+          definition: workflowDefinition,
+          trigger: workflowTrigger,
+          organizationId,
+        },
+        include: {
+          executions: true,
+          organization: true,
+        },
+      });
     });
 
     res.status(201).json(newWorkflow);
@@ -107,38 +139,56 @@ exports.createWorkflow = async (req, res) => {
 exports.updateWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, definition, trigger, isActive } = req.body;
+    const { name, description, definition, trigger, isActive, nodes, edges } = req.body;
+    const organizationId = req.user.organizationId;
 
-    // Check if workflow exists and user has access
-    const existing = await prisma.workflow.findUnique({
-      where: { id },
-      include: { organization: true },
+    // Handle both old and new data structures - if nodes/edges are provided at top level,
+    // structure them into definition for database storage
+    let workflowDefinition = definition;
+    if (nodes !== undefined || edges !== undefined) {
+      workflowDefinition = {
+        nodes: nodes || [],
+        edges: edges || [],
+        version: definition?.version || '1.0',
+        ...definition, // Preserve any existing definition properties
+      };
+    }
+
+    const updatedWorkflow = await prismaService.withTenantContext(organizationId, async tx => {
+      // Check if workflow exists and user has access
+      const existing = await tx.workflow.findFirst({
+        where: {
+          id,
+          organizationId,
+        },
+        include: { organization: true },
+      });
+
+      if (!existing) {
+        return null;
+      }
+
+      return await tx.workflow.update({
+        where: { id },
+        data: {
+          name,
+          description,
+          definition: workflowDefinition,
+          trigger,
+          isActive,
+        },
+        include: {
+          executions: {
+            orderBy: { startedAt: 'desc' },
+            take: 5,
+          },
+        },
+      });
     });
 
-    if (!existing) {
+    if (!updatedWorkflow) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-
-    if (!req.user.isAdmin && existing.organizationId !== req.user.organizationId) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const updatedWorkflow = await prisma.workflow.update({
-      where: { id },
-      data: {
-        name,
-        description,
-        definition,
-        trigger,
-        isActive,
-      },
-      include: {
-        executions: {
-          orderBy: { startedAt: 'desc' },
-          take: 5,
-        },
-      },
-    });
 
     // Handle workflow scheduling based on definition
     if (updatedWorkflow.isActive && updatedWorkflow.definition?.nodes) {
@@ -155,7 +205,14 @@ exports.updateWorkflow = async (req, res) => {
       }
     }
 
-    res.json(updatedWorkflow);
+    // Transform the response to maintain compatibility with client expectations
+    const transformedWorkflow = {
+      ...updatedWorkflow,
+      nodes: updatedWorkflow.definition?.nodes || [],
+      edges: updatedWorkflow.definition?.edges || [],
+    };
+
+    res.json(transformedWorkflow);
   } catch (error) {
     logger.error('Failed to update workflow:', { error: error.message });
     res.status(500).json({ message: 'Failed to update workflow' });
@@ -166,28 +223,36 @@ exports.updateWorkflow = async (req, res) => {
 exports.deleteWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
+    const organizationId = req.user.organizationId;
 
-    // Check if workflow exists and user has access
-    const workflow = await prisma.workflow.findUnique({
-      where: { id },
-      include: { organization: true },
+    const deleted = await prismaService.withTenantContext(organizationId, async tx => {
+      // Check if workflow exists and user has access
+      const workflow = await tx.workflow.findFirst({
+        where: {
+          id,
+          organizationId,
+        },
+        include: { organization: true },
+      });
+
+      if (!workflow) {
+        return null;
+      }
+
+      // Unschedule before deletion
+      unscheduleWorkflow(id);
+
+      // Delete the workflow (cascades to executions)
+      await tx.workflow.delete({
+        where: { id },
+      });
+
+      return true;
     });
 
-    if (!workflow) {
+    if (!deleted) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-
-    if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    // Unschedule before deletion
-    unscheduleWorkflow(id);
-
-    // Delete the workflow (cascades to executions)
-    await prisma.workflow.delete({
-      where: { id },
-    });
 
     res.status(204).send();
   } catch (error) {
@@ -200,43 +265,51 @@ exports.deleteWorkflow = async (req, res) => {
 exports.testWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
+    const organizationId = req.user.organizationId;
 
-    const workflow = await prisma.workflow.findUnique({
-      where: { id },
-      include: { organization: true },
+    const result = await prismaService.withTenantContext(organizationId, async tx => {
+      const workflow = await tx.workflow.findFirst({
+        where: {
+          id,
+          organizationId,
+        },
+        include: { organization: true },
+      });
+
+      if (!workflow) {
+        return null;
+      }
+
+      // Create execution record
+      const execution = await tx.workflowExecution.create({
+        data: {
+          workflowId: id,
+          status: 'RUNNING',
+          logs: { trigger: 'test', data: req.body.triggerData || {} },
+        },
+      });
+
+      const runSteps = await executeWorkflow(workflow, req.body.triggerData || {});
+      const resultsObject = Object.fromEntries(runSteps);
+
+      // Update execution with results
+      await tx.workflowExecution.update({
+        where: { id: execution.id },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+          logs: { ...execution.logs, results: resultsObject },
+        },
+      });
+
+      return resultsObject;
     });
 
-    if (!workflow) {
+    if (!result) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
 
-    if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    // Create execution record
-    const execution = await prisma.workflowExecution.create({
-      data: {
-        workflowId: id,
-        status: 'RUNNING',
-        logs: { trigger: 'test', data: req.body.triggerData || {} },
-      },
-    });
-
-    const runSteps = await executeWorkflow(workflow, req.body.triggerData || {});
-    const resultsObject = Object.fromEntries(runSteps);
-
-    // Update execution with results
-    await prisma.workflowExecution.update({
-      where: { id: execution.id },
-      data: {
-        status: 'COMPLETED',
-        completedAt: new Date(),
-        logs: { ...execution.logs, results: resultsObject },
-      },
-    });
-
-    res.status(200).json(resultsObject);
+    res.status(200).json(result);
   } catch (error) {
     logger.error('Workflow test execution failed:', { error: error.message });
     res.status(500).json({ message: 'Internal Server Error during test execution.' });
@@ -247,26 +320,32 @@ exports.testWorkflow = async (req, res) => {
 exports.getWorkflowRuns = async (req, res) => {
   try {
     const { id } = req.params;
+    const organizationId = req.user.organizationId;
 
-    // Ensure the user owns the workflow they are trying to access runs for
-    const workflow = await prisma.workflow.findUnique({
-      where: { id },
-      include: { organization: true },
+    const executions = await prismaService.withTenantContext(organizationId, async tx => {
+      // Ensure the user owns the workflow they are trying to access runs for
+      const workflow = await tx.workflow.findFirst({
+        where: {
+          id,
+          organizationId,
+        },
+        include: { organization: true },
+      });
+
+      if (!workflow) {
+        return null;
+      }
+
+      return await tx.workflowExecution.findMany({
+        where: { workflowId: id },
+        orderBy: { startedAt: 'desc' },
+        take: 50,
+      });
     });
 
-    if (!workflow) {
+    if (!executions) {
       return res.status(404).json({ message: 'Workflow not found' });
     }
-
-    if (!req.user.isAdmin && workflow.organizationId !== req.user.organizationId) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const executions = await prisma.workflowExecution.findMany({
-      where: { workflowId: id },
-      orderBy: { startedAt: 'desc' },
-      take: 50,
-    });
 
     res.status(200).json(executions);
   } catch (error) {

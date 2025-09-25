@@ -1,9 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
+const prismaService = require('./prismaService');
 const { logger } = require('../utils/logger');
 
 class DataRetentionService {
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prismaService.getClient();
 
     // Default retention policies (in days)
     this.retentionPolicies = {

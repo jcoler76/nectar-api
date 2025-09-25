@@ -1,8 +1,8 @@
 const DatabaseDriverFactory = require('./DatabaseDriverFactory');
 const { logger } = require('../../utils/logger');
-const { PrismaClient } = require('../../prisma/generated/client');
+const prismaService = require('../prismaService');
 
-const prisma = new PrismaClient();
+const prisma = prismaService.getClient();
 
 /**
  * Modern Database Service

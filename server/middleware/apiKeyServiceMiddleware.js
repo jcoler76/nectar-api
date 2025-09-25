@@ -1,8 +1,8 @@
-const { PrismaClient } = require('../prisma/generated/client');
+const prismaService = require('../services/prismaService');
 const bcryptjs = require('bcryptjs');
 const { logger } = require('./logger');
 
-const prisma = new PrismaClient();
+const prisma = prismaService.getRLSClient();
 const { getConfiguredApiKey } = require('../utils/headerUtils');
 
 class AuthenticationError extends Error {

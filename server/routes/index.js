@@ -13,6 +13,8 @@ const {
   graphqlLimiter,
 } = require('../middleware/dynamicRateLimiter');
 
+const authWithRLS = authMiddleware;
+
 /**
  * Mount all application routes with appropriate middleware
  * @param {Express} app - Express application instance
@@ -56,7 +58,7 @@ const mountRoutes = app => {
   });
 
   // CSRF token endpoint (must be before CSRF protection middleware)
-  app.get('/api/csrf-token', authMiddleware, getCSRFToken);
+  app.get('/api/csrf-token', authWithRLS, getCSRFToken);
 
   // API information endpoints (no auth required for basic info)
   app.use('/api', require('./apiInfo'));
@@ -73,24 +75,19 @@ const mountRoutes = app => {
   app.use('/api/contact-chat', apiLimiter, require('./contactChat'));
 
   // Versioned API routes (v1)
-  app.use('/api/v1', authMiddleware, csrfProtection(csrfOptions), require('./v1'));
+  app.use('/api/v1', authWithRLS, csrfProtection(csrfOptions), require('./v1'));
 
   // JWT protected routes (require login) with CSRF protection
-  app.use('/api/users', authMiddleware, csrfProtection(csrfOptions), require('./users'));
+  app.use('/api/users', authWithRLS, csrfProtection(csrfOptions), require('./users'));
   app.use(
     '/api/organizations',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./organizations')
   );
-  app.use('/api/roles', authMiddleware, csrfProtection(csrfOptions), require('./roles'));
-  app.use(
-    '/api/applications',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./applications')
-  );
-  app.use('/api/services', authMiddleware, csrfProtection(csrfOptions), require('./services'));
+  app.use('/api/roles', authWithRLS, csrfProtection(csrfOptions), require('./roles'));
+  app.use('/api/applications', authWithRLS, csrfProtection(csrfOptions), require('./applications'));
+  app.use('/api/services', authWithRLS, csrfProtection(csrfOptions), require('./services'));
   // Temporarily disabled during MongoDB to Prisma migration
   // TODO: Re-enable after implementing proper Prisma queries for schema intelligence
   // app.use(
@@ -111,22 +108,21 @@ const mountRoutes = app => {
   //   csrfProtection(csrfOptions),
   //   require('./aiGeneration')
   // );
-  app.use(
-    '/api/connections',
-    authMiddleware,
-    csrfProtection(csrfOptions),
-    require('./connections')
-  );
+  app.use('/api/connections', authWithRLS, csrfProtection(csrfOptions), require('./connections'));
   // Re-enabled after Prisma migration - endpoints route
   app.use(
     '/api/developer-endpoints',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./endpoints')
   );
   // Reports route - Updated for Prisma
-  app.use('/api/reports', authMiddleware, csrfProtection(csrfOptions), require('./reports'));
-  app.use('/api/dashboard', authMiddleware, csrfProtection(csrfOptions), require('./dashboard'));
+  app.use('/api/reports', authWithRLS, csrfProtection(csrfOptions), require('./reports'));
+  app.use('/api/dashboard', authWithRLS, csrfProtection(csrfOptions), require('./dashboard'));
+
+  // Admin backend API endpoints (for admin-backend to consume)
+  // No CSRF protection - these are server-to-server API calls, not browser requests
+  app.use('/api/admin-backend', require('./adminBackend'));
 
   // File Storage & CDN (moved to comprehensive files route below)
   // Blueprint auto-CRUD (read/list) with policy group and CSRF
@@ -138,7 +134,7 @@ const mountRoutes = app => {
     require('./blueprints')
   );
   // SDK generation endpoints (auth required); build SDKs from OpenAPI
-  app.use('/api/documentation/sdk', authMiddleware, csrfProtection(csrfOptions), require('./sdk'));
+  app.use('/api/documentation/sdk', authWithRLS, csrfProtection(csrfOptions), require('./sdk'));
 
   // Swagger UI pages (Blueprints and role-based) - Mount on specific paths without auth
   app.use('/api/swagger-ui', require('./swaggerUi'));
@@ -146,28 +142,28 @@ const mountRoutes = app => {
   // API documentation & OpenAPI routes (enabled)
   app.use(
     '/api/documentation',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./documentation')
   );
   // Auto-REST OpenAPI (service-scoped)
   app.use(
     '/api/documentation/auto-rest',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./documentationAutoRest')
   );
   // Blueprints OpenAPI
   app.use(
     '/api/documentation/blueprints',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./documentationBlueprints')
   );
   // Re-enabled for BaaS analytics - imports/ai routes
   // TODO: Update imports route to use Prisma models instead of MongoDB models
   // app.use('/api/imports', authMiddleware, csrfProtection(csrfOptions), require('./imports'));
-  app.use('/api/ai', authMiddleware, csrfProtection(csrfOptions), require('./ai'));
+  app.use('/api/ai', authWithRLS, csrfProtection(csrfOptions), require('./ai'));
   // app.use(
   //   '/api/acceptance-criteria',
   //   authMiddleware,
@@ -175,7 +171,7 @@ const mountRoutes = app => {
   //   require('./acceptanceCriteria')
   // );
   // Re-enabled for SILO C - workflows route (needs MongoDB model updates)
-  app.use('/api/workflows', authMiddleware, csrfProtection(csrfOptions), require('./workflows'));
+  app.use('/api/workflows', authWithRLS, csrfProtection(csrfOptions), require('./workflows'));
   // Deprecated route removed during MongoDB to Prisma migration
   // Temporarily disabled during MongoDB to Prisma migration - ai-schema route
   // app.use(
@@ -187,13 +183,27 @@ const mountRoutes = app => {
   // Admin rate limit management routes
   app.use(
     '/api/admin/rate-limits',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./rateLimitAdmin')
   );
+
+  // SuperAdmin organization context switching routes
+  app.use(
+    '/api/super-admin',
+    authWithRLS,
+    csrfProtection(csrfOptions),
+    require('./superAdminOrganizationContext')
+  );
+
+  // Debug routes (temporary for troubleshooting)
+  // Commented out - debug.js file not found
+  // if (process.env.NODE_ENV === 'development') {
+  //   app.use('/api/debug', authWithRLS, require('./debug'));
+  // }
   app.use(
     '/api/notifications',
-    authMiddleware,
+    authWithRLS,
     csrfProtection(csrfOptions),
     require('./notifications')
   );
@@ -207,7 +217,7 @@ const mountRoutes = app => {
         return next();
       }
       // All other endpoints require authentication
-      return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+      return authWithRLS(req, res, () => csrfProtection(csrfOptions)(req, res, next));
     },
     require('./invitations')
   );
@@ -221,20 +231,36 @@ const mountRoutes = app => {
         return next();
       }
       // All other endpoints require authentication
-      return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+      return authWithRLS(req, res, () => csrfProtection(csrfOptions)(req, res, next));
     },
     require('./terms')
   );
 
   // Freemium limits and usage tracking
-  app.use('/api/freemium', require('./freemium'));
-  app.use('/api/usage', authMiddleware, csrfProtection(csrfOptions), require('./usage'));
+  app.use(
+    '/api/freemium',
+    (req, res, next) => {
+      // Public endpoints for plan information
+      if (req.path === '/limits' && req.method === 'GET') {
+        return next();
+      }
+      // All other endpoints require authentication
+      return authWithRLS(req, res, next);
+    },
+    require('./freemium')
+  );
+  app.use('/api/usage', authWithRLS, csrfProtection(csrfOptions), require('./usage'));
 
   // Billing management routes (subscription portal, invoices, etc.)
-  app.use('/api/billing', authMiddleware, csrfProtection(csrfOptions), require('./billing'));
+  app.use('/api/billing', authWithRLS, csrfProtection(csrfOptions), require('./billing'));
 
   // Activity logs API (admin/monitor access)
-  app.use('/api/activity-logs', require('./activityLogs'));
+  app.use(
+    '/api/activity-logs',
+    authWithRLS,
+    csrfProtection(csrfOptions),
+    require('./activityLogs')
+  );
 
   // App usage tracking (no auth required for basic tracking)
   app.use('/api/tracking', apiLimiter, require('./tracking'));
@@ -267,7 +293,7 @@ const mountRoutes = app => {
     (req, res, next) => {
       // Apply CSRF only to non-trigger endpoints
       if (!req.path.includes('/trigger/')) {
-        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+        return authWithRLS(req, res, () => csrfProtection(csrfOptions)(req, res, next));
       }
       next();
     },
@@ -329,7 +355,7 @@ const mountRoutes = app => {
         return uploadLimiter(req, res, () => {
           // Apply CSRF only to non-public endpoints
           if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-            return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+            return authWithRLS(req, res, () => csrfProtection(csrfOptions)(req, res, next));
           }
           next();
         });
@@ -337,7 +363,7 @@ const mountRoutes = app => {
 
       // Apply CSRF only to non-public endpoints
       if (!req.path.includes('/public') && !req.path.includes('/trigger/')) {
-        return authMiddleware(req, res, () => csrfProtection(csrfOptions)(req, res, next));
+        return authWithRLS(req, res, () => csrfProtection(csrfOptions)(req, res, next));
       }
       next();
     },
@@ -345,12 +371,12 @@ const mountRoutes = app => {
   );
 
   // Admin CRM endpoints for contact chatbot management
-  app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminContacts'));
+  app.use('/api/admin', authWithRLS, csrfProtection(csrfOptions), require('./adminContacts'));
   // Admin settings for security (header aliases) — self-service
-  app.use('/api/admin', authMiddleware, csrfProtection(csrfOptions), require('./adminSettings'));
+  app.use('/api/admin', authWithRLS, csrfProtection(csrfOptions), require('./adminSettings'));
 
   // File Storage Folders
-  app.use('/api/folders', authMiddleware, csrfProtection(csrfOptions), require('./folders'));
+  app.use('/api/folders', authWithRLS, csrfProtection(csrfOptions), require('./folders'));
 
   console.log('✅ All routes mounted successfully');
 };

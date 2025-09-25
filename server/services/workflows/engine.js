@@ -1,10 +1,10 @@
 const { interpolateSecure, validateInterpolationContext } = require('./interpolationSecure');
-// MongoDB dependencies replaced with Prisma for PostgreSQL migration
+// MongoDB dependencies - in process of migration to Prisma
 // const { ObjectId } = require('mongodb');
 // const WorkflowRun = require('../../models/WorkflowRun');
 
-const { PrismaClient } = require('../../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../prismaService');
+const prisma = prismaService.getClient();
 
 // UUID generator for Prisma (replaces MongoDB ObjectId)
 const { v4: uuidv4 } = require('uuid');
@@ -40,6 +40,12 @@ const nodeRegistry = {
 const executeWorkflow = async (workflow, context = {}) => {
   logger.info(`Starting workflow execution for: ${workflow.name}`);
   const { nodes, edges } = workflow;
+
+  // TODO: Once WorkflowRun is migrated to Prisma, use RLS context:
+  // const rlsClient = prismaService.getRLSClient();
+  // return await rlsClient.withRLS({ organizationId: workflow.organizationId }, async (tx) => {
+  //   // Execute workflow with proper tenant isolation
+  // });
 
   const run = new WorkflowRun({
     workflowId: workflow._id,

@@ -2,8 +2,8 @@
 // const Notification = require('../models/Notification');
 // const User = require('../models/User');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const { logger } = require('../utils/logger');
 const { sendEmail } = require('../utils/mailer');
 

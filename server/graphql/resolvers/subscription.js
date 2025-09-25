@@ -1,7 +1,5 @@
-const { PrismaClient } = require('../../prisma/generated/client');
 const { ForbiddenError } = require('apollo-server-express');
-
-const prisma = new PrismaClient();
+const prismaService = require('../../services/prismaService');
 
 const toFloat = v => (v == null ? null : Number(v));
 
@@ -10,12 +8,13 @@ const subscriptionResolvers = {
     subscriptions: async (_, { pagination = {}, status }, { user: currentUser }) => {
       if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
 
+      // Use systemPrisma for admin queries that need to see all subscriptions across organizations
       const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'ASC' } = pagination;
       const where = {};
       if (status) where.status = status;
 
-      const totalCount = await prisma.subscription.count({ where });
-      const subs = await prisma.subscription.findMany({
+      const totalCount = await prismaService.systemPrisma.subscription.count({ where });
+      const subs = await prismaService.systemPrisma.subscription.findMany({
         where,
         skip: offset,
         take: limit,
@@ -43,12 +42,13 @@ const subscriptionResolvers = {
     subscriptionMetrics: async (_, __, { user: currentUser }) => {
       if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
 
+      // Use systemPrisma for admin queries that need to see all subscriptions across organizations
       const [total, active, trial, cancelled, upcoming] = await Promise.all([
-        prisma.subscription.count(),
-        prisma.subscription.count({ where: { status: 'ACTIVE' } }),
-        prisma.subscription.count({ where: { status: 'TRIALING' } }),
-        prisma.subscription.count({ where: { status: 'CANCELED' } }),
-        prisma.subscription.count({
+        prismaService.systemPrisma.subscription.count(),
+        prismaService.systemPrisma.subscription.count({ where: { status: 'ACTIVE' } }),
+        prismaService.systemPrisma.subscription.count({ where: { status: 'TRIALING' } }),
+        prismaService.systemPrisma.subscription.count({ where: { status: 'CANCELED' } }),
+        prismaService.systemPrisma.subscription.count({
           where: {
             status: 'ACTIVE',
             cancelAtPeriodEnd: false,
@@ -57,7 +57,7 @@ const subscriptionResolvers = {
         }),
       ]);
 
-      const agg = await prisma.subscription.aggregate({
+      const agg = await prismaService.systemPrisma.subscription.aggregate({
         _sum: { monthlyRevenue: true },
         _avg: { monthlyRevenue: true },
       });
@@ -79,7 +79,8 @@ const subscriptionResolvers = {
     topOrganizationsByMRR: async (_, { limit = 10 }, { user: currentUser }) => {
       if (!currentUser?.isAdmin) throw new ForbiddenError('Admin access required');
 
-      const subs = await prisma.subscription.findMany({
+      // Use systemPrisma for admin queries that need to see all subscriptions across organizations
+      const subs = await prismaService.systemPrisma.subscription.findMany({
         where: { monthlyRevenue: { not: null } },
         orderBy: { monthlyRevenue: 'desc' },
         take: Math.min(limit, 50),

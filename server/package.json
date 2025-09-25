@@ -4,6 +4,7 @@
   "private": true,
   "main": "server.js",
   "dependencies": {
+    "@aws-sdk/client-rds": "^3.896.0",
     "@aws-sdk/client-s3": "^3.891.0",
     "@aws-sdk/client-ses": "^3.891.0",
     "@aws-sdk/lib-storage": "^3.891.0",
@@ -20,9 +21,9 @@
     "@prisma/client": "^6.15.0",
     "@sendgrid/mail": "^8.1.5",
     "apollo-server-express": "^3.12.1",
-    "aws-sdk": "^2.1692.0",
     "axios": "^1.12.2",
     "basic-ftp": "^5.0.5",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "bull": "^4.16.5",
     "clamscan": "^2.4.0",

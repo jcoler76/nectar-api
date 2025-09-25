@@ -109,7 +109,8 @@ class SecureSessionStorage {
           return JSON.parse(cleanedString);
         }
 
-        console.warn('Unable to recover data, but preserving for manual investigation');
+        console.warn('Unable to recover data, clearing corrupted storage');
+        this.removeItem();
         return null;
       }
 

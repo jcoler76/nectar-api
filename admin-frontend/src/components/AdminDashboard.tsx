@@ -54,10 +54,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     const load = async () => {
       try {
         const metrics = await adminApi.getAdminMetrics()
+        console.log('Received metrics:', metrics)
         if (!mounted) return
         setStats(metrics)
       } catch (e) {
         console.error('Failed to load admin metrics', e)
+        console.error('Error details:', e.message, e.stack)
         setStats({ totalUsers: 0, activeUsers: 0, totalSubscriptions: 0, monthlyRevenue: 0 })
       } finally {
         if (mounted) setLoading(false)

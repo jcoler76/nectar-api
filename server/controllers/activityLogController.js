@@ -1,8 +1,7 @@
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const ApiActivityLog = require('../models/ApiActivityLog');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const { logger } = require('../middleware/logger');
 const {
   createEasternDateRange,
@@ -19,6 +18,8 @@ class ActivityLogController {
    */
   async getLogs(req, res) {
     try {
+      // Get RLS-aware Prisma client for this request
+      const prisma = prismaService.getClient();
       const {
         page = 1,
         limit = 50,
@@ -202,6 +203,9 @@ class ActivityLogController {
    */
   async getLogById(req, res) {
     try {
+      // Get RLS-aware Prisma client for this request
+      const prisma = prismaService.getClient();
+
       const { id } = req.params;
 
       const log = await prisma.apiActivityLog.findUnique({
@@ -247,7 +251,21 @@ class ActivityLogController {
    */
   async getStatistics(req, res) {
     try {
+      // Get RLS-aware Prisma client for this request
+      const prisma = prismaService.getClient();
+
       const { timeframe = '24h', onlyImportant = false } = req.query;
+      const shouldFilterImportant = onlyImportant === 'true' || onlyImportant === true;
+      const organizationId = req.user?.organizationId;
+
+      logger.debug('Activity statistics request', {
+        userId: req.user?.userId,
+        email: req.user?.email,
+        organizationId,
+        timeframe,
+        onlyImportant: shouldFilterImportant,
+        sessionAuth: req.user?.sessionAuth,
+      });
 
       // Calculate time range
       const now = new Date();
@@ -270,7 +288,8 @@ class ActivityLogController {
         timestamp: { gte: startTime },
         category: { in: ['api', 'workflow'] },
         endpointType: { in: ['client', 'public'] },
-        ...(onlyImportant && { importance: { in: ['critical', 'high'] } }),
+        organizationId,
+        ...(shouldFilterImportant && { importance: { in: ['critical', 'high'] } }),
       };
 
       // Get activity summary using Prisma aggregations
@@ -295,9 +314,9 @@ class ActivityLogController {
 
       // Get error breakdown, top endpoints, and user activity
       const [errorBreakdown, topEndpoints, userActivity] = await Promise.all([
-        ActivityLogController.getErrorBreakdown(timeframe, onlyImportant),
-        ActivityLogController.getTopEndpoints(timeframe, onlyImportant),
-        ActivityLogController.getUserActivity(timeframe, onlyImportant),
+        ActivityLogController.getErrorBreakdown(timeframe, shouldFilterImportant, organizationId),
+        ActivityLogController.getTopEndpoints(timeframe, shouldFilterImportant, organizationId),
+        ActivityLogController.getUserActivity(timeframe, shouldFilterImportant, organizationId),
       ]);
 
       res.json({
@@ -325,6 +344,9 @@ class ActivityLogController {
    */
   async exportLogs(req, res) {
     try {
+      // Get RLS-aware Prisma client for this request
+      const prisma = prismaService.getClient();
+
       const { startDate, endDate, success, method, endpoint, category, format = 'csv' } = req.query;
 
       // Build Prisma filter (similar to getLogs but without pagination)
@@ -410,6 +432,9 @@ class ActivityLogController {
    */
   async cleanupLogs(req, res) {
     try {
+      // Get RLS-aware Prisma client for this request
+      const prisma = prismaService.getClient();
+
       const { olderThan = '90d' } = req.body;
 
       // Calculate cutoff date
@@ -447,7 +472,10 @@ class ActivityLogController {
 
   // Helper methods for statistics
 
-  static async getErrorBreakdown(timeframe, onlyImportant = false) {
+  static async getErrorBreakdown(timeframe, onlyImportant = false, organizationId = null) {
+    // Get RLS-aware Prisma client for this request
+    const prisma = prismaService.getClient();
+
     const now = new Date();
     const timeframeMap = {
       '1h': 60 * 60 * 1000,
@@ -466,19 +494,20 @@ class ActivityLogController {
 
     // Use raw query for complex aggregation
     let query = `
-      SELECT 
+      SELECT
         COALESCE(error, 'Unknown Error') as "_id",
         COUNT(*)::int as count,
         ROUND(AVG("responseTime"))::int as "averageResponseTime"
       FROM "ApiActivityLog"
-      WHERE 
+      WHERE
         timestamp >= $1
         AND "statusCode" >= 400
         AND category IN ('api', 'workflow')
         AND "endpointType" IN ('client', 'public')
+        AND "organizationId" = $2
     `;
 
-    const params = [startTime];
+    const params = [startTime, organizationId];
 
     if (onlyImportant) {
       query += ` AND importance IN ('critical', 'high')`;
@@ -492,7 +521,10 @@ class ActivityLogController {
     return await prisma.$queryRawUnsafe(query, ...params);
   }
 
-  static async getTopEndpoints(timeframe, onlyImportant = false) {
+  static async getTopEndpoints(timeframe, onlyImportant = false, organizationId = null) {
+    // Get RLS-aware Prisma client for this request
+    const prisma = prismaService.getClient();
+
     const now = new Date();
     const timeframeMap = {
       '1h': 60 * 60 * 1000,
@@ -510,19 +542,20 @@ class ActivityLogController {
     }
 
     let query = `
-      SELECT 
+      SELECT
         endpoint as "_id",
         COUNT(*)::int as "totalRequests",
         COUNT(CASE WHEN "statusCode" < 400 THEN 1 END)::int as "successfulRequests",
         ROUND(AVG("responseTime"))::int as "averageResponseTime"
       FROM "ApiActivityLog"
-      WHERE 
+      WHERE
         timestamp >= $1
         AND category IN ('api', 'workflow')
         AND "endpointType" IN ('client', 'public')
+        AND "organizationId" = $2
     `;
 
-    const params = [startTime];
+    const params = [startTime, organizationId];
 
     if (onlyImportant) {
       query += ` AND importance IN ('critical', 'high')`;
@@ -537,7 +570,10 @@ class ActivityLogController {
     return await prisma.$queryRawUnsafe(query, ...params);
   }
 
-  static async getUserActivity(timeframe, onlyImportant = false) {
+  static async getUserActivity(timeframe, onlyImportant = false, organizationId = null) {
+    // Get RLS-aware Prisma client for this request
+    const prisma = prismaService.getClient();
+
     const now = new Date();
     const timeframeMap = {
       '1h': 60 * 60 * 1000,
@@ -555,21 +591,22 @@ class ActivityLogController {
     }
 
     let query = `
-      SELECT 
+      SELECT
         u.email as "_id",
         COUNT(*)::int as "totalRequests",
         COUNT(CASE WHEN "statusCode" < 400 THEN 1 END)::int as "successfulRequests",
         MAX(timestamp) as "lastActivity"
       FROM "ApiActivityLog" a
       LEFT JOIN "User" u ON a."userId" = u.id
-      WHERE 
+      WHERE
         timestamp >= $1
         AND a."userId" IS NOT NULL
         AND category IN ('api', 'workflow')
         AND "endpointType" IN ('client', 'public')
+        AND a."organizationId" = $2
     `;
 
-    const params = [startTime];
+    const params = [startTime, organizationId];
 
     if (onlyImportant) {
       query += ` AND importance IN ('critical', 'high')`;

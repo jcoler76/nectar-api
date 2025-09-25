@@ -146,29 +146,28 @@ router.post('/:id/refresh-schema', async (req, res) => {
   const context = createGraphQLContext(req);
 
   try {
-    // BYPASS GraphQL and use direct Prisma query due to resolver issues
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
 
-    const service = await prisma.service.findFirst({
-      where: {
-        id,
-        organizationId: context.user.organizationId,
-      },
-      include: {
-        connection: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            host: true,
-            port: true,
-            username: true,
-            passwordEncrypted: true,
-            sslEnabled: true,
+    const service = await prismaService.withTenantContext(context.user.organizationId, async tx => {
+      return await tx.service.findFirst({
+        where: {
+          id,
+        },
+        include: {
+          connection: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              host: true,
+              port: true,
+              username: true,
+              passwordEncrypted: true,
+              sslEnabled: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!service) {
@@ -269,41 +268,42 @@ router.post('/:id/refresh-schema', async (req, res) => {
 
     // Store objects in databaseObject table
     try {
-      // Clear existing database objects for this service
-      await prisma.databaseObject.deleteMany({
-        where: {
+      await prismaService.withTenantContext(context.user.organizationId, async tx => {
+        // Clear existing database objects for this service
+        await tx.databaseObject.deleteMany({
+          where: {
+            serviceId: service.id,
+          },
+        });
+
+        // Create new database object records
+        const databaseObjectsToCreate = objects.map(obj => ({
           serviceId: service.id,
           organizationId: context.user.organizationId,
-        },
-      });
+          name: obj.name,
+          schema: obj.schema_name || null,
+          type: obj.type_desc || 'TABLE',
+          metadata: {
+            objectId: obj.object_id,
+            parentObjectId: obj.parent_object_id,
+            schemaId: obj.schema_id,
+            createDate: obj.create_date,
+            modifyDate: obj.modify_date,
+            isPublished: obj.is_published,
+            isSchemaPublished: obj.is_schema_published,
+          },
+        }));
 
-      // Create new database object records
-      const databaseObjectsToCreate = objects.map(obj => ({
-        serviceId: service.id,
-        organizationId: context.user.organizationId,
-        name: obj.name,
-        schema: obj.schema_name || null,
-        type: obj.type_desc || 'TABLE',
-        metadata: {
-          objectId: obj.object_id,
-          parentObjectId: obj.parent_object_id,
-          schemaId: obj.schema_id,
-          createDate: obj.create_date,
-          modifyDate: obj.modify_date,
-          isPublished: obj.is_published,
-          isSchemaPublished: obj.is_schema_published,
-        },
-      }));
+        if (databaseObjectsToCreate.length > 0) {
+          await tx.databaseObject.createMany({
+            data: databaseObjectsToCreate,
+          });
+        }
 
-      if (databaseObjectsToCreate.length > 0) {
-        await prisma.databaseObject.createMany({
-          data: databaseObjectsToCreate,
+        logger.info('Database objects stored in databaseObject table', {
+          serviceId: service.id,
+          objectsStored: databaseObjectsToCreate.length,
         });
-      }
-
-      logger.info('Database objects stored in databaseObject table', {
-        serviceId: service.id,
-        objectsStored: databaseObjectsToCreate.length,
       });
     } catch (dbObjectError) {
       logger.error('Failed to store database objects', {

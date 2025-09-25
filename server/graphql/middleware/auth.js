@@ -1,7 +1,14 @@
 const jwt = require('jsonwebtoken');
 const { validateToken } = require('../../utils/tokenService');
 const { PrismaClient } = require('../../prisma/generated/client');
-const prisma = new PrismaClient();
+// Use admin client to bypass RLS when loading user context
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.ADMIN_DATABASE_URL || process.env.DATABASE_URL,
+    },
+  },
+});
 
 const getUser = async req => {
   console.log(
@@ -43,14 +50,14 @@ const getUser = async req => {
 
     if (!user || !user.isActive) return null;
 
-    // Get the primary organization ID from memberships
-    const primaryMembership = user.memberships?.[0]; // Get first membership as primary
-    const organizationId = primaryMembership?.organization?.id;
+    // Get the primary organization ID from JWT token (already validated), fallback to memberships
+    const organizationId = decoded.organizationId || user.memberships?.[0]?.organization?.id;
 
     return {
       userId: user.id,
       email: user.email,
       isAdmin: user.isSuperAdmin,
+      isSuperAdmin: user.isSuperAdmin,
       organizationId: organizationId,
       roles: user.memberships || [],
       user: user,

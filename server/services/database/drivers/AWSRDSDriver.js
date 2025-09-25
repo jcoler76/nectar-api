@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { RDSClient, DescribeDBInstancesCommand } = require('@aws-sdk/client-rds');
 const mysql = require('mysql2/promise');
 const { Client: PostgresClient } = require('pg');
 const { ConnectionPool: MSSQLPool } = require('mssql');
@@ -43,15 +43,18 @@ class AWSRDSDriver extends IDatabaseDriver {
    * @private
    */
   _initializeAWS() {
+    const clientConfig = {
+      region: this.awsConfig.region,
+    };
+
     if (this.awsConfig.accessKeyId && this.awsConfig.secretAccessKey) {
-      AWS.config.update({
+      clientConfig.credentials = {
         accessKeyId: this.awsConfig.accessKeyId,
         secretAccessKey: this.awsConfig.secretAccessKey,
-        region: this.awsConfig.region,
-      });
+      };
     }
 
-    this.rdsClient = new AWS.RDS({ region: this.awsConfig.region });
+    this.rdsClient = new RDSClient(clientConfig);
   }
 
   /**
@@ -314,7 +317,8 @@ class AWSRDSDriver extends IDatabaseDriver {
         DBInstanceIdentifier: this.config.dbInstanceIdentifier,
       };
 
-      const result = await this.rdsClient.describeDBInstances(params).promise();
+      const command = new DescribeDBInstancesCommand(params);
+      const result = await this.rdsClient.send(command);
 
       if (result.DBInstances && result.DBInstances.length > 0) {
         const instance = result.DBInstances[0];

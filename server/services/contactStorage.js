@@ -1,7 +1,7 @@
-const { PrismaClient } = require('../prisma/generated/client');
+const prismaService = require('../services/prismaService');
 const crypto = require('crypto');
 
-const prisma = new PrismaClient();
+const prisma = prismaService.getRLSClient();
 
 // Generate a URL-safe UUID string
 function generateId() {

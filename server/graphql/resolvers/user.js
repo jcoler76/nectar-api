@@ -1,9 +1,17 @@
-const { PrismaClient } = require('../../prisma/generated/client');
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
 const { logger } = require('../../utils/logger');
 const usersController = require('../../controllers/usersController');
+const prismaService = require('../../services/prismaService');
 
-const prisma = new PrismaClient();
+// Helper function to check if user has admin access (either super admin or organization owner)
+const hasAdminAccess = currentUser => {
+  if (currentUser?.isSuperAdmin) return true;
+  if (currentUser?.isAdmin) return true;
+  return currentUser?.memberships?.some(
+    membership =>
+      membership.role === 'ORGANIZATION_OWNER' || membership.role === 'ORGANIZATION_ADMIN'
+  );
+};
 
 const userResolvers = {
   Query: {
@@ -19,32 +27,26 @@ const userResolvers = {
         throw new ForbiddenError('Forbidden');
       }
 
-      const whereClause = currentUser.organizationId
-        ? {
+      return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        const user = await tx.user.findFirst({
+          where: {
             id,
+          },
+          include: {
             memberships: {
-              some: {
-                organizationId: currentUser.organizationId,
+              include: {
+                organization: true,
               },
             },
-          }
-        : { id };
-      const user = await prisma.user.findFirst({
-        where: whereClause,
-        include: {
-          memberships: {
-            include: {
-              organization: true,
-            },
           },
-        },
+        });
+
+        if (!user) {
+          throw new UserInputError('User not found');
+        }
+
+        return user;
       });
-
-      if (!user) {
-        throw new UserInputError('User not found');
-      }
-
-      return user;
     },
 
     users: async (
@@ -57,65 +59,86 @@ const userResolvers = {
         throw new ForbiddenError('Client API keys cannot access user management');
       }
 
-      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
+      if (!hasAdminAccess(currentUser)) throw new ForbiddenError('Admin access required');
 
-      const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'asc' } = pagination;
+      return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'asc' } = pagination;
 
-      // Build where clause for filters
-      const where = {};
-      if (currentUser.organizationId) {
-        where.memberships = {
-          some: {
-            organizationId: currentUser.organizationId,
+        console.log(
+          '🔍 [UserResolver] Fetching users for organizationId:',
+          currentUser.organizationId
+        );
+
+        const memberships = await tx.membership.findMany({
+          include: {
+            user: true,
+            organization: true,
+          },
+        });
+
+        console.log('🔍 [UserResolver] Found memberships:', memberships.length);
+
+        const userMap = new Map();
+        memberships.forEach(m => {
+          if (!userMap.has(m.user.id)) {
+            userMap.set(m.user.id, {
+              ...m.user,
+              memberships: [],
+            });
+          }
+          userMap.get(m.user.id).memberships.push({
+            organization: m.organization,
+            role: m.role,
+            joinedAt: m.joinedAt,
+          });
+        });
+
+        let users = Array.from(userMap.values());
+
+        if (filters.isActive !== undefined) {
+          users = users.filter(u => u.isActive === filters.isActive);
+        }
+        if (filters.isSuperAdmin !== undefined) {
+          users = users.filter(u => u.isSuperAdmin === filters.isSuperAdmin);
+        }
+        if (filters.search) {
+          const search = filters.search.toLowerCase();
+          users = users.filter(
+            u =>
+              u.firstName?.toLowerCase().includes(search) ||
+              u.lastName?.toLowerCase().includes(search) ||
+              u.email?.toLowerCase().includes(search)
+          );
+        }
+
+        users.sort((a, b) => {
+          const aVal = a[sortBy];
+          const bVal = b[sortBy];
+          const direction = sortOrder.toLowerCase() === 'desc' ? -1 : 1;
+          return aVal < bVal ? -direction : aVal > bVal ? direction : 0;
+        });
+
+        const totalCount = users.length;
+        const paginatedUsers = users.slice(offset, offset + limit);
+
+        return {
+          edges: paginatedUsers.map((user, index) => ({
+            node: user,
+            cursor: Buffer.from((offset + index).toString()).toString('base64'),
+          })),
+          pageInfo: {
+            hasNextPage: offset + limit < totalCount,
+            hasPreviousPage: offset > 0,
+            totalCount,
+            startCursor:
+              paginatedUsers.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
+            endCursor:
+              paginatedUsers.length > 0
+                ? Buffer.from((offset + paginatedUsers.length - 1).toString()).toString('base64')
+                : null,
           },
         };
-      }
-
-      if (filters.isActive !== undefined) where.isActive = filters.isActive;
-      if (filters.isSuperAdmin !== undefined) where.isSuperAdmin = filters.isSuperAdmin;
-
-      if (filters.search) {
-        where.OR = [
-          { firstName: { contains: filters.search, mode: 'insensitive' } },
-          { lastName: { contains: filters.search, mode: 'insensitive' } },
-          { email: { contains: filters.search, mode: 'insensitive' } },
-        ];
-      }
-
-      // Get total count for pagination
-      const totalCount = await prisma.user.count({ where });
-
-      // Get users with pagination
-      const users = await prisma.user.findMany({
-        where,
-        skip: offset,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
-        include: {
-          memberships: {
-            include: {
-              organization: true,
-            },
-          },
-        },
       });
-
-      return {
-        edges: users.map((user, index) => ({
-          node: user,
-          cursor: Buffer.from((offset + index).toString()).toString('base64'),
-        })),
-        pageInfo: {
-          hasNextPage: offset + limit < totalCount,
-          hasPreviousPage: offset > 0,
-          totalCount,
-          startCursor: users.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
-          endCursor:
-            users.length > 0
-              ? Buffer.from((offset + users.length - 1).toString()).toString('base64')
-              : null,
-        },
-      };
     },
 
     me: async (_, __, { user: currentUser, jwtUser, apiKeyUser }) => {
@@ -126,7 +149,8 @@ const userResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const user = await prisma.user.findUnique({
+      const systemPrisma = prismaService.getSystemClient();
+      const user = await systemPrisma.user.findUnique({
         where: { id: currentUser.userId },
         include: {
           memberships: {
@@ -147,17 +171,24 @@ const userResolvers = {
 
   Mutation: {
     createUser: async (_, { input }, { user: currentUser }) => {
-      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
+      if (!hasAdminAccess(currentUser)) throw new ForbiddenError('Admin access required');
 
       try {
+        const systemPrisma = prismaService.getSystemClient();
         const userData = input;
 
-        const user = await prisma.user.create({
+        const user = await systemPrisma.user.create({
           data: {
             email: userData.email,
             firstName: userData.firstName,
             lastName: userData.lastName,
             isActive: userData.isActive ?? true,
+            memberships: {
+              create: {
+                organizationId: currentUser.organizationId,
+                role: 'MEMBER',
+              },
+            },
           },
           include: {
             memberships: {
@@ -190,36 +221,41 @@ const userResolvers = {
       }
 
       try {
-        // Verify user exists and belongs to organization
-        const existingUser = await prisma.user.findFirst({ where: { id } });
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          const membership = await tx.membership.findFirst({
+            where: { userId: id },
+            include: { user: true },
+          });
 
-        if (!existingUser) {
-          throw new UserInputError('User not found');
-        }
+          if (!membership) {
+            throw new UserInputError('User not found');
+          }
 
-        const updateData = input;
+          const updateData = input;
+          const systemPrisma = prismaService.getSystemClient();
 
-        const user = await prisma.user.update({
-          where: { id },
-          data: {
-            ...updateData,
-          },
-          include: {
-            memberships: {
-              include: {
-                organization: true,
+          const user = await systemPrisma.user.update({
+            where: { id },
+            data: {
+              ...updateData,
+            },
+            include: {
+              memberships: {
+                include: {
+                  organization: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        logger.info('User updated via GraphQL', {
-          userId: id,
-          updatedBy: currentUser.userId,
-          organizationId: currentUser.organizationId,
-        });
+          logger.info('User updated via GraphQL', {
+            userId: id,
+            updatedBy: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
 
-        return user;
+          return user;
+        });
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Email already exists');
@@ -230,43 +266,35 @@ const userResolvers = {
     },
 
     deleteUser: async (_, { id }, { user: currentUser }) => {
-      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
+      if (!hasAdminAccess(currentUser)) throw new ForbiddenError('Admin access required');
 
       try {
-        // Verify user exists and belongs to organization
-        const existingUser = await prisma.user.findFirst({
-          where: currentUser.organizationId
-            ? {
-                id,
-                memberships: {
-                  some: {
-                    organizationId: currentUser.organizationId,
-                  },
-                },
-              }
-            : { id },
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          const membership = await tx.membership.findFirst({
+            where: { userId: id },
+          });
+
+          if (!membership) {
+            throw new UserInputError('User not found');
+          }
+
+          if (id === currentUser.userId) {
+            throw new ForbiddenError('Cannot delete your own account');
+          }
+
+          const systemPrisma = prismaService.getSystemClient();
+          await systemPrisma.user.delete({
+            where: { id },
+          });
+
+          logger.info('User deleted via GraphQL', {
+            userId: id,
+            deletedBy: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+
+          return true;
         });
-
-        if (!existingUser) {
-          throw new UserInputError('User not found');
-        }
-
-        // Prevent deleting self
-        if (id === currentUser.userId) {
-          throw new ForbiddenError('Cannot delete your own account');
-        }
-
-        await prisma.user.delete({
-          where: { id },
-        });
-
-        logger.info('User deleted via GraphQL', {
-          userId: id,
-          deletedBy: currentUser.userId,
-          organizationId: currentUser.organizationId,
-        });
-
-        return true;
       } catch (error) {
         if (error.code === 'P2003') {
           throw new UserInputError('Cannot delete user: it has dependent records');
@@ -277,7 +305,7 @@ const userResolvers = {
     },
 
     inviteUser: async (_, { email, firstName, lastName }, { user: currentUser, req, res }) => {
-      if (!currentUser?.isSuperAdmin) throw new ForbiddenError('Admin access required');
+      if (!hasAdminAccess(currentUser)) throw new ForbiddenError('Admin access required');
 
       try {
         // Create a mock request object for the existing controller
@@ -329,17 +357,22 @@ const userResolvers = {
       // Roles are associated with applications and services
       return [];
     },
-    memberships: async user => {
+    memberships: async (user, _, { user: currentUser }) => {
       if (!user?.id) return [];
-      const memberships = await prisma.membership.findMany({
-        where: { userId: user.id },
-        include: { organization: true },
+
+      if (!currentUser?.organizationId) return [];
+
+      return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        const memberships = await tx.membership.findMany({
+          where: { userId: user.id },
+          include: { organization: true },
+        });
+        return memberships.map(m => ({
+          organization: m.organization,
+          role: m.role,
+          joinedAt: m.joinedAt,
+        }));
       });
-      return memberships.map(m => ({
-        organization: m.organization,
-        role: m.role,
-        joinedAt: m.joinedAt,
-      }));
     },
   },
 };

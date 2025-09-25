@@ -1,5 +1,4 @@
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { sendEmail } = require('../utils/mailer');
@@ -32,39 +31,15 @@ class InvitationService {
         throw new Error('Invalid email format');
       }
 
-      // Check if user already exists in organization
-      const existingMember = await prisma.membership.findFirst({
-        where: {
-          user: { email: email.toLowerCase() },
-          organizationId,
-        },
-      });
+      const systemPrisma = prismaService.getSystemClient();
 
-      if (existingMember) {
-        throw new Error('User is already a member of this organization');
-      }
-
-      // Check for pending invitation
-      const pendingInvitation = await prisma.invitation.findFirst({
-        where: {
-          email: email.toLowerCase(),
-          organizationId,
-          acceptedAt: null,
-          expiresAt: { gt: new Date() },
-        },
-      });
-
-      if (pendingInvitation) {
-        throw new Error('An invitation has already been sent to this email');
-      }
-
-      // Get inviter and organization details
+      // Get inviter and organization details (use system client for infrastructure tables)
       const [inviter, organization] = await Promise.all([
-        prisma.user.findUnique({
+        systemPrisma.user.findUnique({
           where: { id: invitedById },
           select: { firstName: true, lastName: true, email: true },
         }),
-        prisma.organization.findUnique({
+        systemPrisma.organization.findUnique({
           where: { id: organizationId },
           select: { name: true, subscription: { select: { maxUsersPerOrg: true } } },
         }),
@@ -74,36 +49,75 @@ class InvitationService {
         throw new Error('Invalid inviter or organization');
       }
 
-      // Check organization user limit
-      const currentMemberCount = await prisma.membership.count({
-        where: { organizationId },
+      // Use tenant context for membership and invitation operations (RLS enforced)
+      return await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user already exists in organization
+        const existingMember = await tx.membership.findFirst({
+          where: {
+            user: { email: email.toLowerCase() },
+          },
+        });
+
+        if (existingMember) {
+          throw new Error('User is already a member of this organization');
+        }
+
+        // Check for pending invitation
+        const pendingInvitation = await tx.invitation.findFirst({
+          where: {
+            email: email.toLowerCase(),
+            acceptedAt: null,
+            expiresAt: { gt: new Date() },
+          },
+        });
+
+        if (pendingInvitation) {
+          throw new Error('An invitation has already been sent to this email');
+        }
+
+        // Check organization user limit
+        const currentMemberCount = await tx.membership.count({});
+
+        const maxUsers = organization.subscription?.maxUsersPerOrg || 1;
+        if (currentMemberCount >= maxUsers) {
+          throw new Error(`Organization has reached its user limit of ${maxUsers}`);
+        }
+
+        // Generate secure token
+        const token = this.generateSecureToken();
+        const hashedToken = this.hashToken(token);
+
+        // Create invitation with 7-day expiration
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        const invitation = await tx.invitation.create({
+          data: {
+            email: email.toLowerCase(),
+            role,
+            token: hashedToken,
+            expiresAt,
+            organizationId,
+            invitedById,
+          },
+        });
+
+        // Create audit log within the transaction
+        await tx.auditLog.create({
+          data: {
+            action: 'INVITATION_SENT',
+            entityType: 'invitation',
+            entityId: invitation.id,
+            organizationId,
+            userId: invitedById,
+            metadata: { email, role },
+          },
+        });
+
+        return invitation;
       });
 
-      const maxUsers = organization.subscription?.maxUsersPerOrg || 1;
-      if (currentMemberCount >= maxUsers) {
-        throw new Error(`Organization has reached its user limit of ${maxUsers}`);
-      }
-
-      // Generate secure token
-      const token = this.generateSecureToken();
-      const hashedToken = this.hashToken(token);
-
-      // Create invitation with 7-day expiration
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      const invitation = await prisma.invitation.create({
-        data: {
-          email: email.toLowerCase(),
-          role,
-          token: hashedToken,
-          expiresAt,
-          organizationId,
-          invitedById,
-        },
-      });
-
-      // Send invitation email
+      // Send invitation email after successful database operations
       const acceptUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/accept-invitation?token=${token}`;
 
       await sendEmail({
@@ -117,18 +131,6 @@ class InvitationService {
           acceptUrl,
           expiresIn: '7 days',
         }),
-      });
-
-      // Create audit log
-      await prisma.auditLog.create({
-        data: {
-          action: 'INVITATION_SENT',
-          entityType: 'invitation',
-          entityId: invitation.id,
-          organizationId,
-          userId: invitedById,
-          metadata: { email, role },
-        },
       });
 
       logger.info('Invitation sent successfully', {

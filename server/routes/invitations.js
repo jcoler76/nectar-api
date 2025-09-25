@@ -20,6 +20,7 @@ const invitationRateLimiter = rateLimiter({
 const validateInvitation = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('role').isIn(['OWNER', 'ADMIN', 'MEMBER', 'VIEWER']).withMessage('Invalid role'),
+  // organizationId is now automatically inferred from authenticated user, no validation needed
 ];
 
 const validateAcceptInvitation = [
@@ -42,21 +43,57 @@ const checkValidation = (req, res, next) => {
   next();
 };
 
+// Helper function to check if user has admin access (matches GraphQL resolver logic)
+const hasAdminAccess = currentUser => {
+  if (currentUser?.isSuperAdmin) return true;
+  if (currentUser?.isAdmin) return true;
+  return currentUser?.memberships?.some(
+    membership =>
+      membership.role === 'ORGANIZATION_OWNER' || membership.role === 'ORGANIZATION_ADMIN'
+  );
+};
+
 // Check if user has permission to invite
 const checkInvitePermission = async (req, res, next) => {
   try {
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const organizationId = req.user.organizationId;
 
-    const membership = await prisma.membership.findFirst({
-      where: {
+    if (!organizationId) {
+      return res.status(400).json({
+        message: 'User must be associated with an organization',
+      });
+    }
+
+    // First check if user has basic admin access (like GraphQL resolver)
+    if (hasAdminAccess(req.user)) {
+      // Create a default membership object for consistent API
+      req.userMembership = {
+        role: req.user.isAdmin || req.user.isSuperAdmin ? 'ADMIN' : 'ORGANIZATION_ADMIN',
         userId: req.user.userId,
-        organizationId: req.body.organizationId || req.params.organizationId,
-        role: { in: ['OWNER', 'ADMIN'] },
-      },
+        organizationId: organizationId,
+      };
+      return next();
+    }
+
+    // Fallback: Check membership table with tenant context
+    const membership = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.membership.findFirst({
+        where: {
+          userId: req.user.userId,
+          role: { in: ['ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN', 'OWNER', 'ADMIN'] },
+        },
+      });
     });
 
     if (!membership) {
+      logger.warn('Permission denied for user invitation', {
+        userId: req.user.userId,
+        organizationId: organizationId,
+        isAdmin: req.user.isAdmin,
+        isSuperAdmin: req.user.isSuperAdmin,
+        hasMemberships: !!req.user.memberships?.length,
+      });
       return res.status(403).json({
         message: 'You must be an owner or admin to invite users',
       });
@@ -84,7 +121,16 @@ router.post(
   checkInvitePermission,
   async (req, res) => {
     try {
-      const { email, role, organizationId } = req.body;
+      const { email, role } = req.body;
+
+      // Use the authenticated user's organizationId automatically for security
+      const organizationId = req.user.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          message: 'User must be associated with an organization to send invitations',
+        });
+      }
 
       // Validate role hierarchy - can't invite someone with higher role
       const inviterRole = req.userMembership.role;

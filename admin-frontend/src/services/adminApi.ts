@@ -1,5 +1,5 @@
 // Admin Backend REST API Service
-const ADMIN_API_BASE_URL = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:4001').trim()
+const ADMIN_API_BASE_URL = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:3001').trim()
 
 export interface User {
   id: string
@@ -64,7 +64,7 @@ class AdminApiService {
   }
 
   async getAdminMetrics(): Promise<AdminMetrics> {
-    return this.request<AdminMetrics>('/api/admin/metrics')
+    return this.request<AdminMetrics>('/api/admin-backend/admin/metrics')
   }
 
   async createUser(userData: {

@@ -173,8 +173,8 @@ router.post('/:id/set-key', async (req, res) => {
       });
     }
 
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
     const bcryptjs = require('bcryptjs');
     const { encryptApiKey } = require('../utils/encryption');
 

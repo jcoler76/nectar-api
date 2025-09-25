@@ -2,8 +2,7 @@ const DatabaseService = require('../../services/databaseService');
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const Service = require('../../models/Service');
 
-const { PrismaClient } = require('../../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../../services/prismaService');
 const {
   hasClientPermission,
   hasDeveloperPermission,
@@ -136,11 +135,17 @@ const flexibleQueryResolvers = {
             throw new UserInputError('Service name is required for admin queries');
           }
 
-          // TODO: Replace with Prisma service query during migration
-          // service = await Service.findOne({ name: serviceName, isActive: true }).populate(
-          //   'connectionId'
-          // );
-          service = null;
+          service = await prismaService.withTenantContext(jwtUser.organizationId, async tx => {
+            return await tx.service.findFirst({
+              where: {
+                name: serviceName,
+                isActive: true,
+              },
+              include: {
+                connection: true,
+              },
+            });
+          });
 
           if (!service) {
             throw new UserInputError(`Service ${serviceName} not found or inactive`);
@@ -198,26 +203,45 @@ const flexibleQueryResolvers = {
       if (apiKeyUser && apiKeyUser.type === 'client') {
         const serviceIds = apiKeyUser.permissions.map(perm => perm.serviceId._id || perm.serviceId);
 
-        // TODO: Replace with Prisma service query during migration
-        // return await Service.find({
-        //   _id: { $in: serviceIds },
-        //   isActive: true,
-        // }).populate('connectionId');
-        return [];
+        return await prismaService.withTenantContext(apiKeyUser.organizationId, async tx => {
+          return await tx.service.findMany({
+            where: {
+              id: { in: serviceIds },
+              isActive: true,
+            },
+            include: {
+              connection: true,
+            },
+          });
+        });
       }
 
       // DEVELOPER API KEY - Return all active services
       if (apiKeyUser && apiKeyUser.type === 'developer') {
-        // TODO: Replace with Prisma service query during migration
-        // return await Service.find({ isActive: true }).populate('connectionId');
-        return [];
+        return await prismaService.withTenantContext(apiKeyUser.organizationId, async tx => {
+          return await tx.service.findMany({
+            where: {
+              isActive: true,
+            },
+            include: {
+              connection: true,
+            },
+          });
+        });
       }
 
       // JWT USER - Return all services (admin access)
       if (jwtUser) {
-        // TODO: Replace with Prisma service query during migration
-        // return await Service.find({ isActive: true }).populate('connectionId');
-        return [];
+        return await prismaService.withTenantContext(jwtUser.organizationId, async tx => {
+          return await tx.service.findMany({
+            where: {
+              isActive: true,
+            },
+            include: {
+              connection: true,
+            },
+          });
+        });
       }
 
       return [];
@@ -247,11 +271,17 @@ const flexibleQueryResolvers = {
         throw new ForbiddenError('Access denied to service schema');
       }
 
-      // TODO: Replace with Prisma service query during migration
-      // const service = await Service.findOne({ name: serviceName, isActive: true }).populate(
-      //   'connectionId'
-      // );
-      const service = null;
+      const service = await prismaService.withTenantContext(user.organizationId, async tx => {
+        return await tx.service.findFirst({
+          where: {
+            name: serviceName,
+            isActive: true,
+          },
+          include: {
+            connection: true,
+          },
+        });
+      });
 
       if (!service) {
         throw new UserInputError(`Service ${serviceName} not found`);

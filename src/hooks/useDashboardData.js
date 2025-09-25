@@ -9,8 +9,10 @@ export const useDashboardMetrics = (days = 30) => {
   const token = (() => {
     try {
       const s = new SecureSessionStorage();
-      return s.getItem()?.token || null;
-    } catch (_) {
+      const data = s.getItem();
+      const tkn = data?.token || null;
+      return tkn;
+    } catch (_error) {
       return null;
     }
   })();

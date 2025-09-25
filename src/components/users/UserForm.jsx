@@ -1,12 +1,25 @@
 import { Tooltip } from '@mui/material';
-import { Eye, EyeOff, HelpCircle, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Loader2,
+  Lock,
+  Mail,
+  Shield,
+  User,
+  Crown,
+  Settings,
+  Code,
+  Users as UsersIcon,
+  Eye as ViewIcon,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { inviteUser, updateUser } from '../../services/userService';
 import { StatusMessages } from '../common/StatusMessages';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Checkbox } from '../ui/checkbox';
 import {
   FormActions,
   FormContainer,
@@ -17,18 +30,80 @@ import {
 } from '../ui/form-layout';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
+  // Helper function to determine role from user data
+  const getUserRole = user => {
+    if (!user) return 'MEMBER';
+    // If editing existing user, try to determine role from isAdmin flag
+    // In a real implementation, this would come from user.memberships or user.role
+    return user.isAdmin ? 'ADMIN' : 'MEMBER';
+  };
+
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
     password: '',
-    isAdmin: user?.isAdmin || false,
+    role: getUserRole(user),
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Role configuration (matching InviteUserModal pattern)
+  const roleConfig = {
+    ORGANIZATION_OWNER: {
+      label: 'Organization Owner',
+      icon: Crown,
+      description: 'Full control over organization settings, members, and billing',
+      color: 'text-red-600',
+    },
+    ORGANIZATION_ADMIN: {
+      label: 'Organization Admin',
+      icon: Settings,
+      description: 'Can manage team members, settings, and organization resources',
+      color: 'text-blue-600',
+    },
+    DEVELOPER: {
+      label: 'Developer',
+      icon: Code,
+      description: 'Can manage APIs, create integrations, and handle technical resources',
+      color: 'text-green-600',
+    },
+    MEMBER: {
+      label: 'Member',
+      icon: UsersIcon,
+      description: 'Can create and manage workflows, connections, and services',
+      color: 'text-gray-600',
+    },
+    VIEWER: {
+      label: 'Viewer',
+      icon: ViewIcon,
+      description: 'Can view resources but cannot make changes (read-only access)',
+      color: 'text-yellow-600',
+    },
+    // Legacy roles for backward compatibility
+    ADMIN: {
+      label: 'Admin (Legacy)',
+      icon: Shield,
+      description: 'Legacy administrator role - use Organization Admin instead',
+      color: 'text-blue-500',
+    },
+  };
+
+  const getAvailableRoles = () => {
+    return [
+      'ORGANIZATION_OWNER',
+      'ORGANIZATION_ADMIN',
+      'DEVELOPER',
+      'MEMBER',
+      'VIEWER',
+      // Include legacy for existing users
+      'ADMIN',
+    ];
+  };
 
   const handleChange = e => {
     const { name, value, checked, type } = e.target;
@@ -38,10 +113,10 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
     }));
   };
 
-  const handleAdminChange = checked => {
+  const handleRoleChange = value => {
     setFormData(prev => ({
       ...prev,
-      isAdmin: checked,
+      role: value,
     }));
   };
 
@@ -54,9 +129,17 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
         // Don't send password if it's empty (no password change)
         const updateData = { ...formData };
         if (!updateData.password) delete updateData.password;
+
+        // Convert role to isAdmin for legacy user update API
+        // The backend still expects isAdmin boolean, not role string
+        updateData.isAdmin = ['ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN', 'ADMIN'].includes(
+          formData.role
+        );
+        delete updateData.role; // Remove role field since backend doesn't expect it
+
         await updateUser(user._id, updateData);
       } else {
-        // Invite user instead of creating with password
+        // Invite user using new role-based system
         await inviteUser(formData);
       }
       onUserSubmitted();
@@ -203,35 +286,42 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
             )}
 
             <FormSection
-              title="Permissions"
-              description="Configure user access levels and administrative privileges"
+              title="Role & Permissions"
+              description="Configure user access level and permissions within the organization"
             >
-              <div className="flex items-start space-x-3 p-4 bg-gradient-subtle/30 rounded-lg border border-border/50">
-                <Checkbox
-                  id="isAdmin"
-                  checked={formData.isAdmin}
-                  onCheckedChange={handleAdminChange}
-                  className="mt-1"
-                />
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                    <Label
-                      htmlFor="isAdmin"
-                      className="text-base font-medium leading-none cursor-pointer"
-                    >
-                      Administrator Access
-                    </Label>
-                    <Tooltip title="Administrator users have complete access to all system features including user management, system configuration, database connections, and API settings. Regular users have limited access based on their assigned roles.">
-                      <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
-                    </Tooltip>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Grant full administrative privileges including user management, system settings,
-                    and access to all application features.
-                  </p>
+              <FormFieldGroup>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="role">User Role *</Label>
+                  <Tooltip title="Select the appropriate role that defines what the user can access and manage within your organization. Each role has specific permissions and capabilities.">
+                    <HelpCircle className="h-4 w-4 text-gray-500 cursor-help" />
+                  </Tooltip>
                 </div>
-              </div>
+                <Select value={formData.role} onValueChange={handleRoleChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableRoles().map(roleKey => {
+                      const role = roleConfig[roleKey];
+                      const IconComponent = role.icon;
+                      return (
+                        <SelectItem key={roleKey} value={roleKey}>
+                          <div className="flex items-center gap-2">
+                            <IconComponent className={`h-4 w-4 ${role.color}`} />
+                            <span>{role.label}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                {formData.role && roleConfig[formData.role] && (
+                  <p className="text-sm text-muted-foreground mt-2 p-3 bg-muted/50 rounded-md border">
+                    <strong>{roleConfig[formData.role].label}:</strong>{' '}
+                    {roleConfig[formData.role].description}
+                  </p>
+                )}
+              </FormFieldGroup>
             </FormSection>
 
             {!user && (
@@ -255,7 +345,7 @@ const UserForm = ({ user, onUserSubmitted, hideHeader = false }) => {
                       lastName: user?.lastName || '',
                       email: user?.email || '',
                       password: '',
-                      isAdmin: user?.isAdmin || false,
+                      role: getUserRole(user),
                     });
                     setError('');
                   }}

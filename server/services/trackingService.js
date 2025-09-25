@@ -1,8 +1,6 @@
-const { PrismaClient } = require('@prisma/client'); // MANDATORY: Standard import from CLAUDE.md
+const prismaService = require('../services/prismaService'); // MANDATORY: Standard import from CLAUDE.md
 const { logger } = require('../utils/logger');
 const geoip = require('geoip-lite');
-
-const prisma = new PrismaClient();
 
 class TrackingService {
   /**
@@ -126,19 +124,30 @@ class TrackingService {
         metadata,
       };
 
-      const loginLog = await prisma.loginActivityLog.create({
-        data: sanitizedData,
-      });
+      // Use RLS client with organization context (organizationId is already in sanitizedData)
+      const prismaService = require('./prismaService');
+      // Use system client for login tracking to bypass RLS (login happens before auth)
+      const prisma = prismaService.getClient();
 
-      logger.info('Login activity tracked', {
-        id: loginLog.id,
-        loginType,
-        email: email || 'N/A',
-        ipAddress,
-        userId,
-      });
+      try {
+        const loginLog = await prisma.loginActivityLog.create({
+          data: sanitizedData,
+        });
 
-      return { success: true, id: loginLog.id };
+        logger.info('Login activity tracked', {
+          id: loginLog.id,
+          loginType,
+          email: email || 'N/A',
+          ipAddress,
+          userId,
+        });
+
+        return loginLog;
+      } catch (innerError) {
+        // Log but don't throw - tracking shouldn't block login
+        logger.error('Login tracking failed', { error: innerError.message });
+        return null;
+      }
     } catch (error) {
       logger.error('Failed to track login activity', {
         error: error.message,

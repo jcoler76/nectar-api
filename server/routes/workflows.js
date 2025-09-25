@@ -10,8 +10,8 @@ router.post('/:workflowId/runs/:runId/approvals/:approvalId/decision', async (re
       return res.status(400).json({ error: 'Invalid decision' });
     }
 
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
     // TODO: Add Approval model to Prisma schema if approval functionality is needed
     // const approval = await prisma.approval.findFirst({ where: { id: approvalId, workflowId, runId } });
     if (!approval || approval.status !== 'pending') {
@@ -242,8 +242,8 @@ router.get('/:id/runs', enrichWorkflowContext, workflowController.getWorkflowRun
 router.get('/scheduler/status', async (req, res) => {
   try {
     const status = getSchedulerStatus();
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
     const activeWorkflows = await prisma.workflow.findMany({
       where: {
         isActive: true,
@@ -278,8 +278,8 @@ router.get('/scheduler/status', async (req, res) => {
 // Add a new route to manually trigger scheduler for a specific workflow
 router.post('/:id/schedule/test', async (req, res) => {
   try {
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
     const workflow = await prisma.workflow.findFirst({
       where: {
         id: req.params.id,

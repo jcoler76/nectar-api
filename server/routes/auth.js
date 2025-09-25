@@ -130,7 +130,23 @@ router.post('/login', loginValidation, handleValidationErrors, async (req, res) 
 
     const result = await authService.login(email, password, ipAddress, userAgent);
 
-    // Store user info in session for documentation access
+    // Regenerate session to prevent session fixation and cross-user contamination
+    await new Promise((resolve, reject) => {
+      req.session.regenerate(err => {
+        if (err) {
+          logger.error('Session regeneration failed during login', {
+            error: err.message,
+            email,
+            ipAddress,
+          });
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Store user info in fresh session for documentation access
     req.session.user = {
       id: result.user.id,
       email: result.user.email,
@@ -138,6 +154,12 @@ router.post('/login', loginValidation, handleValidationErrors, async (req, res) 
       organizationId: result.organization?.id,
       loginTime: new Date().toISOString(),
     };
+
+    logger.info('Session regenerated and user data stored', {
+      email,
+      userId: result.user.id,
+      organizationId: result.organization?.id,
+    });
 
     res.json({
       success: true,
@@ -731,6 +753,84 @@ router.get('/oauth/providers', (req, res) => {
   } catch (error) {
     logger.error('Error getting OAuth providers:', error);
     res.status(500).json({ error: 'Failed to load OAuth providers' });
+  }
+});
+
+// Super Admin Organization Selection
+router.post('/super-admin/select-organization', async (req, res) => {
+  try {
+    const { organizationId, userId } = req.body;
+
+    if (!organizationId || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization ID and User ID are required',
+      });
+    }
+
+    const prisma = getPrismaClient();
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        memberships: {
+          where: { organizationId },
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!user || !user.isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only super admins can select organizations',
+      });
+    }
+
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    const { generateTokens } = require('../utils/tokenService');
+    const tokens = generateTokens({
+      userId: user.id,
+      email: user.email,
+      organizationId: organization.id,
+      isSuperAdmin: true,
+    });
+    const token = tokens.accessToken;
+
+    res.json({
+      success: true,
+      token,
+      expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isSuperAdmin: true,
+        organizationId: organization.id,
+      },
+      organization: {
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+      },
+    });
+  } catch (error) {
+    logger.error('Error selecting organization for super admin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to select organization',
+    });
   }
 });
 

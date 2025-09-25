@@ -1,8 +1,8 @@
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const ApiUsage = require('../models/ApiUsage');
 // const Service = require('../models/Service');
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 
 const trackApiUsage = async (req, res, next) => {
   const originalJson = res.json;

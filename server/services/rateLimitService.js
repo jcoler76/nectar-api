@@ -1,5 +1,4 @@
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const { getRedisService } = require('./redisService');
 
 class RateLimitService {

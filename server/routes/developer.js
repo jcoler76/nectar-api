@@ -3,8 +3,8 @@ const router = express.Router();
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const Endpoint = require('../models/Endpoint');
 // const Connection = require('../models/Connection');
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const sql = require('mssql');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const { logger } = require('../utils/logger');

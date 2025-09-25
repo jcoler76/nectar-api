@@ -6,8 +6,8 @@ const DatabaseObjectService = require('../services/DatabaseObjectService');
 // const SchemaIntelligence = require('../models/SchemaIntelligence');
 // const DatabaseObject = require('../models/DatabaseObject');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const logger = require('../utils/logger');
 // Auth middleware not needed - handled at app level
 const { body, param, query, validationResult } = require('express-validator');

@@ -22,8 +22,21 @@ class AuthService {
     try {
       logger.info('Login attempt', { email, ipAddress });
 
-      // Find user by email
-      const user = await prismaService.findUserByEmail(email);
+      // Find user by email (use raw client - RLS policy allows when no org context)
+      const prisma = prismaService.getClient();
+
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          memberships: {
+            include: {
+              organization: {
+                include: { subscription: true },
+              },
+            },
+          },
+        },
+      });
 
       if (!user) {
         logger.warn('Login failed - user not found', { email, ipAddress });
@@ -193,6 +206,7 @@ class AuthService {
           isActive: user.isActive,
           emailVerified: user.emailVerified,
           lastLoginAt: new Date(),
+          isSuperAdmin: user.isSuperAdmin || false,
         },
         organization: serializeBigInt({
           id: organization.id,
@@ -268,7 +282,8 @@ class AuthService {
         : `${firstName}-${lastName}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
       // Create user, organization, subscription, and membership in a transaction
-      const prisma = await prismaService.getClient();
+      // Use non-RLS client for registration since there's no organization context yet
+      const prisma = prismaService.getClient();
 
       const result = await prisma.$transaction(async tx => {
         // Create user
@@ -360,7 +375,7 @@ class AuthService {
       const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
       // Update password
-      const prisma = await prismaService.getClient();
+      const prisma = await prismaService.getRLSClient();
       await prisma.user.update({
         where: { id: userId },
         data: {

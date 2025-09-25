@@ -37,6 +37,18 @@ export const loginUser = async (email, password) => {
         role: decodedToken?.role || response.data.membership?.role,
       };
 
+      // For super admins, store in plain localStorage FIRST for org selection
+      // This must happen before secureStorage.setItem to avoid race conditions
+      if (userData.isSuperAdmin) {
+        const sessionData = {
+          user: userData,
+          token: token,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        };
+        localStorage.setItem('superadmin_temp_session', JSON.stringify(sessionData));
+        localStorage.setItem('superadmin_temp_user', JSON.stringify(userData));
+      }
+
       secureStorage.setItem(userData);
 
       // Return the enriched response with JWT-decoded fields

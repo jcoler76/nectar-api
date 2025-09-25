@@ -1,7 +1,7 @@
-const { PrismaClient } = require('../prisma/generated/client');
+const prismaService = require('../services/prismaService');
 const { logger } = require('../utils/logger');
 
-const prisma = new PrismaClient();
+const prisma = prismaService.getRLSClient();
 
 /**
  * Workflow Analytics Service

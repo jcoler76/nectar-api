@@ -1,11 +1,9 @@
-const { PrismaClient } = require('../../prisma/generated/client');
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
 const databaseService = require('../../services/databaseService');
 const DatabaseService = require('../../services/database/DatabaseService');
 const { encryptDatabasePassword, decryptDatabasePassword } = require('../../utils/encryption');
 const { logger } = require('../../utils/logger');
-
-const prisma = new PrismaClient();
+const prismaService = require('../../services/prismaService');
 
 /**
  * Discover and store database objects for a service
@@ -56,10 +54,12 @@ async function discoverAndStoreSchema(service, connectionConfig) {
       },
     }));
 
-    // Batch insert database objects
-    await prisma.databaseObject.createMany({
-      data: databaseObjectsToCreate,
-      skipDuplicates: true, // Skip if already exists
+    // Batch insert database objects using RLS
+    await prismaService.withTenantContext(service.organizationId, async tx => {
+      await tx.databaseObject.createMany({
+        data: databaseObjectsToCreate,
+        skipDuplicates: true,
+      });
     });
 
     logger.info('Database objects stored successfully', {
@@ -71,7 +71,6 @@ async function discoverAndStoreSchema(service, connectionConfig) {
       serviceId: service.id,
       error: error.message,
     });
-    // Don't throw error - service creation should still succeed even if schema discovery fails
   }
 }
 
@@ -87,27 +86,28 @@ const serviceResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const service = await prisma.service.findFirst({
-        where: {
-          id,
-          organizationId: currentUser.organizationId,
-        },
-        include: {
-          creator: {
-            select: { id: true, email: true, firstName: true, lastName: true },
+      return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        const service = await tx.service.findFirst({
+          where: {
+            id,
           },
-          connection: true,
-          roles: {
-            where: { isActive: true },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true },
+            },
+            connection: true,
+            roles: {
+              where: { isActive: true },
+            },
           },
-        },
+        });
+
+        if (!service) {
+          throw new UserInputError('Service not found');
+        }
+
+        return service;
       });
-
-      if (!service) {
-        throw new UserInputError('Service not found');
-      }
-
-      return service;
     },
 
     services: async (
@@ -124,71 +124,71 @@ const serviceResolvers = {
 
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
-      const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'desc' } = pagination;
+      return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'desc' } = pagination;
 
-      // Build where clause for filters
-      const where = {
-        organizationId: currentUser.organizationId,
-      };
+        // Build where clause for filters (no organizationId - handled by RLS)
+        const where = {};
 
-      if (filters.isActive !== undefined) where.isActive = filters.isActive;
-      if (filters.database) {
-        where.database = { contains: filters.database, mode: 'insensitive' };
-      }
-      if (filters.host) {
-        where.host = { contains: filters.host, mode: 'insensitive' };
-      }
-      if (filters.createdBy) where.createdBy = filters.createdBy;
+        if (filters.isActive !== undefined) where.isActive = filters.isActive;
+        if (filters.database) {
+          where.database = { contains: filters.database, mode: 'insensitive' };
+        }
+        if (filters.host) {
+          where.host = { contains: filters.host, mode: 'insensitive' };
+        }
+        if (filters.createdBy) where.createdBy = filters.createdBy;
 
-      if (filters.search) {
-        where.OR = [
-          { name: { contains: filters.search, mode: 'insensitive' } },
-          { database: { contains: filters.search, mode: 'insensitive' } },
-          { host: { contains: filters.search, mode: 'insensitive' } },
-        ];
-      }
+        if (filters.search) {
+          where.OR = [
+            { name: { contains: filters.search, mode: 'insensitive' } },
+            { database: { contains: filters.search, mode: 'insensitive' } },
+            { host: { contains: filters.search, mode: 'insensitive' } },
+          ];
+        }
 
-      // Get total count for pagination
-      const totalCount = await prisma.service.count({ where });
+        // Get total count for pagination
+        const totalCount = await tx.service.count({ where });
 
-      // Get services with pagination
-      const services = await prisma.service.findMany({
-        where,
-        skip: offset,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
-        include: {
-          creator: {
-            select: { id: true, email: true, firstName: true, lastName: true },
+        // Get services with pagination
+        const services = await tx.service.findMany({
+          where,
+          skip: offset,
+          take: limit,
+          orderBy: { [sortBy]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
+          include: {
+            creator: {
+              select: { id: true, email: true, firstName: true, lastName: true },
+            },
+            connection: true,
+            roles: {
+              where: { isActive: true },
+              select: { id: true, name: true },
+            },
+            _count: {
+              select: { roles: true },
+            },
           },
-          connection: true,
-          roles: {
-            where: { isActive: true },
-            select: { id: true, name: true },
+        });
+
+        return {
+          edges: services.map((service, index) => ({
+            node: service,
+            cursor: Buffer.from((offset + index).toString()).toString('base64'),
+          })),
+          pageInfo: {
+            hasNextPage: offset + limit < totalCount,
+            hasPreviousPage: offset > 0,
+            totalCount,
+            startCursor:
+              services.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
+            endCursor:
+              services.length > 0
+                ? Buffer.from((offset + services.length - 1).toString()).toString('base64')
+                : null,
           },
-          _count: {
-            select: { roles: true },
-          },
-        },
+        };
       });
-
-      return {
-        edges: services.map((service, index) => ({
-          node: service,
-          cursor: Buffer.from((offset + index).toString()).toString('base64'),
-        })),
-        pageInfo: {
-          hasNextPage: offset + limit < totalCount,
-          hasPreviousPage: offset > 0,
-          totalCount,
-          startCursor:
-            services.length > 0 ? Buffer.from(offset.toString()).toString('base64') : null,
-          endCursor:
-            services.length > 0
-              ? Buffer.from((offset + services.length - 1).toString()).toString('base64')
-              : null,
-        },
-      };
     },
   },
 
@@ -197,125 +197,126 @@ const serviceResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        const { name, connectionId, database, password, ...otherData } = input;
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          const { name, connectionId, database, password, ...otherData } = input;
 
-        if (!name || !database) {
-          throw new UserInputError('Missing required fields: name, database');
-        }
+          if (!name || !database) {
+            throw new UserInputError('Missing required fields: name, database');
+          }
 
-        const serviceData = {
-          name,
-          database,
-          organizationId: currentUser.organizationId,
-          createdBy: currentUser.userId,
-          ...otherData,
-        };
+          const serviceData = {
+            name,
+            database,
+            organizationId: currentUser.organizationId,
+            createdBy: currentUser.userId,
+            ...otherData,
+          };
 
-        // If connectionId is provided, verify it exists and belongs to organization
-        if (connectionId) {
-          const connection = await prisma.databaseConnection.findFirst({
-            where: {
-              id: connectionId,
-              organizationId: currentUser.organizationId,
+          // If connectionId is provided, verify it exists and belongs to organization
+          if (connectionId) {
+            const connection = await tx.databaseConnection.findFirst({
+              where: {
+                id: connectionId,
+              },
+            });
+
+            if (!connection) {
+              throw new UserInputError('Associated connection not found');
+            }
+
+            serviceData.connectionId = connectionId;
+            // Inherit connection details
+            serviceData.host = connection.host;
+            serviceData.port = connection.port;
+            serviceData.username = connection.username;
+            serviceData.passwordEncrypted = connection.passwordEncrypted;
+            serviceData.failoverHost = connection.failoverHost || null;
+          } else if (password) {
+            // Encrypt password if provided directly
+            serviceData.passwordEncrypted = encryptDatabasePassword(password);
+          }
+
+          const service = await tx.service.create({
+            data: serviceData,
+            include: {
+              creator: {
+                select: { id: true, email: true, firstName: true, lastName: true },
+              },
+              connection: true,
+              organization: true,
             },
           });
 
-          if (!connection) {
-            throw new UserInputError('Associated connection not found');
-          }
+          logger.info('Service created via GraphQL', {
+            serviceId: service.id,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
 
-          serviceData.connectionId = connectionId;
-          // Inherit connection details
-          serviceData.host = connection.host;
-          serviceData.port = connection.port;
-          serviceData.username = connection.username;
-          serviceData.passwordEncrypted = connection.passwordEncrypted;
-          serviceData.failoverHost = connection.failoverHost || null;
-        } else if (password) {
-          // Encrypt password if provided directly
-          serviceData.passwordEncrypted = encryptDatabasePassword(password);
-        }
-
-        const service = await prisma.service.create({
-          data: serviceData,
-          include: {
-            creator: {
-              select: { id: true, email: true, firstName: true, lastName: true },
-            },
-            connection: true,
-            organization: true,
-          },
-        });
-
-        logger.info('Service created via GraphQL', {
-          serviceId: service.id,
-          userId: currentUser.userId,
-          organizationId: currentUser.organizationId,
-        });
-
-        // Automatically discover and store database schema
-        try {
-          // Build connection config for schema discovery
-          let connectionConfig = {
-            type: 'MSSQL', // Default to MSSQL for backward compatibility
-            host: service.host,
-            port: service.port,
-            database: service.database,
-            username: service.username,
-          };
-
-          // Decrypt password if exists
-          if (service.passwordEncrypted) {
-            try {
-              connectionConfig.password = decryptDatabasePassword(service.passwordEncrypted);
-            } catch (decryptError) {
-              logger.warn('Could not decrypt service password for schema discovery', {
-                serviceId: service.id,
-                error: decryptError.message,
-              });
-            }
-          }
-
-          // If service uses a connection, override with connection details
-          if (service.connection) {
-            connectionConfig = {
-              ...connectionConfig,
-              type: service.connection.type || 'MSSQL',
-              host: service.connection.host,
-              port: service.connection.port,
-              username: service.connection.username,
+          // Automatically discover and store database schema
+          try {
+            // Build connection config for schema discovery
+            let connectionConfig = {
+              type: 'MSSQL', // Default to MSSQL for backward compatibility
+              host: service.host,
+              port: service.port,
+              database: service.database,
+              username: service.username,
             };
 
-            if (service.connection.passwordEncrypted) {
+            // Decrypt password if exists
+            if (service.passwordEncrypted) {
               try {
-                connectionConfig.password = decryptDatabasePassword(
-                  service.connection.passwordEncrypted
-                );
+                connectionConfig.password = decryptDatabasePassword(service.passwordEncrypted);
               } catch (decryptError) {
-                logger.warn('Could not decrypt connection password for schema discovery', {
+                logger.warn('Could not decrypt service password for schema discovery', {
                   serviceId: service.id,
-                  connectionId: service.connection.id,
                   error: decryptError.message,
                 });
               }
             }
-          }
 
-          // Perform schema discovery asynchronously (don't wait for it to complete)
-          discoverAndStoreSchema(service, connectionConfig).catch(error => {
-            logger.error('Async schema discovery failed for new service', {
+            // If service uses a connection, override with connection details
+            if (service.connection) {
+              connectionConfig = {
+                ...connectionConfig,
+                type: service.connection.type || 'MSSQL',
+                host: service.connection.host,
+                port: service.connection.port,
+                username: service.connection.username,
+              };
+
+              if (service.connection.passwordEncrypted) {
+                try {
+                  connectionConfig.password = decryptDatabasePassword(
+                    service.connection.passwordEncrypted
+                  );
+                } catch (decryptError) {
+                  logger.warn('Could not decrypt connection password for schema discovery', {
+                    serviceId: service.id,
+                    connectionId: service.connection.id,
+                    error: decryptError.message,
+                  });
+                }
+              }
+            }
+
+            // Perform schema discovery asynchronously (don't wait for it to complete)
+            discoverAndStoreSchema(service, connectionConfig).catch(error => {
+              logger.error('Async schema discovery failed for new service', {
+                serviceId: service.id,
+                error: error.message,
+              });
+            });
+          } catch (error) {
+            logger.error('Failed to initiate schema discovery for new service', {
               serviceId: service.id,
               error: error.message,
             });
-          });
-        } catch (error) {
-          logger.error('Failed to initiate schema discovery for new service', {
-            serviceId: service.id,
-            error: error.message,
-          });
-        }
+          }
 
-        return service;
+          return service;
+        });
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Service name already exists in your organization');
@@ -329,44 +330,45 @@ const serviceResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        // Verify service exists and user has access
-        const existingService = await prisma.service.findFirst({
-          where: {
-            id,
-            organizationId: currentUser.organizationId,
-          },
-        });
-
-        if (!existingService) {
-          throw new UserInputError('Service not found');
-        }
-
-        const { password, ...updateData } = input;
-
-        // Handle password update if provided
-        if (password) {
-          updateData.passwordEncrypted = encryptDatabasePassword(password);
-        }
-
-        const service = await prisma.service.update({
-          where: { id },
-          data: updateData,
-          include: {
-            creator: {
-              select: { id: true, email: true, firstName: true, lastName: true },
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          // Verify service exists and user has access
+          const existingService = await tx.service.findFirst({
+            where: {
+              id,
             },
-            connection: true,
-            organization: true,
-          },
-        });
+          });
 
-        logger.info('Service updated via GraphQL', {
-          serviceId: id,
-          userId: currentUser.userId,
-          organizationId: currentUser.organizationId,
-        });
+          if (!existingService) {
+            throw new UserInputError('Service not found');
+          }
 
-        return service;
+          const { password, ...updateData } = input;
+
+          // Handle password update if provided
+          if (password) {
+            updateData.passwordEncrypted = encryptDatabasePassword(password);
+          }
+
+          const service = await tx.service.update({
+            where: { id },
+            data: updateData,
+            include: {
+              creator: {
+                select: { id: true, email: true, firstName: true, lastName: true },
+              },
+              connection: true,
+              organization: true,
+            },
+          });
+
+          logger.info('Service updated via GraphQL', {
+            serviceId: id,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+
+          return service;
+        });
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Service name already exists in your organization');
@@ -380,52 +382,49 @@ const serviceResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        // Verify service exists and user has access
-        const existingService = await prisma.service.findFirst({
-          where: {
-            id,
-            organizationId: currentUser.organizationId,
-          },
-          include: {
-            _count: {
-              select: {
-                roles: true,
-                databaseObjects: true,
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          // Verify service exists and user has access
+          const existingService = await tx.service.findFirst({
+            where: {
+              id,
+            },
+            include: {
+              _count: {
+                select: {
+                  roles: true,
+                  databaseObjects: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        if (!existingService) {
-          throw new UserInputError('Service not found');
-        }
+          if (!existingService) {
+            throw new UserInputError('Service not found');
+          }
 
-        // Check for additional dependent records
-        const exposedEntitiesCount = await prisma.exposedEntity.count({
-          where: { serviceId: id },
-        });
+          // Check for additional dependent records
+          const exposedEntitiesCount = await tx.exposedEntity.count({
+            where: { serviceId: id },
+          });
 
-        // Check for dependent records
-        const hasRoles = existingService._count.roles > 0;
-        const hasDatabaseObjects = existingService._count.databaseObjects > 0;
-        const hasExposedEntities = exposedEntitiesCount > 0;
-        const hasDependents = hasRoles || hasDatabaseObjects || hasExposedEntities;
+          // Check for dependent records
+          const hasRoles = existingService._count.roles > 0;
+          const hasDatabaseObjects = existingService._count.databaseObjects > 0;
+          const hasExposedEntities = exposedEntitiesCount > 0;
+          const hasDependents = hasRoles || hasDatabaseObjects || hasExposedEntities;
 
-        if (hasDependents && !force) {
-          const dependencies = [];
-          if (hasRoles) dependencies.push(`${existingService._count.roles} role(s)`);
-          if (hasDatabaseObjects)
-            dependencies.push(`${existingService._count.databaseObjects} database object(s)`);
-          if (hasExposedEntities)
-            dependencies.push(`${exposedEntitiesCount} exposed entity/entities`);
+          if (hasDependents && !force) {
+            const dependencies = [];
+            if (hasRoles) dependencies.push(`${existingService._count.roles} role(s)`);
+            if (hasDatabaseObjects)
+              dependencies.push(`${existingService._count.databaseObjects} database object(s)`);
+            if (hasExposedEntities)
+              dependencies.push(`${exposedEntitiesCount} exposed entity/entities`);
 
-          throw new UserInputError(
-            `Cannot delete service: it has dependent records (${dependencies.join(', ')}). Use force deletion to remove all dependent records.`
-          );
-        }
-
-        // Use a transaction for all deletions
-        await prisma.$transaction(async tx => {
+            throw new UserInputError(
+              `Cannot delete service: it has dependent records (${dependencies.join(', ')}). Use force deletion to remove all dependent records.`
+            );
+          }
           // If force deletion, delete all dependent records
           if (force) {
             // Delete all roles associated with this service
@@ -493,16 +492,16 @@ const serviceResolvers = {
           await tx.service.delete({
             where: { id },
           });
-        });
 
-        logger.info('Service deleted via GraphQL', {
-          serviceId: id,
-          forced: force,
-          userId: currentUser.userId,
-          organizationId: currentUser.organizationId,
-        });
+          logger.info('Service deleted via GraphQL', {
+            serviceId: id,
+            forced: force,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
 
-        return true;
+          return true;
+        });
       } catch (error) {
         // Check for foreign key constraint error
         if (error.code === 'P2003') {
@@ -543,15 +542,19 @@ const serviceResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        const service = await prisma.service.findFirst({
-          where: {
-            id,
-            organizationId: currentUser.organizationId,
-          },
-          include: {
-            connection: true,
-          },
-        });
+        const service = await prismaService.withTenantContext(
+          currentUser.organizationId,
+          async tx => {
+            return await tx.service.findFirst({
+              where: {
+                id,
+              },
+              include: {
+                connection: true,
+              },
+            });
+          }
+        );
 
         if (!service) throw new UserInputError('Service not found');
 
@@ -633,46 +636,60 @@ const serviceResolvers = {
 
       if (!service.createdBy) return null;
 
-      return await prisma.user.findUnique({
+      const systemPrisma = prismaService.getSystemClient();
+      return await systemPrisma.user.findUnique({
         where: { id: service.createdBy },
         select: { id: true, email: true, firstName: true, lastName: true },
       });
     },
 
     // Resolver for connection field - ensures connection info is populated
-    connection: async service => {
+    connection: async (service, _, { user: currentUser }) => {
       if (service.connection) return service.connection;
 
       if (!service.connectionId) return null;
 
-      return await prisma.databaseConnection.findUnique({
-        where: { id: service.connectionId },
-        select: {
-          id: true,
-          name: true,
-          type: true,
-          host: true,
-          port: true,
-          username: true,
-          passwordEncrypted: true,
-          sslEnabled: true,
-          databases: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+      if (!currentUser?.organizationId) return null;
+
+      return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        return await tx.databaseConnection.findUnique({
+          where: { id: service.connectionId },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            host: true,
+            port: true,
+            username: true,
+            passwordEncrypted: true,
+            sslEnabled: true,
+            databases: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
       });
     },
 
     // Resolver for effectiveHost field - returns the actual host being used
-    effectiveHost: async service => {
+    effectiveHost: async (service, _, { user: currentUser }) => {
       // If service uses a connection, return connection's host
       if (service.connectionId) {
-        const connection =
-          service.connection ||
-          (await prisma.databaseConnection.findUnique({
-            where: { id: service.connectionId },
-          }));
+        if (service.connection) {
+          return service.connection.host || service.host;
+        }
+
+        if (!currentUser?.organizationId) return service.host;
+
+        const connection = await prismaService.withTenantContext(
+          currentUser.organizationId,
+          async tx => {
+            return await tx.databaseConnection.findUnique({
+              where: { id: service.connectionId },
+            });
+          }
+        );
         return connection?.host || service.host;
       }
 

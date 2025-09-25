@@ -1,4 +1,4 @@
-const { PrismaClient } = require('../../prisma/generated/client');
+const prismaService = require('../prismaService');
 const DatabaseDriverFactory = require('../database/DatabaseDriverFactory');
 const { logger } = require('../../utils/logger');
 const { parseFilter, sanitizeFields, parseSort } = require('./filterParser');
@@ -7,7 +7,7 @@ const mssql = require('./dialects/mssql');
 const mysql = require('./dialects/mysql');
 const mongodb = require('./dialects/mongodb');
 
-const prisma = new PrismaClient();
+const rlsClient = prismaService.getRLSClient();
 
 function selectEffectivePolicy(policies, roleId) {
   if (!policies || !policies.length) return null;
@@ -36,9 +36,11 @@ function renderPolicyTemplate(template, context) {
 }
 
 async function getServiceAndConnection(serviceName, organizationId) {
-  const service = await prisma.service.findFirst({
-    where: { name: serviceName, organizationId, isActive: true },
-    include: { connection: true },
+  const service = await rlsClient.withRLS({ organizationId }, async tx => {
+    return await tx.service.findFirst({
+      where: { name: serviceName, isActive: true },
+      include: { connection: true },
+    });
   });
   if (!service) return null;
   // Prefer linked connection; fallback to service fields

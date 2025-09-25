@@ -11,8 +11,7 @@ const { logger } = require('../middleware/logger');
 // const ApiUsage = require('../models/ApiUsage');
 // const Connection = require('../models/Connection');
 // const Service = require('../models/Service');
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const DatabaseService = require('../services/databaseService');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const SQLSafetyValidator = require('../utils/sqlSafetyValidator');
@@ -25,6 +24,7 @@ const pendingRequests = new Map();
 
 // Public API endpoint handler for stored procedures - supports all HTTP methods
 // Note: activityLogger.middleware() removed here as it's already applied globally in server.js for all /api routes
+// Support both /_proc/ and /proc/ URL formats for stored procedures
 router.all(
   '/:serviceName/_proc/:procedureName',
   consolidatedApiKeyMiddleware,
@@ -134,9 +134,14 @@ router.all(
 
       if (service.connectionId) {
         // Implement proper Prisma queries for connection lookup
-        const connection = await prisma.databaseConnection.findUnique({
-          where: { id: service.connectionId },
-        });
+        const connection = await prismaService.withTenantContext(
+          req.application.organizationId,
+          async tx => {
+            return await tx.databaseConnection.findUnique({
+              where: { id: service.connectionId },
+            });
+          }
+        );
         if (!connection) {
           throw new Error('The underlying connection for this service could not be found.');
         }
@@ -453,10 +458,13 @@ router.all(
       const responseSize = Buffer.byteLength(JSON.stringify(cleanResponse), 'utf8');
       apiUsageData.responseSize = responseSize;
 
-      // Save API usage asynchronously (non-blocking) using Prisma
-      const organizationId = req.organization?.id || service.organizationId;
+      // Save API usage asynchronously (non-blocking) using System Client
+      // API Activity Logs are infrastructure-level monitoring, use system client for reliability
+      const organizationId =
+        req.application?.organizationId || req.organization?.id || service.organizationId;
       if (organizationId) {
-        prisma.apiActivityLog
+        const systemClient = prismaService.getSystemClient();
+        systemClient.apiActivityLog
           .create({
             data: {
               requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -481,7 +489,10 @@ router.all(
             },
           })
           .catch(err => {
-            logger.error('Failed to save API activity log:', { error: err.message });
+            logger.error('Failed to save API activity log:', {
+              error: err.message,
+              organizationId,
+            });
           });
       }
 
@@ -525,10 +536,12 @@ router.all(
         const errorResponse = { message: error.message, code: error.code };
         const responseSize = Buffer.byteLength(JSON.stringify(errorResponse), 'utf8');
 
-        // Save error API usage using Prisma
-        const organizationId = req.organization?.id || req.service?.organizationId;
+        // Save error API usage using System Client
+        const organizationId =
+          req.application?.organizationId || req.organization?.id || req.service?.organizationId;
         if (organizationId) {
-          prisma.apiActivityLog
+          const systemClient = prismaService.getSystemClient();
+          systemClient.apiActivityLog
             .create({
               data: {
                 requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -565,6 +578,25 @@ router.all(
       });
     } finally {
       // Connection pools are managed by sqlManager - no need to close individual connections
+    }
+  }
+);
+
+// Also support /proc/ URL format (without underscore)
+router.all(
+  '/:serviceName/proc/:procedureName',
+  consolidatedApiKeyMiddleware,
+  legacyFormatMiddleware,
+  async (req, res) => {
+    // Reuse the same handler logic by forwarding to the main /_proc/ handler
+    req.url = req.url.replace('/proc/', '/_proc/');
+    req.originalUrl = req.originalUrl.replace('/proc/', '/_proc/');
+    // The middleware and handler logic will treat this the same as /_proc/
+    const mainHandler = router.stack.find(
+      layer => layer.route && layer.route.path === '/:serviceName/_proc/:procedureName'
+    );
+    if (mainHandler && mainHandler.route && mainHandler.route.stack[2]) {
+      return mainHandler.route.stack[2].handle(req, res);
     }
   }
 );

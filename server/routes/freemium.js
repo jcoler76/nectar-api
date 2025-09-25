@@ -7,7 +7,7 @@ const { authMiddleware } = require('../middleware/auth');
  * GET /api/freemium/usage
  * Get current freemium usage statistics for the authenticated user
  */
-router.get('/usage', authMiddleware, async (req, res) => {
+router.get('/usage', async (req, res) => {
   try {
     const userId = req.user.id;
     const userPlan = req.user.plan || 'free';

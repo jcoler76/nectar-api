@@ -28,7 +28,14 @@ export const generateApiKey = async userId => {
 };
 
 export const inviteUser = async userData => {
-  const response = await api.post('/api/users', userData);
+  // Use the proper invitation endpoint instead of direct user creation
+  const invitationData = {
+    email: userData.email,
+    role: userData.role || 'MEMBER', // Use the selected role directly
+    // organizationId is automatically inferred from authenticated user context
+  };
+
+  const response = await api.post('/api/invitations/send', invitationData);
   return response.data;
 };
 

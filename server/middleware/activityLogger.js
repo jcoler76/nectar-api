@@ -3,8 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const ApiActivityLog = require('../models/ApiActivityLog');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const { sanitizeObject } = require('../utils/logSanitizer');
 
 const { logger } = require('./logger');
@@ -85,6 +84,7 @@ class ActivityLogger {
    */
   async logActivity(req, res, responseBody, responseSize, startTime, error = null) {
     try {
+      const prisma = prismaService.getClient();
       const endTime = Date.now();
       const duration = endTime - startTime;
       const success = !error && res.statusCode < 400;

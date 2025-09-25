@@ -8,181 +8,128 @@ Reuse shared components any time possible.
 
 Evaluate the agents available to you and add instructions on usage to CLAUDE.md. Make sure that the end of EVERY to do list is to use the CLAUDE.md checker, and ensure each stop point or new feature utilizes the quality control agent.
 
-## 🚨 UNIFIED PRISMA SCHEMA ARCHITECTURE (Updated: 2025-09-21)
+## 🚨 PRISMA SCHEMA ARCHITECTURE (Updated: 2025-09-23)
 
-### 🎯 SINGLE SOURCE OF TRUTH: Unified Schema Management
+### 🎯 SINGLE SOURCE OF TRUTH: One Schema, One Client
 
-**BREAKTHROUGH SOLUTION**: The schema synchronization issues have been permanently solved with a unified schema architecture.
+**CRITICAL**: This project uses PostgreSQL with Prisma ORM. There is **ONE master schema** that generates **ONE client** used by the main server application ONLY.
 
-#### ✅ NEW UNIFIED ARCHITECTURE (September 21, 2025)
+#### ✅ CLEAN ARCHITECTURE (September 23, 2025)
 
-**Single Master Schema**: `./server/shared-schema.prisma`
-- **One schema file** generates clients for all applications
-- **No more synchronization** between multiple schema files
-- **Eliminates runtime mismatches** that caused field recognition errors
-- **Simplified maintenance** with unified generation script
+**Master Schema Location**: `./server/prisma/schema.prisma`
+- **Single source of truth** for all database structure
+- **Generates ONE client** at `./server/prisma/generated/client`
+- **Used ONLY by server application** (server/ directory)
+- **No schema drift possible** - only one schema exists
 
-**1. Schema Location & Structure**
+#### 🏗️ Application Architecture
+
+**Main Server (server/)**
+- Uses Prisma directly via `./server/prisma/generated/client`
+- Exposes GraphQL API at port 4000
+- Exposes REST API at port 3001
+- Handles all database operations with RLS enforcement
+
+**Admin Portal (admin-frontend/ + admin-backend/)**
+- **NO Prisma** - consumes APIs only
+- Calls main server GraphQL/REST endpoints via `mainApiClient`
+- Pure presentation layer for admin features
+- No direct database access
+- API client: `admin-backend/src/services/apiClient.ts`
+- Type stubs only: `admin-backend/src/types/prisma.ts`
+- Database stub throws errors if accessed: `admin-backend/src/utils/database.ts`
+
+**Schema Configuration:**
+```prisma
+// server/prisma/schema.prisma (ONLY SCHEMA IN PROJECT)
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 ```
-./server/shared-schema.prisma (SINGLE SOURCE OF TRUTH)
-├── Generator: server_client → ./server/prisma/generated/client
-├── Generator: admin_client → ./admin-backend/prisma/generated/client
-└── Generator: root_client → ./prisma/generated/client
-```
 
-**2. Import Patterns by Application**
+**Import Pattern (Server Code Only):**
 ```javascript
-// ✅ SERVER APPLICATION (server/*)
+// ✅ CORRECT - Only used in server/ directory
 const { PrismaClient } = require('./prisma/generated/client');
-const { PrismaClient } = require('../prisma/generated/client'); // from graphql/
+const { PrismaClient } = require('../prisma/generated/client'); // from subdirs
 
-// ✅ ADMIN BACKEND (admin-backend/src/*)
-import { PrismaClient } from '../../prisma/generated/client'
-import { AdminRole } from '../../prisma/generated/client'
-
-// ✅ ROOT APPLICATION (src/*)
-import { PrismaClient } from '../prisma/generated/client'
+// ❌ WRONG - Admin-backend should NOT import Prisma
+// Admin uses API calls, not direct database access
 ```
 
-#### 🎛️ UNIFIED SCHEMA MANAGEMENT COMMANDS
+#### 🎛️ PRISMA COMMANDS
 
-**All operations now use the unified script:**
+**Run from `server/` directory:**
 
 ```bash
-# Generate all Prisma clients from single schema
-npm run prisma:generate
+cd server
 
-# Create and apply database migrations
-npm run prisma:migrate [migration-name]
-
-# Push schema changes directly to database (dev)
-npm run prisma:push
-
-# Open Prisma Studio
-npm run prisma:studio
-
-# Seed all databases
-npm run prisma:seed
-
-# Reset database with all migrations
-npm run prisma:reset
-
-# Check migration status
-npm run prisma:status
-```
-
-#### 🚨 SCHEMA CHANGE PROTOCOL (SIMPLIFIED)
-
-**EVERY TIME you modify the schema:**
-
-1. **Edit master schema**: `./server/shared-schema.prisma`
-2. **Generate all clients**: `npm run prisma:generate`
-3. **Apply changes**: `npm run prisma:push` (dev) or `npm run prisma:migrate` (prod)
-4. **Test applications**: Verify main app and admin portal work
-
-**✅ BENEFITS OF NEW ARCHITECTURE:**
-- **No more sync issues**: One schema, multiple generated clients
-- **Consistent runtime**: All applications use same schema version
-- **Simplified workflow**: Single command generates everything
-- **Field recognition**: Eliminates "Unknown argument" runtime errors
-- **Version consistency**: All clients guaranteed to match database
-
-#### 🏗️ Technical Implementation Details
-
-**Unified Generation Script**: `./prisma-unified.js`
-- **Multi-generator schema**: Creates clients for all applications
-- **Single command execution**: Handles all generation automatically
-- **Error handling**: Provides clear feedback on issues
-- **Cross-platform**: Works on Windows with proper file handling
-
-#### 📊 Migration History & Problem Resolution
-
-**Previous Issues (SOLVED):**
-- ❌ ~~Schema synchronization between 3 files~~
-- ❌ ~~Runtime "cancelAtPeriodEnd" field errors~~
-- ❌ ~~Manual copy processes prone to errors~~
-- ❌ ~~Import path inconsistencies~~
-- ❌ ~~Version mismatches between clients~~
-
-**Current State (September 21, 2025):**
-- ✅ Single schema generates all clients
-- ✅ All field recognition issues resolved
-- ✅ Simplified one-command workflow
-- ✅ Consistent import patterns per application
-- ✅ Automated generation with error handling
-
-**Files Updated in Migration:**
-- All controllers (`server/controllers/`)
-- All GraphQL resolvers (`server/graphql/resolvers/`)
-- All middleware (`server/middleware/`)
-- All services (`server/services/`)
-- Admin backend files (`admin-backend/src/`)
-- Customer app files (`customer-app/server/`)
-
-#### Schema Locations & Purposes
-
-**Primary Schema**: `./prisma/schema.prisma`
-- **Purpose**: Source of truth for all schema changes
-- **Used by**: Main application, server routes, GraphQL
-- **Generator**: Standard `@prisma/client`
-
-**Admin Backend Schema**: `./admin-backend/prisma/schema.prisma`
-- **Purpose**: Copy of primary schema for admin portal
-- **Used by**: Admin authentication, admin-only features
-- **Generator**: Standard `@prisma/client`
-- **MUST MATCH**: Primary schema exactly
-
-#### Troubleshooting Schema Sync Issues
-
-**Problem**: `Cannot find module '@prisma/client'`
-```bash
-# Solution: Regenerate clients in both locations
+# Generate client after schema changes
 npx prisma generate
-cd admin-backend && npx prisma generate
+
+# Create migration
+npx prisma migrate dev --name description
+
+# Apply migrations
+npx prisma migrate deploy
+
+# Dev only: push without migration
+npx prisma db push
+
+# Open database GUI
+npx prisma studio
 ```
 
-**Problem**: Schema mismatch errors
+#### 🚨 SCHEMA CHANGE PROTOCOL
+
+**When modifying database:**
+
+1. **Edit**: `./server/prisma/schema.prisma`
+2. **Generate**: `cd server && npx prisma generate`
+3. **Migrate**: `npx prisma migrate dev --name change-description`
+4. **Restart**: Server must restart to load new client
+5. **Test**: Verify application works
+
+**✅ RULES:**
+- **ONE schema**: `./server/prisma/schema.prisma` only
+- **NO duplication**: Never copy schema files
+- **Regenerate**: Always run `npx prisma generate` after edits
+- **Restart required**: New schema needs server restart
+
+#### 🏗️ RLS (Row Level Security) Architecture
+
+**Dual Connection Pattern:**
+
+1. **systemPrisma** (`ADMIN_DATABASE_URL`)
+   - Superuser for User/Organization tables
+   - No RLS (infrastructure only)
+
+2. **tenantPrisma** (`DATABASE_URL`)
+   - Regular user for tenant tables
+   - RLS enforced (Membership, Workflow, etc.)
+
 ```bash
-# Solution: Ensure schemas are identical
-diff ./prisma/schema.prisma ./admin-backend/prisma/schema.prisma
-# If different, copy from root to admin-backend
-cp ./prisma/schema.prisma ./admin-backend/prisma/schema.prisma
+# .env
+DATABASE_URL="postgresql://nectar_app_user:pass@host:5432/db"
+ADMIN_DATABASE_URL="postgresql://nectar_admin:pass@host:5432/db"
 ```
 
-**Problem**: Import path errors
-```bash
-# Solution: Search and replace custom imports
-# Find files with old imports:
-grep -r "prisma/generated/client" .
-# Replace with: @prisma/client
-```
+#### 📋 CLEANUP COMPLETED (2025-09-23)
 
-#### Development Workflow Integration
+**DELETED schemas (backed up with DELETED_ prefix):**
+- ❌ `server/shared-schema.prisma` → backed up
+- ❌ `admin-backend/prisma/` → deleted directory
+- ❌ `prisma/` (root) → deleted directory
 
-**When adding new models:**
-1. Add to `./prisma/schema.prisma`
-2. Copy to `./admin-backend/prisma/schema.prisma`
-3. Generate both clients
-4. Create/update TypeScript types if needed
-5. Update resolvers/controllers to use new models
-
-**When modifying existing models:**
-1. Modify `./prisma/schema.prisma`
-2. Copy to `./admin-backend/prisma/schema.prisma`
-3. Regenerate clients
-4. Update any affected queries/mutations
-5. Test both main app and admin portal
-
-**Automation Opportunity:**
-Consider creating a script to automate this process:
-```bash
-#!/bin/bash
-# sync-prisma.sh
-cp ./prisma/schema.prisma ./admin-backend/prisma/schema.prisma
-npx prisma generate
-cd admin-backend && npx prisma generate
-echo "✅ Prisma schemas synchronized"
-```
+**REMAINING:**
+- ✅ `server/prisma/schema.prisma` - **ONLY SCHEMA**
+- ✅ `server/prisma/generated/client` - generated Prisma client
 
 ## 🚨 CRITICAL DEPLOYMENT FIXES (Updated: 2025-07-26)
 
@@ -894,3 +841,250 @@ npm run security:review
 - **Manual commits**: All developer commits require security approval
 
 **ZERO TOLERANCE**: No code passes through the auto-resolve process without successful Claude Code security review.
+
+## Row Level Security (RLS) Implementation
+
+### Production Deployment of Multi-Tenant RLS
+
+The application implements **true PostgreSQL Row Level Security (RLS)** to ensure complete tenant data isolation at the database level. This approach makes it impossible to bypass tenant restrictions from application code.
+
+#### Database Role Configuration
+
+1. **Create non-superuser application role** (superusers bypass RLS):
+```sql
+-- Create application database user
+CREATE USER nectar_app_user WITH PASSWORD 'your_secure_password_here';
+
+-- Grant necessary permissions
+GRANT CONNECT ON DATABASE nectarstudio_ai TO nectar_app_user;
+GRANT USAGE ON SCHEMA public TO nectar_app_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO nectar_app_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO nectar_app_user;
+
+-- Ensure future tables are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO nectar_app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO nectar_app_user;
+```
+
+2. **Update production DATABASE_URL**:
+```env
+DATABASE_URL="postgresql://nectar_app_user:your_secure_password_here@your_db_host:5432/nectarstudio_ai?schema=public"
+```
+
+#### RLS Policy Setup
+
+Run the RLS migration script on production database:
+
+```bash
+# Execute the RLS setup migration
+psql $DATABASE_URL -f server/migrations/enable-rls.sql
+```
+
+**Critical RLS Components**:
+- **Session functions**: `current_organization_id()`, `is_super_admin()`
+- **PERMISSIVE policies**: Grant access based on tenant context
+- **FORCE ROW LEVEL SECURITY**: Prevents any bypass attempts
+
+#### CRITICAL: RLS Session Variable Consistency
+
+**⚠️ THE #1 CAUSE OF RLS FAILURES: VARIABLE NAME MISMATCHES**
+
+PostgreSQL RLS policies and the application code MUST use the EXACT SAME session variable name. Any mismatch will cause RLS to fail silently, returning zero results.
+
+**Session Variable Setup (Verified 2025-09-24)**:
+
+1. **Database Function** (`current_organization_id()`):
+   - Reads from: `app.current_organization_id`
+   - Used by ALL RLS policies
+
+2. **Application Code** (`prismaService.withTenantContext()`):
+   - Sets: `app.current_organization_id`
+   - MUST match database function exactly
+
+**Verification Script**:
+```javascript
+// Check what variable name the RLS function expects
+const result = await prisma.$queryRaw`
+  SELECT prosrc FROM pg_proc WHERE proname = 'current_organization_id'
+`;
+// Look for: current_setting('app.XXXXX', true)
+```
+
+**To verify ALL policies use the function correctly**:
+```sql
+-- All policies should use current_organization_id() function, NOT direct current_setting()
+SELECT tablename, policyname, qual
+FROM pg_policies
+WHERE schemaname = 'public';
+
+-- CORRECT: ("organizationId" = current_organization_id())
+-- WRONG: ("organizationId" = current_setting('app.organization_id', true))
+```
+
+**Fix Script** (run if policies are broken):
+```bash
+node server/fix-all-rls-policies.js
+```
+
+#### Application Code Requirements
+
+**All database operations must use RLS-aware client**:
+
+```javascript
+// ✅ CORRECT - Uses RLS context with transaction
+const prismaService = require('../services/prismaService');
+
+await prismaService.withTenantContext(organizationId, async (tx) => {
+  const data = await tx.tableName.findMany();
+  return data;
+});
+
+// ❌ INCORRECT - Direct client bypasses RLS
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+const data = await prisma.tableName.findMany(); // Returns 0 results!
+
+// ❌ INCORRECT - Using deprecated pattern
+const prisma = prismaService.getRLSClient(); // Old pattern, use withTenantContext
+```
+
+**GraphQL Resolver Pattern**:
+```javascript
+// ✅ CORRECT - All resolvers use withTenantContext
+const serviceResolvers = {
+  Query: {
+    services: async (_, { filters, pagination }, { user: currentUser }) => {
+      return await prismaService.withTenantContext(
+        currentUser.organizationId,
+        async (tx) => {
+          const services = await tx.service.findMany();
+          return services;
+        }
+      );
+    }
+  }
+};
+```
+
+**Required middleware stack**:
+```javascript
+// Apply RLS context to all authenticated routes
+app.use('/api', authenticateToken);
+app.use('/api', rlsMiddleware.setRLSContext);
+```
+
+#### Production Verification
+
+1. **Test tenant isolation**:
+```bash
+node server/scripts/test-application-rls.js
+```
+
+2. **Expected results**:
+- Law Office users see 0 records from other tenants
+- Organization users see only their data
+- Super admins see all data across tenants
+
+3. **Fix any direct Prisma usage**:
+```bash
+node server/scripts/fix-direct-prisma-clients.js
+```
+
+#### Security Guarantees
+
+✅ **Database-level enforcement**: RLS policies run in PostgreSQL kernel
+✅ **Bypass-proof**: Cannot be circumvented by application code
+✅ **Connection pool safe**: Context set per transaction
+✅ **Superuser protection**: Application uses non-privileged database role
+✅ **Multi-tenant isolation**: Complete data separation between organizations
+
+#### Deployment Checklist
+
+- [ ] Create non-superuser database role
+- [ ] Update production DATABASE_URL
+- [ ] Execute RLS migration script
+- [ ] Verify all controllers use withTenantContext()
+- [ ] Test tenant isolation with real data
+- [ ] Monitor logs for RLS policy violations
+- [ ] Document emergency RLS bypass procedures (if needed)
+
+### RLS Troubleshooting Guide
+
+#### Problem: Queries Return Zero Results Despite Data Existing
+
+**Root Cause**: RLS session variable mismatch between database function and application code.
+
+**Diagnostic Steps**:
+
+1. **Check what the database function expects**:
+```bash
+node server/check-rls-function.js
+# Output shows: current_setting('app.current_organization_id', true)
+```
+
+2. **Check what prismaService is setting**:
+```javascript
+// In server/services/prismaService.js, line ~74
+// Should be: SELECT set_config('app.current_organization_id', ...)
+```
+
+3. **Verify policies use the function (not direct setting)**:
+```bash
+node server/find-broken-rls-policies.js
+# Shows which tables have broken policies
+```
+
+**Quick Fix**:
+```bash
+# Fix all broken RLS policies to use current_organization_id() function
+node server/fix-all-rls-policies.js
+```
+
+#### Problem: Some Tables Work, Others Don't
+
+**Cause**: Inconsistent RLS policy patterns across tables.
+
+**Solution**: Ensure ALL tenant tables use identical policy pattern:
+```sql
+CREATE POLICY tenant_isolation ON "TableName"
+FOR ALL
+USING ("organizationId" = current_organization_id())
+WITH CHECK ("organizationId" = current_organization_id());
+```
+
+**Verification**:
+```bash
+node server/compare-policies.js
+# Check that ALL policies use current_organization_id() function
+```
+
+#### Problem: UserList Works But ConnectionList Doesn't
+
+**Diagnosis**: Different tables had different RLS policy formats:
+- Membership: `current_organization_id()` ✅
+- DatabaseConnection: `current_setting('app.organization_id')` ❌
+
+**Prevention**: Always use the helper function, never direct `current_setting()` in policies.
+
+#### Testing RLS After Changes
+
+```bash
+# Test that connections return results
+node server/test-connection-query.js
+
+# Verify all policies are consistent
+node server/find-broken-rls-policies.js
+
+# Should show: 0 broken policies
+```
+
+#### Emergency: Disable RLS Temporarily (DANGEROUS)
+
+**ONLY for debugging - NEVER in production:**
+```sql
+-- Temporarily disable RLS on a table (superuser only)
+ALTER TABLE "TableName" DISABLE ROW LEVEL SECURITY;
+
+-- Re-enable when done
+ALTER TABLE "TableName" ENABLE ROW LEVEL SECURITY;
+```

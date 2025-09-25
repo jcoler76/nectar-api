@@ -2,8 +2,8 @@ const cron = require('node-cron');
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const { Workflow } = require('../models/workflowModels');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const HubSpotService = require('./hubspot/HubSpotService');
 const axios = require('axios');
 const { executeWorkflow } = require('./workflows/engine');

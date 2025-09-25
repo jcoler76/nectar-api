@@ -74,6 +74,7 @@ model User {
   createdAt                  DateTime             @default(now())
   updatedAt                  DateTime             @updatedAt
   isSuperAdmin               Boolean              @default(false)
+  activeOrganizationId       String?              // For SuperAdmin context switching
   apiActivityLogs            ApiActivityLog[]     @relation("ApiActivityUser")
   apiKeysCreated             ApiKey[]
   appUsageLogs               AppUsageLog[]        @relation("AppUsageUser")

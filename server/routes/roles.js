@@ -21,9 +21,8 @@ const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
 const validationRules = require('../middleware/validationRules');
 const { checkFreemiumLimits } = require('../middleware/freemiumLimits');
-const { PrismaClient } = require('../prisma/generated/client');
-
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 
 // Get all roles using GraphQL
 router.get('/', createListHandler(ROLE_QUERIES.GET_ALL, 'roles'));

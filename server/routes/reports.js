@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('../prisma/generated/client');
+const prismaService = require('../services/prismaService');
 const { logger } = require('../middleware/logger');
-
-const prisma = new PrismaClient();
 
 // Apply auth middleware to all routes
 // Authentication is already handled at app level in server.js
@@ -11,6 +9,9 @@ const prisma = new PrismaClient();
 // Get API usage data
 router.get('/api-usage', async (req, res) => {
   try {
+    // Get RLS-aware Prisma client for this request
+    const prisma = await prismaService.getRLSClient();
+
     const { startDate, endDate, service, role, application, component, showDetails } = req.query;
     logger.info('API Usage Report Request:', {
       startDate,
@@ -52,6 +53,7 @@ router.get('/api-usage', async (req, res) => {
         gte: startDateTime,
         lte: endDateTime,
       },
+      endpointType: 'public',
     };
 
     // Add filters based on relationships
@@ -180,6 +182,9 @@ router.get('/api-usage', async (req, res) => {
 // Get unique components
 router.get('/components', async (req, res) => {
   try {
+    // Get RLS-aware Prisma client for this request
+    const prisma = await prismaService.getRLSClient();
+
     const { service, role, application } = req.query;
 
     // Since the component field doesn't exist in the current Prisma schema,
@@ -204,6 +209,7 @@ router.get('/components', async (req, res) => {
         endpoint: {
           not: null,
         },
+        endpointType: 'public',
       },
       orderBy: {
         endpoint: 'asc',
@@ -226,6 +232,9 @@ router.get('/components', async (req, res) => {
 
 router.get('/workflow-executions', async (req, res) => {
   try {
+    // Get RLS-aware Prisma client for this request
+    const prisma = await prismaService.getRLSClient();
+
     const { startDate, endDate, workflowId, status, showDetails } = req.query;
 
     // Import date utilities for proper EST timezone handling

@@ -3,8 +3,8 @@
  * Handles logging of user actions, role changes, and security events
  */
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 
 /**
  * Log a general audit event

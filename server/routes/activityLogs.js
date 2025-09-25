@@ -3,8 +3,7 @@ const router = express.Router();
 const activityLogController = require('../controllers/activityLogController');
 const { authMiddleware, adminOnly } = require('../middleware/auth');
 
-// All activity log routes require authentication
-router.use(authMiddleware);
+// Authentication and RLS context handled by index.js mounting
 
 /**
  * @route   GET /api/activity-logs

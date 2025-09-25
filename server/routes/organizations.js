@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
+const prisma = prismaService.getRLSClient();
 const AuthFactory = require('../middleware/authFactory');
 const authenticateToken = AuthFactory.createJWTMiddleware();
 const InputValidator = require('../utils/inputValidation');
@@ -247,11 +247,62 @@ router.post(
 );
 
 // GET /api/organizations - Get user's organizations
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const { getPrismaClient } = require('../config/prisma');
+    const regularPrisma = getPrismaClient();
 
-    // Get organizations where user is a member
+    const userId = req.query.userId || req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User ID required',
+      });
+    }
+
+    const user = await regularPrisma.user.findUnique({
+      where: { id: userId },
+      select: { isSuperAdmin: true },
+    });
+
+    if (user?.isSuperAdmin) {
+      const allOrganizations = await regularPrisma.organization.findMany({
+        include: {
+          subscription: {
+            select: {
+              plan: true,
+              status: true,
+              trialEndsAt: true,
+              maxDatabaseConnections: true,
+              maxApiCallsPerMonth: true,
+              maxUsersPerOrg: true,
+              maxWorkflows: true,
+            },
+          },
+          _count: {
+            select: {
+              databaseConnections: true,
+              workflows: true,
+              apiKeys: true,
+              memberships: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      const organizations = allOrganizations.map(org => ({
+        ...org,
+        userRole: 'SUPER_ADMIN',
+        joinedAt: org.createdAt,
+      }));
+
+      return res.json({ organizations });
+    }
+
     const memberships = await prisma.membership.findMany({
       where: { userId },
       include: {

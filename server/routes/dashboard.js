@@ -7,30 +7,84 @@ const router = express.Router();
 // const Application = require('../models/Application');
 // const ApiActivityLog = require('../models/ApiActivityLog');
 
-const { PrismaClient } = require('../prisma/generated/client');
-const prisma = new PrismaClient();
+const prismaService = require('../services/prismaService');
 const { logger } = require('../utils/logger');
 const { toEasternTimeStart, createEasternTimeGrouping } = require('../utils/dateUtils');
 const errorResponses = require('../utils/errorHandler');
 
 router.get('/metrics', async (req, res) => {
   try {
-    const safeCount = async (model, args) => {
-      try {
-        if (!prisma[model] || typeof prisma[model].count !== 'function') return 0;
-        return await prisma[model].count(args || {});
-      } catch (_) {
-        return 0;
-      }
-    };
+    const organizationId = req.user?.organizationId;
 
-    // Get counts using available Prisma models; default to 0 if model doesn't exist
+    const fs = require('fs');
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      user: req.user,
+      organizationId,
+      hasUser: !!req.user,
+      hasOrgId: !!organizationId,
+    };
+    fs.appendFileSync(
+      'C:\\Users\\jcoler\\nectar-api\\debug-dashboard.log',
+      JSON.stringify(debugInfo, null, 2) + '\n---\n'
+    );
+
+    console.log('===== DASHBOARD METRICS DEBUG =====');
+    console.log('req.user:', JSON.stringify(req.user, null, 2));
+    console.log('organizationId:', organizationId);
+    console.log('===================================');
+
+    logger.info('Dashboard metrics request', {
+      userId: req.user?.userId,
+      email: req.user?.email,
+      organizationId,
+      organizationIdType: typeof organizationId,
+      sessionAuth: req.user?.sessionAuth,
+      fullUser: JSON.stringify(req.user),
+    });
+
+    if (!organizationId) {
+      logger.error('No organizationId found in request', {
+        user: req.user,
+        session: req.session?.user,
+      });
+      return res.status(400).json({ error: 'Organization ID is required' });
+    }
+
+    // Get counts with explicit organizationId filter
+    const prisma = prismaService.getClient();
+
+    logger.info('Querying counts with organizationId:', organizationId);
+
     const [services, users, roles, applications] = await Promise.all([
-      safeCount('service', { where: { isActive: true } }),
-      safeCount('user', { where: { isActive: true } }),
-      safeCount('role'),
-      safeCount('application', { where: { isActive: true } }),
+      prisma.service.count({ where: { organizationId, isActive: true } }).catch(e => {
+        logger.error('Service count error:', e);
+        return 0;
+      }),
+      prisma.user
+        .count({
+          where: {
+            memberships: {
+              some: { organizationId },
+            },
+            isActive: true,
+          },
+        })
+        .catch(e => {
+          logger.error('User count error:', e);
+          return 0;
+        }),
+      prisma.role.count({ where: { organizationId } }).catch(e => {
+        logger.error('Role count error:', e);
+        return 0;
+      }),
+      prisma.application.count({ where: { organizationId, isActive: true } }).catch(e => {
+        logger.error('Application count error:', e);
+        return 0;
+      }),
     ]);
+
+    logger.info('Counts retrieved', { services, users, roles, applications });
 
     // Get today's API calls count (using Eastern Time) - only important ones
     const todayStart = toEasternTimeStart(new Date());
@@ -44,6 +98,7 @@ router.get('/metrics', async (req, res) => {
             category: { in: ['api', 'workflow'] },
             endpointType: { in: ['client', 'public'] },
             importance: { in: ['critical', 'high'] },
+            organizationId,
           },
         });
       }
@@ -64,18 +119,19 @@ router.get('/metrics', async (req, res) => {
     let apiActivityRaw = [];
     try {
       apiActivityRaw = await prisma.$queryRaw`
-        SELECT 
+        SELECT
           DATE(timestamp AT TIME ZONE 'America/New_York') as date,
           COUNT(*) as calls,
           COUNT(CASE WHEN "statusCode" >= 400 THEN 1 END) as failures,
           COUNT(*) as "totalRecords",
           COALESCE(SUM("responseTime"), 0) as "totalDataSize"
         FROM "ApiActivityLog"
-        WHERE 
+        WHERE
           timestamp >= ${startUTC}::timestamp
           AND category IN ('api', 'workflow')
           AND "endpointType" IN ('client', 'public')
           AND importance IN ('critical', 'high')
+          AND "organizationId" = ${organizationId}
         GROUP BY DATE(timestamp AT TIME ZONE 'America/New_York')
         ORDER BY date ASC
       `;

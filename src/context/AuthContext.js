@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [qrCode, setQrCode] = useState('');
   const [secret, setSecret] = useState('');
   const [otpRequested, setOtpRequested] = useState(false);
+  const [needsOrgSelection, setNeedsOrgSelection] = useState(false);
   const navigate = useNavigate();
 
   // Check authentication status on app load
@@ -34,6 +35,15 @@ export const AuthProvider = ({ children }) => {
         if (authStatus.isAuthenticated && authStatus.user) {
           setUser(authStatus.user);
           setIsAuthenticated(true);
+          // SuperAdmin needs to select organization if they have one (meaning they just logged in)
+          // but NOT if they don't have an organizationId (meaning auth check failed)
+          if (
+            authStatus.user?.isSuperAdmin &&
+            authStatus.user?.organizationId &&
+            !authStatus.user?.inSupportMode
+          ) {
+            setNeedsOrgSelection(true);
+          }
           // Ensure axios instance carries Authorization for immediate API calls
           try {
             if (authStatus.user?.token) {
@@ -82,14 +92,27 @@ export const AuthProvider = ({ children }) => {
             if (authStatus.isAuthenticated && authStatus.user) {
               setUser(authStatus.user);
               setIsAuthenticated(true);
+              // SuperAdmin needs to select organization if they have one (meaning they just logged in)
+              // but NOT if they don't have an organizationId (meaning auth check failed)
+              if (
+                authStatus.user?.isSuperAdmin &&
+                authStatus.user?.organizationId &&
+                !authStatus.user?.inSupportMode
+              ) {
+                setNeedsOrgSelection(true);
+              } else {
+                setNeedsOrgSelection(false);
+              }
             } else {
               setUser(null);
               setIsAuthenticated(false);
+              setNeedsOrgSelection(false);
             }
           } catch (error) {
             console.error('Error checking auth status from storage event:', error);
             setUser(null);
             setIsAuthenticated(false);
+            setNeedsOrgSelection(false);
           }
         }
       }
@@ -124,7 +147,13 @@ export const AuthProvider = ({ children }) => {
               api.defaults.headers.common.Authorization = `Bearer ${token}`;
             }
           } catch (_) {}
-          navigate('/dashboard');
+
+          // Check if SuperAdmin needs to select an organization
+          if (data.user?.isSuperAdmin) {
+            setNeedsOrgSelection(true);
+          } else {
+            navigate('/dashboard');
+          }
         } else {
           // Unexpected response format
           console.error('Login response missing token:', data);
@@ -164,7 +193,13 @@ export const AuthProvider = ({ children }) => {
         setOtpRequested(false);
         setQrCode('');
         setSecret('');
-        navigate('/dashboard');
+
+        // Check if SuperAdmin needs to select an organization
+        if (data.user?.isSuperAdmin) {
+          setNeedsOrgSelection(true);
+        } else {
+          navigate('/dashboard');
+        }
       } catch (error) {
         console.error('2FA verification failed:', error);
         throw error;
@@ -190,12 +225,21 @@ export const AuthProvider = ({ children }) => {
       setTwoFactorRequired(false);
       setSetupTwoFactorRequired(false);
       setTwoFactorEmail('');
+      setNeedsOrgSelection(false);
       try {
         delete api.defaults.headers.common.Authorization;
       } catch (_) {}
       if (redirect) {
         navigate('/login');
       }
+    },
+    [navigate]
+  );
+
+  const completeOrgSelection = useCallback(
+    organizationId => {
+      setNeedsOrgSelection(false);
+      navigate('/dashboard');
     },
     [navigate]
   );
@@ -251,10 +295,12 @@ export const AuthProvider = ({ children }) => {
     secret,
     twoFactorEmail,
     otpRequested,
+    needsOrgSelection,
     login,
     logout,
     verifyTwoFactor,
     requestTwoFactorCode,
+    completeOrgSelection,
     updatePassword,
     getAllUsers,
     updateUserRole,

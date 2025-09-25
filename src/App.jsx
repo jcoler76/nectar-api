@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import SuperAdminOrganizationSelect from './components/SuperAdminOrganizationSelect';
 import ApiBuilderWizard from './components/apiBuilder/ApiBuilderWizard';
 import ApplicationForm from './components/applications/ApplicationForm';
 import ApplicationList from './components/applications/ApplicationList';
@@ -118,7 +119,7 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const { user } = useAuth();
+  const { user, needsOrgSelection, completeOrgSelection } = useAuth();
   const isAuthenticated = !!user;
   const location = useLocation();
 
@@ -156,6 +157,11 @@ function App() {
                 '/contact',
                 '/privacy',
               ].some(p => location.pathname.startsWith(p)) && null}
+              {/* SuperAdmin Organization Selection */}
+              {needsOrgSelection && (
+                <SuperAdminOrganizationSelect onOrganizationSelect={completeOrgSelection} />
+              )}
+
               <Routes>
                 <Route
                   path="/"

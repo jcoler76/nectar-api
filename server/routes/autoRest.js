@@ -16,57 +16,68 @@ router.get('/:serviceName/_discover', authMiddleware, async (req, res) => {
       `🔍 Discover tables request for service: ${req.params.serviceName}, org: ${req.user.organizationId}`
     );
 
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
 
-    // Find the service by name for this organization
-    const service = await prisma.service.findFirst({
-      where: {
-        name: req.params.serviceName,
-        organizationId: req.user.organizationId,
-        isActive: true,
-      },
+    // Use withTenantContext to properly enforce RLS for tenant-scoped data
+    const result = await prismaService.withTenantContext(req.user.organizationId, async tx => {
+      // Find the service by name for this organization
+      const service = await tx.service.findFirst({
+        where: {
+          name: req.params.serviceName,
+          organizationId: req.user.organizationId,
+          isActive: true,
+        },
+      });
+
+      logger.info(`📋 Service found:`, service ? { id: service.id, name: service.name } : 'null');
+
+      if (!service) {
+        return {
+          error: { code: 'SERVICE_NOT_FOUND', message: 'Service not found or inactive' },
+        };
+      }
+
+      // Get stored database objects for this service
+      const databaseObjects = await tx.databaseObject.findMany({
+        where: {
+          serviceId: service.id,
+          organizationId: req.user.organizationId,
+          // Get all types: tables, views, procedures
+        },
+        select: {
+          name: true,
+          schema: true,
+          type: true,
+          metadata: true,
+        },
+      });
+
+      logger.info(
+        `📊 Found ${databaseObjects.length} database objects:`,
+        databaseObjects.slice(0, 5)
+      );
+
+      // Get exposed entities to mark which tables are already exposed
+      const exposedEntities = await tx.exposedEntity.findMany({
+        where: {
+          serviceId: service.id,
+          organizationId: req.user.organizationId,
+        },
+        select: {
+          name: true,
+          schema: true,
+        },
+      });
+
+      return { service, databaseObjects, exposedEntities };
     });
 
-    logger.info(`📋 Service found:`, service ? { id: service.id, name: service.name } : 'null');
-
-    if (!service) {
-      return res.status(404).json({
-        error: { code: 'SERVICE_NOT_FOUND', message: 'Service not found or inactive' },
-      });
+    // Handle error case
+    if (result.error) {
+      return res.status(404).json({ error: result.error });
     }
 
-    // Get stored database objects for this service
-    const databaseObjects = await prisma.databaseObject.findMany({
-      where: {
-        serviceId: service.id,
-        organizationId: req.user.organizationId,
-        // Get all types: tables, views, procedures
-      },
-      select: {
-        name: true,
-        schema: true,
-        type: true,
-        metadata: true,
-      },
-    });
-
-    logger.info(
-      `📊 Found ${databaseObjects.length} database objects:`,
-      databaseObjects.slice(0, 5)
-    );
-
-    // Get exposed entities to mark which tables are already exposed
-    const exposedEntities = await prisma.exposedEntity.findMany({
-      where: {
-        serviceId: service.id,
-        organizationId: req.user.organizationId,
-      },
-      select: {
-        name: true,
-        schema: true,
-      },
-    });
+    const { service, databaseObjects, exposedEntities } = result;
 
     logger.info(
       `✅ Found ${exposedEntities.length} exposed entities:`,
@@ -239,12 +250,15 @@ router.get(
         pageSize: 1,
       });
       // get entity by name to resolve database/schema
-      const prisma = require('../prisma/generated/client');
-      const { PrismaClient } = prisma;
-      const p = new PrismaClient();
-      const exposedEntity = await p.exposedEntity.findFirst({
-        where: { serviceId: service.id, OR: [{ pathSlug: entity }, { name: entity }] },
-      });
+      const prismaService = require('../services/prismaService');
+      const exposedEntity = await prismaService.withTenantContext(
+        req.application.organizationId,
+        async tx => {
+          return await tx.exposedEntity.findFirst({
+            where: { serviceId: service.id, OR: [{ pathSlug: entity }, { name: entity }] },
+          });
+        }
+      );
       if (!exposedEntity)
         return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Entity not found' } });
 

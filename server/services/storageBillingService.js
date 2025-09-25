@@ -3,11 +3,11 @@
  * Handles storage usage tracking, overage calculations, and billing integration
  */
 
-const { PrismaClient } = require('@prisma/client');
+const prismaService = require('../services/prismaService');
 const { logger } = require('../utils/logger');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const prisma = new PrismaClient();
+const prisma = prismaService.getRLSClient();
 
 class StorageBillingService {
   constructor() {

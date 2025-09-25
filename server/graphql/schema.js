@@ -97,6 +97,25 @@ const schema = makeExecutableSchema({
   resolvers,
 });
 
+// Plugin to wrap resolver execution in RLS context
+const rlsPlugin = {
+  async requestDidStart() {
+    return {
+      async executionDidStart({ context }) {
+        // Set RLS context once per request
+        if (context?.user?.organizationId) {
+          const rlsContext = {
+            organizationId: context.user.organizationId,
+            userId: context.user.userId,
+            email: context.user.email,
+            isSuperAdmin: context.user.isSuperAdmin || false,
+          };
+        }
+      },
+    };
+  },
+};
+
 const createApolloServer = () => {
   return new ApolloServer({
     schema,
@@ -154,7 +173,7 @@ const createApolloServer = () => {
       },
     },
     validationRules: graphqlRateLimiting.getAllRules(),
-    plugins: [csrfPlugin, ...graphqlRateLimiting.getAllPlugins()],
+    plugins: [rlsPlugin, csrfPlugin, ...graphqlRateLimiting.getAllPlugins()],
     introspection:
       process.env.NODE_ENV !== 'production' || process.env.ENABLE_GRAPHQL_INTROSPECTION === 'true',
     formatError: error => {

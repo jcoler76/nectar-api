@@ -224,8 +224,8 @@ const verifyRole = requiredRoles => {
 
 // Workflow-specific authorization
 const verifyWorkflowAccess = () => {
-  const { PrismaClient } = require('../prisma/generated/client');
-  const prisma = new PrismaClient();
+  const prismaService = require('../services/prismaService');
+  const prisma = prismaService.getRLSClient();
 
   return async (req, res, next) => {
     try {

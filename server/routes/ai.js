@@ -563,8 +563,8 @@ function extractVariables(queryText) {
  */
 async function getAvailableSchemaContext(serviceName, organizationId) {
   try {
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
 
     const context = {
       tables: [],
@@ -627,8 +627,8 @@ function isQuerySafe(query) {
  */
 async function executeQuery(query, queryType, serviceName, organizationId) {
   try {
-    const { PrismaClient } = require('../prisma/generated/client');
-    const prisma = new PrismaClient();
+    const prismaService = require('../services/prismaService');
+    const prisma = prismaService.getRLSClient();
 
     // SECURITY: Validate that organizationId is provided
     if (!organizationId) {

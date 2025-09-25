@@ -20,9 +20,9 @@ interface Contact {
 }
 
 const API_BASE: string = (
-  (import.meta as unknown as { env?: { VITE_ADMIN_API_URL?: string } }).env?.VITE_ADMIN_API_URL ||
-  'http://localhost:4001'
-)
+  (import.meta as unknown as { env?: { VITE_MAIN_API_URL?: string } }).env?.VITE_MAIN_API_URL ||
+  'http://localhost:3001'
+).trim()
 
 export default function LeadList() {
   const [items, setItems] = useState<Contact[]>([])
@@ -68,7 +68,7 @@ export default function LeadList() {
       if (scoreRange.max) params.set('score_max', scoreRange.max)
       params.set('limit', String(limit))
       params.set('offset', String(offset))
-      const res = await fetch(`${API_BASE}/api/crm/contacts?` + params.toString(), {
+      const res = await fetch(`${API_BASE}/api/admin-backend/crm/contacts?` + params.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -87,7 +87,7 @@ export default function LeadList() {
 
   const startEdit = async (id: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/crm/contacts/${id}`, {
+      const res = await fetch(`${API_BASE}/api/admin-backend/crm/contacts/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       })
       const data = await res.json()
@@ -104,8 +104,8 @@ export default function LeadList() {
       // Determine if this is a new contact (empty id) or existing contact
       const isNewContact = !editing.id || editing.id === ''
       const url = isNewContact
-        ? `${API_BASE}/api/crm/contacts`
-        : `${API_BASE}/api/crm/contacts/${editing.id}`
+        ? `${API_BASE}/api/admin-backend/crm/contacts`
+        : `${API_BASE}/api/admin-backend/crm/contacts/${editing.id}`
       const method = isNewContact ? 'POST' : 'PATCH'
 
       const res = await fetch(url, {
@@ -155,7 +155,7 @@ export default function LeadList() {
     if (!bulkAction || selectedIds.size === 0) return
     setBulkLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/api/crm/contacts/bulk`, {
+      const res = await fetch(`${API_BASE}/api/admin-backend/crm/contacts/bulk`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -245,7 +245,7 @@ export default function LeadList() {
             <option value="QUALIFIED">Qualified</option>
             <option value="NEGOTIATING">Negotiating</option>
             <option value="CONVERTED">Converted</option>
-            <option value="LOST">Lost</option>
+            <option value="CLOSED">Lost</option>
           </select>
           <input value={owner} onChange={e => { setOwner(e.target.value); setOffset(0) }} placeholder="Owner" className="px-3 py-2 border rounded-md" />
           <button
@@ -354,7 +354,7 @@ export default function LeadList() {
                 <option value="QUALIFIED">Qualified</option>
                 <option value="NEGOTIATING">Negotiating</option>
                 <option value="CONVERTED">Converted</option>
-                <option value="LOST">Lost</option>
+                <option value="CLOSED">Lost</option>
               </select>
             )}
             {bulkAction === 'owner' && (
@@ -428,7 +428,7 @@ export default function LeadList() {
                           c.lead_status === 'QUALIFIED' ? 'bg-green-100 text-green-800' :
                           c.lead_status === 'NEGOTIATING' ? 'bg-yellow-100 text-yellow-800' :
                           c.lead_status === 'CONVERTED' ? 'bg-emerald-100 text-emerald-800' :
-                          c.lead_status === 'LOST' ? 'bg-red-100 text-red-800' :
+                          c.lead_status === 'CLOSED' ? 'bg-red-100 text-red-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
                           {c.lead_status || 'NEW'}
@@ -591,7 +591,7 @@ export default function LeadList() {
                   <option value="QUALIFIED">Qualified</option>
                   <option value="NEGOTIATING">Negotiating</option>
                   <option value="CONVERTED">Converted</option>
-                  <option value="LOST">Lost</option>
+                  <option value="CLOSED">Lost</option>
                 </select>
               </div>
               <div className="col-span-1">
@@ -607,7 +607,7 @@ export default function LeadList() {
               <button className="px-4 py-2 rounded border" onClick={() => setEditing(null)}>Cancel</button>
               {editing.id && (
                 <button className="px-4 py-2 rounded bg-emerald-600 text-white" onClick={async () => {
-                  await fetch(`${API_BASE}/api/crm/contacts/${editing.id}/convert`, {
+                  await fetch(`${API_BASE}/api/admin-backend/crm/contacts/${editing.id}/convert`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                   })
@@ -629,7 +629,7 @@ function LeadNotes({ contactId, token }: { contactId: string; token: string }) {
   const [newNote, setNewNote] = useState('')
 
   const loadNotes = useCallback(async () => {
-    const res = await fetch(`${API_BASE}/api/crm/contacts/${contactId}/notes`, {
+    const res = await fetch(`${API_BASE}/api/admin-backend/crm/contacts/${contactId}/notes`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
     const data = await res.json()
@@ -640,7 +640,7 @@ function LeadNotes({ contactId, token }: { contactId: string; token: string }) {
 
   const addNote = async () => {
     if (!newNote.trim()) return
-    const res = await fetch(`${API_BASE}/api/crm/contacts/${contactId}/notes`, {
+    const res = await fetch(`${API_BASE}/api/admin-backend/crm/contacts/${contactId}/notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ body: newNote.trim() }),
@@ -653,7 +653,7 @@ function LeadNotes({ contactId, token }: { contactId: string; token: string }) {
   }
 
   const removeNote = async (id: string) => {
-    await fetch(`${API_BASE}/api/crm/contacts/${contactId}/notes/${id}`, {
+    await fetch(`${API_BASE}/api/admin-backend/crm/contacts/${contactId}/notes/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     })

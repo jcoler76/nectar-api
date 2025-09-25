@@ -20,7 +20,7 @@ interface PipelineStage {
 const API_BASE: string = (
   (import.meta as unknown as { env?: { VITE_ADMIN_API_URL?: string } }).env?.VITE_ADMIN_API_URL ||
   'http://localhost:4001'
-)
+).trim()
 
 const STAGE_CONFIG = {
   NEW: {

@@ -1,7 +1,5 @@
-const { PrismaClient } = require('../prisma/generated/client');
+const prismaService = require('../services/prismaService');
 const geoip = require('geoip-lite');
-
-const prisma = new PrismaClient();
 
 class TermsService {
   /**
@@ -9,6 +7,7 @@ class TermsService {
    */
   async getActiveTerms() {
     try {
+      const prisma = prismaService.getClient();
       const activeTerms = await prisma.termsAndConditions.findFirst({
         where: {
           isActive: true,
@@ -33,6 +32,7 @@ class TermsService {
    */
   async hasUserAcceptedCurrentTerms(userId, organizationId) {
     try {
+      const prisma = prismaService.getClient();
       const activeTerms = await this.getActiveTerms();
 
       if (!activeTerms) {
@@ -62,6 +62,7 @@ class TermsService {
    */
   async recordAcceptance(userId, organizationId, ipAddress, userAgent, acceptanceMethod = 'CLICK') {
     try {
+      const prisma = prismaService.getClient();
       const activeTerms = await this.getActiveTerms();
 
       if (!activeTerms) {
@@ -164,6 +165,7 @@ class TermsService {
    */
   async createOrUpdateTerms(version, content, summary, effectiveDate) {
     try {
+      const prisma = prismaService.getClient();
       // Deactivate all existing terms
       await prisma.termsAndConditions.updateMany({
         where: { isActive: true },
@@ -193,6 +195,7 @@ class TermsService {
    */
   async getAllTermsVersions() {
     try {
+      const prisma = prismaService.getClient();
       const allTerms = await prisma.termsAndConditions.findMany({
         orderBy: {
           effectiveDate: 'desc',
@@ -218,6 +221,7 @@ class TermsService {
    */
   async getAcceptanceStats(organizationId) {
     try {
+      const prisma = prismaService.getClient();
       const activeTerms = await this.getActiveTerms();
 
       if (!activeTerms) {
@@ -264,6 +268,7 @@ class TermsService {
    */
   async exportAcceptanceRecords(organizationId, startDate, endDate) {
     try {
+      const prisma = prismaService.getClient();
       const acceptances = await prisma.termsAcceptance.findMany({
         where: {
           organizationId,
