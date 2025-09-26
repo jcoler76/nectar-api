@@ -238,8 +238,17 @@ class ActivityLogger {
         statusCode: res.statusCode,
       });
 
-      // Integrate with security monitoring for special events
-      await this.integrateSecurityMonitoring(req, res, activityLogData, securityClassification);
+      // Integrate with security monitoring for special events (NON-BLOCKING)
+      setImmediate(() => {
+        this.integrateSecurityMonitoring(req, res, activityLogData, securityClassification).catch(
+          error => {
+            logger.error('Background security monitoring integration failed:', {
+              error: error.message,
+              requestId: req.requestId,
+            });
+          }
+        );
+      });
 
       // Log errors for immediate attention
       if (!success) {
@@ -710,14 +719,24 @@ class ActivityLogger {
     try {
       const { eventType, securityLevel, flags } = securityClassification;
 
-      // Track bulk data access
+      // Track bulk data access (NON-BLOCKING)
       if (flags.includes('BULK_DATA_REQUEST')) {
-        await securityMonitoring.trackBulkDataAccess({
-          userId: activityData.userId,
-          ip: activityData.ipAddress,
-          endpoint: activityData.url,
-          recordCount: activityData.metadata.responseRecordCount || 0,
-          userAgent: activityData.userAgent,
+        // Use setImmediate to make this non-blocking
+        setImmediate(async () => {
+          try {
+            await securityMonitoring.trackBulkDataAccess({
+              userId: activityData.userId,
+              ip: activityData.ipAddress,
+              endpoint: activityData.url,
+              recordCount: activityData.metadata.responseRecordCount || 0,
+              userAgent: activityData.userAgent,
+            });
+          } catch (error) {
+            logger.error('Background security monitoring error:', {
+              error: error.message,
+              requestId: req.requestId,
+            });
+          }
         });
       }
 

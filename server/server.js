@@ -90,7 +90,10 @@ const startServer = async () => {
     subscriptionServer = null;
     if (graphqlEnabled) {
       try {
-        subscriptionServer = initializeSubscriptions(httpServer);
+        subscriptionServer = await initializeSubscriptions(httpServer);
+        if (!subscriptionServer) {
+          logger.warn('WebSocket subscriptions failed to initialize, continuing without them');
+        }
       } catch (error) {
         console.error('Subscription server initialization error:', error);
         if (process.env.STAGING_CONTINUE_ON_GRAPHQL_ERROR === 'true') {

@@ -228,9 +228,17 @@ const getRedisService = async () => {
   if (!redisService) {
     redisService = new RedisService();
     try {
-      await redisService.connect();
+      // Add timeout to prevent hanging HTTP requests
+      await Promise.race([
+        redisService.connect(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis connection timeout')), 2000)
+        ),
+      ]);
     } catch (error) {
-      logger.warn('Redis not available, falling back to in-memory session storage');
+      logger.warn('Redis not available, falling back to in-memory session storage', {
+        error: error.message,
+      });
       // Return null to indicate Redis is not available
       return null;
     }

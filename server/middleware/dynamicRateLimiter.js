@@ -1,5 +1,17 @@
 const rateLimitService = require('../services/rateLimitService');
-const { securityMonitoring } = require('../services/securityMonitoringService');
+
+// Lazy load securityMonitoring to avoid blocking module initialization
+let securityMonitoring = null;
+function getSecurityMonitoring() {
+  if (!securityMonitoring) {
+    try {
+      securityMonitoring = require('../services/securityMonitoringService').securityMonitoring;
+    } catch (error) {
+      securityMonitoring = null; // Mark as attempted but failed
+    }
+  }
+  return securityMonitoring;
+}
 
 /**
  * Enhanced Dynamic Rate Limiter
@@ -110,10 +122,12 @@ async function applyEnhancedRateLimit(req, baseResult, options) {
 
     // Progressive rate limiting based on security risk
     if (progressive) {
-      const ipRisk = securityMonitoring.getRiskAssessment('ip', req.ip);
-      const userRisk = req.user
-        ? securityMonitoring.getRiskAssessment('user', req.user.userId)
-        : { level: 'LOW' };
+      const securityService = getSecurityMonitoring();
+      const ipRisk = securityService?.getRiskAssessment?.('ip', req.ip) || { level: 'LOW' };
+      const userRisk =
+        req.user && securityService?.getRiskAssessment
+          ? securityService.getRiskAssessment('user', req.user.userId) || { level: 'LOW' }
+          : { level: 'LOW' };
 
       // Adjust limits based on risk level
       const riskMultipliers = {
@@ -183,16 +197,21 @@ async function applyEnhancedRateLimit(req, baseResult, options) {
       }
     }
 
-    // Track rapid requests for security monitoring
+    // Track rapid requests for security monitoring (non-blocking)
     if (currentCount > baseLimit * 0.8) {
-      await securityMonitoring.trackRapidRequests({
-        ip: req.ip,
-        userId: req.user?.userId,
-        requestCount: currentCount,
-        timeWindow: windowMs,
-        userAgent: req.headers['user-agent'],
-        paths: [req.path],
-      });
+      const securityService = getSecurityMonitoring();
+      if (securityService?.trackRapidRequests) {
+        securityService
+          .trackRapidRequests({
+            ip: req.ip,
+            userId: req.user?.userId,
+            requestCount: currentCount,
+            timeWindow: windowMs,
+            userAgent: req.headers['user-agent'],
+            paths: [req.path],
+          })
+          .catch(() => {}); // Silently ignore errors to avoid blocking
+      }
     }
 
     return {

@@ -55,54 +55,68 @@ const initializeGraphQL = async app => {
 };
 
 /**
- * Set up WebSocket subscription server
+ * Set up WebSocket subscription server with timeout protection
  * @param {http.Server} httpServer - HTTP server instance
- * @returns {SubscriptionServer} - WebSocket subscription server
+ * @returns {Promise<SubscriptionServer|null>} - WebSocket subscription server or null if failed
  */
 const initializeSubscriptions = httpServer => {
-  const { SubscriptionServer } = require('subscriptions-transport-ws');
-  const { execute, subscribe } = require('graphql');
+  return new Promise((resolve, reject) => {
+    // Set a timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      logger.warn('WebSocket subscription initialization timed out, skipping...');
+      resolve(null);
+    }, 5000); // 5 second timeout
 
-  // Create subscription server
-  const subscriptionServer = SubscriptionServer.create(
-    {
-      schema,
-      execute,
-      subscribe,
-      onConnect: async (connectionParams, webSocket, context) => {
-        console.log('WebSocket subscription connection initiated');
+    try {
+      const { SubscriptionServer } = require('subscriptions-transport-ws');
+      const { execute, subscribe } = require('graphql');
 
-        // Extract auth token from connection params
-        const token = connectionParams.Authorization || connectionParams.authorization;
+      // Create subscription server with error handling
+      const subscriptionServer = SubscriptionServer.create(
+        {
+          schema,
+          execute,
+          subscribe,
+          onConnect: async (connectionParams, webSocket, context) => {
+            logger.info('WebSocket subscription connection initiated');
 
-        if (token) {
-          try {
-            const { getUser } = require('./middleware/auth');
-            const user = await getUser({ headers: { authorization: token } });
-            return { user };
-          } catch (error) {
-            console.error('Subscription auth error:', error);
-            throw new Error('Authentication failed');
-          }
+            // Extract auth token from connection params
+            const token = connectionParams.Authorization || connectionParams.authorization;
+
+            if (token) {
+              try {
+                const { getUser } = require('./middleware/auth');
+                const user = await getUser({ headers: { authorization: token } });
+                return { user };
+              } catch (error) {
+                logger.error('Subscription auth error', { error: error.message });
+                throw new Error('Authentication failed');
+              }
+            }
+
+            return {};
+          },
+          onDisconnect: (webSocket, context) => {
+            logger.info('WebSocket subscription disconnected');
+          },
+        },
+        {
+          server: httpServer,
+          path: '/graphql-subscriptions',
         }
+      );
 
-        return {};
-      },
-      onDisconnect: (webSocket, context) => {
-        console.log('WebSocket subscription disconnected');
-      },
-    },
-    {
-      server: httpServer,
-      path: '/graphql-subscriptions',
+      clearTimeout(timeout);
+      logger.info(
+        `📡 Subscriptions endpoint: ws://localhost:${process.env.PORT || 3001}/graphql-subscriptions`
+      );
+      resolve(subscriptionServer);
+    } catch (error) {
+      clearTimeout(timeout);
+      logger.error('Failed to initialize WebSocket subscriptions', { error: error.message });
+      resolve(null); // Continue without subscriptions instead of failing
     }
-  );
-
-  logger.info(
-    `📡 Subscriptions endpoint: ws://localhost:${process.env.PORT || 3001}/graphql-subscriptions`
-  );
-
-  return subscriptionServer;
+  });
 };
 
 module.exports = {
