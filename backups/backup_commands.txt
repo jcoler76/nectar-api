@@ -1,0 +1,1 @@
+Command to run: pg_dump "postgresql://nectar_admin:nectar_dev_2024!@localhost:5432/nectarstudio_ai" --clean --if-exists --create --verbose --file="backups/nectarstudio_ai_backup_20250925_221059.sql"

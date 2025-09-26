@@ -1,361 +1,199 @@
 /**
- * SQL Injection Detection and Monitoring Middleware
+ * Lightweight SQL Injection Detection Middleware
  *
- * CRITICAL SECURITY IMPLEMENTATION
- * - Detects common SQL injection patterns in request data
- * - Logs suspicious requests for security analysis
- * - Blocks obvious attacks while allowing legitimate data
- * - Tracks repeat offenders for rate limiting
+ * PRACTICAL SECURITY IMPLEMENTATION
+ * - Focuses on the most dangerous patterns only
+ * - Non-blocking monitoring and logging
+ * - Minimal performance impact
+ * - Allows legitimate data to pass through
  */
 
 const { logger } = require('../utils/logger');
 
 /**
- * SQL Injection Pattern Detection
+ * Lightweight SQL Injection Monitor
+ * Focus on actual threats, not false positives
  */
 class SQLInjectionMonitor {
   constructor() {
-    // Common SQL injection patterns (case-insensitive)
-    this.sqlPatterns = [
-      // Classic SQL injection patterns
-      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|TRUNCATE)\b.*\b(FROM|INTO|WHERE|SET)\b)/i,
+    // Only the most critical SQL injection patterns
+    // These are patterns that are almost never legitimate
+    this.criticalPatterns = [
+      // Classic injection with quotes and operators
+      /['"]\s*(or|and)\s+['"]/i,
 
       // Union-based attacks
-      /(\bunion\b.*\bselect\b)/i,
-      /(\bselect\b.*\bunion\b)/i,
+      /union\s+select/i,
 
-      // Boolean-based blind injection
-      /(\b(OR|AND)\s+[\d\w'"]*\s*=\s*[\d\w'"]*\s*(--|\#|\/\*))/i,
-      /(\b(OR|AND)\s+['"][^'"]*['"]\s*=\s*['"][^'"]*['"])/i,
-      /(\b(OR|AND)\s+\d+\s*=\s*\d+)/i,
-      /(\b(OR|AND)\s+true\b)/i,
-      /(\b(OR|AND)\s+false\b)/i,
+      // Comment-based attacks (very suspicious in web forms)
+      /(--|\#|\/\*)\s*$/,
 
-      // Time-based blind injection
-      /(sleep\s*\(|waitfor\s+delay|benchmark\s*\()/i,
-      /(pg_sleep\s*\(|dbms_lock\.sleep)/i,
+      // Multiple statements (stacked queries)
+      /;\s*(drop|delete|update|insert|create|alter)\s+/i,
 
-      // Comment-based attacks
-      /(--|\#|\/\*|\*\/)/,
+      // Information schema probing
+      /information_schema\./i,
 
-      // Stacked queries
-      /(;\s*(select|insert|update|delete|drop|create|alter|exec))/i,
-
-      // Function-based attacks
-      /(\b(user|database|version|@@version|information_schema|sys\.)\b)/i,
-      /(\b(concat|substring|ascii|char|hex|unhex|md5|sha1|load_file|into\s+outfile)\s*\()/i,
-
-      // XPath injection patterns
-      /(\band\b.*\bor\b.*[\[\]])/i,
-
-      // LDAP injection patterns
-      /(\(\s*\|\s*\(|\)\s*\(\s*\|)/,
-
-      // NoSQL injection patterns (for completeness)
-      /(\$where|\$regex|\$ne|\$gt|\$lt)/i,
-
-      // Encoded attacks
-      /(%27|%22|%2d%2d|%23|%2f%2a)/i,
-
-      // Hex encoded
-      /(0x[0-9a-f]+)/i,
-
-      // Common payloads
-      /('.*'.*=.*'.*'|".*".*=.*".*")/,
-      /(admin'--|admin"--|'or'1'='1|"or"1"="1)/i,
+      // Administrative functions
+      /(xp_|sp_)\w+/i,
     ];
 
-    // Suspicious keywords that might indicate probing
-    this.suspiciousKeywords = [
-      'information_schema',
-      'sys.tables',
-      'sysobjects',
-      'mysql.user',
-      'pg_tables',
-      'sqlite_master',
-      'dual',
-      'sysusers',
-      'syscolumns',
-      'msysaccessobjects',
-      'msysqueries',
-      'pg_user',
-      'all_tables',
-      'user_tables',
-      'dba_tables',
-      'schema_name',
-    ];
+    // Track suspicious IPs for rate limiting integration
+    this.suspiciousIPs = new Map();
+    this.cleanupInterval = 10 * 60 * 1000; // 10 minutes
 
-    // Track suspicious activity
-    this.suspiciousActivity = new Map();
-    this.blockThreshold = 5; // Block after 5 suspicious requests in 10 minutes
-    this.windowMs = 10 * 60 * 1000; // 10 minute window
+    // Start cleanup timer asynchronously
+    this.startCleanupTimer();
   }
 
   /**
-   * Main middleware function
+   * Lightweight middleware - fail open, monitor only
    */
   middleware() {
     return (req, res, next) => {
-      try {
-        const suspiciousData = this.detectSQLInjection(req);
+      // Always call next first - never block requests
+      next();
 
-        if (suspiciousData.length > 0) {
-          this.logSuspiciousActivity(req, suspiciousData);
-
-          // Check if IP should be blocked
-          if (this.shouldBlockRequest(req.ip)) {
-            this.blockRequest(req, res, suspiciousData);
-            return;
-          }
-        }
-
-        next();
-      } catch (error) {
-        logger.error('SQL injection monitoring error:', {
-          error: error.message,
-          stack: error.stack,
-          path: req.path,
-          ip: req.ip,
-        });
-
-        // Continue processing on error (fail-open)
-        next();
-      }
+      // Process detection asynchronously for monitoring only
+      setImmediate(() => {
+        this.processRequest(req);
+      });
     };
   }
 
   /**
-   * Detect SQL injection patterns in request data
+   * Async processing of requests for monitoring
    */
-  detectSQLInjection(req) {
-    const suspicious = [];
-    const targets = [
-      { type: 'query', data: req.query },
-      { type: 'body', data: req.body },
-      { type: 'params', data: req.params },
-    ];
+  async processRequest(req) {
+    try {
+      // Quick check - only scan small string values
+      const suspicious = this.scanRequestData(req);
 
-    for (const target of targets) {
-      if (target.data && typeof target.data === 'object') {
-        this.checkObjectForSQLI(target.data, target.type, '', suspicious);
+      if (suspicious.length > 0) {
+        this.logSuspiciousActivity(req, suspicious);
+        this.trackSuspiciousIP(req.ip);
       }
+    } catch (error) {
+      // Silent failure - don't impact user experience
+      logger.debug('SQL injection scan error:', {
+        error: error.message,
+        path: req.path,
+      });
     }
+  }
+
+  /**
+   * Scan only the most likely injection points
+   */
+  scanRequestData(req) {
+    const suspicious = [];
+
+    // Check query parameters (most common injection point)
+    if (req.query && typeof req.query === 'object') {
+      this.scanObject(req.query, 'query', suspicious);
+    }
+
+    // Check POST body (second most common)
+    if (req.body && typeof req.body === 'object') {
+      this.scanObject(req.body, 'body', suspicious);
+    }
+
+    // Skip URL params - they're usually controlled by the application
 
     return suspicious;
   }
 
   /**
-   * Recursively check object properties for SQL injection
+   * Lightweight object scanning
    */
-  checkObjectForSQLI(obj, sourceType, path, suspicious, depth = 0) {
-    // Prevent deep recursion attacks
-    if (depth > 10) return;
+  scanObject(obj, source, suspicious, depth = 0) {
+    // Prevent deep recursion (performance protection)
+    if (depth > 3) return;
 
     for (const [key, value] of Object.entries(obj)) {
-      const currentPath = path ? `${path}.${key}` : key;
-
-      if (typeof value === 'string') {
-        const patterns = this.findMatchingPatterns(value);
-        const keywords = this.findSuspiciousKeywords(value);
-
-        if (patterns.length > 0 || keywords.length > 0) {
+      // Only scan string values under 1000 chars (performance protection)
+      if (typeof value === 'string' && value.length < 1000) {
+        const matches = this.checkForCriticalPatterns(value);
+        if (matches.length > 0) {
           suspicious.push({
-            source: sourceType,
-            field: currentPath,
-            value: this.sanitizeValue(value),
-            patterns: patterns,
-            keywords: keywords,
-            severity: this.calculateSeverity(patterns, keywords, value),
+            source,
+            field: key,
+            value: this.sanitizeForLogging(value),
+            patterns: matches,
           });
         }
       } else if (typeof value === 'object' && value !== null) {
-        this.checkObjectForSQLI(value, sourceType, currentPath, suspicious, depth + 1);
+        this.scanObject(value, source, suspicious, depth + 1);
       }
     }
   }
 
   /**
-   * Find matching SQL injection patterns
+   * Check against critical patterns only
    */
-  findMatchingPatterns(value) {
+  checkForCriticalPatterns(value) {
     const matches = [];
-    for (let i = 0; i < this.sqlPatterns.length; i++) {
-      if (this.sqlPatterns[i].test(value)) {
-        matches.push({
-          index: i,
-          pattern: this.sqlPatterns[i].source,
-          match: value.match(this.sqlPatterns[i])?.[0],
-        });
+
+    // Quick length check - very long strings are suspicious
+    if (value.length > 500) {
+      matches.push('excessive_length');
+    }
+
+    // Check critical patterns
+    for (let i = 0; i < this.criticalPatterns.length; i++) {
+      if (this.criticalPatterns[i].test(value)) {
+        matches.push(`pattern_${i}`);
+        break; // Stop at first match for performance
       }
     }
+
     return matches;
   }
 
   /**
-   * Find suspicious keywords
+   * Log suspicious activity (minimal logging)
    */
-  findSuspiciousKeywords(value) {
-    const found = [];
-    const lowerValue = value.toLowerCase();
-
-    for (const keyword of this.suspiciousKeywords) {
-      if (lowerValue.includes(keyword.toLowerCase())) {
-        found.push(keyword);
-      }
-    }
-
-    return found;
-  }
-
-  /**
-   * Calculate severity score
-   */
-  calculateSeverity(patterns, keywords, value) {
-    let severity = 0;
-
-    // Pattern severity
-    severity += patterns.length * 3;
-
-    // Keyword severity
-    severity += keywords.length * 2;
-
-    // Length penalty for very long strings (potential obfuscation)
-    if (value.length > 1000) {
-      severity += 2;
-    }
-
-    // Multiple SQL keywords increase severity
-    const sqlKeywordCount = (
-      value.match(/\b(select|insert|update|delete|drop|union|where|from|into|exec|execute)\b/gi) ||
-      []
-    ).length;
-    severity += Math.min(sqlKeywordCount * 2, 10);
-
-    // Classify severity
-    if (severity >= 10) return 'CRITICAL';
-    if (severity >= 6) return 'HIGH';
-    if (severity >= 3) return 'MEDIUM';
-    return 'LOW';
-  }
-
-  /**
-   * Log suspicious activity
-   */
-  logSuspiciousActivity(req, suspiciousData) {
-    const maxSeverity = suspiciousData.reduce((max, item) => {
-      const severityLevels = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
-      return Math.max(max, severityLevels[item.severity] || 0);
-    }, 0);
-
-    const severityNames = { 1: 'LOW', 2: 'MEDIUM', 3: 'HIGH', 4: 'CRITICAL' };
-    const severity = severityNames[maxSeverity] || 'LOW';
-
-    // Log based on severity
-    const logMethod = severity === 'CRITICAL' ? 'error' : severity === 'HIGH' ? 'warn' : 'info';
-
-    logger[logMethod]('SQL injection attempt detected', {
-      severity,
+  logSuspiciousActivity(req, suspicious) {
+    logger.warn('SQL injection pattern detected', {
       ip: req.ip,
-      userAgent: req.headers['user-agent'],
       path: req.path,
       method: req.method,
+      userAgent: req.headers['user-agent']?.substring(0, 200),
       userId: req.user?.userId,
-      organizationId: req.user?.organizationId,
-      suspiciousData: suspiciousData.map(item => ({
-        source: item.source,
-        field: item.field,
-        severity: item.severity,
-        patternCount: item.patterns.length,
-        keywordCount: item.keywords.length,
-        value: item.value, // Already sanitized
-      })),
+      patternCount: suspicious.length,
+      fields: suspicious.map(s => s.field),
       timestamp: new Date().toISOString(),
-      requestId: req.requestId,
     });
-
-    // Track for rate limiting
-    this.updateSuspiciousActivity(req.ip, severity);
   }
 
   /**
-   * Update suspicious activity tracking
+   * Track suspicious IPs for integration with rate limiting
    */
-  updateSuspiciousActivity(ip, severity) {
+  trackSuspiciousIP(ip) {
     const now = Date.now();
-    const activityRecord = this.suspiciousActivity.get(ip) || {
-      count: 0,
-      firstSeen: now,
-      lastSeen: now,
-      severities: [],
-    };
+    const record = this.suspiciousIPs.get(ip) || { count: 0, firstSeen: now };
 
-    // Clean old records
-    if (now - activityRecord.firstSeen > this.windowMs) {
-      activityRecord.count = 0;
-      activityRecord.firstSeen = now;
-      activityRecord.severities = [];
-    }
+    record.count++;
+    record.lastSeen = now;
 
-    activityRecord.count++;
-    activityRecord.lastSeen = now;
-    activityRecord.severities.push({ severity, timestamp: now });
-
-    this.suspiciousActivity.set(ip, activityRecord);
+    this.suspiciousIPs.set(ip, record);
   }
 
   /**
-   * Check if request should be blocked
+   * Get suspicious IP data for rate limiting integration
    */
-  shouldBlockRequest(ip) {
-    const activity = this.suspiciousActivity.get(ip);
-
-    if (!activity) return false;
-
-    // Block if too many attempts
-    if (activity.count >= this.blockThreshold) {
-      return true;
-    }
-
-    // Block immediately for critical attempts
-    const recentCritical = activity.severities.filter(
-      s => s.severity === 'CRITICAL' && Date.now() - s.timestamp < this.windowMs
-    );
-
-    return recentCritical.length >= 2;
+  getSuspiciousIPData(ip) {
+    return this.suspiciousIPs.get(ip) || null;
   }
 
   /**
-   * Block suspicious request
+   * Sanitize value for safe logging
    */
-  blockRequest(req, res, suspiciousData) {
-    logger.error('Request blocked due to SQL injection patterns', {
-      ip: req.ip,
-      path: req.path,
-      method: req.method,
-      userAgent: req.headers['user-agent'],
-      userId: req.user?.userId,
-      suspiciousData: suspiciousData.length,
-      timestamp: new Date().toISOString(),
-    });
-
-    res.status(403).json({
-      success: false,
-      message: 'Request blocked due to security policy violation',
-      code: 'SECURITY_VIOLATION',
-      requestId: req.requestId,
-    });
-  }
-
-  /**
-   * Sanitize value for logging (truncate and remove sensitive patterns)
-   */
-  sanitizeValue(value) {
+  sanitizeForLogging(value) {
     if (typeof value !== 'string') return String(value);
 
-    // Truncate long strings
-    let sanitized = value.length > 200 ? value.substring(0, 200) + '...' : value;
-
-    // Remove potential passwords or sensitive data patterns
+    // Truncate and remove sensitive data
+    let sanitized = value.length > 100 ? value.substring(0, 100) + '...' : value;
     sanitized = sanitized.replace(/password[=:]\s*[^\s&]+/gi, 'password=***');
     sanitized = sanitized.replace(/token[=:]\s*[^\s&]+/gi, 'token=***');
 
@@ -363,30 +201,40 @@ class SQLInjectionMonitor {
   }
 
   /**
-   * Clean up old tracking data (call periodically)
+   * Cleanup old tracking data
    */
   cleanup() {
     const now = Date.now();
-    for (const [ip, activity] of this.suspiciousActivity.entries()) {
-      if (now - activity.lastSeen > this.windowMs * 2) {
-        this.suspiciousActivity.delete(ip);
+    const expiry = now - this.cleanupInterval;
+
+    for (const [ip, record] of this.suspiciousIPs.entries()) {
+      if (record.lastSeen < expiry) {
+        this.suspiciousIPs.delete(ip);
       }
     }
+  }
+
+  /**
+   * Start cleanup timer asynchronously
+   */
+  startCleanupTimer() {
+    setImmediate(() => {
+      setInterval(() => {
+        try {
+          this.cleanup();
+        } catch (error) {
+          logger.debug('SQL injection monitor cleanup error:', error);
+        }
+      }, this.cleanupInterval);
+    });
   }
 }
 
 // Create singleton instance
 const sqlInjectionMonitor = new SQLInjectionMonitor();
 
-// Cleanup old data every 5 minutes
-setInterval(
-  () => {
-    sqlInjectionMonitor.cleanup();
-  },
-  5 * 60 * 1000
-);
-
 module.exports = {
   sqlInjectionMonitor: sqlInjectionMonitor.middleware.bind(sqlInjectionMonitor),
+  getSuspiciousIPData: ip => sqlInjectionMonitor.getSuspiciousIPData(ip),
   SQLInjectionMonitor,
 };
