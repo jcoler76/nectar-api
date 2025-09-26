@@ -1,8 +1,8 @@
 // MongoDB models replaced with Prisma for PostgreSQL migration
 // const ApiUsage = require('../models/ApiUsage');
 // const Service = require('../models/Service');
+// SECURITY FIX: Use proper prismaService for tenant isolation
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 
 const trackApiUsage = async (req, res, next) => {
   const originalJson = res.json;
@@ -53,44 +53,48 @@ const trackApiUsage = async (req, res, next) => {
       const organizationId = req.organization?.id || req.user?.memberships?.[0]?.organizationId;
 
       if (req.service?._id && organizationId) {
-        // Create API activity log entry
-        await prisma.apiActivityLog
-          .create({
-            data: {
-              requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              timestamp: usageData.timestamp,
-              method: usageData.method,
-              url: req.originalUrl,
-              endpoint: usageData.endpoint,
-              statusCode: usageData.statusCode,
-              responseTime: responseSize > 0 ? Math.floor(Math.random() * 100) + 50 : null, // Placeholder response time
-              category: 'api',
-              endpointType: 'public',
-              importance: 'medium',
-              organizationId: organizationId,
-              userId: req.user?.id || null,
-              metadata: {
-                requestSize: usageData.requestSize,
-                responseSize: usageData.responseSize,
-                component: usageData.component,
+        // SECURITY FIX: Create API activity log entry with proper RLS
+        await prismaService
+          .withTenantContext(organizationId, async tx => {
+            await tx.apiActivityLog.create({
+              data: {
+                requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: usageData.timestamp,
+                method: usageData.method,
+                url: req.originalUrl,
+                endpoint: usageData.endpoint,
+                statusCode: usageData.statusCode,
+                responseTime: responseSize > 0 ? Math.floor(Math.random() * 100) + 50 : null, // Placeholder response time
+                category: 'api',
+                endpointType: 'public',
+                importance: 'medium',
+                organizationId: organizationId,
+                userId: req.user?.id || null,
+                metadata: {
+                  requestSize: usageData.requestSize,
+                  responseSize: usageData.responseSize,
+                  component: usageData.component,
+                },
               },
-            },
+            });
           })
           .catch(err => {
             console.log('Failed to save API activity log:', err.message);
           });
 
-        // Create usage metric entry for the organization
-        await prisma.usageMetric
-          .create({
-            data: {
-              endpoint: usageData.endpoint,
-              method: usageData.method,
-              statusCode: usageData.statusCode,
-              responseTimeMs: Math.floor(Math.random() * 100) + 50, // Placeholder response time
-              organizationId: organizationId,
-              apiKeyId: req.apiKey?.id || null,
-            },
+        // SECURITY FIX: Create usage metric entry with proper RLS
+        await prismaService
+          .withTenantContext(organizationId, async tx => {
+            await tx.usageMetric.create({
+              data: {
+                endpoint: usageData.endpoint,
+                method: usageData.method,
+                statusCode: usageData.statusCode,
+                responseTimeMs: Math.floor(Math.random() * 100) + 50, // Placeholder response time
+                organizationId: organizationId,
+                apiKeyId: req.apiKey?.id || null,
+              },
+            });
           })
           .catch(err => {
             console.log('Failed to save usage metric:', err.message);
@@ -101,41 +105,45 @@ const trackApiUsage = async (req, res, next) => {
           : req.params.serviceId;
 
         if (serviceName && organizationId) {
-          const service = await prisma.service.findFirst({
-            where: {
-              name: serviceName,
-              organizationId: organizationId,
-            },
-          });
-          if (service) {
-            // Create API activity log entry
-            await prisma.apiActivityLog
-              .create({
-                data: {
-                  requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                  timestamp: usageData.timestamp,
-                  method: usageData.method,
-                  url: req.originalUrl,
-                  endpoint: usageData.endpoint,
-                  statusCode: usageData.statusCode,
-                  responseTime: Math.floor(Math.random() * 100) + 50,
-                  category: 'api',
-                  endpointType: 'public',
-                  importance: 'medium',
-                  organizationId: organizationId,
-                  userId: req.user?.id || null,
-                  metadata: {
-                    requestSize: usageData.requestSize,
-                    responseSize: usageData.responseSize,
-                    component: usageData.component,
-                    serviceId: service.id,
-                  },
+          // SECURITY FIX: Service lookup with proper RLS
+          await prismaService
+            .withTenantContext(organizationId, async tx => {
+              const service = await tx.service.findFirst({
+                where: {
+                  name: serviceName,
+                  isActive: true,
                 },
-              })
-              .catch(err => {
-                console.log('Failed to save API activity log:', err.message);
               });
-          }
+
+              if (service) {
+                // SECURITY FIX: Create API activity log entry with proper RLS
+                await tx.apiActivityLog.create({
+                  data: {
+                    requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    timestamp: usageData.timestamp,
+                    method: usageData.method,
+                    url: req.originalUrl,
+                    endpoint: usageData.endpoint,
+                    statusCode: usageData.statusCode,
+                    responseTime: Math.floor(Math.random() * 100) + 50,
+                    category: 'api',
+                    endpointType: 'public',
+                    importance: 'medium',
+                    organizationId: organizationId,
+                    userId: req.user?.id || null,
+                    metadata: {
+                      requestSize: usageData.requestSize,
+                      responseSize: usageData.responseSize,
+                      component: usageData.component,
+                      serviceId: service.id,
+                    },
+                  },
+                });
+              }
+            })
+            .catch(err => {
+              console.log('Failed to save API activity log:', err.message);
+            });
         }
       }
 

@@ -1,5 +1,5 @@
+// SECURITY FIX: Use proper prismaService for tenant isolation
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const { logger } = require('../middleware/logger');
 
 /**
@@ -49,9 +49,12 @@ class SubscriptionLimitService {
    */
   async getOrganizationLimits(organizationId) {
     try {
-      const subscription = await prisma.subscription.findUnique({
-        where: { organizationId },
-        include: { organization: true },
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const subscription = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.subscription.findFirst({
+          where: {},
+          include: { organization: true },
+        });
       });
 
       if (!subscription) {
@@ -92,12 +95,13 @@ class SubscriptionLimitService {
     try {
       const limits = await this.getOrganizationLimits(organizationId);
 
-      // Count current active users in organization
-      const userCount = await prisma.membership.count({
-        where: {
-          organizationId,
-          user: { isActive: true },
-        },
+      // SECURITY FIX: Count current active users with proper RLS
+      const userCount = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.membership.count({
+          where: {
+            user: { isActive: true },
+          },
+        });
       });
 
       const isWithinLimit = limits.userLimit === -1 || userCount <= limits.userLimit;
@@ -140,47 +144,49 @@ class SubscriptionLimitService {
 
       const limits = await this.getOrganizationLimits(organizationId);
 
-      // Get current user count
-      const currentUsers = await prisma.membership.count({
-        where: {
-          organizationId,
-          user: { isActive: true },
-        },
-      });
+      // SECURITY FIX: Get current user count and update usage metrics with proper RLS
+      const usageMetric = await prismaService.withTenantContext(organizationId, async tx => {
+        // Get current user count
+        const currentUsers = await tx.membership.count({
+          where: {
+            user: { isActive: true },
+          },
+        });
 
-      // Calculate user overage
-      const userOverage = Math.max(
-        0,
-        limits.userLimit === -1 ? 0 : currentUsers - limits.userLimit
-      );
-      const userOverageCost = userOverage * (limits.userOveragePrice || 0);
+        // Calculate user overage
+        const userOverage = Math.max(
+          0,
+          limits.userLimit === -1 ? 0 : currentUsers - limits.userLimit
+        );
+        const userOverageCost = userOverage * (limits.userOveragePrice || 0);
 
-      // Upsert usage metrics
-      const usageMetric = await prisma.usageMetric.upsert({
-        where: {
-          organizationId_period: {
+        // Upsert usage metrics
+        return await tx.usageMetric.upsert({
+          where: {
+            organizationId_period: {
+              organizationId,
+              period,
+            },
+          },
+          update: {
+            activeUsers: currentUsers,
+            apiCalls: usage.apiCalls ? { increment: usage.apiCalls } : undefined,
+            datasources: usage.datasources || undefined,
+            userOverage,
+            userOverageCost,
+            lastUpdated: now,
+          },
+          create: {
             organizationId,
             period,
+            activeUsers: currentUsers,
+            apiCalls: usage.apiCalls || 0,
+            datasources: usage.datasources || 0,
+            userOverage,
+            userOverageCost,
+            lastUpdated: now,
           },
-        },
-        update: {
-          activeUsers: currentUsers,
-          apiCalls: usage.apiCalls ? { increment: usage.apiCalls } : undefined,
-          datasources: usage.datasources || undefined,
-          userOverage,
-          userOverageCost,
-          lastUpdated: now,
-        },
-        create: {
-          organizationId,
-          period,
-          activeUsers: currentUsers,
-          apiCalls: usage.apiCalls || 0,
-          datasources: usage.datasources || 0,
-          userOverage,
-          userOverageCost,
-          lastUpdated: now,
-        },
+        });
       });
 
       return usageMetric;
@@ -200,13 +206,13 @@ class SubscriptionLimitService {
       const now = new Date();
       const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-      const usageMetric = await prisma.usageMetric.findUnique({
-        where: {
-          organizationId_period: {
-            organizationId,
-            period,
+      // SECURITY FIX: Get usage metric with proper RLS
+      const usageMetric = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.usageMetric.findFirst({
+          where: {
+            period: period,
           },
-        },
+        });
       });
 
       const limits = await this.getOrganizationLimits(organizationId);

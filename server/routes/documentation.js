@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const { decryptDatabasePassword } = require('../utils/encryption');
 const { logger } = require('../middleware/logger');
 const { fetchSchemaFromDatabase } = require('../utils/schemaUtils');
@@ -12,15 +11,18 @@ const crypto = require('crypto');
 // Get documentation using stored schema
 router.get('/role/:roleId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -265,15 +267,18 @@ router.get('/role/:roleId', async (req, res) => {
 // Get usage examples for specific endpoint
 router.get('/examples/:roleId/:permissionId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -298,15 +303,18 @@ router.get('/examples/:roleId/:permissionId', async (req, res) => {
 // Generate AI-enhanced documentation for a specific endpoint
 router.get('/ai-enhance/:roleId/:permissionId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -340,15 +348,18 @@ router.get('/ai-enhance/:roleId/:permissionId', async (req, res) => {
 // Refresh schema for a specific permission
 router.post('/refresh-schema/:roleId/:permissionId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -371,13 +382,15 @@ router.post('/refresh-schema/:roleId/:permissionId', async (req, res) => {
       ...schema,
     };
 
-    // Update the permission using Prisma
-    await prisma.permission.update({
-      where: { id: permission.id },
-      data: {
-        procedureSchema: schemaWithTimestamp,
-        schema: schemaWithTimestamp,
-      },
+    // Update the permission using Prisma with RLS context
+    await prismaService.withTenantContext(organizationId, async tx => {
+      await tx.permission.update({
+        where: { id: permission.id },
+        data: {
+          procedureSchema: schemaWithTimestamp,
+          schema: schemaWithTimestamp,
+        },
+      });
     });
 
     res.json({
@@ -393,15 +406,18 @@ router.post('/refresh-schema/:roleId/:permissionId', async (req, res) => {
 // Refresh all schemas for a role
 router.post('/refresh-schemas/:roleId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -481,13 +497,15 @@ async function refreshSchemasByService(permissions) {
               ...schema,
             };
 
-            // Update permission using Prisma
-            await prisma.permission.update({
-              where: { id: perm.id },
-              data: {
-                procedureSchema: schemaWithTimestamp,
-                schema: schemaWithTimestamp,
-              },
+            // Update permission using Prisma with RLS context
+            await prismaService.withTenantContext(perm.organizationId, async tx => {
+              await tx.permission.update({
+                where: { id: perm.id },
+                data: {
+                  procedureSchema: schemaWithTimestamp,
+                  schema: schemaWithTimestamp,
+                },
+              });
             });
           }
         } catch (error) {
@@ -512,11 +530,14 @@ async function refreshSchemasByService(permissions) {
 // Generate OpenAPI 3.0 specification for a role
 router.get('/openapi/:roleId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        service: true,
-      },
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          service: true,
+        },
+      });
     });
 
     if (!role) {
@@ -556,15 +577,18 @@ router.get('/openapi/:roleId', async (req, res) => {
 // Generate Postman collection for a role
 router.get('/postman/:roleId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -598,15 +622,18 @@ router.get('/postman/:roleId', async (req, res) => {
 // Generate comprehensive documentation with AI enhancement
 router.get('/comprehensive/:roleId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -937,15 +964,18 @@ console.log(data);`;
 // Generate PDF documentation for client sharing
 router.get('/pdf/:roleId', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -976,15 +1006,18 @@ router.get('/pdf/:roleId', async (req, res) => {
 // Generate branded PDF with custom styling
 router.post('/pdf/:roleId/custom', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {
@@ -1023,15 +1056,18 @@ router.post('/pdf/:roleId/custom', async (req, res) => {
 // Get PDF generation preview/info
 router.get('/pdf/:roleId/info', async (req, res) => {
   try {
-    const role = await prisma.role.findUnique({
-      where: { id: req.params.roleId },
-      include: {
-        permissions: {
-          include: {
-            service: true,
+    const organizationId = req.user?.organizationId;
+    const role = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.role.findUnique({
+        where: { id: req.params.roleId },
+        include: {
+          permissions: {
+            include: {
+              service: true,
+            },
           },
         },
-      },
+      });
     });
 
     if (!role) {

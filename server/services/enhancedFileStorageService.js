@@ -16,6 +16,7 @@ const path = require('path');
 const sharp = require('sharp');
 const { logger } = require('../middleware/logger');
 const { getPrismaClient } = require('../config/prisma');
+const prismaService = require('../services/prismaService');
 
 const prisma = getPrismaClient();
 
@@ -244,22 +245,33 @@ class EnhancedFileStorageService {
 
   /**
    * Get file download URL or presigned URL for private files
+   * SECURITY: Now requires organizationId to prevent cross-tenant access
    */
-  async getFileUrl(fileId, expiresIn = 3600) {
+  async getFileUrl(fileId, organizationId, expiresIn = 3600) {
     try {
-      const file = await prisma.fileStorage.findUnique({
-        where: { id: fileId },
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const file = await prismaService.withTenantContext(organizationId, async tx => {
+        const foundFile = await tx.fileStorage.findFirst({
+          where: {
+            id: fileId,
+            isActive: true,
+          },
+        });
+
+        // Update last accessed time within the same RLS context
+        if (foundFile) {
+          await tx.fileStorage.updateMany({
+            where: { id: fileId },
+            data: { lastAccessedAt: new Date() },
+          });
+        }
+
+        return foundFile;
       });
 
-      if (!file || !file.isActive) {
-        throw new Error('File not found or inactive');
+      if (!file) {
+        throw new Error('File not found or access denied');
       }
-
-      // Update last accessed time
-      await prisma.fileStorage.update({
-        where: { id: fileId },
-        data: { lastAccessedAt: new Date() },
-      });
 
       // Return CDN URL for public files
       if (file.isPublic && file.cdnUrl) {
@@ -326,26 +338,31 @@ class EnhancedFileStorageService {
         where.isPublic = isPublic;
       }
 
-      // Get files and total count
-      const [files, total] = await Promise.all([
-        prisma.fileStorage.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { [sortBy]: sortOrder },
-          include: {
-            uploader: {
-              select: { id: true, firstName: true, lastName: true, email: true },
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const [files, total] = await prismaService.withTenantContext(organizationId, async tx => {
+        // Remove organizationId from where clause since RLS handles it
+        const { organizationId: _, ...rlsWhere } = where;
+
+        return await Promise.all([
+          tx.fileStorage.findMany({
+            where: rlsWhere,
+            skip,
+            take: limit,
+            orderBy: { [sortBy]: sortOrder },
+            include: {
+              uploader: {
+                select: { id: true, firstName: true, lastName: true, email: true },
+              },
+              thumbnails: true,
+              versions: {
+                take: 1,
+                orderBy: { versionNumber: 'desc' },
+              },
             },
-            thumbnails: true,
-            versions: {
-              take: 1,
-              orderBy: { versionNumber: 'desc' },
-            },
-          },
-        }),
-        prisma.fileStorage.count({ where }),
-      ]);
+          }),
+          tx.fileStorage.count({ where: rlsWhere }),
+        ]);
+      });
 
       return {
         files: files.map(file => ({
@@ -371,9 +388,12 @@ class EnhancedFileStorageService {
    */
   async deleteFile(fileId, organizationId) {
     try {
-      const file = await prisma.fileStorage.findFirst({
-        where: { id: fileId, organizationId },
-        include: { thumbnails: true, versions: true },
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const file = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.fileStorage.findFirst({
+          where: { id: fileId },
+          include: { thumbnails: true, versions: true },
+        });
       });
 
       if (!file) {
@@ -405,9 +425,11 @@ class EnhancedFileStorageService {
         await this.s3Client.send(deleteVersionCommand);
       }
 
-      // Delete from database
-      await prisma.fileStorage.delete({
-        where: { id: fileId },
+      // Delete from database using RLS context
+      await prismaService.withTenantContext(organizationId, async tx => {
+        await tx.fileStorage.delete({
+          where: { id: fileId },
+        });
       });
 
       logger.info('File deleted successfully', { fileId, storageKey: file.storageKey });

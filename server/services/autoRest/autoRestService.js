@@ -7,7 +7,7 @@ const mssql = require('./dialects/mssql');
 const mysql = require('./dialects/mysql');
 const mongodb = require('./dialects/mongodb');
 
-const rlsClient = prismaService.getRLSClient();
+// SECURITY: All database operations use proper RLS enforcement via withTenantContext
 
 function selectEffectivePolicy(policies, roleId) {
   if (!policies || !policies.length) return null;
@@ -36,7 +36,7 @@ function renderPolicyTemplate(template, context) {
 }
 
 async function getServiceAndConnection(serviceName, organizationId) {
-  const service = await rlsClient.withRLS({ organizationId }, async tx => {
+  const service = await prismaService.withTenantContext(organizationId, async tx => {
     return await tx.service.findFirst({
       where: { name: serviceName, isActive: true },
       include: { connection: true },
@@ -74,30 +74,34 @@ async function getServiceAndConnection(serviceName, organizationId) {
   };
 }
 
-async function listExposedEntities(serviceId) {
-  return prisma.exposedEntity.findMany({
-    where: { serviceId, allowRead: true },
-    orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      schema: true,
-      type: true,
-      primaryKey: true,
-      defaultSort: true,
-      pathSlug: true,
-    },
+async function listExposedEntities(serviceId, organizationId) {
+  return await prismaService.withTenantContext(organizationId, async tx => {
+    return await tx.exposedEntity.findMany({
+      where: { serviceId, allowRead: true },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        schema: true,
+        type: true,
+        primaryKey: true,
+        defaultSort: true,
+        pathSlug: true,
+      },
+    });
   });
 }
 
-async function getExposedEntity(serviceId, entityParam) {
-  return prisma.exposedEntity.findFirst({
-    where: {
-      serviceId,
-      allowRead: true,
-      OR: [{ pathSlug: entityParam }, { name: entityParam }],
-    },
-    include: { fieldPolicies: true, rowPolicies: true },
+async function getExposedEntity(serviceId, entityParam, organizationId) {
+  return await prismaService.withTenantContext(organizationId, async tx => {
+    return await tx.exposedEntity.findFirst({
+      where: {
+        serviceId,
+        allowRead: true,
+        OR: [{ pathSlug: entityParam }, { name: entityParam }],
+      },
+      include: { fieldPolicies: true, rowPolicies: true },
+    });
   });
 }
 
@@ -319,7 +323,7 @@ async function handleList({
   const orgId = req.application.organizationId;
   const { service, connectionConfig } = await getServiceAndConnection(serviceName, orgId);
   if (!service) throw new Error('Service not found');
-  const entity = await getExposedEntity(service.id, entityParam);
+  const entity = await getExposedEntity(service.id, entityParam, orgId);
   if (!entity) throw new Error('Entity not found or not readable');
   const { columns } = await getColumns(
     connectionConfig,
@@ -373,7 +377,7 @@ async function handleById({ req, serviceName, entityParam, id, fieldsParam }) {
   const orgId = req.application.organizationId;
   const { service, connectionConfig } = await getServiceAndConnection(serviceName, orgId);
   if (!service) throw new Error('Service not found');
-  const entity = await getExposedEntity(service.id, entityParam);
+  const entity = await getExposedEntity(service.id, entityParam, orgId);
   if (!entity) throw new Error('Entity not found or not readable');
   const { columns } = await getColumns(
     connectionConfig,
@@ -448,8 +452,14 @@ async function discoverTables({ connectionConfig, serviceId }) {
 
     const tables = await driver.executeQuery(conn, query, params);
 
-    // Check which tables are already exposed
-    const exposedEntities = await listExposedEntities(serviceId);
+    // Check which tables are already exposed (need organizationId from service)
+    // SECURITY: System client for infrastructure lookup (serviceId to organizationId mapping)
+    const systemClient = prismaService.getSystemClient();
+    const service = await systemClient.service.findUnique({
+      where: { id: serviceId },
+      select: { organizationId: true },
+    });
+    const exposedEntities = await listExposedEntities(serviceId, service?.organizationId);
     const exposedNames = new Set(exposedEntities.map(e => e.name));
 
     return tables.map(table => ({
@@ -483,23 +493,25 @@ async function autoExposeTable({
   type,
   pathSlug,
 }) {
-  // Create ExposedEntity automatically
-  const exposedEntity = await prisma.exposedEntity.create({
-    data: {
-      organizationId,
-      serviceId,
-      connectionId,
-      database: database,
-      schema: schema || null,
-      name: tableName,
-      type: type || 'TABLE',
-      primaryKey: 'id', // Default, can be updated later
-      allowRead: true,
-      allowCreate: false,
-      allowUpdate: false,
-      allowDelete: false,
-      pathSlug: pathSlug || tableName.toLowerCase(),
-    },
+  // Create ExposedEntity automatically using proper RLS
+  const exposedEntity = await prismaService.withTenantContext(organizationId, async tx => {
+    return await tx.exposedEntity.create({
+      data: {
+        organizationId,
+        serviceId,
+        connectionId,
+        database: database,
+        schema: schema || null,
+        name: tableName,
+        type: type || 'TABLE',
+        primaryKey: 'id', // Default, can be updated later
+        allowRead: true,
+        allowCreate: false,
+        allowUpdate: false,
+        allowDelete: false,
+        pathSlug: pathSlug || tableName.toLowerCase(),
+      },
+    });
   });
 
   return exposedEntity;

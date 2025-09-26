@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 import api from '../services/api';
-import { checkAuthStatus } from '../utils/authMigration';
 
 const SuperAdminOrganizationSelect = ({ onOrganizationSelect }) => {
   const [organizations, setOrganizations] = useState([]);
@@ -31,7 +30,6 @@ const SuperAdminOrganizationSelect = ({ onOrganizationSelect }) => {
         }
 
         const response = await api.get(`/api/organizations?userId=${userId}`);
-        console.log('Organizations response:', response.data);
         setOrganizations(response.data.organizations || []);
       } catch (err) {
         console.error('Error fetching organizations:', err);
@@ -61,7 +59,6 @@ const SuperAdminOrganizationSelect = ({ onOrganizationSelect }) => {
         try {
           const session = JSON.parse(nectarSession);
           userId = session.user?.id || session.user?.userId;
-          console.log('Found userId in nectar_session:', userId);
         } catch (e) {
           console.error('Error parsing nectar_session:', e);
         }
@@ -70,7 +67,6 @@ const SuperAdminOrganizationSelect = ({ onOrganizationSelect }) => {
         try {
           const user = JSON.parse(legacyUser);
           userId = user.id || user.userId;
-          console.log('Found userId in legacy user:', userId);
         } catch (e) {
           console.error('Error parsing legacy user:', e);
         }
@@ -86,8 +82,6 @@ const SuperAdminOrganizationSelect = ({ onOrganizationSelect }) => {
         setError('User session not found. Please log in again.');
         return;
       }
-
-      console.log('Using userId for org selection:', userId);
 
       const response = await api.post('/api/auth/super-admin/select-organization', {
         organizationId: selectedOrgId,

@@ -16,10 +16,10 @@ const {
   createEndpointUsageStatsLoader,
 } = require('./endpointLoader');
 
-const createDataLoaders = () => {
+const createDataLoaders = organizationId => {
   return {
     userLoader: createUserLoader(),
-    roleLoader: createRoleLoader(),
+    roleLoader: createRoleLoader(organizationId),
     serviceLoader: createServiceLoader(),
     applicationLoader: createApplicationLoader(),
     connectionLoader: createConnectionLoader(),

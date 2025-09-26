@@ -21,6 +21,7 @@ const { logger } = require('../utils/logger');
 const { validate } = require('../middleware/validation');
 const validationRules = require('../middleware/validationRules');
 const { checkFreemiumLimits } = require('../middleware/freemiumLimits');
+const { schemaLimiter } = require('../middleware/dynamicRateLimiter');
 
 // Get all services using GraphQL
 router.get('/', createListHandler(SERVICE_QUERIES.GET_ALL, 'services'));
@@ -141,7 +142,7 @@ router.post('/:id/test', async (req, res) => {
 });
 
 // Refresh service schema
-router.post('/:id/refresh-schema', async (req, res) => {
+router.post('/:id/refresh-schema', schemaLimiter, async (req, res) => {
   const { id } = req.params;
   const context = createGraphQLContext(req);
 
@@ -173,19 +174,20 @@ router.post('/:id/refresh-schema', async (req, res) => {
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: 'Service not found',
+        message: 'Service not found or you do not have permission to access it',
       });
     }
 
-    // DEBUG: Log the direct Prisma response
-    console.log('Direct Prisma service response:', {
-      serviceId: service.id,
-      connectionId: service.connectionId,
-      hasConnection: !!service.connection,
-      connectionPasswordEncrypted: service.connection?.passwordEncrypted,
-      connectionPasswordLength: service.connection?.passwordEncrypted?.length,
-      connectionPasswordType: typeof service.connection?.passwordEncrypted,
-    });
+    // Verify user has permission to refresh schema for this service
+    // RLS already ensures the service belongs to user's organization
+    // Additional check: verify service is active and user has admin permissions
+    if (!service.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot refresh schema for inactive service',
+        errorCode: 'SERVICE_INACTIVE',
+      });
+    }
 
     if (!service.connection) {
       return res.status(400).json({
@@ -244,7 +246,7 @@ router.post('/:id/refresh-schema', async (req, res) => {
       sslEnabled: service.connection.sslEnabled,
     };
 
-    // Debug logging
+    // Debug logging (password removed for security)
     logger.info('Attempting database connection for schema refresh', {
       serviceId: service.id,
       connectionId: service.connection.id,
@@ -254,7 +256,6 @@ router.post('/:id/refresh-schema', async (req, res) => {
       database: connectionConfig.database,
       hasPassword: !!connectionConfig.password,
       passwordLength: connectionConfig.password?.length,
-      actualPassword: connectionConfig.password, // TEMP: Show actual password for debugging
     });
 
     const objects = await DatabaseService.getDatabaseObjects(connectionConfig, service.database);
@@ -358,9 +359,28 @@ router.post('/:id/refresh-schema', async (req, res) => {
     });
   } catch (error) {
     logger.error('Service schema refresh error', { error: error.message, serviceId: id });
+
+    // Sanitize error messages for production
+    let sanitizedMessage = 'Failed to refresh service schema';
+
+    if (process.env.NODE_ENV === 'development') {
+      // Show detailed errors only in development
+      sanitizedMessage = error.message || sanitizedMessage;
+    } else {
+      // In production, provide user-friendly messages based on error type
+      if (error.message?.includes('connection')) {
+        sanitizedMessage = 'Database connection failed. Please check service configuration.';
+      } else if (error.message?.includes('timeout')) {
+        sanitizedMessage = 'Schema refresh timed out. Please try again later.';
+      } else if (error.message?.includes('permission')) {
+        sanitizedMessage = 'Insufficient permissions to refresh schema.';
+      }
+    }
+
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to refresh service schema',
+      message: sanitizedMessage,
+      errorCode: 'SCHEMA_REFRESH_FAILED',
     });
   }
 });
@@ -488,7 +508,7 @@ router.get('/:id/schemas', async (req, res) => {
 });
 
 // Batch operations for services
-router.post('/batch', async (req, res) => {
+router.post('/batch', schemaLimiter, async (req, res) => {
   const { operation, ids } = req.body;
   const context = createGraphQLContext(req);
 
@@ -508,55 +528,124 @@ router.post('/batch', async (req, res) => {
 
   const results = [];
   const errors = [];
+  const authorizedServices = [];
 
-  for (const id of ids) {
+  // First, verify user has access to all requested services
+  const prismaService = require('../services/prismaService');
+
+  try {
+    const accessibleServices = await prismaService.withTenantContext(
+      context.user.organizationId,
+      async tx => {
+        return await tx.service.findMany({
+          where: {
+            id: { in: ids },
+          },
+          select: { id: true, name: true, isActive: true },
+        });
+      }
+    );
+
+    // Check which services the user can access
+    for (const id of ids) {
+      const service = accessibleServices.find(s => s.id === id);
+      if (service) {
+        authorizedServices.push(service);
+      } else {
+        errors.push({
+          id,
+          error: 'Service not found or you do not have permission to access it',
+          errorCode: 'UNAUTHORIZED_ACCESS',
+        });
+      }
+    }
+  } catch (authError) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to verify service permissions',
+      error: authError.message,
+    });
+  }
+
+  // Process only authorized services
+  for (const service of authorizedServices) {
     try {
       let result;
 
       switch (operation) {
         case 'activate':
         case 'deactivate':
+          // Additional check: don't allow deactivating already inactive services
+          if (operation === 'deactivate' && !service.isActive) {
+            errors.push({
+              id: service.id,
+              error: 'Service is already inactive',
+              errorCode: 'ALREADY_INACTIVE',
+            });
+            break;
+          }
+
           result = await executeGraphQLMutation(
             null, // Don't send response yet
             SERVICE_QUERIES.UPDATE,
             {
-              id,
+              id: service.id,
               input: { isActive: operation === 'activate' },
             },
             context,
             `batch ${operation}`
           );
-          results.push({ id, success: true, data: result?.updateService });
+          results.push({ id: service.id, success: true, data: result?.updateService });
           break;
 
         case 'delete':
           result = await executeGraphQLMutation(
             null, // Don't send response yet
             SERVICE_QUERIES.DELETE,
-            { id },
+            { id: service.id },
             context,
             'batch delete'
           );
-          results.push({ id, success: result?.deleteService || false });
+          results.push({ id: service.id, success: result?.deleteService || false });
           break;
 
         case 'test':
           result = await executeGraphQLMutation(
             null, // Don't send response yet
             SERVICE_QUERIES.TEST_CONNECTION,
-            { id },
+            { id: service.id },
             context,
             'batch test'
           );
           results.push({
-            id,
+            id: service.id,
             success: result?.testService?.success || false,
             connectionResult: result?.testService,
           });
           break;
       }
     } catch (error) {
-      errors.push({ id, error: error.message });
+      // Sanitize error messages for security
+      let sanitizedError = 'Operation failed';
+
+      if (process.env.NODE_ENV === 'development') {
+        sanitizedError = error.message || sanitizedError;
+      } else {
+        // Provide user-friendly error messages
+        if (error.message?.includes('not found')) {
+          sanitizedError = 'Service not found';
+        } else if (error.message?.includes('permission')) {
+          sanitizedError = 'Permission denied';
+        } else if (error.message?.includes('connection')) {
+          sanitizedError = 'Connection failed';
+        }
+      }
+
+      errors.push({
+        id: service.id,
+        error: sanitizedError,
+        errorCode: 'BATCH_OPERATION_FAILED',
+      });
     }
   }
 

@@ -1,5 +1,4 @@
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 
 // Define freemium limits
 const FREEMIUM_LIMITS = {
@@ -30,35 +29,67 @@ const checkFreemiumLimits = (resource, operation = 'create') => {
       if (operation === 'create') {
         let currentCount = 0;
         let limit = 0;
+        const userOrganizationId = user.organizationId;
+
+        if (!userOrganizationId) {
+          console.warn('User has no organization context for freemium limits check:', user.id);
+          return next(); // Skip limits for users without organization
+        }
 
         switch (resource) {
           case 'connections':
-            currentCount = await prisma.connection.count({
-              where: { userId: user.id },
+            // SECURITY FIX: Use withTenantContext for RLS enforcement
+            currentCount = await prismaService.withTenantContext(userOrganizationId, async tx => {
+              return await tx.connection.count({
+                where: {
+                  userId: user.id,
+                  // organizationId handled by RLS
+                },
+              });
             });
             limit = FREEMIUM_LIMITS.maxConnections;
             break;
 
           case 'services':
-            currentCount = await prisma.service.count({
-              where: { userId: user.id },
+            // SECURITY FIX: Use withTenantContext for RLS enforcement
+            currentCount = await prismaService.withTenantContext(userOrganizationId, async tx => {
+              return await tx.service.count({
+                where: {
+                  userId: user.id,
+                  // organizationId handled by RLS
+                },
+              });
             });
             limit = FREEMIUM_LIMITS.maxServices;
             break;
 
           case 'roles':
-            currentCount = await prisma.role.count({
-              where: { userId: user.id },
+            // SECURITY FIX: Use withTenantContext for RLS enforcement
+            currentCount = await prismaService.withTenantContext(userOrganizationId, async tx => {
+              return await tx.role.count({
+                where: {
+                  userId: user.id,
+                  // organizationId handled by RLS
+                },
+              });
             });
             limit = FREEMIUM_LIMITS.maxRoles;
             break;
 
           case 'workflows':
-            // Check workflow components count
-            const workflows = await prisma.workflow.findMany({
-              where: { userId: user.id },
-              select: { components: true },
-            });
+            // SECURITY FIX: Check workflow components count with RLS enforcement
+            const workflows = await prismaService.withTenantContext(
+              userOrganizationId,
+              async tx => {
+                return await tx.workflow.findMany({
+                  where: {
+                    userId: user.id,
+                    // organizationId handled by RLS
+                  },
+                  select: { components: true },
+                });
+              }
+            );
 
             currentCount = workflows.reduce((total, workflow) => {
               return total + (workflow.components ? workflow.components.length : 0);
@@ -67,8 +98,17 @@ const checkFreemiumLimits = (resource, operation = 'create') => {
             break;
 
           case 'team-members':
-            currentCount = await prisma.user.count({
-              where: { organizationId: user.organizationId },
+            // SECURITY FIX: Use system client for organization member count (infrastructure data)
+            const systemPrisma = prismaService.getSystemClient();
+            currentCount = await systemPrisma.user.count({
+              where: {
+                memberships: {
+                  some: {
+                    organizationId: userOrganizationId,
+                    isActive: true,
+                  },
+                },
+              },
             });
             limit = FREEMIUM_LIMITS.maxTeamMembers;
             break;
@@ -114,14 +154,24 @@ const checkApiUsageLimits = async (req, res, next) => {
     currentMonth.setDate(1); // First day of current month
     currentMonth.setHours(0, 0, 0, 0);
 
-    // Count API calls for current month
-    const apiCallCount = await prisma.apiUsage.count({
-      where: {
-        userId: user.id,
-        createdAt: {
-          gte: currentMonth,
+    const userOrganizationId = user.organizationId;
+
+    if (!userOrganizationId) {
+      console.warn('User has no organization context for API usage limits:', user.id);
+      return next(); // Skip limits for users without organization
+    }
+
+    // SECURITY FIX: Count API calls for current month with RLS enforcement
+    const apiCallCount = await prismaService.withTenantContext(userOrganizationId, async tx => {
+      return await tx.apiUsage.count({
+        where: {
+          userId: user.id,
+          createdAt: {
+            gte: currentMonth,
+          },
+          // organizationId handled by RLS
         },
-      },
+      });
     });
 
     if (apiCallCount >= FREEMIUM_LIMITS.maxApiCallsPerMonth) {
@@ -153,26 +203,61 @@ const checkApiUsageLimits = async (req, res, next) => {
 /**
  * Get current usage stats for freemium user
  */
-const getFreemiumUsageStats = async userId => {
+const getFreemiumUsageStats = async (userId, organizationId) => {
   try {
+    if (!organizationId) {
+      console.warn('Organization ID required for freemium usage stats:', userId);
+      return null;
+    }
+
     const currentMonth = new Date();
     currentMonth.setDate(1);
     currentMonth.setHours(0, 0, 0, 0);
 
+    // SECURITY FIX: Use withTenantContext for RLS enforcement on all queries
     const [connectionsCount, servicesCount, rolesCount, apiCallsCount, workflows] =
       await Promise.all([
-        prisma.connection.count({ where: { userId } }),
-        prisma.service.count({ where: { userId } }),
-        prisma.role.count({ where: { userId } }),
-        prisma.apiUsage.count({
-          where: {
-            userId,
-            createdAt: { gte: currentMonth },
-          },
+        prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.connection.count({
+            where: {
+              userId,
+              // organizationId handled by RLS
+            },
+          });
         }),
-        prisma.workflow.findMany({
-          where: { userId },
-          select: { components: true },
+        prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.service.count({
+            where: {
+              userId,
+              // organizationId handled by RLS
+            },
+          });
+        }),
+        prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.role.count({
+            where: {
+              userId,
+              // organizationId handled by RLS
+            },
+          });
+        }),
+        prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.apiUsage.count({
+            where: {
+              userId,
+              createdAt: { gte: currentMonth },
+              // organizationId handled by RLS
+            },
+          });
+        }),
+        prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.workflow.findMany({
+            where: {
+              userId,
+              // organizationId handled by RLS
+            },
+            select: { components: true },
+          });
         }),
       ]);
 
@@ -181,6 +266,8 @@ const getFreemiumUsageStats = async userId => {
     }, 0);
 
     return {
+      userId,
+      organizationId,
       connections: {
         current: connectionsCount,
         limit: FREEMIUM_LIMITS.maxConnections,

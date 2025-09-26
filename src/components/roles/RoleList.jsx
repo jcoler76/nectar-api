@@ -6,20 +6,46 @@ import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { useRoles } from '../../hooks/useRoles';
 import { BaseListView } from '../common/BaseListView';
 import ConfirmDialog from '../common/ConfirmDialog';
+import SecureIframe from '../common/SecureIframe';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Switch } from '../ui/switch';
 
-// Get API URL from environment, same logic as api.js
+// SECURITY: Enhanced API URL validation with additional security checks
 const getApiUrl = () => {
   const envUrl = process.env.REACT_APP_API_URL;
+
   if (!envUrl || envUrl.trim() === '') {
     return 'http://localhost:3001';
   }
+
   try {
-    new URL(envUrl);
-    return envUrl.trim();
+    const url = new URL(envUrl.trim());
+
+    // SECURITY: Block dangerous protocols
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      console.warn('Invalid protocol in REACT_APP_API_URL, falling back to localhost:', envUrl);
+      return 'http://localhost:3001';
+    }
+
+    // SECURITY: In production, require HTTPS
+    if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+      console.warn('HTTPS required in production, falling back to secure localhost:', envUrl);
+      return 'https://localhost:3001';
+    }
+
+    // SECURITY: Block suspicious hostnames
+    const suspiciousPatterns = [/javascript:/i, /data:/i, /vbscript:/i, /<script/i];
+
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(url.href)) {
+        console.warn('Suspicious URL pattern detected, falling back to localhost:', envUrl);
+        return 'http://localhost:3001';
+      }
+    }
+
+    return url.href.replace(/\/$/, ''); // Remove trailing slash
   } catch (error) {
     console.warn('Invalid REACT_APP_API_URL, falling back to localhost:', envUrl);
     return 'http://localhost:3001';
@@ -64,12 +90,25 @@ const RoleList = () => {
 
   const handleOpenSwaggerForRole = () => {
     if (!swaggerDialog.selectedRole?.id) return;
+
+    // SECURITY: Validate role ID format (should be UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(swaggerDialog.selectedRole.id)) {
+      console.error('Invalid role ID format, blocking iframe load');
+      return;
+    }
+
+    // SECURITY: Sanitize role name for display
+    const sanitizedRoleName =
+      swaggerDialog.selectedRole.name?.replace(/[<>\"']/g, '') || 'Unknown Role';
+
     const apiUrl = getApiUrl();
     const url = `${apiUrl}/api/swagger-ui/openapi/${encodeURIComponent(swaggerDialog.selectedRole.id)}/ui`;
+
     setDocViewer({
       open: true,
       url,
-      title: `Swagger Documentation - ${swaggerDialog.selectedRole.name}`,
+      title: `Swagger Documentation - ${sanitizedRoleName}`,
     });
     setSwaggerDialog(prev => ({ ...prev, open: false }));
   };
@@ -287,12 +326,18 @@ const RoleList = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 w-full h-full min-h-[70vh]">
-            <iframe
+            {/* SECURITY: Replaced unsafe iframe with SecureIframe component */}
+            <SecureIframe
               src={docViewer.url}
-              className="w-full h-full border-0 rounded-b-lg"
               title={docViewer.title}
+              className="rounded-b-lg"
               style={{ minHeight: '70vh' }}
-              sandbox="allow-scripts allow-forms allow-popups"
+              onLoad={() => {
+                console.log('Secure documentation loaded:', docViewer.title);
+              }}
+              onError={() => {
+                console.error('Failed to load documentation:', docViewer.title);
+              }}
             />
           </div>
         </DialogContent>

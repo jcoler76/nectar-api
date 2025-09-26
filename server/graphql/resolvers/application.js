@@ -128,66 +128,63 @@ const applicationResolvers = {
           throw new UserInputError('Missing required fields: name, defaultRoleId');
         }
 
-        return await prismaService.withTenantContext(
-          { organizationId: currentUser.organizationId, isSuperAdmin: currentUser.isSuperAdmin },
-          async tx => {
-            // Verify default role exists and belongs to organization
-            const defaultRole = await tx.role.findFirst({
-              where: {
-                id: defaultRoleId,
-              },
-            });
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          // Verify default role exists and belongs to organization
+          const defaultRole = await tx.role.findFirst({
+            where: {
+              id: defaultRoleId,
+            },
+          });
 
-            if (!defaultRole) {
-              throw new UserInputError('Default role not found');
-            }
-
-            // Generate API key
-            const apiKey = await generateApiKey();
-            const apiKeyHash = await bcrypt.hash(apiKey, 10);
-            const apiKeyEncrypted = encryptApiKey(apiKey);
-            const apiKeyPrefix = apiKey.substring(0, 8);
-            const apiKeyHint = '•'.repeat(56) + apiKey.substring(apiKey.length - 4);
-
-            const application = await tx.application.create({
-              data: {
-                name,
-                description,
-                defaultRoleId,
-                apiKeyHash,
-                apiKeyEncrypted,
-                apiKeyPrefix,
-                apiKeyHint,
-                isActive: isActive !== undefined ? isActive : true,
-                organizationId: currentUser.organizationId,
-                createdBy: currentUser.userId,
-              },
-              include: {
-                creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true },
-                },
-                defaultRole: {
-                  include: {
-                    service: true,
-                  },
-                },
-                organization: true,
-              },
-            });
-
-            logger.info('Application created via GraphQL', {
-              applicationId: application.id,
-              userId: currentUser.userId,
-              organizationId: currentUser.organizationId,
-            });
-
-            // Return with the plain API key for initial display
-            return {
-              ...application,
-              apiKey: apiKey, // Include plain API key only on creation
-            };
+          if (!defaultRole) {
+            throw new UserInputError('Default role not found');
           }
-        );
+
+          // Generate API key
+          const apiKey = await generateApiKey();
+          const apiKeyHash = await bcrypt.hash(apiKey, 10);
+          const apiKeyEncrypted = encryptApiKey(apiKey);
+          const apiKeyPrefix = apiKey.substring(0, 8);
+          const apiKeyHint = '•'.repeat(56) + apiKey.substring(apiKey.length - 4);
+
+          const application = await tx.application.create({
+            data: {
+              name,
+              description,
+              defaultRoleId,
+              apiKeyHash,
+              apiKeyEncrypted,
+              apiKeyPrefix,
+              apiKeyHint,
+              isActive: isActive !== undefined ? isActive : true,
+              organizationId: currentUser.organizationId,
+              createdBy: currentUser.userId,
+            },
+            include: {
+              creator: {
+                select: { id: true, email: true, firstName: true, lastName: true },
+              },
+              defaultRole: {
+                include: {
+                  service: true,
+                },
+              },
+              organization: true,
+            },
+          });
+
+          logger.info('Application created via GraphQL', {
+            applicationId: application.id,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+
+          // Return with the plain API key for initial display
+          return {
+            ...application,
+            apiKey: apiKey, // Include plain API key only on creation
+          };
+        });
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Application name already exists in your organization');
@@ -201,62 +198,59 @@ const applicationResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        return await prismaService.withTenantContext(
-          { organizationId: currentUser.organizationId, isSuperAdmin: currentUser.isSuperAdmin },
-          async tx => {
-            // Verify application exists and user has access
-            const existingApplication = await tx.application.findFirst({
-              where: {
-                id,
-              },
-            });
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          // Verify application exists and user has access
+          const existingApplication = await tx.application.findFirst({
+            where: {
+              id,
+            },
+          });
 
-            if (!existingApplication) {
-              throw new UserInputError('Application not found');
-            }
-
-            const { defaultRoleId, ...updateData } = input;
-
-            // Verify default role if provided
-            if (defaultRoleId) {
-              const defaultRole = await tx.role.findFirst({
-                where: {
-                  id: defaultRoleId,
-                },
-              });
-
-              if (!defaultRole) {
-                throw new UserInputError('Default role not found');
-              }
-
-              updateData.defaultRoleId = defaultRoleId;
-            }
-
-            const application = await tx.application.update({
-              where: { id },
-              data: updateData,
-              include: {
-                creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true },
-                },
-                defaultRole: {
-                  include: {
-                    service: true,
-                  },
-                },
-                organization: true,
-              },
-            });
-
-            logger.info('Application updated via GraphQL', {
-              applicationId: id,
-              userId: currentUser.userId,
-              organizationId: currentUser.organizationId,
-            });
-
-            return application;
+          if (!existingApplication) {
+            throw new UserInputError('Application not found');
           }
-        );
+
+          const { defaultRoleId, ...updateData } = input;
+
+          // Verify default role if provided
+          if (defaultRoleId) {
+            const defaultRole = await tx.role.findFirst({
+              where: {
+                id: defaultRoleId,
+              },
+            });
+
+            if (!defaultRole) {
+              throw new UserInputError('Default role not found');
+            }
+
+            updateData.defaultRoleId = defaultRoleId;
+          }
+
+          const application = await tx.application.update({
+            where: { id },
+            data: updateData,
+            include: {
+              creator: {
+                select: { id: true, email: true, firstName: true, lastName: true },
+              },
+              defaultRole: {
+                include: {
+                  service: true,
+                },
+              },
+              organization: true,
+            },
+          });
+
+          logger.info('Application updated via GraphQL', {
+            applicationId: id,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+
+          return application;
+        });
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Application name already exists in your organization');
@@ -273,33 +267,30 @@ const applicationResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        return await prismaService.withTenantContext(
-          { organizationId: currentUser.organizationId, isSuperAdmin: currentUser.isSuperAdmin },
-          async tx => {
-            // Verify application exists and user has access
-            const existingApplication = await tx.application.findFirst({
-              where: {
-                id,
-              },
-            });
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          // Verify application exists and user has access
+          const existingApplication = await tx.application.findFirst({
+            where: {
+              id,
+            },
+          });
 
-            if (!existingApplication) {
-              throw new UserInputError('Application not found');
-            }
-
-            await tx.application.delete({
-              where: { id },
-            });
-
-            logger.info('Application deleted via GraphQL', {
-              applicationId: id,
-              userId: currentUser.userId,
-              organizationId: currentUser.organizationId,
-            });
-
-            return true;
+          if (!existingApplication) {
+            throw new UserInputError('Application not found');
           }
-        );
+
+          await tx.application.delete({
+            where: { id },
+          });
+
+          logger.info('Application deleted via GraphQL', {
+            applicationId: id,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+
+          return true;
+        });
       } catch (error) {
         if (error.code === 'P2003') {
           throw new UserInputError('Cannot delete application: it has dependent records');
@@ -316,61 +307,58 @@ const applicationResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        return await prismaService.withTenantContext(
-          { organizationId: currentUser.organizationId, isSuperAdmin: currentUser.isSuperAdmin },
-          async tx => {
-            // Verify application exists and user has access
-            const existingApplication = await tx.application.findFirst({
-              where: {
-                id,
-              },
-            });
+        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+          // Verify application exists and user has access
+          const existingApplication = await tx.application.findFirst({
+            where: {
+              id,
+            },
+          });
 
-            if (!existingApplication) {
-              throw new UserInputError('Application not found');
-            }
-
-            // Generate new API key
-            const newApiKey = await generateApiKey();
-            const apiKeyHash = await bcrypt.hash(newApiKey, 10);
-            const apiKeyEncrypted = encryptApiKey(newApiKey);
-            const apiKeyPrefix = newApiKey.substring(0, 8);
-            const apiKeyHint = '•'.repeat(56) + newApiKey.substring(newApiKey.length - 4);
-
-            const application = await tx.application.update({
-              where: { id },
-              data: {
-                apiKeyHash,
-                apiKeyEncrypted,
-                apiKeyPrefix,
-                apiKeyHint,
-              },
-              include: {
-                creator: {
-                  select: { id: true, email: true, firstName: true, lastName: true },
-                },
-                defaultRole: {
-                  include: {
-                    service: true,
-                  },
-                },
-                organization: true,
-              },
-            });
-
-            logger.info('Application API key regenerated via GraphQL', {
-              applicationId: id,
-              userId: currentUser.userId,
-              organizationId: currentUser.organizationId,
-            });
-
-            // Return with the new plain API key for display
-            return {
-              ...application,
-              apiKey: newApiKey, // Include plain API key only on regeneration
-            };
+          if (!existingApplication) {
+            throw new UserInputError('Application not found');
           }
-        );
+
+          // Generate new API key
+          const newApiKey = await generateApiKey();
+          const apiKeyHash = await bcrypt.hash(newApiKey, 10);
+          const apiKeyEncrypted = encryptApiKey(newApiKey);
+          const apiKeyPrefix = newApiKey.substring(0, 8);
+          const apiKeyHint = '•'.repeat(56) + newApiKey.substring(newApiKey.length - 4);
+
+          const application = await tx.application.update({
+            where: { id },
+            data: {
+              apiKeyHash,
+              apiKeyEncrypted,
+              apiKeyPrefix,
+              apiKeyHint,
+            },
+            include: {
+              creator: {
+                select: { id: true, email: true, firstName: true, lastName: true },
+              },
+              defaultRole: {
+                include: {
+                  service: true,
+                },
+              },
+              organization: true,
+            },
+          });
+
+          logger.info('Application API key regenerated via GraphQL', {
+            applicationId: id,
+            userId: currentUser.userId,
+            organizationId: currentUser.organizationId,
+          });
+
+          // Return with the new plain API key for display
+          return {
+            ...application,
+            apiKey: newApiKey, // Include plain API key only on regeneration
+          };
+        });
       } catch (error) {
         logger.error('GraphQL application API key regeneration error', {
           error: error.message,

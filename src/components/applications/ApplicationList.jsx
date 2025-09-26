@@ -27,7 +27,6 @@ const ApplicationList = () => {
     handleToggleActive,
     handleCopyApiKey,
     handleRegenerateApiKey,
-    handleRevealApiKey,
     prepareExportData,
   } = useApplications();
 
@@ -125,63 +124,54 @@ const ApplicationList = () => {
         header: (
           <div className="flex items-center gap-1">
             API Key
-            <Tooltip title="Secure authentication key for API access. Keys are masked for security - use the copy button to retrieve the full key. Regenerate keys regularly for security.">
+            <Tooltip title="Secure authentication key for API access. Click copy to access your key securely. Keys are never stored in your browser.">
               <HelpCircle className="h-3 w-3 text-gray-500 cursor-help" />
             </Tooltip>
           </div>
         ),
-        className: 'hidden lg:table-cell min-w-[250px] w-auto',
+        className: 'hidden lg:table-cell min-w-[200px] w-auto',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <code className="font-mono text-xs bg-muted px-2 py-1 rounded max-w-[150px] truncate">
-              {row.apiKey}
-            </code>
-            {row.isNewKey && (
-              <Badge variant="warning" className="text-xs">
-                New Key
-              </Badge>
-            )}
+            <div className="flex items-center gap-2 flex-1">
+              <code className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                {row.isNewKey ? 'New key generated' : 'mapi_••••••••••••'}
+              </code>
+              {row.isNewKey && (
+                <Badge variant="success" className="text-xs">
+                  Ready to Copy
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-1">
-              <Tooltip
-                title={
-                  user?.isAdmin
-                    ? 'Copy full API key to clipboard (Admin access)'
-                    : row.isNewKey
-                      ? 'Copy API key to clipboard'
-                      : 'Key is masked - only admins can copy existing keys'
-                }
-              >
+              <Tooltip title="Copy API key to clipboard - key will be retrieved securely">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
                   onClick={() => {
-                    // If user is admin, always use reveal (which copies automatically)
-                    // If not admin, use the basic copy (only works for new keys)
-                    if (user?.isAdmin) {
-                      handleRevealApiKey(row.id);
-                    } else {
-                      handleCopyApiKey(row.apiKey);
+                    if (operationInProgress[`copy-${row.id}`]) {
+                      return;
                     }
+                    handleCopyApiKey(row.id);
                   }}
-                  disabled={!user?.isAdmin && !row.isNewKey && row.apiKey.includes('•')}
-                  aria-label={user?.isAdmin ? 'Copy full API key (Admin)' : 'Copy API key'}
+                  disabled={operationInProgress[`copy-${row.id}`]}
+                  aria-label="Copy API key to clipboard"
                 >
                   <Copy className="h-3 w-3" />
                 </Button>
               </Tooltip>
-              <Tooltip title="Generate a new API key for this application. The old key will be immediately invalidated and cannot be recovered.">
+              <Tooltip title="Generate a new API key for this application. The old key will be immediately invalidated.">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
                   onClick={() => {
-                    // Prevent multiple rapid clicks
                     if (operationInProgress[`regenerate-${row.id}`]) {
                       return;
                     }
                     handleRegenerateApiKey(row.id);
                   }}
+                  disabled={operationInProgress[`regenerate-${row.id}`]}
                   aria-label="Regenerate API key"
                 >
                   <RefreshCw className="h-3 w-3" />
@@ -286,7 +276,6 @@ const ApplicationList = () => {
       handleToggleActive,
       handleCopyApiKey,
       handleRegenerateApiKey,
-      handleRevealApiKey,
       handleEdit,
       openConfirm,
       user,
@@ -335,7 +324,12 @@ const ApplicationList = () => {
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={!!app.isActive}
-                      onCheckedChange={() => handleToggleActive(app.id, !app.isActive)}
+                      onCheckedChange={() => {
+                        if (operationInProgress[`toggle-${app.id}`]) {
+                          return;
+                        }
+                        handleToggleActive(app);
+                      }}
                       aria-label={app.isActive ? 'Disable application' : 'Enable application'}
                     />
                   </div>
@@ -348,11 +342,11 @@ const ApplicationList = () => {
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <code className="font-mono text-xs bg-muted px-2 py-1 rounded max-w-[160px] truncate inline-block">
-                      {app.apiKey}
+                      {app.isNewKey ? 'New key generated' : 'mapi_••••••••••••'}
                     </code>
                     {app.isNewKey && (
-                      <Badge variant="warning" className="text-[10px] ml-2 align-middle">
-                        New Key
+                      <Badge variant="success" className="text-[10px] ml-2 align-middle">
+                        Ready to Copy
                       </Badge>
                     )}
                   </div>
@@ -360,11 +354,9 @@ const ApplicationList = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        user?.isAdmin ? handleRevealApiKey(app.id) : handleCopyApiKey(app.apiKey)
-                      }
-                      disabled={!user?.isAdmin && !app.isNewKey && app.apiKey?.includes('�?�')}
-                      aria-label={user?.isAdmin ? 'Copy full API key (Admin)' : 'Copy API key'}
+                      onClick={() => handleCopyApiKey(app.id)}
+                      disabled={operationInProgress[`copy-${app.id}`]}
+                      aria-label="Copy API key to clipboard"
                     >
                       <Copy className="h-3 w-3" />
                     </Button>

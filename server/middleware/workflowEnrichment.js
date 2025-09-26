@@ -1,5 +1,4 @@
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const { logger } = require('./logger');
 
 /**
@@ -20,10 +19,15 @@ const enrichWorkflowContext = async (req, res, next) => {
       const workflowId = workflowIdMatch[1];
 
       try {
-        // Look up the workflow name using Prisma
-        const workflow = await prisma.workflow.findUnique({
-          where: { id: workflowId },
-          select: { id: true, name: true },
+        // Look up the workflow name using proper RLS
+        // Use organizationId from req.user if available, otherwise system context for middleware
+        const organizationId = req.user?.organizationId;
+
+        const workflow = await prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.workflow.findUnique({
+            where: { id: workflowId },
+            select: { id: true, name: true },
+          });
         });
 
         if (workflow) {

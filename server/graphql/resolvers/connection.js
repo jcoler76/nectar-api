@@ -328,19 +328,9 @@ const connectionResolvers = {
             if (hasEndpoints)
               dependencies.push(`${existingConnection._count.endpoints} endpoint(s)`);
 
-            // Also get service names for better user feedback
-            const dependentServices = await tx.service.findMany({
-              where: { connectionId: id },
-              select: { name: true },
-            });
-
-            const serviceNames =
-              dependentServices.length > 0
-                ? ` (${dependentServices.map(s => s.name).join(', ')})`
-                : '';
-
+            // Generic error message without exposing service names for security
             throw new UserInputError(
-              `Cannot delete connection: it has dependent records (${dependencies.join(', ')})${serviceNames}. Use force deletion to remove all dependent records.`
+              `Cannot delete connection: it has dependent records (${dependencies.join(', ')}). Use force deletion to remove all dependent records.`
             );
           }
 

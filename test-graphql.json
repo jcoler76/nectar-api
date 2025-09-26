@@ -1,1 +1,0 @@
-{"query":"{ organizations { pageInfo { totalCount } } }"}

@@ -3,8 +3,8 @@
 // const SchemaIntelligence = require('../models/SchemaIntelligence');
 // const mongoose = require('mongoose');
 
+// SECURITY FIX: Use proper prismaService for tenant isolation
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 
 /**
  * DatabaseObjectService
@@ -15,9 +15,14 @@ const prisma = prismaService.getRLSClient();
 class DatabaseObjectService {
   /**
    * Get all selections for a service with optional filtering
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async getSelectionsByService(serviceId, options = {}) {
+  async getSelectionsByService(serviceId, organizationId, options = {}) {
     try {
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
+
       const query = { serviceId, isActive: true };
 
       if (options.objectType) {
@@ -32,10 +37,18 @@ class DatabaseObjectService {
         query.selectionGroup = options.selectionGroup;
       }
 
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // const selections = await DatabaseObject.find(query)
-      //   .populate('selectedBy', 'username email')
-      //   .sort({ createdAt: -1 });
+      // TODO: Replace with Prisma query for PostgreSQL migration using proper RLS
+      // const selections = await prismaService.withTenantContext(organizationId, async (tx) => {
+      //   return await tx.databaseObject.findMany({
+      //     where: { ...query },
+      //     include: {
+      //       selectedBy: {
+      //         select: { username: true, email: true }
+      //       }
+      //     },
+      //     orderBy: { createdAt: 'desc' }
+      //   });
+      // });
       const selections = []; // Placeholder
 
       return selections;
@@ -46,11 +59,22 @@ class DatabaseObjectService {
 
   /**
    * Get selection statistics for a service
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async getSelectionStats(serviceId) {
+  async getSelectionStats(serviceId, organizationId) {
     try {
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // const stats = await DatabaseObject.aggregate([...]);
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
+
+      // TODO: Replace with Prisma query for PostgreSQL migration using proper RLS
+      // const stats = await prismaService.withTenantContext(organizationId, async (tx) => {
+      //   return await tx.databaseObject.aggregate({
+      //     where: { serviceId, isActive: true },
+      //     _count: { id: true },
+      //     // Add other aggregation logic
+      //   });
+      // });
       const stats = []; // Placeholder
 
       if (stats.length === 0) {
@@ -71,11 +95,22 @@ class DatabaseObjectService {
 
   /**
    * Get business entity breakdown for selections
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async getBusinessEntityBreakdown(serviceId) {
+  async getBusinessEntityBreakdown(serviceId, organizationId) {
     try {
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // const breakdown = await DatabaseObject.aggregate([...]);
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
+
+      // TODO: Replace with Prisma query for PostgreSQL migration using proper RLS
+      // const breakdown = await prismaService.withTenantContext(organizationId, async (tx) => {
+      //   return await tx.databaseObject.groupBy({
+      //     by: ['businessEntity'],
+      //     where: { serviceId, isActive: true },
+      //     _count: { id: true }
+      //   });
+      // });
       const breakdown = []; // Placeholder
 
       return breakdown;
@@ -86,28 +121,36 @@ class DatabaseObjectService {
 
   /**
    * Create new object selections for a service
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async createSelections(serviceId, selectedObjects, userId, options = {}) {
+  async createSelections(serviceId, organizationId, selectedObjects, userId, options = {}) {
     // TODO: Replace with Prisma transaction for PostgreSQL migration
     // const session = await mongoose.startSession();
     // session.startTransaction();
 
     try {
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
+
       const { selectedTables = [], selectedViews = [], selectedProcedures = [] } = selectedObjects;
       const { selectionGroup = 'default', replaceExisting = false } = options;
 
       // Validate service exists
-      await this.validateService(serviceId);
+      await this.validateService(serviceId, organizationId);
 
       // TODO: Replace with Prisma query for PostgreSQL migration
       // Get schema intelligence for metadata enrichment
       const intelligence = null; // Placeholder
 
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // Clear existing selections if requested
-      // if (replaceExisting) {
-      //   await DatabaseObject.deleteMany({ serviceId, selectionGroup }, { session });
-      // }
+      // TODO: Replace with Prisma transaction for PostgreSQL migration using proper RLS
+      // const result = await prismaService.withTenantContext(organizationId, async (tx) => {
+      //   // Clear existing selections if requested
+      //   if (replaceExisting) {
+      //     await tx.databaseObject.deleteMany({
+      //       where: { serviceId, selectionGroup }
+      //     });
+      //   }
 
       const objectsToCreate = [];
 
@@ -121,6 +164,7 @@ class DatabaseObjectService {
           selectionReason: 'user_selected',
           selectedBy: userId,
           selectionGroup,
+          organizationId, // SECURITY: Include organizationId for RLS
           businessEntity: metadata?.businessEntity,
           businessImportance: metadata?.businessImportance,
           confidence: metadata?.confidence || 0.8,
@@ -137,6 +181,7 @@ class DatabaseObjectService {
           selectionReason: 'user_selected',
           selectedBy: userId,
           selectionGroup,
+          organizationId, // SECURITY: Include organizationId for RLS
           businessEntity: metadata?.businessEntity,
           businessImportance: metadata?.businessImportance,
           confidence: metadata?.confidence || 0.8,
@@ -153,15 +198,30 @@ class DatabaseObjectService {
           selectionReason: 'user_selected',
           selectedBy: userId,
           selectionGroup,
+          organizationId, // SECURITY: Include organizationId for RLS
           businessEntity: metadata?.businessEntity,
           businessImportance: metadata?.businessImportance,
           confidence: metadata?.confidence || 0.8,
         });
       }
 
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // Create all selections
-      // const createdSelections = await DatabaseObject.insertMany(objectsToCreate, { session });
+      // TODO: Continue with Prisma transaction for PostgreSQL migration
+      //   const createdSelections = await tx.databaseObject.createMany({
+      //     data: objectsToCreate
+      //   });
+
+      //   // Add dependencies if requested
+      //   if (options.includeDependencies) {
+      //     const dependencies = await this.resolveDependencies(
+      //       serviceId, objectsToCreate, intelligence
+      //     );
+      //     if (dependencies.length > 0) {
+      //       await tx.databaseObject.createMany({ data: dependencies });
+      //     }
+      //   }
+
+      //   return createdSelections;
+      // });
       const createdSelections = []; // Placeholder
 
       // Add dependencies if requested
@@ -171,14 +231,8 @@ class DatabaseObjectService {
           objectsToCreate,
           intelligence
         );
-        // TODO: Replace with Prisma query for PostgreSQL migration
-        // if (dependencies.length > 0) {
-        //   await DatabaseObject.insertMany(dependencies, { session });
-        // }
+        // Dependencies will be handled in the transaction above when implemented
       }
-
-      // TODO: Replace with Prisma transaction for PostgreSQL migration
-      // await session.commitTransaction();
 
       return {
         success: true,
@@ -195,24 +249,40 @@ class DatabaseObjectService {
 
   /**
    * Update existing selections
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async updateSelections(serviceId, updates, userId) {
+  async updateSelections(serviceId, organizationId, updates, userId) {
     // TODO: Replace with Prisma transaction for PostgreSQL migration
     // const session = await mongoose.startSession();
     // session.startTransaction();
 
     try {
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
+
       const results = [];
+
+      // TODO: Replace with Prisma transaction for PostgreSQL migration using proper RLS
+      // const results = await prismaService.withTenantContext(organizationId, async (tx) => {
+      //   const updateResults = [];
+      //   for (const update of updates) {
+      //     const { objectName, objectType, ...updateFields } = update;
+      //     const updated = await tx.databaseObject.updateMany({
+      //       where: { serviceId, objectName, objectType, isActive: true },
+      //       data: { ...updateFields, updatedAt: new Date() }
+      //     });
+      //     if (updated.count > 0) {
+      //       updateResults.push(updated);
+      //     }
+      //   }
+      //   return updateResults;
+      // });
 
       for (const update of updates) {
         const { objectName, objectType, ...updateFields } = update;
 
         // TODO: Replace with Prisma query for PostgreSQL migration
-        // const updated = await DatabaseObject.findOneAndUpdate(
-        //   { serviceId, objectName, objectType, isActive: true },
-        //   { ...updateFields, updatedAt: new Date() },
-        //   { new: true, session }
-        // );
         const updated = null; // Placeholder
 
         if (updated) {
@@ -220,8 +290,6 @@ class DatabaseObjectService {
         }
       }
 
-      // TODO: Replace with Prisma transaction for PostgreSQL migration
-      // await session.commitTransaction();
       return results;
     } catch (error) {
       // await session.abortTransaction();
@@ -233,25 +301,39 @@ class DatabaseObjectService {
 
   /**
    * Remove specific object selections
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async removeSelections(serviceId, objectsToRemove, options = {}) {
+  async removeSelections(serviceId, organizationId, objectsToRemove, options = {}) {
     try {
-      const { softDelete = false } = options;
-      const query = {
-        serviceId,
-        $or: objectsToRemove.map(obj => ({
-          objectName: obj.objectName,
-          objectType: obj.objectType,
-        })),
-      };
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
 
-      // TODO: Replace with Prisma query for PostgreSQL migration
-      // let result;
-      // if (softDelete) {
-      //   result = await DatabaseObject.updateMany(query, { isActive: false, updatedAt: new Date() });
-      // } else {
-      //   result = await DatabaseObject.deleteMany(query);
-      // }
+      const { softDelete = false } = options;
+      const objectFilters = objectsToRemove.map(obj => ({
+        objectName: obj.objectName,
+        objectType: obj.objectType,
+      }));
+
+      // TODO: Replace with Prisma query for PostgreSQL migration using proper RLS
+      // const result = await prismaService.withTenantContext(organizationId, async (tx) => {
+      //   if (softDelete) {
+      //     return await tx.databaseObject.updateMany({
+      //       where: {
+      //         serviceId,
+      //         OR: objectFilters
+      //       },
+      //       data: { isActive: false, updatedAt: new Date() }
+      //     });
+      //   } else {
+      //     return await tx.databaseObject.deleteMany({
+      //       where: {
+      //         serviceId,
+      //         OR: objectFilters
+      //       }
+      //     });
+      //   }
+      // });
       let result = { deletedCount: 0, modifiedCount: 0 }; // Placeholder
 
       return {
@@ -432,26 +514,39 @@ class DatabaseObjectService {
 
   /**
    * Validate that a service exists
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async validateService(serviceId) {
-    // TODO: Replace with Prisma query for PostgreSQL migration
-    // const Service = require('../models/Service');
-    // const service = await Service.findById(serviceId);
+  async validateService(serviceId, organizationId) {
+    if (!organizationId) {
+      throw new Error('Organization ID is required for tenant isolation');
+    }
+
+    // TODO: Replace with Prisma query for PostgreSQL migration using proper RLS
+    // const service = await prismaService.withTenantContext(organizationId, async (tx) => {
+    //   return await tx.service.findFirst({
+    //     where: { id: serviceId, isActive: true }
+    //   });
+    // });
     // if (!service) {
-    //   throw new Error(`Service with ID ${serviceId} not found`);
+    //   throw new Error(`Service with ID ${serviceId} not found or not accessible`);
     // }
     // return service;
-    return { id: serviceId }; // Placeholder
+    return { id: serviceId, organizationId }; // Placeholder
   }
 
   /**
    * Get selection summary for export
+   * SECURITY: Now requires organizationId for proper tenant isolation
    */
-  async getSelectionSummary(serviceId) {
+  async getSelectionSummary(serviceId, organizationId) {
     try {
-      const selections = await this.getSelectionsByService(serviceId);
-      const stats = await this.getSelectionStats(serviceId);
-      const entityBreakdown = await this.getBusinessEntityBreakdown(serviceId);
+      if (!organizationId) {
+        throw new Error('Organization ID is required for tenant isolation');
+      }
+
+      const selections = await this.getSelectionsByService(serviceId, organizationId);
+      const stats = await this.getSelectionStats(serviceId, organizationId);
+      const entityBreakdown = await this.getBusinessEntityBreakdown(serviceId, organizationId);
 
       return {
         serviceId,

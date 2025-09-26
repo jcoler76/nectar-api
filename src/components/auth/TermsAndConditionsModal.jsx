@@ -56,14 +56,32 @@ const TermsAndConditionsModal = ({ open, onAccept, onDecline }) => {
   const handleScroll = useCallback(() => {
     if (contentRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+
+      // If content doesn't overflow (no scrolling needed), consider it read
+      if (scrollHeight <= clientHeight) {
+        setHasScrolledToBottom(true);
+        return;
+      }
+
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
 
-      // Consider scrolled to bottom if within 95% of total height
-      if (scrollPercentage >= 0.95) {
+      // Consider scrolled to bottom if within 50px of bottom or 90% of content
+      const pixelsFromBottom = scrollHeight - (scrollTop + clientHeight);
+      if (scrollPercentage >= 0.9 || pixelsFromBottom <= 50) {
         setHasScrolledToBottom(true);
       }
     }
   }, []);
+
+  // Check scroll on initial load in case content doesn't require scrolling
+  useEffect(() => {
+    if (terms && contentRef.current) {
+      // Use setTimeout to ensure DOM is fully rendered
+      setTimeout(() => {
+        handleScroll();
+      }, 100);
+    }
+  }, [terms, handleScroll]);
 
   // Handle terms acceptance
   const handleAccept = async () => {
@@ -138,8 +156,26 @@ const TermsAndConditionsModal = ({ open, onAccept, onDecline }) => {
         </Typography>
         {terms && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Version {terms.version} - Effective{' '}
-            {format(new Date(terms.effectiveDate), 'MMMM d, yyyy')}
+            Version {terms.version}
+            {terms.effectiveDate &&
+              (() => {
+                try {
+                  // Handle both string and object effectiveDate
+                  let dateValue = terms.effectiveDate;
+                  if (typeof dateValue === 'object' && Object.keys(dateValue).length === 0) {
+                    // Empty object, skip date display
+                    return '';
+                  }
+
+                  const effectiveDate = new Date(dateValue);
+                  if (!isNaN(effectiveDate.getTime())) {
+                    return ` - Effective ${format(effectiveDate, 'MMMM d, yyyy')}`;
+                  }
+                } catch (error) {
+                  console.warn('Invalid effective date:', terms.effectiveDate, error);
+                }
+                return '';
+              })()}
           </Typography>
         )}
       </DialogTitle>
@@ -203,7 +239,8 @@ const TermsAndConditionsModal = ({ open, onAccept, onDecline }) => {
 
             {!hasScrolledToBottom && (
               <Alert severity="info" sx={{ mt: 2 }}>
-                Please scroll down to read the entire Terms and Conditions before accepting.
+                Please scroll down to read the entire Terms and Conditions before accepting. Once
+                you reach the end, you'll be able to check the agreement box below.
               </Alert>
             )}
 

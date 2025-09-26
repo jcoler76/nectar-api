@@ -508,7 +508,12 @@ router.get(
 
       let downloadUrl = null;
       if (download === 'true') {
-        downloadUrl = await fileStorageService.getFileUrl(fileId, parseInt(expiresIn));
+        // SECURITY FIX: Pass organizationId to prevent cross-tenant access
+        downloadUrl = await fileStorageService.getFileUrl(
+          fileId,
+          organizationId,
+          parseInt(expiresIn)
+        );
       }
 
       res.json({
@@ -781,7 +786,8 @@ router.get('/shared/:shareToken', apiRateLimiter, async (req, res) => {
     // Get file URL if downloading
     let fileUrl = null;
     if (download === 'true') {
-      fileUrl = await fileStorageService.getFileUrl(share.file.id, 3600);
+      // SECURITY FIX: Pass organizationId to prevent cross-tenant access
+      fileUrl = await fileStorageService.getFileUrl(share.file.id, share.file.organizationId, 3600);
 
       // Increment download count
       await prisma.fileShare.update({

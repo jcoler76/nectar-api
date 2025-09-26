@@ -1,7 +1,8 @@
 const prismaService = require('../services/prismaService');
 const crypto = require('crypto');
 
-const prisma = prismaService.getRLSClient();
+// Use system client for marketing leads (no organization context initially)
+const prisma = prismaService.getSystemClient();
 
 // Generate a URL-safe UUID string
 function generateId() {

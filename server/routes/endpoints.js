@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
+// SECURITY FIX: Using withTenantContext pattern for proper tenant isolation
 const { adminOnly } = require('../middleware/auth');
 const { logger } = require('../utils/logger');
 const { asyncHandler, errorResponses } = require('../utils/errorHandler');
@@ -15,22 +15,25 @@ router.get('/', adminOnly, async (req, res) => {
   try {
     const organizationId = req.user.organizationId;
 
-    const endpoints = await prisma.endpoint.findMany({
-      where: {
-        organizationId: organizationId,
-      },
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+    const endpoints = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.endpoint.findMany({
+        where: {
+          // organizationId removed as RLS handles it
+        },
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
     });
 
     // Ensure we always return an array
@@ -80,8 +83,9 @@ router.post('/', adminOnly, async (req, res) => {
         });
       }
 
-      // Check if API key already exists
-      const existingEndpoint = await prisma.endpoint.findUnique({
+      // SECURITY FIX: Check if API key already exists globally (using system client)
+      const systemPrisma = prismaService.getSystemClient();
+      const existingEndpoint = await systemPrisma.endpoint.findUnique({
         where: { apiKey: customKey },
       });
       if (existingEndpoint) {
@@ -108,17 +112,20 @@ router.post('/', adminOnly, async (req, res) => {
       createdBy: req.user.userId,
     };
 
-    const newEndpoint = await prisma.endpoint.create({
-      data: endpointData,
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // SECURITY FIX: Create endpoint with proper RLS
+    const newEndpoint = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.endpoint.create({
+        data: endpointData,
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-      },
+      });
     });
 
     res.status(201).json(newEndpoint);
@@ -144,39 +151,45 @@ router.post('/:id/regenerate-key', adminOnly, async (req, res) => {
   try {
     const organizationId = req.user.organizationId;
 
-    const endpoint = await prisma.endpoint.findUnique({
-      where: {
-        id: req.params.id,
-      },
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // SECURITY FIX: Use withTenantContext for endpoint lookup
+    const endpoint = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.endpoint.findUnique({
+        where: {
+          id: req.params.id,
+        },
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-      },
+      });
     });
 
-    if (!endpoint || endpoint.organizationId !== organizationId) {
+    if (!endpoint) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Endpoint not found' } });
     }
 
     // Generate a new standard API key and save it
     const newApiKey = generateStandardApiKey();
-    const updatedEndpoint = await prisma.endpoint.update({
-      where: { id: req.params.id },
-      data: { apiKey: newApiKey },
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // SECURITY FIX: Update endpoint with proper RLS
+    const updatedEndpoint = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.endpoint.update({
+        where: { id: req.params.id },
+        data: { apiKey: newApiKey },
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-      },
+      });
     });
 
     res.json(updatedEndpoint);
@@ -191,22 +204,28 @@ router.delete('/:id', adminOnly, async (req, res) => {
   try {
     const organizationId = req.user.organizationId;
 
-    // First check if endpoint exists and belongs to the organization
-    const endpoint = await prisma.endpoint.findUnique({
-      where: { id: req.params.id },
-    });
+    // SECURITY FIX: Check and delete endpoint with proper RLS
+    await prismaService.withTenantContext(organizationId, async tx => {
+      // First check if endpoint exists and belongs to the organization
+      const endpoint = await tx.endpoint.findUnique({
+        where: { id: req.params.id },
+      });
 
-    if (!endpoint || endpoint.organizationId !== organizationId) {
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Endpoint not found' } });
-    }
+      if (!endpoint) {
+        throw new Error('ENDPOINT_NOT_FOUND');
+      }
 
-    // Delete the endpoint
-    await prisma.endpoint.delete({
-      where: { id: req.params.id },
+      // Delete the endpoint
+      await tx.endpoint.delete({
+        where: { id: req.params.id },
+      });
     });
 
     res.json({ message: 'Endpoint deleted successfully' });
   } catch (error) {
+    if (error.message === 'ENDPOINT_NOT_FOUND') {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Endpoint not found' } });
+    }
     logger.error('Error deleting endpoint:', error);
     errorResponses.serverError(res, error);
   }

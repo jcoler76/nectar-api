@@ -7,8 +7,6 @@ const prismaService = require('../services/prismaService');
 const { logger } = require('../utils/logger');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const prisma = prismaService.getRLSClient();
-
 class StorageBillingService {
   constructor() {
     // Storage configuration
@@ -49,10 +47,20 @@ class StorageBillingService {
    */
   async calculateStorageUsage(organizationId) {
     try {
-      const usageQuery = await prisma.fileStorage.aggregate({
-        where: { organizationId, isActive: true },
-        _sum: { fileSize: true },
-        _count: { id: true },
+      if (!organizationId) {
+        throw new Error('Organization ID is required for storage usage calculation');
+      }
+
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      const usageQuery = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.fileStorage.aggregate({
+          where: {
+            isActive: true,
+            // organizationId handled by RLS
+          },
+          _sum: { fileSize: true },
+          _count: { id: true },
+        });
       });
 
       const rawFileSize = usageQuery._sum.fileSize;
@@ -63,6 +71,7 @@ class StorageBillingService {
       const safeBytesUsed = isNaN(bytesUsed) ? 0 : bytesUsed;
 
       return {
+        organizationId,
         bytesUsed: safeBytesUsed,
         fileCount,
         megabytesUsed: Math.round(safeBytesUsed / 1024 / 1024),
@@ -79,8 +88,13 @@ class StorageBillingService {
    */
   async checkStorageQuota(organizationId, additionalBytes = 0) {
     try {
-      // Get organization and subscription plan
-      const organization = await prisma.organization.findUnique({
+      if (!organizationId) {
+        throw new Error('Organization ID is required for quota check');
+      }
+
+      // SECURITY FIX: Use system client for infrastructure data (organization/subscription)
+      const systemPrisma = prismaService.getSystemClient();
+      const organization = await systemPrisma.organization.findUnique({
         where: { id: organizationId },
         include: { subscription: true },
       });
@@ -165,6 +179,10 @@ class StorageBillingService {
    */
   async recordDailyUsage(organizationId, date = new Date()) {
     try {
+      if (!organizationId) {
+        throw new Error('Organization ID is required for daily usage recording');
+      }
+
       const usage = await this.calculateStorageUsage(organizationId);
       const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -175,28 +193,31 @@ class StorageBillingService {
       // Calculate cost in USD
       const costUsd = (usage.gigabytesUsed * this.awsCostPerGB) / 30; // Daily cost
 
-      await prisma.storageUsage.upsert({
-        where: {
-          organizationId_date: {
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storageUsage.upsert({
+          where: {
+            organizationId_date: {
+              organizationId,
+              date: dateOnly,
+            },
+          },
+          update: {
+            bytesStored: BigInt(usage.bytesUsed),
+            byteHours,
+            fileCount: usage.fileCount,
+            costUsd,
+            updatedAt: new Date(),
+          },
+          create: {
             organizationId,
             date: dateOnly,
+            bytesStored: BigInt(usage.bytesUsed),
+            byteHours,
+            fileCount: usage.fileCount,
+            costUsd,
           },
-        },
-        update: {
-          bytesStored: BigInt(usage.bytesUsed),
-          byteHours,
-          fileCount: usage.fileCount,
-          costUsd,
-          updatedAt: new Date(),
-        },
-        create: {
-          organizationId,
-          date: dateOnly,
-          bytesStored: BigInt(usage.bytesUsed),
-          byteHours,
-          fileCount: usage.fileCount,
-          costUsd,
-        },
+        });
       });
 
       logger.info('Daily storage usage recorded', {
@@ -219,29 +240,40 @@ class StorageBillingService {
    */
   async calculateMonthlyOverage(organizationId, month = new Date()) {
     try {
+      if (!organizationId) {
+        throw new Error('Organization ID is required for monthly overage calculation');
+      }
+
       const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
       const lastDayOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
-      // Get organization and plan
-      const organization = await prisma.organization.findUnique({
+      // SECURITY FIX: Use system client for infrastructure data (organization/subscription)
+      const systemPrisma = prismaService.getSystemClient();
+      const organization = await systemPrisma.organization.findUnique({
         where: { id: organizationId },
         include: { subscription: true },
       });
 
+      if (!organization) {
+        throw new Error('Organization not found');
+      }
+
       const plan = organization?.subscription?.plan || 'FREE';
       const config = this.getPlanStorageConfig(plan);
 
-      // Get average storage usage for the month
-      const monthlyUsage = await prisma.storageUsage.aggregate({
-        where: {
-          organizationId,
-          date: {
-            gte: firstDayOfMonth,
-            lte: lastDayOfMonth,
+      // SECURITY FIX: Get average storage usage for the month with RLS
+      const monthlyUsage = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storageUsage.aggregate({
+          where: {
+            date: {
+              gte: firstDayOfMonth,
+              lte: lastDayOfMonth,
+            },
+            // organizationId handled by RLS
           },
-        },
-        _avg: { bytesStored: true },
-        _sum: { byteHours: true },
+          _avg: { bytesStored: true },
+          _sum: { byteHours: true },
+        });
       });
 
       const avgBytesUsed = parseInt(monthlyUsage._avg.bytesStored || 0);
@@ -253,31 +285,33 @@ class StorageBillingService {
       const overageGB = overageBytes / (1024 * 1024 * 1024);
       const overageCost = config.overageRate && isOverLimit ? overageGB * config.overageRate : 0;
 
-      // Record overage
-      const overageRecord = await prisma.storageOverage.upsert({
-        where: {
-          organizationId_month: {
+      // SECURITY FIX: Record overage with RLS enforcement
+      const overageRecord = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storageOverage.upsert({
+          where: {
+            organizationId_month: {
+              organizationId,
+              month: firstDayOfMonth,
+            },
+          },
+          update: {
+            includedBytes: BigInt(config.includedBytes),
+            usedBytes: BigInt(avgBytesUsed),
+            overageBytes: BigInt(overageBytes),
+            overageRate: config.overageRate || 0,
+            overageCost,
+            updatedAt: new Date(),
+          },
+          create: {
             organizationId,
             month: firstDayOfMonth,
+            includedBytes: BigInt(config.includedBytes),
+            usedBytes: BigInt(avgBytesUsed),
+            overageBytes: BigInt(overageBytes),
+            overageRate: config.overageRate || 0,
+            overageCost,
           },
-        },
-        update: {
-          includedBytes: BigInt(config.includedBytes),
-          usedBytes: BigInt(avgBytesUsed),
-          overageBytes: BigInt(overageBytes),
-          overageRate: config.overageRate || 0,
-          overageCost,
-          updatedAt: new Date(),
-        },
-        create: {
-          organizationId,
-          month: firstDayOfMonth,
-          includedBytes: BigInt(config.includedBytes),
-          usedBytes: BigInt(avgBytesUsed),
-          overageBytes: BigInt(overageBytes),
-          overageRate: config.overageRate || 0,
-          overageCost,
-        },
+        });
       });
 
       logger.info('Monthly overage calculated', {
@@ -342,13 +376,15 @@ class StorageBillingService {
 
       const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
 
-      // Mark overage as billed
-      await prisma.storageOverage.update({
-        where: { id: overageData.record.id },
-        data: {
-          billed: true,
-          billedAt: new Date(),
-        },
+      // SECURITY FIX: Mark overage as billed with RLS enforcement
+      await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storageOverage.update({
+          where: { id: overageData.record.id },
+          data: {
+            billed: true,
+            billedAt: new Date(),
+          },
+        });
       });
 
       logger.info('Storage overage invoice created', {
@@ -373,21 +409,29 @@ class StorageBillingService {
    */
   async getStorageAnalytics(organizationId, days = 30) {
     try {
+      if (!organizationId) {
+        throw new Error('Organization ID is required for storage analytics');
+      }
+
       const endDate = new Date();
       const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-      const usage = await prisma.storageUsage.findMany({
-        where: {
-          organizationId,
-          date: {
-            gte: startDate,
-            lte: endDate,
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      const usage = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storageUsage.findMany({
+          where: {
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+            // organizationId handled by RLS
           },
-        },
-        orderBy: { date: 'asc' },
+          orderBy: { date: 'asc' },
+        });
       });
 
       const analytics = {
+        organizationId,
         period: { start: startDate, end: endDate, days },
         usage: usage.map(u => ({
           date: u.date,
@@ -430,13 +474,15 @@ class StorageBillingService {
   }
 
   /**
-   * Cleanup old storage usage records
+   * Cleanup old storage usage records - super admin only operation
    */
   async cleanupOldRecords(retentionDays = 365) {
     try {
       const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
-      const deletedCount = await prisma.storageUsage.deleteMany({
+      // SECURITY FIX: Use system client for global cleanup operations
+      const systemPrisma = prismaService.getSystemClient();
+      const deletedCount = await systemPrisma.storageUsage.deleteMany({
         where: {
           date: { lt: cutoffDate },
         },
@@ -502,8 +548,9 @@ class StorageBillingService {
         throw new Error('Invalid storage add-on pack selected');
       }
 
-      // Get organization and subscription
-      const organization = await prisma.organization.findUnique({
+      // SECURITY FIX: Use system client for infrastructure data (organization/subscription)
+      const systemPrisma = prismaService.getSystemClient();
+      const organization = await systemPrisma.organization.findUnique({
         where: { id: organizationId },
         include: { subscription: true },
       });
@@ -541,20 +588,22 @@ class StorageBillingService {
 
       const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
 
-      // Record storage purchase
-      const purchase = await prisma.storagePurchase.create({
-        data: {
-          organizationId,
-          purchaseType: 'addon_pack',
-          packId: selectedPack.id,
-          storageGb: selectedPack.storageGb,
-          pricePerGb: selectedPack.priceUsd / selectedPack.storageGb,
-          totalCost: selectedPack.priceUsd,
-          validFrom: new Date(),
-          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-          stripePaymentIntent: finalizedInvoice.id,
-          status: 'active',
-        },
+      // SECURITY FIX: Record storage purchase with RLS enforcement
+      const purchase = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storagePurchase.create({
+          data: {
+            organizationId,
+            purchaseType: 'addon_pack',
+            packId: selectedPack.id,
+            storageGb: selectedPack.storageGb,
+            pricePerGb: selectedPack.priceUsd / selectedPack.storageGb,
+            totalCost: selectedPack.priceUsd,
+            validFrom: new Date(),
+            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            stripePaymentIntent: finalizedInvoice.id,
+            status: 'active',
+          },
+        });
       });
 
       logger.info('Storage add-on purchased successfully', {
@@ -585,22 +634,29 @@ class StorageBillingService {
    */
   async getTotalAvailableStorage(organizationId) {
     try {
-      // Get base storage from plan
-      const organization = await prisma.organization.findUnique({
+      // SECURITY FIX: Use system client for infrastructure data (organization/subscription)
+      const systemPrisma = prismaService.getSystemClient();
+      const organization = await systemPrisma.organization.findUnique({
         where: { id: organizationId },
         include: { subscription: true },
       });
 
+      if (!organization) {
+        throw new Error('Organization not found');
+      }
+
       const plan = organization?.subscription?.plan || 'FREE';
       const baseStorageBytes = this.storageLimits[plan] || this.storageLimits.FREE;
 
-      // Get active storage purchases
-      const activePurchases = await prisma.storagePurchase.findMany({
-        where: {
-          organizationId,
-          status: 'active',
-          validUntil: { gt: new Date() },
-        },
+      // SECURITY FIX: Get active storage purchases with RLS enforcement
+      const activePurchases = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.storagePurchase.findMany({
+          where: {
+            status: 'active',
+            validUntil: { gt: new Date() },
+            // organizationId handled by RLS
+          },
+        });
       });
 
       const addOnStorageBytes = activePurchases.reduce(
@@ -636,8 +692,9 @@ class StorageBillingService {
       const overageBytes = isOverLimit ? totalBytesWithUpload - storageInfo.totalStorageBytes : 0;
       const overageGB = overageBytes / (1024 * 1024 * 1024);
 
-      // Get organization for plan-specific overage rates
-      const organization = await prisma.organization.findUnique({
+      // SECURITY FIX: Use system client for infrastructure data (organization/subscription)
+      const systemPrisma = prismaService.getSystemClient();
+      const organization = await systemPrisma.organization.findUnique({
         where: { id: organizationId },
         include: { subscription: true },
       });
@@ -691,13 +748,15 @@ class StorageBillingService {
   }
 
   /**
-   * Expire old storage purchases
+   * Expire old storage purchases - system-wide operation for background job
    */
   async expireOldPurchases() {
     try {
       const now = new Date();
 
-      const expiredCount = await prisma.storagePurchase.updateMany({
+      // SECURITY FIX: Use system client for global expiration operations
+      const systemPrisma = prismaService.getSystemClient();
+      const expiredCount = await systemPrisma.storagePurchase.updateMany({
         where: {
           status: 'active',
           validUntil: { lte: now },

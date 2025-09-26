@@ -9,8 +9,15 @@ const { logger } = require('../middleware/logger');
 // Get API usage data
 router.get('/api-usage', async (req, res) => {
   try {
-    // Get RLS-aware Prisma client for this request
-    const prisma = await prismaService.getRLSClient();
+    // SECURITY: Ensure user is authenticated and get organization context
+    if (!req.user || !req.user.organizationId) {
+      return res.status(401).json({
+        error: {
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'User authentication required for report access',
+        },
+      });
+    }
 
     const { startDate, endDate, service, role, application, component, showDetails } = req.query;
     logger.info('API Usage Report Request:', {
@@ -72,20 +79,22 @@ router.get('/api-usage', async (req, res) => {
       };
     }
 
-    // Get API usage data
-    const apiLogs = await prisma.apiActivityLog.findMany({
-      where,
-      include: {
-        user: {
-          select: { id: true, email: true, firstName: true, lastName: true },
+    // Get API usage data with proper RLS tenant context
+    const apiLogs = await prismaService.withTenantContext(req.user.organizationId, async tx => {
+      return await tx.apiActivityLog.findMany({
+        where,
+        include: {
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          organization: {
+            select: { id: true, name: true },
+          },
         },
-        organization: {
-          select: { id: true, name: true },
+        orderBy: {
+          timestamp: 'desc',
         },
-      },
-      orderBy: {
-        timestamp: 'desc',
-      },
+      });
     });
 
     let usageData = [];
@@ -182,8 +191,15 @@ router.get('/api-usage', async (req, res) => {
 // Get unique components
 router.get('/components', async (req, res) => {
   try {
-    // Get RLS-aware Prisma client for this request
-    const prisma = await prismaService.getRLSClient();
+    // SECURITY: Ensure user is authenticated and get organization context
+    if (!req.user || !req.user.organizationId) {
+      return res.status(401).json({
+        error: {
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'User authentication required for component access',
+        },
+      });
+    }
 
     const { service, role, application } = req.query;
 
@@ -199,21 +215,23 @@ router.get('/components', async (req, res) => {
       return;
     }
 
-    // Get distinct endpoints from ApiActivityLog as a substitute for components
-    const components = await prisma.apiActivityLog.findMany({
-      select: {
-        endpoint: true,
-      },
-      distinct: ['endpoint'],
-      where: {
-        endpoint: {
-          not: null,
+    // Get distinct endpoints from ApiActivityLog as a substitute for components with RLS
+    const components = await prismaService.withTenantContext(req.user.organizationId, async tx => {
+      return await tx.apiActivityLog.findMany({
+        select: {
+          endpoint: true,
         },
-        endpointType: 'public',
-      },
-      orderBy: {
-        endpoint: 'asc',
-      },
+        distinct: ['endpoint'],
+        where: {
+          endpoint: {
+            not: null,
+          },
+          endpointType: 'public',
+        },
+        orderBy: {
+          endpoint: 'asc',
+        },
+      });
     });
 
     // Extract just the endpoint values
@@ -232,8 +250,15 @@ router.get('/components', async (req, res) => {
 
 router.get('/workflow-executions', async (req, res) => {
   try {
-    // Get RLS-aware Prisma client for this request
-    const prisma = await prismaService.getRLSClient();
+    // SECURITY: Ensure user is authenticated and get organization context
+    if (!req.user || !req.user.organizationId) {
+      return res.status(401).json({
+        error: {
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'User authentication required for workflow reports',
+        },
+      });
+    }
 
     const { startDate, endDate, workflowId, status, showDetails } = req.query;
 
@@ -272,21 +297,23 @@ router.get('/workflow-executions', async (req, res) => {
       where.status = statusMap[status] || status.toUpperCase();
     }
 
-    // Query workflow executions with workflow information
-    const executions = await prisma.workflowExecution.findMany({
-      where,
-      include: {
-        workflow: {
-          select: {
-            id: true,
-            name: true,
+    // Query workflow executions with workflow information using RLS
+    const executions = await prismaService.withTenantContext(req.user.organizationId, async tx => {
+      return await tx.workflowExecution.findMany({
+        where,
+        include: {
+          workflow: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-      },
-      orderBy: {
-        startedAt: 'desc',
-      },
-      take: 1000, // Limit results for performance
+        orderBy: {
+          startedAt: 'desc',
+        },
+        take: 1000, // Limit results for performance
+      });
     });
 
     // Transform data to match expected format

@@ -83,14 +83,8 @@ api.interceptors.request.use(
 
       // Add auth token
       const token = getCurrentToken();
-      console.log('🔑 API Interceptor - Token check:', {
-        hasToken: !!token,
-        tokenPreview: token ? token.substring(0, 30) + '...' : 'NO TOKEN',
-        url: config.url,
-      });
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('✅ Authorization header added');
       } else {
         console.error('❌ NO TOKEN - Authorization header NOT added');
       }

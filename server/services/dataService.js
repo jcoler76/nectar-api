@@ -16,7 +16,7 @@ const { logger } = require('../utils/logger');
 
 class DataService {
   constructor() {
-    this.rlsClient = prismaService.getRLSClient();
+    // RLS enforcement handled through withTenantContext pattern
   }
 
   // ==========================================
@@ -36,7 +36,7 @@ class DataService {
       data.passwordEncrypted = encryptDatabasePassword(password);
     }
 
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.service.create({
         data,
         include: {
@@ -49,7 +49,7 @@ class DataService {
   }
 
   async getServicesByOrganization(organizationId, filters = {}) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.service.findMany({
         where: filters,
         include: {
@@ -70,7 +70,7 @@ class DataService {
   }
 
   async getServiceById(serviceId, organizationId) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.service.findFirst({
         where: { id: serviceId },
         include: {
@@ -91,7 +91,7 @@ class DataService {
       data.passwordEncrypted = encryptDatabasePassword(password);
     }
 
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.service.update({
         where: { id: serviceId },
         data,
@@ -105,7 +105,7 @@ class DataService {
   }
 
   async deleteService(serviceId, organizationId) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.service.delete({
         where: { id: serviceId },
       });
@@ -123,7 +123,7 @@ class DataService {
     const apiKeyPrefix = apiKey.substring(0, 8);
     const apiKeyHint = apiKey.substring(apiKey.length - 4);
 
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.application.create({
         data: {
           ...otherData,
@@ -145,7 +145,7 @@ class DataService {
   }
 
   async getApplicationsByOrganization(organizationId, filters = {}) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.application.findMany({
         where: filters,
         include: {
@@ -160,7 +160,7 @@ class DataService {
   }
 
   async getApplicationById(applicationId, organizationId) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.application.findFirst({
         where: { id: applicationId },
         include: {
@@ -176,8 +176,9 @@ class DataService {
   }
 
   async findApplicationByApiKey(apiKeyHash) {
-    const rawClient = prismaService.getClient();
-    return await rawClient.application.findUnique({
+    // SECURITY: System client for authentication lookup (no organization context yet)
+    const systemClient = prismaService.getSystemClient();
+    return await systemClient.application.findUnique({
       where: { apiKeyHash },
       include: {
         organization: true,
@@ -195,7 +196,7 @@ class DataService {
   // ==========================================
 
   async createRole(organizationId, serviceId, roleData) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.role.create({
         data: {
           ...roleData,
@@ -211,7 +212,7 @@ class DataService {
   }
 
   async getRolesByService(serviceId, organizationId, filters = {}) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.role.findMany({
         where: {
           serviceId,
@@ -228,7 +229,7 @@ class DataService {
   }
 
   async getRoleById(roleId, organizationId) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.role.findFirst({
         where: { id: roleId },
         include: {
@@ -244,7 +245,7 @@ class DataService {
   // ==========================================
 
   async createNotification(organizationId, userId, notificationData) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.notification.create({
         data: {
           ...notificationData,
@@ -269,7 +270,7 @@ class DataService {
       where.isRead = isRead;
     }
 
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.notification.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -285,7 +286,7 @@ class DataService {
   }
 
   async markNotificationAsRead(notificationId, userId, organizationId) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.notification.update({
         where: { id: notificationId, userId },
         data: {
@@ -297,7 +298,7 @@ class DataService {
   }
 
   async getUnreadNotificationCount(userId, organizationId) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.notification.count({
         where: {
           userId,
@@ -312,7 +313,7 @@ class DataService {
   // ==========================================
 
   async createApiActivityLog(organizationId, logData) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.apiActivityLog.create({
         data: {
           ...logData,
@@ -336,7 +337,7 @@ class DataService {
     if (endpoint) where.endpoint = { contains: endpoint };
     if (statusCode) where.statusCode = statusCode;
 
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.apiActivityLog.findMany({
         where,
         orderBy: { timestamp: 'desc' },
@@ -356,7 +357,7 @@ class DataService {
   // ==========================================
 
   async createDatabaseObject(organizationId, serviceId, objectData) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.databaseObject.create({
         data: {
           ...objectData,
@@ -371,7 +372,7 @@ class DataService {
   }
 
   async getDatabaseObjectsByService(serviceId, organizationId, filters = {}) {
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.databaseObject.findMany({
         where: {
           serviceId,
@@ -392,7 +393,7 @@ class DataService {
   async getDashboardMetrics(organizationId, filters = {}) {
     const { days = 30 } = filters;
 
-    return await this.rlsClient.withRLS({ organizationId }, async tx => {
+    return await prismaService.withTenantContext(organizationId, async tx => {
       const [
         servicesCount,
         applicationsCount,
@@ -447,14 +448,16 @@ class DataService {
   // ==========================================
 
   async disconnect() {
-    const rawClient = prismaService.getClient();
-    await rawClient.$disconnect();
+    // SECURITY: System client for infrastructure operations
+    const systemClient = prismaService.getSystemClient();
+    await systemClient.$disconnect();
   }
 
   async testConnection() {
     try {
-      const rawClient = prismaService.getClient();
-      await rawClient.$queryRaw`SELECT 1`;
+      // SECURITY: System client for infrastructure operations
+      const systemClient = prismaService.getSystemClient();
+      await systemClient.$queryRaw`SELECT 1`;
       return true;
     } catch (error) {
       logger.error('Database connection test failed:', error);

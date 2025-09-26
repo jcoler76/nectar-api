@@ -2,7 +2,7 @@ const prismaService = require('../services/prismaService');
 const bcryptjs = require('bcryptjs');
 const { logger } = require('./logger');
 
-const prisma = prismaService.getRLSClient();
+// SECURITY FIX: Using withTenantContext for proper tenant isolation
 const { getConfiguredApiKey } = require('../utils/headerUtils');
 
 class AuthenticationError extends Error {
@@ -21,7 +21,10 @@ const apiKeyServiceMiddleware = async (req, res, next) => {
     if (!apiKey) throw new AuthenticationError('API key missing or invalid', 401);
 
     const prefix = apiKey.substring(0, 8);
-    const apps = await prisma.application.findMany({
+    // SECURITY NOTE: This initial lookup must be global since we don't know the organization yet
+    // Using system client for API key authentication - this is the exception to RLS rule
+    const systemPrisma = prismaService.getSystemClient();
+    const apps = await systemPrisma.application.findMany({
       where: { apiKeyPrefix: prefix },
       include: { defaultRole: true, organization: true },
     });
@@ -44,8 +47,11 @@ const apiKeyServiceMiddleware = async (req, res, next) => {
       });
     }
 
-    const service = await prisma.service.findFirst({
-      where: { name: serviceName, isActive: true, organizationId: application.organizationId },
+    // SECURITY FIX: Once we have organization context, use proper RLS for service lookup
+    const service = await prismaService.withTenantContext(application.organizationId, async tx => {
+      return await tx.service.findFirst({
+        where: { name: serviceName, isActive: true },
+      });
     });
     if (!service) {
       throw new AuthenticationError('Service not found or inactive', 404, { serviceName });

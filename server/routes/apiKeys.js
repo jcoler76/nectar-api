@@ -11,7 +11,7 @@ const { logApiKeyEvent } = require('../services/auditService');
 const prismaService = require('../services/prismaService');
 
 const router = express.Router();
-const prisma = prismaService.getRLSClient();
+// SECURITY FIX: Using withTenantContext pattern for proper tenant isolation
 
 // Apply authentication to all routes
 router.use(AuthFactory.createJWTMiddleware());
@@ -74,27 +74,35 @@ router.get(
         selectOptions.keyHash = true; // For regeneration purposes
       }
 
-      const apiKeys = await prisma.apiKey.findMany({
-        where: whereClause,
-        select: selectOptions,
-        include: includeOptions,
-        orderBy: { createdAt: 'desc' },
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const apiKeys = await prismaService.withTenantContext(orgId, async tx => {
+        // Remove organizationId from whereClause since RLS handles it
+        const { organizationId, ...rlsWhereClause } = whereClause;
+
+        return await tx.apiKey.findMany({
+          where: rlsWhereClause,
+          select: selectOptions,
+          include: includeOptions,
+          orderBy: { createdAt: 'desc' },
+        });
       });
 
       // Add usage statistics for developers and above
       const keysWithStats = await Promise.all(
         apiKeys.map(async key => {
           if (['DEVELOPER', 'ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER'].includes(userRole)) {
-            // Get usage stats for the last 30 days
-            const usageStats = await prisma.apiUsage.aggregate({
-              where: {
-                apiKeyId: key.id,
-                createdAt: {
-                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            // SECURITY FIX: Get usage stats with proper RLS
+            const usageStats = await prismaService.withTenantContext(orgId, async tx => {
+              return await tx.apiUsage.aggregate({
+                where: {
+                  apiKeyId: key.id,
+                  createdAt: {
+                    gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                  },
                 },
-              },
-              _count: { id: true },
-              _sum: { requestCount: true },
+                _count: { id: true },
+                _sum: { requestCount: true },
+              });
             });
 
             return {
@@ -192,13 +200,14 @@ router.post(
         });
       }
 
-      // Check key count limits
-      const existingKeysCount = await prisma.apiKey.count({
-        where: {
-          organizationId: orgId,
-          createdById: userId,
-          isActive: true,
-        },
+      // SECURITY FIX: Check key count limits with proper RLS
+      const existingKeysCount = await prismaService.withTenantContext(orgId, async tx => {
+        return await tx.apiKey.count({
+          where: {
+            createdById: userId,
+            isActive: true,
+          },
+        });
       });
 
       if (existingKeysCount >= userRestrictions.maxKeys) {
@@ -238,28 +247,30 @@ router.post(
       const apiKey = generateApiKey();
       const keyHash = await bcrypt.hash(apiKey, 12);
 
-      // Create API key record
-      const createdKey = await prisma.apiKey.create({
-        data: {
-          name: name.trim(),
-          description: description?.trim(),
-          keyHash,
-          keyPreview: `${apiKey.substring(0, 8)}...${apiKey.slice(-4)}`,
-          environment,
-          permissions: permissions,
-          organizationId: orgId,
-          createdById: userId,
-          expiresAt,
-          isActive: true,
-        },
-        include: {
-          organization: {
-            select: { id: true, name: true },
+      // SECURITY FIX: Create API key record with proper RLS
+      const createdKey = await prismaService.withTenantContext(orgId, async tx => {
+        return await tx.apiKey.create({
+          data: {
+            name: name.trim(),
+            description: description?.trim(),
+            keyHash,
+            keyPreview: `${apiKey.substring(0, 8)}...${apiKey.slice(-4)}`,
+            environment,
+            permissions: permissions,
+            organizationId: orgId,
+            createdById: userId,
+            expiresAt,
+            isActive: true,
           },
-          createdBy: {
-            select: { id: true, email: true, firstName: true, lastName: true },
+          include: {
+            organization: {
+              select: { id: true, name: true },
+            },
+            createdBy: {
+              select: { id: true, email: true, firstName: true, lastName: true },
+            },
           },
-        },
+        });
       });
 
       // Log API key creation
@@ -312,16 +323,18 @@ router.put(
       const userId = req.user.userId;
       const { reason } = req.body;
 
-      const apiKey = await prisma.apiKey.findFirst({
-        where: {
-          id: keyId,
-          organizationId: orgId,
-        },
-        include: {
-          createdBy: {
-            select: { id: true, email: true, firstName: true, lastName: true },
+      // SECURITY FIX: Use withTenantContext for API key lookup
+      const apiKey = await prismaService.withTenantContext(orgId, async tx => {
+        return await tx.apiKey.findFirst({
+          where: {
+            id: keyId,
           },
-        },
+          include: {
+            createdBy: {
+              select: { id: true, email: true, firstName: true, lastName: true },
+            },
+          },
+        });
       });
 
       if (!apiKey) {
@@ -336,15 +349,17 @@ router.put(
         });
       }
 
-      // Update key status
-      await prisma.apiKey.update({
-        where: { id: keyId },
-        data: {
-          isActive: false,
-          revokedAt: new Date(),
-          revokedById: userId,
-          revokeReason: reason,
-        },
+      // SECURITY FIX: Update key status with proper RLS
+      await prismaService.withTenantContext(orgId, async tx => {
+        await tx.apiKey.update({
+          where: { id: keyId },
+          data: {
+            isActive: false,
+            revokedAt: new Date(),
+            revokedById: userId,
+            revokeReason: reason,
+          },
+        });
       });
 
       // Log revocation
@@ -389,11 +404,13 @@ router.put(
       const userId = req.user.userId;
       const userRole = req.user.memberships?.find(m => m.organizationId === orgId)?.role;
 
-      const apiKey = await prisma.apiKey.findFirst({
-        where: {
-          id: keyId,
-          organizationId: orgId,
-        },
+      // SECURITY FIX: Use withTenantContext for API key lookup
+      const apiKey = await prismaService.withTenantContext(orgId, async tx => {
+        return await tx.apiKey.findFirst({
+          where: {
+            id: keyId,
+          },
+        });
       });
 
       if (!apiKey) {
@@ -419,15 +436,17 @@ router.put(
       const newApiKey = generateApiKey();
       const newKeyHash = await bcrypt.hash(newApiKey, 12);
 
-      // Update with new key
-      await prisma.apiKey.update({
-        where: { id: keyId },
-        data: {
-          keyHash: newKeyHash,
-          keyPreview: `${newApiKey.substring(0, 8)}...${newApiKey.slice(-4)}`,
-          lastRotatedAt: new Date(),
-          rotatedById: userId,
-        },
+      // SECURITY FIX: Update with new key using proper RLS
+      await prismaService.withTenantContext(orgId, async tx => {
+        await tx.apiKey.update({
+          where: { id: keyId },
+          data: {
+            keyHash: newKeyHash,
+            keyPreview: `${newApiKey.substring(0, 8)}...${newApiKey.slice(-4)}`,
+            lastRotatedAt: new Date(),
+            rotatedById: userId,
+          },
+        });
       });
 
       // Log rotation

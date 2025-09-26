@@ -157,18 +157,25 @@ const ApplicationForm = ({ application, onSubmitted, onCancel }) => {
 
         {(useCustomApiKey || editApiKey) && (
           <div className="space-y-2">
-            <Label htmlFor="api-key">API Key</Label>
+            <Label htmlFor="api-key">Custom API Key</Label>
             <Input
               id="api-key"
+              type="password"
               value={formData.apiKey}
               onChange={e => handleChange('apiKey', e.target.value)}
-              placeholder="e.g., mapi_your_custom_key_here"
+              placeholder="Enter a strong API key (min 32 chars, mixed case, numbers, symbols)"
             />
-            <p className="text-sm text-muted-foreground">
-              {application
-                ? 'Enter a new API key value. Leave blank to keep the current key unchanged.'
-                : 'Enter a custom API key or leave blank to auto-generate.'}
-            </p>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>
+                {application
+                  ? 'Enter a new API key value. Leave blank to keep the current key unchanged.'
+                  : 'Enter a custom API key or leave blank to auto-generate.'}
+              </p>
+              <p className="text-xs text-amber-600">
+                <strong>Security Requirements:</strong> Minimum 32 characters with uppercase,
+                lowercase, numbers, and symbols.
+              </p>
+            </div>
           </div>
         )}
 

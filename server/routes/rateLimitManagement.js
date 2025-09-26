@@ -3,111 +3,147 @@ const router = express.Router();
 const { getRedisService } = require('../services/redisService');
 const { logger } = require('../middleware/logger');
 const { adminOnly } = require('../middleware/auth');
+// SECURITY: Import rate limit authorization middleware
+const {
+  createRateLimitAuthStack,
+  validateRedisKey,
+} = require('../middleware/rateLimitAuthorization');
 
 /**
  * Rate limit management endpoints for monitoring and control
  */
 
 // Get rate limit status for a specific key or IP
-router.get('/status/:key', adminOnly, async (req, res) => {
-  try {
-    const { key } = req.params;
-    const prefix = req.query.prefix || 'rl:api:';
-    const fullKey = `${prefix}${key}`;
+// SECURITY: Apply comprehensive authorization and Redis key validation
+router.get(
+  '/status/:key',
+  ...createRateLimitAuthStack('read'),
+  validateRedisKey(),
+  async (req, res) => {
+    try {
+      // SECURITY: Use validated Redis key from middleware
+      const fullKey = req.validatedRedisKey;
 
-    const redisService = await getRedisService();
-    if (!redisService || !redisService.isConnected) {
-      return res.status(503).json({
+      const redisService = await getRedisService();
+      if (!redisService || !redisService.isConnected) {
+        return res.status(503).json({
+          error: {
+            code: 'REDIS_UNAVAILABLE',
+            message: 'Rate limit data unavailable (Redis not connected)',
+          },
+        });
+      }
+
+      const client = redisService.getClient();
+      const [count, ttl] = await Promise.all([client.get(fullKey), client.ttl(fullKey)]);
+
+      if (!count) {
+        return res.json({
+          key: fullKey,
+          count: 0,
+          ttl: 0,
+          resetTime: null,
+          blocked: false,
+        });
+      }
+
+      // Check if blocked
+      const blockedKey = `${fullKey}:blocked`;
+      const [isBlocked, blockTtl] = await Promise.all([
+        client.get(blockedKey),
+        client.ttl(blockedKey),
+      ]);
+
+      res.json({
+        key: fullKey,
+        count: parseInt(count),
+        ttl,
+        resetTime: ttl > 0 ? new Date(Date.now() + ttl * 1000) : null,
+        blocked: !!isBlocked,
+        blockTtl: isBlocked ? blockTtl : 0,
+      });
+    } catch (error) {
+      logger.error('Error getting rate limit status', { error: error.message });
+      res.status(500).json({
         error: {
-          code: 'REDIS_UNAVAILABLE',
-          message: 'Rate limit data unavailable (Redis not connected)',
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to retrieve rate limit status',
         },
       });
     }
-
-    const client = redisService.getClient();
-    const [count, ttl] = await Promise.all([client.get(fullKey), client.ttl(fullKey)]);
-
-    if (!count) {
-      return res.json({
-        key: fullKey,
-        count: 0,
-        ttl: 0,
-        resetTime: null,
-        blocked: false,
-      });
-    }
-
-    // Check if blocked
-    const blockedKey = `${fullKey}:blocked`;
-    const [isBlocked, blockTtl] = await Promise.all([
-      client.get(blockedKey),
-      client.ttl(blockedKey),
-    ]);
-
-    res.json({
-      key: fullKey,
-      count: parseInt(count),
-      ttl,
-      resetTime: ttl > 0 ? new Date(Date.now() + ttl * 1000) : null,
-      blocked: !!isBlocked,
-      blockTtl: isBlocked ? blockTtl : 0,
-    });
-  } catch (error) {
-    logger.error('Error getting rate limit status', { error: error.message });
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to retrieve rate limit status',
-      },
-    });
   }
-});
+);
 
 // Reset rate limit for a specific key
-router.post('/reset/:key', adminOnly, async (req, res) => {
-  try {
-    const { key } = req.params;
-    const prefix = req.query.prefix || 'rl:api:';
-    const fullKey = `${prefix}${key}`;
+// SECURITY: Apply reset-specific authorization and Redis key validation
+router.post(
+  '/reset/:key',
+  ...createRateLimitAuthStack('reset'),
+  validateRedisKey(),
+  async (req, res) => {
+    try {
+      // SECURITY: Use validated Redis key from middleware
+      const fullKey = req.validatedRedisKey;
 
-    const redisService = await getRedisService();
-    if (!redisService || !redisService.isConnected) {
-      return res.status(503).json({
+      const redisService = await getRedisService();
+      if (!redisService || !redisService.isConnected) {
+        return res.status(503).json({
+          error: {
+            code: 'REDIS_UNAVAILABLE',
+            message: 'Cannot reset rate limit (Redis not connected)',
+          },
+        });
+      }
+
+      const client = redisService.getClient();
+
+      // Delete both the rate limit key and any block key
+      const deletedCount = await client.del(fullKey, `${fullKey}:blocked`);
+
+      logger.info('Rate limit reset', { key: fullKey, deletedCount });
+
+      res.json({
+        message: 'Rate limit reset successfully',
+        key: fullKey,
+        deletedCount,
+      });
+    } catch (error) {
+      logger.error('Error resetting rate limit', { error: error.message });
+      res.status(500).json({
         error: {
-          code: 'REDIS_UNAVAILABLE',
-          message: 'Cannot reset rate limit (Redis not connected)',
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to reset rate limit',
         },
       });
     }
-
-    const client = redisService.getClient();
-
-    // Delete both the rate limit key and any block key
-    const deletedCount = await client.del(fullKey, `${fullKey}:blocked`);
-
-    logger.info('Rate limit reset', { key: fullKey, deletedCount });
-
-    res.json({
-      message: 'Rate limit reset successfully',
-      key: fullKey,
-      deletedCount,
-    });
-  } catch (error) {
-    logger.error('Error resetting rate limit', { error: error.message });
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to reset rate limit',
-      },
-    });
   }
-});
+);
 
 // Get all active rate limits
-router.get('/active', adminOnly, async (req, res) => {
+// SECURITY: Apply manage-level authorization for active rate limits access
+router.get('/active', ...createRateLimitAuthStack('manage'), async (req, res) => {
   try {
-    const { prefix = 'rl:*' } = req.query;
+    // SECURITY: Validate and sanitize prefix parameter
+    let { prefix = 'rl:*' } = req.query;
+
+    // SECURITY: Restrict to allowed prefixes only
+    const allowedPrefixes = [
+      'rl:api:*',
+      'rl:auth:*',
+      'rl:upload:*',
+      'rl:graphql:*',
+      'rl:websocket:*',
+      'rl:custom:*',
+      'rl:*',
+    ];
+    if (!allowedPrefixes.includes(prefix)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_PREFIX',
+          message: 'Invalid prefix parameter',
+        },
+      });
+    }
 
     const redisService = await getRedisService();
     if (!redisService || !redisService.isConnected) {
@@ -182,7 +218,8 @@ router.get('/active', adminOnly, async (req, res) => {
 });
 
 // Get rate limit statistics
-router.get('/stats', adminOnly, async (req, res) => {
+// SECURITY: Apply manage-level authorization for statistics access
+router.get('/stats', ...createRateLimitAuthStack('manage'), async (req, res) => {
   try {
     const redisService = await getRedisService();
     if (!redisService || !redisService.isConnected) {
@@ -235,10 +272,13 @@ router.get('/stats', adminOnly, async (req, res) => {
 });
 
 // Block a specific IP or key
-router.post('/block', adminOnly, async (req, res) => {
+// SECURITY: Apply manage-level authorization and input validation for blocking
+router.post('/block', ...createRateLimitAuthStack('manage'), async (req, res) => {
   try {
     const { key, duration = 3600, reason = 'Manual block' } = req.body;
+    const currentUser = req.user;
 
+    // SECURITY: Input validation
     if (!key) {
       return res.status(400).json({
         error: {
@@ -247,6 +287,29 @@ router.post('/block', adminOnly, async (req, res) => {
         },
       });
     }
+
+    // SECURITY: Validate key format to prevent injection
+    if (!/^[a-zA-Z0-9.:\-_@]+$/.test(key)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_KEY_FORMAT',
+          message: 'Key contains invalid characters',
+        },
+      });
+    }
+
+    // SECURITY: Validate duration limits
+    if (typeof duration !== 'number' || duration < 60 || duration > 86400) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_DURATION',
+          message: 'Duration must be between 60 seconds and 24 hours',
+        },
+      });
+    }
+
+    // SECURITY: Sanitize reason
+    const sanitizedReason = (reason || 'Manual block').replace(/[<>"'`]/g, '').trim();
 
     const redisService = await getRedisService();
     if (!redisService || !redisService.isConnected) {
@@ -264,9 +327,10 @@ router.post('/block', adminOnly, async (req, res) => {
     await client.set(
       blockedKey,
       JSON.stringify({
-        reason,
+        reason: sanitizedReason,
         blockedAt: new Date(),
-        blockedBy: req.user.email,
+        blockedBy: currentUser.email,
+        organizationId: currentUser.organizationId,
       }),
       'EX',
       duration
@@ -275,8 +339,9 @@ router.post('/block', adminOnly, async (req, res) => {
     logger.warn('IP/Key manually blocked', {
       key,
       duration,
-      reason,
-      blockedBy: req.user.email,
+      reason: sanitizedReason,
+      blockedBy: currentUser.email,
+      organizationId: currentUser.organizationId,
     });
 
     res.json({
@@ -297,15 +362,28 @@ router.post('/block', adminOnly, async (req, res) => {
 });
 
 // Unblock a specific IP or key
-router.post('/unblock', adminOnly, async (req, res) => {
+// SECURITY: Apply manage-level authorization and input validation for unblocking
+router.post('/unblock', ...createRateLimitAuthStack('manage'), async (req, res) => {
   try {
     const { key } = req.body;
+    const currentUser = req.user;
 
+    // SECURITY: Input validation
     if (!key) {
       return res.status(400).json({
         error: {
           code: 'BAD_REQUEST',
           message: 'Key is required',
+        },
+      });
+    }
+
+    // SECURITY: Validate key format to prevent injection
+    if (!/^[a-zA-Z0-9.:\-_@]+$/.test(key)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_KEY_FORMAT',
+          message: 'Key contains invalid characters',
         },
       });
     }
@@ -327,7 +405,8 @@ router.post('/unblock', adminOnly, async (req, res) => {
 
     logger.info('IP/Key manually unblocked', {
       key,
-      unblockedBy: req.user.email,
+      unblockedBy: currentUser.email,
+      organizationId: currentUser.organizationId,
       wasBlocked: deleted > 0,
     });
 

@@ -221,7 +221,8 @@ router.post('/batch', batchTrackingValidation, handleValidationErrors, async (re
 router.get(
   '/session/:sessionId',
   AuthFactory.createJWTMiddleware(),
-  AuthFactory.requireMinimumRole('ADMIN'),
+  AuthFactory.requireMinimumRole('ORGANIZATION_ADMIN'),
+  AuthFactory.requireOrganizationAccess(['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
   async (req, res) => {
     try {
       const { sessionId } = req.params;
@@ -234,32 +235,45 @@ router.get(
         });
       }
 
-      // Note: Using standard @prisma/client import as per CLAUDE.md
-      const prismaService = require('../services/prismaService');
-      const prisma = prismaService.getRLSClient();
+      // SECURITY FIX: Use proper organization context for RLS enforcement
+      const organizationId = req.user.organizationId;
+      if (!organizationId) {
+        return res.status(403).json({
+          success: false,
+          message: 'User must belong to an organization to access session data',
+        });
+      }
 
-      const sessionData = await prisma.appUsageLog.findMany({
-        where: { sessionId },
-        orderBy: { timestamp: 'asc' },
-        take: parseInt(limit),
-        skip: parseInt(offset),
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
+      const prismaService = require('../services/prismaService');
+
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const sessionData = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.appUsageLog.findMany({
+          where: {
+            sessionId,
+            // RLS handles organizationId filtering
+          },
+          orderBy: { timestamp: 'asc' },
+          take: parseInt(limit),
+          skip: parseInt(offset),
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
             },
           },
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
+        });
       });
 
       res.json({
@@ -294,15 +308,28 @@ router.get(
 router.get(
   '/analytics/app-usage',
   AuthFactory.createJWTMiddleware(),
-  AuthFactory.requireMinimumRole('ADMIN'),
+  AuthFactory.requireMinimumRole('ORGANIZATION_ADMIN'),
+  AuthFactory.requireOrganizationAccess(['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
   async (req, res) => {
     try {
-      const { startDate, endDate, organizationId, userId, eventType, page } = req.query;
+      const { startDate, endDate, userId, eventType, page } = req.query;
+      const userOrganizationId = req.user.organizationId;
+      const userRole = req.user.role;
+
+      // SECURITY FIX: Only allow querying within user's organization unless super admin
+      let targetOrganizationId = userOrganizationId;
+
+      // Super admins can query specific organization or global data
+      if (userRole === 'SUPER_ADMIN' && req.query.organizationId) {
+        targetOrganizationId = req.query.organizationId;
+      } else if (userRole === 'SUPER_ADMIN' && !req.query.organizationId) {
+        targetOrganizationId = null; // Global analytics
+      }
 
       const filters = {};
       if (startDate) filters.startDate = new Date(startDate);
       if (endDate) filters.endDate = new Date(endDate);
-      if (organizationId) filters.organizationId = organizationId;
+      filters.organizationId = targetOrganizationId;
       if (userId) filters.userId = userId;
       if (eventType) filters.eventType = eventType;
       if (page) filters.page = page;
@@ -336,15 +363,28 @@ router.get(
 router.get(
   '/analytics/login',
   AuthFactory.createJWTMiddleware(),
-  AuthFactory.requireMinimumRole('ADMIN'),
+  AuthFactory.requireMinimumRole('ORGANIZATION_ADMIN'),
+  AuthFactory.requireOrganizationAccess(['ORGANIZATION_ADMIN', 'ORGANIZATION_OWNER']),
   async (req, res) => {
     try {
-      const { startDate, endDate, organizationId, loginType } = req.query;
+      const { startDate, endDate, loginType } = req.query;
+      const userOrganizationId = req.user.organizationId;
+      const userRole = req.user.role;
+
+      // SECURITY FIX: Only allow querying within user's organization unless super admin
+      let targetOrganizationId = userOrganizationId;
+
+      // Super admins can query specific organization or global data
+      if (userRole === 'SUPER_ADMIN' && req.query.organizationId) {
+        targetOrganizationId = req.query.organizationId;
+      } else if (userRole === 'SUPER_ADMIN' && !req.query.organizationId) {
+        targetOrganizationId = null; // Global analytics
+      }
 
       const filters = {};
       if (startDate) filters.startDate = new Date(startDate);
       if (endDate) filters.endDate = new Date(endDate);
-      if (organizationId) filters.organizationId = organizationId;
+      filters.organizationId = targetOrganizationId;
       if (loginType) filters.loginType = loginType;
 
       const analytics = await trackingService.getLoginAnalytics(filters);

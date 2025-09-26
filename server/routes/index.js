@@ -96,12 +96,7 @@ const mountRoutes = app => {
   //   csrfProtection(csrfOptions),
   //   require('./databaseObjects')
   // );
-  // app.use(
-  //   '/api/schema-intelligence',
-  //   authMiddleware,
-  //   csrfProtection(csrfOptions),
-  //   require('./schemaIntelligence')
-  // );
+  // Schema intelligence routes removed - replaced by blueprints/openapi system
   // app.use(
   //   '/api/ai-generation',
   //   authMiddleware,

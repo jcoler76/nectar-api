@@ -1,9 +1,6 @@
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const Connection = require('../models/Connection');
-// const Service = require('../models/Service');
+// Connection refresh service - migrated from MongoDB to Prisma
 
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const NotificationService = require('./notificationService');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const sql = require('mssql');
@@ -48,21 +45,28 @@ const getDatabaseList = async connection => {
 
 /**
  * Refreshes database list for a single connection
- * @param {Object} connection - MongoDB connection document
+ * @param {Object} connection - Prisma connection object
  * @returns {Object} - Result object with success status and details
  */
 const refreshSingleConnection = async connection => {
   const startTime = Date.now();
 
   try {
-    logger.info(`Starting database refresh for connection: ${connection.name} (${connection._id})`);
+    logger.info(`Starting database refresh for connection: ${connection.name} (${connection.id})`);
 
     // Get fresh database list from SQL Server
     const databaseNames = await getDatabaseList(connection);
 
-    // TODO: Replace with Prisma connection update during migration
-    // connection.databases = databaseNames;
-    // await connection.save();
+    // Update connection with fresh database list using proper RLS
+    await prismaService.withTenantContext(connection.organizationId, async tx => {
+      await tx.connection.update({
+        where: { id: connection.id },
+        data: {
+          databases: databaseNames,
+          updatedAt: new Date(),
+        },
+      });
+    });
 
     const duration = Date.now() - startTime;
     logger.info(
@@ -71,7 +75,7 @@ const refreshSingleConnection = async connection => {
 
     return {
       success: true,
-      connectionId: connection._id,
+      connectionId: connection.id,
       connectionName: connection.name,
       databaseCount: databaseNames.length,
       databases: databaseNames,
@@ -80,12 +84,12 @@ const refreshSingleConnection = async connection => {
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error(
-      `Failed to refresh databases for connection: ${connection.name} (${connection._id}) - ${error.message} (${duration}ms)`
+      `Failed to refresh databases for connection: ${connection.name} (${connection.id}) - ${error.message} (${duration}ms)`
     );
 
     return {
       success: false,
-      connectionId: connection._id,
+      connectionId: connection.id,
       connectionName: connection.name,
       error: error.message,
       duration: duration,
@@ -102,10 +106,17 @@ const refreshAllConnections = async () => {
   logger.info('🔄 Starting scheduled database refresh for all connections');
 
   try {
-    // TODO: Replace with Prisma connection query during migration
-    // const connections = await Connection.find({ isActive: true }).select('+password');
-    // For now, skip connection query to allow server startup
-    const connections = [];
+    // Get all active connections across all organizations (system-level operation)
+    const connections = await prismaService.withTenantContext(null, async tx => {
+      return await tx.connection.findMany({
+        where: { isActive: true },
+        include: {
+          organization: {
+            select: { id: true, name: true, slug: true },
+          },
+        },
+      });
+    });
 
     if (connections.length === 0) {
       logger.info('No active connections found to refresh');
@@ -191,13 +202,23 @@ const validateServiceDatabaseMappings = async connections => {
   const validationStartTime = Date.now();
 
   try {
-    // TODO: Replace with Prisma service query during migration
-    // const services = await Service.find({
-    //   isActive: true,
-    //   connectionId: { $exists: true, $ne: null },
-    // }).populate('createdBy', 'firstName lastName email');
-    // For now, skip service query to allow server startup
-    const services = [];
+    // Get all active services with connection references (system-level operation)
+    const services = await prismaService.withTenantContext(null, async tx => {
+      return await tx.service.findMany({
+        where: {
+          isActive: true,
+          connectionId: { not: null },
+        },
+        include: {
+          createdBy: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
+          organization: {
+            select: { id: true, name: true, slug: true },
+          },
+        },
+      });
+    });
 
     if (services.length === 0) {
       logger.info('No active services with connection references found');
@@ -225,7 +246,7 @@ const validateServiceDatabaseMappings = async connections => {
     const databaseLocationMap = new Map(); // Maps database name to connection
 
     connections.forEach(conn => {
-      connectionMap.set(conn._id.toString(), conn);
+      connectionMap.set(conn.id, conn);
       if (conn.databases && conn.databases.length > 0) {
         conn.databases.forEach(dbName => {
           databaseLocationMap.set(dbName, conn);
@@ -235,7 +256,7 @@ const validateServiceDatabaseMappings = async connections => {
 
     // Validate each service
     for (const service of services) {
-      const currentConnection = connectionMap.get(service.connectionId.toString());
+      const currentConnection = connectionMap.get(service.connectionId);
 
       if (!currentConnection) {
         logger.warn(
@@ -265,7 +286,7 @@ const validateServiceDatabaseMappings = async connections => {
         continue;
       }
 
-      if (newConnection._id.toString() === service.connectionId.toString()) {
+      if (newConnection.id === service.connectionId) {
         // This shouldn't happen, but just in case
         results.validatedServices++;
         continue;
@@ -327,15 +348,21 @@ const validateServiceDatabaseMappings = async connections => {
  */
 const updateServiceConnection = async (service, oldConnection, newConnection) => {
   try {
-    // TODO: Replace with Prisma service update during migration
-    // service.connectionId = newConnection._id;
-    // service.host = newConnection.host;
-    // service.port = newConnection.port;
-    // service.username = newConnection.username;
-    // service.password = newConnection.password; // Already encrypted
-    // service.failoverHost = newConnection.failoverHost;
-
-    // await service.save();
+    // Update service with new connection details using proper RLS
+    await prismaService.withTenantContext(service.organizationId, async tx => {
+      await tx.service.update({
+        where: { id: service.id },
+        data: {
+          connectionId: newConnection.id,
+          host: newConnection.host,
+          port: newConnection.port,
+          username: newConnection.username,
+          password: newConnection.password, // Already encrypted
+          failoverHost: newConnection.failoverHost,
+          updatedAt: new Date(),
+        },
+      });
+    });
 
     logger.info(
       `Successfully updated service ${service.name} to use connection ${newConnection.name}`
@@ -344,15 +371,15 @@ const updateServiceConnection = async (service, oldConnection, newConnection) =>
     return {
       success: true,
       serviceName: service.name,
-      serviceId: service._id,
+      serviceId: service.id,
       database: service.database,
       oldConnection: {
-        id: oldConnection._id,
+        id: oldConnection.id,
         name: oldConnection.name,
         host: oldConnection.host,
       },
       newConnection: {
-        id: newConnection._id,
+        id: newConnection.id,
         name: newConnection.name,
         host: newConnection.host,
       },
@@ -365,7 +392,7 @@ const updateServiceConnection = async (service, oldConnection, newConnection) =>
       success: false,
       error: error.message,
       serviceName: service.name,
-      serviceId: service._id,
+      serviceId: service.id,
     };
   }
 };
@@ -383,7 +410,7 @@ const notifyDatabaseMigration = async (user, service, oldConnection, newConnecti
     const message = `Your service "${service.name}" has been automatically updated due to a database migration. The database "${service.database}" has moved from "${oldConnection.name}" (${oldConnection.host}) to "${newConnection.name}" (${newConnection.host}). Your service configuration has been updated automatically and should continue to work normally.`;
 
     const metadata = {
-      serviceId: service._id,
+      serviceId: service.id,
       serviceName: service.name,
       database: service.database,
       oldConnection: {
@@ -399,13 +426,13 @@ const notifyDatabaseMigration = async (user, service, oldConnection, newConnecti
 
     // Create high-priority system notification (will also send email)
     await NotificationService.createNotification({
-      userId: user._id,
+      userId: user.id,
       type: 'system',
       priority: 'high',
       title,
       message,
       metadata,
-      actionUrl: `/services/${service._id}`,
+      actionUrl: `/services/${service.id}`,
       actionText: 'View Service Details',
     });
 
@@ -424,25 +451,32 @@ const notifyDatabaseMigration = async (user, service, oldConnection, newConnecti
  */
 const getRefreshStatus = async () => {
   try {
-    // TODO: Replace with Prisma queries during migration
-    // const totalConnections = await Connection.countDocuments({});
-    // const activeConnections = await Connection.countDocuments({ isActive: true });
-    // const connectionsWithDatabases = await Connection.countDocuments({
-    //   databases: { $exists: true, $not: { $size: 0 } },
-    // });
-
-    // const totalServices = await Service.countDocuments({});
-    // const activeServices = await Service.countDocuments({ isActive: true });
-    // const servicesWithConnections = await Service.countDocuments({
-    //   connectionId: { $exists: true, $ne: null },
-    // });
-    // For now, return placeholder values to allow server startup
-    const totalConnections = 0;
-    const activeConnections = 0;
-    const connectionsWithDatabases = 0;
-    const totalServices = 0;
-    const activeServices = 0;
-    const servicesWithConnections = 0;
+    // Get connection and service statistics using proper RLS (system-level operation)
+    const [
+      totalConnections,
+      activeConnections,
+      connectionsWithDatabases,
+      totalServices,
+      activeServices,
+      servicesWithConnections,
+    ] = await prismaService.withTenantContext(null, async tx => {
+      return await Promise.all([
+        tx.connection.count(),
+        tx.connection.count({ where: { isActive: true } }),
+        tx.connection.count({
+          where: {
+            AND: [{ databases: { not: null } }, { databases: { not: [] } }],
+          },
+        }),
+        tx.service.count(),
+        tx.service.count({ where: { isActive: true } }),
+        tx.service.count({
+          where: {
+            AND: [{ connectionId: { not: null } }, { isActive: true }],
+          },
+        }),
+      ]);
+    });
 
     return {
       connections: {

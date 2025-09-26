@@ -374,14 +374,18 @@ class AuthService {
       const saltRounds = 12;
       const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
+      // Get user's primary organization ID for RLS context
+      const organizationId = user.memberships?.[0]?.organizationId;
+
       // Update password
-      const prisma = await prismaService.getRLSClient();
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          passwordHash: newPasswordHash,
-          updatedAt: new Date(),
-        },
+      await prismaService.withTenantContext(organizationId, async tx => {
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            passwordHash: newPasswordHash,
+            updatedAt: new Date(),
+          },
+        });
       });
 
       logger.info('Password changed successfully', { userId });

@@ -71,17 +71,34 @@ const roleResolvers = {
     service: async (permission, _, context) => {
       if (!permission.serviceId) return null;
 
-      // Note: permission object doesn't have organizationId, need to get from service first
-      const prisma = prismaService.getSystemClient();
-      const service = await prisma.service.findUnique({
-        where: { id: permission.serviceId },
-        select: { organizationId: true },
-      });
+      // SECURITY: Get organization context from permission parent to enforce RLS
+      // Permission objects should have access to their parent role's organization
+      let organizationId;
 
-      if (!service) return null;
+      // Try to get organization from context first
+      if (context?.user?.organizationId) {
+        organizationId = context.user.organizationId;
+      } else {
+        // SECURITY: If no context org, we need to find the service's org using tenant context
+        // This is a fallback that should rarely be used
+        logger.warn('Permission resolver missing organization context, using system lookup', {
+          serviceId: permission.serviceId,
+          contextUser: context?.user?.userId || 'none',
+        });
 
-      // Now fetch full service data with tenant context
-      return await prismaService.withTenantContext(service.organizationId, async tx => {
+        const systemService = await prismaService.withTenantContext('system', async tx => {
+          return await tx.service.findUnique({
+            where: { id: permission.serviceId },
+            select: { organizationId: true },
+          });
+        });
+
+        if (!systemService) return null;
+        organizationId = systemService.organizationId;
+      }
+
+      // Now fetch full service data with proper tenant context
+      return await prismaService.withTenantContext(organizationId, async tx => {
         return await tx.service.findUnique({
           where: { id: permission.serviceId },
           include: {
@@ -106,10 +123,18 @@ const roleResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        // SECURITY: Build where clause with authorization BEFORE data retrieval
+        const where = {
+          id,
+        };
+
+        // CRITICAL: Apply authorization filter BEFORE database query
+        if (!currentUser.isAdmin) {
+          where.createdBy = currentUser.userId;
+        }
+
         const role = await tx.role.findFirst({
-          where: {
-            id,
-          },
+          where,
           include: {
             creator: {
               select: { id: true, email: true, firstName: true, lastName: true },
@@ -127,12 +152,8 @@ const roleResolvers = {
         });
 
         if (!role) {
-          throw new UserInputError('Role not found');
-        }
-
-        // Check if user can access this role
-        if (role.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-          throw new ForbiddenError('Access denied');
+          // SECURITY: Generic error message - don't reveal whether role exists
+          throw new UserInputError('Role not found or access denied');
         }
 
         return role;
@@ -427,20 +448,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           const { serviceId, permissions, ...updateData } = input;
@@ -512,20 +536,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           // Check if role is being used by applications
@@ -566,20 +593,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           const role = await tx.role.update({
@@ -620,20 +650,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           const role = await tx.role.update({
@@ -674,20 +707,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id: roleId,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id: roleId,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           // Check if permission already exists
@@ -758,20 +794,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id: roleId,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id: roleId,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           // Remove the permission
@@ -825,20 +864,23 @@ const roleResolvers = {
 
       try {
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id: roleId,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const existingRole = await tx.role.findFirst({
-            where: {
-              id: roleId,
-            },
+            where,
           });
 
           if (!existingRole) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           // Find and update the permission
@@ -913,11 +955,18 @@ const roleResolvers = {
 
       try {
         const role = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify role exists and user has access
+          // SECURITY: Build where clause with authorization BEFORE data retrieval
+          const where = {
+            id,
+          };
+
+          // CRITICAL: Apply authorization filter BEFORE database query
+          if (!currentUser.isAdmin) {
+            where.createdBy = currentUser.userId;
+          }
+
           const role = await tx.role.findFirst({
-            where: {
-              id,
-            },
+            where,
             include: {
               service: {
                 include: {
@@ -928,12 +977,8 @@ const roleResolvers = {
           });
 
           if (!role) {
-            throw new UserInputError('Role not found');
-          }
-
-          // Check ownership
-          if (role.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-            throw new ForbiddenError('Access denied');
+            // SECURITY: Generic error message - don't reveal whether role exists
+            throw new UserInputError('Role not found or access denied');
           }
 
           return role;
@@ -992,11 +1037,18 @@ const roleResolvers = {
         const existingRole = await prismaService.withTenantContext(
           currentUser.organizationId,
           async tx => {
-            // Verify role exists and user has access
+            // SECURITY: Build where clause with authorization BEFORE data retrieval
+            const where = {
+              id,
+            };
+
+            // CRITICAL: Apply authorization filter BEFORE database query
+            if (!currentUser.isAdmin) {
+              where.createdBy = currentUser.userId;
+            }
+
             const existingRole = await tx.role.findFirst({
-              where: {
-                id,
-              },
+              where,
               include: {
                 service: {
                   include: {
@@ -1007,12 +1059,8 @@ const roleResolvers = {
             });
 
             if (!existingRole) {
-              throw new UserInputError('Role not found');
-            }
-
-            // Check ownership
-            if (existingRole.createdBy !== currentUser.userId && !currentUser.isAdmin) {
-              throw new ForbiddenError('Access denied');
+              // SECURITY: Generic error message - don't reveal whether role exists
+              throw new UserInputError('Role not found or access denied');
             }
 
             return existingRole;

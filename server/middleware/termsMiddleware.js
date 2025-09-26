@@ -32,9 +32,9 @@ const enforceTermsAcceptance = async (req, res, next) => {
 
     // Check if organization requires terms acceptance
     const prismaService = require('../services/prismaService');
-    const prisma = prismaService.getRLSClient();
 
-    const organization = await prisma.organization.findUnique({
+    // Organization is an infrastructure table, use systemPrisma directly
+    const organization = await prismaService.getSystemClient().organization.findUnique({
       where: { id: req.user.organizationId || req.user.orgId },
       select: { requiresTermsAcceptance: true },
     });

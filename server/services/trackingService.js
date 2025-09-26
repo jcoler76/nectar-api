@@ -46,9 +46,21 @@ class TrackingService {
         timeOnPage,
       };
 
-      const appUsageLog = await prisma.appUsageLog.create({
-        data: sanitizedData,
-      });
+      // SECURITY FIX: Use withTenantContext for RLS enforcement when organizationId is present
+      let appUsageLog;
+      if (organizationId) {
+        appUsageLog = await prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.appUsageLog.create({
+            data: sanitizedData,
+          });
+        });
+      } else {
+        // For anonymous tracking (before auth), use system client
+        const systemPrisma = prismaService.getSystemClient();
+        appUsageLog = await systemPrisma.appUsageLog.create({
+          data: sanitizedData,
+        });
+      }
 
       logger.info('App usage tracked', {
         id: appUsageLog.id,
@@ -194,10 +206,26 @@ class TrackingService {
         timestamp: event.timestamp ? new Date(event.timestamp) : undefined,
       }));
 
-      const result = await prisma.appUsageLog.createMany({
-        data: sanitizedEvents,
-        skipDuplicates: true,
-      });
+      // SECURITY FIX: Use withTenantContext for RLS enforcement when organizationId is present
+      let result;
+      const firstOrganizationId = sanitizedEvents.find(e => e.organizationId)?.organizationId;
+
+      if (firstOrganizationId) {
+        // If events have organizationId, use tenant context
+        result = await prismaService.withTenantContext(firstOrganizationId, async tx => {
+          return await tx.appUsageLog.createMany({
+            data: sanitizedEvents,
+            skipDuplicates: true,
+          });
+        });
+      } else {
+        // For anonymous tracking (before auth), use system client
+        const systemPrisma = prismaService.getSystemClient();
+        result = await systemPrisma.appUsageLog.createMany({
+          data: sanitizedEvents,
+          skipDuplicates: true,
+        });
+      }
 
       logger.info('Batch app usage tracked', {
         eventCount: result.count,
@@ -240,40 +268,81 @@ class TrackingService {
       if (eventType) whereClause.eventType = eventType;
       if (page) whereClause.page = { contains: page };
 
-      // Get total events
-      const totalEvents = await prisma.appUsageLog.count({
-        where: whereClause,
-      });
+      // SECURITY FIX: Use withTenantContext for RLS enforcement when organizationId is specified
+      let totalEvents, eventsByType, topPages, uniqueSessions, uniqueUsers;
 
-      // Get events by type
-      const eventsByType = await prisma.appUsageLog.groupBy({
-        by: ['eventType'],
-        where: whereClause,
-        _count: { eventType: true },
-        orderBy: { _count: { eventType: 'desc' } },
-      });
+      if (organizationId) {
+        // Use tenant context for organization-specific analytics
+        await prismaService.withTenantContext(organizationId, async tx => {
+          // Remove organizationId from whereClause as RLS handles it
+          const { organizationId: _, ...rlsWhereClause } = whereClause;
 
-      // Get top pages
-      const topPages = await prisma.appUsageLog.groupBy({
-        by: ['page'],
-        where: whereClause,
-        _count: { page: true },
-        orderBy: { _count: { page: 'desc' } },
-        take: 10,
-      });
+          totalEvents = await tx.appUsageLog.count({
+            where: rlsWhereClause,
+          });
 
-      // Get unique sessions and users
-      const uniqueSessions = await prisma.appUsageLog.findMany({
-        where: whereClause,
-        select: { sessionId: true },
-        distinct: ['sessionId'],
-      });
+          eventsByType = await tx.appUsageLog.groupBy({
+            by: ['eventType'],
+            where: rlsWhereClause,
+            _count: { eventType: true },
+            orderBy: { _count: { eventType: 'desc' } },
+          });
 
-      const uniqueUsers = await prisma.appUsageLog.findMany({
-        where: { ...whereClause, userId: { not: null } },
-        select: { userId: true },
-        distinct: ['userId'],
-      });
+          topPages = await tx.appUsageLog.groupBy({
+            by: ['page'],
+            where: rlsWhereClause,
+            _count: { page: true },
+            orderBy: { _count: { page: 'desc' } },
+            take: 10,
+          });
+
+          uniqueSessions = await tx.appUsageLog.findMany({
+            where: rlsWhereClause,
+            select: { sessionId: true },
+            distinct: ['sessionId'],
+          });
+
+          uniqueUsers = await tx.appUsageLog.findMany({
+            where: { ...rlsWhereClause, userId: { not: null } },
+            select: { userId: true },
+            distinct: ['userId'],
+          });
+        });
+      } else {
+        // For global analytics (super admin only), use system client
+        const systemPrisma = prismaService.getSystemClient();
+
+        totalEvents = await systemPrisma.appUsageLog.count({
+          where: whereClause,
+        });
+
+        eventsByType = await systemPrisma.appUsageLog.groupBy({
+          by: ['eventType'],
+          where: whereClause,
+          _count: { eventType: true },
+          orderBy: { _count: { eventType: 'desc' } },
+        });
+
+        topPages = await systemPrisma.appUsageLog.groupBy({
+          by: ['page'],
+          where: whereClause,
+          _count: { page: true },
+          orderBy: { _count: { page: 'desc' } },
+          take: 10,
+        });
+
+        uniqueSessions = await systemPrisma.appUsageLog.findMany({
+          where: whereClause,
+          select: { sessionId: true },
+          distinct: ['sessionId'],
+        });
+
+        uniqueUsers = await systemPrisma.appUsageLog.findMany({
+          where: { ...whereClause, userId: { not: null } },
+          select: { userId: true },
+          distinct: ['userId'],
+        });
+      }
 
       return {
         totalEvents,
@@ -319,40 +388,81 @@ class TrackingService {
       if (organizationId) whereClause.organizationId = organizationId;
       if (loginType) whereClause.loginType = loginType;
 
-      // Get total login attempts
-      const totalAttempts = await prisma.loginActivityLog.count({
-        where: whereClause,
-      });
+      // SECURITY FIX: Use withTenantContext for RLS enforcement when organizationId is specified
+      let totalAttempts, attemptsByType, failuresByReason, suspiciousIPs;
 
-      // Get login attempts by type
-      const attemptsByType = await prisma.loginActivityLog.groupBy({
-        by: ['loginType'],
-        where: whereClause,
-        _count: { loginType: true },
-        orderBy: { _count: { loginType: 'desc' } },
-      });
+      if (organizationId) {
+        // Use tenant context for organization-specific login analytics
+        await prismaService.withTenantContext(organizationId, async tx => {
+          // Remove organizationId from whereClause as RLS handles it
+          const { organizationId: _, ...rlsWhereClause } = whereClause;
 
-      // Get failed login attempts by reason
-      const failuresByReason = await prisma.loginActivityLog.groupBy({
-        by: ['failureReason'],
-        where: { ...whereClause, loginType: 'failed', failureReason: { not: null } },
-        _count: { failureReason: true },
-        orderBy: { _count: { failureReason: 'desc' } },
-      });
+          totalAttempts = await tx.loginActivityLog.count({
+            where: rlsWhereClause,
+          });
 
-      // Get recent suspicious activity (multiple failures from same IP)
-      const suspiciousIPs = await prisma.loginActivityLog.groupBy({
-        by: ['ipAddress'],
-        where: {
-          ...whereClause,
-          loginType: 'failed',
-          ipAddress: { not: null },
-          timestamp: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // Last 24 hours
-        },
-        _count: { ipAddress: true },
-        having: { ipAddress: { _count: { gte: 5 } } }, // 5+ failures
-        orderBy: { _count: { ipAddress: 'desc' } },
-      });
+          attemptsByType = await tx.loginActivityLog.groupBy({
+            by: ['loginType'],
+            where: rlsWhereClause,
+            _count: { loginType: true },
+            orderBy: { _count: { loginType: 'desc' } },
+          });
+
+          failuresByReason = await tx.loginActivityLog.groupBy({
+            by: ['failureReason'],
+            where: { ...rlsWhereClause, loginType: 'failed', failureReason: { not: null } },
+            _count: { failureReason: true },
+            orderBy: { _count: { failureReason: 'desc' } },
+          });
+
+          suspiciousIPs = await tx.loginActivityLog.groupBy({
+            by: ['ipAddress'],
+            where: {
+              ...rlsWhereClause,
+              loginType: 'failed',
+              ipAddress: { not: null },
+              timestamp: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // Last 24 hours
+            },
+            _count: { ipAddress: true },
+            having: { ipAddress: { _count: { gte: 5 } } }, // 5+ failures
+            orderBy: { _count: { ipAddress: 'desc' } },
+          });
+        });
+      } else {
+        // For global analytics (super admin only), use system client
+        const systemPrisma = prismaService.getSystemClient();
+
+        totalAttempts = await systemPrisma.loginActivityLog.count({
+          where: whereClause,
+        });
+
+        attemptsByType = await systemPrisma.loginActivityLog.groupBy({
+          by: ['loginType'],
+          where: whereClause,
+          _count: { loginType: true },
+          orderBy: { _count: { loginType: 'desc' } },
+        });
+
+        failuresByReason = await systemPrisma.loginActivityLog.groupBy({
+          by: ['failureReason'],
+          where: { ...whereClause, loginType: 'failed', failureReason: { not: null } },
+          _count: { failureReason: true },
+          orderBy: { _count: { failureReason: 'desc' } },
+        });
+
+        suspiciousIPs = await systemPrisma.loginActivityLog.groupBy({
+          by: ['ipAddress'],
+          where: {
+            ...whereClause,
+            loginType: 'failed',
+            ipAddress: { not: null },
+            timestamp: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // Last 24 hours
+          },
+          _count: { ipAddress: true },
+          having: { ipAddress: { _count: { gte: 5 } } }, // 5+ failures
+          orderBy: { _count: { ipAddress: 'desc' } },
+        });
+      }
 
       return {
         totalAttempts,
@@ -385,15 +495,18 @@ class TrackingService {
     try {
       const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
+      // SECURITY FIX: Use system client for global cleanup (super admin only)
+      const systemPrisma = prismaService.getSystemClient();
+
       // Delete old app usage logs
-      const deletedAppUsage = await prisma.appUsageLog.deleteMany({
+      const deletedAppUsage = await systemPrisma.appUsageLog.deleteMany({
         where: {
           timestamp: { lt: cutoffDate },
         },
       });
 
       // Delete old login activity logs
-      const deletedLoginActivity = await prisma.loginActivityLog.deleteMany({
+      const deletedLoginActivity = await systemPrisma.loginActivityLog.deleteMany({
         where: {
           timestamp: { lt: cutoffDate },
         },

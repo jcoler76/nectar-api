@@ -430,6 +430,10 @@ router.post(
  */
 router.post('/logout', AuthFactory.createJWTMiddleware(), async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+    const refreshToken = req.body?.refreshToken;
+
     // 1. Clear session data for documentation access
     req.session.destroy(err => {
       if (err) {
@@ -437,9 +441,29 @@ router.post('/logout', AuthFactory.createJWTMiddleware(), async (req, res) => {
       }
     });
 
-    // 2. Add token to blacklist (if implemented)
+    // 2. Blacklist tokens to prevent reuse
+    if (token) {
+      const { logout } = require('../utils/tokenService');
+      try {
+        await logout(token, refreshToken);
+        logger.info('Tokens blacklisted successfully', {
+          userId: req.user.userId,
+          hasRefreshToken: !!refreshToken,
+        });
+      } catch (blacklistError) {
+        logger.warn('Token blacklisting failed', {
+          error: blacklistError.message,
+          userId: req.user.userId,
+        });
+        // Don't fail logout if blacklisting fails
+      }
+    }
+
     // 3. Log the logout event
-    logger.info('User logged out', { userId: req.user.userId });
+    logger.info('User logged out', {
+      userId: req.user.userId,
+      email: req.user.email,
+    });
 
     res.json({
       success: true,

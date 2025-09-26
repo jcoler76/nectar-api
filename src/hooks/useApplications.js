@@ -36,18 +36,21 @@ export const useApplications = () => {
   };
 
   const handleCopyApiKey = useCallback(
-    apiKey => {
-      if (apiKey.includes('•')) {
-        showNotification(
-          'Cannot copy masked API key. Please regenerate to get full key.',
-          'warning'
-        );
-        return;
+    async applicationId => {
+      try {
+        // Call secure server endpoint to get API key
+        const response = await crud.revealApiKey(applicationId);
+        if (response.success && response.apiKey) {
+          await navigator.clipboard.writeText(response.apiKey);
+          showNotification('API key copied to clipboard', 'success');
+        } else {
+          showNotification(response.message || 'Failed to retrieve API key', 'error');
+        }
+      } catch (error) {
+        showNotification('Failed to copy API key: ' + (error.message || 'Unknown error'), 'error');
       }
-      navigator.clipboard.writeText(apiKey);
-      showNotification('API key copied to clipboard', 'success');
     },
-    [showNotification]
+    [crud, showNotification]
   );
 
   const handleRegenerateApiKey = async applicationId => {
@@ -60,49 +63,7 @@ export const useApplications = () => {
     }
   };
 
-  const handleRevealApiKey = useCallback(
-    async applicationId => {
-      try {
-        const response = await revealApiKey(applicationId);
-        if (response.success) {
-          navigator.clipboard.writeText(response.apiKey);
-          const lastRevealedText = response.lastRevealed
-            ? ` (Last accessed: ${formatDate.full(response.lastRevealed.at)} by ${response.lastRevealed.by})`
-            : '';
-          showNotification(
-            `API key for "${response.applicationName}" copied to clipboard${lastRevealedText}`,
-            'success'
-          );
-          return { success: true };
-        } else {
-          // Check if regeneration is required
-          if (response.requiresRegeneration) {
-            showNotification(
-              response.message + ' Click the regenerate button to create a new key.',
-              'warning'
-            );
-          } else {
-            showNotification(response.message, 'warning');
-          }
-          return { success: false };
-        }
-      } catch (err) {
-        const errorMessage = err.response?.data?.message || err.message;
-        const requiresRegeneration = err.response?.data?.requiresRegeneration;
-
-        if (requiresRegeneration) {
-          showNotification(
-            errorMessage + ' Click the regenerate button to create a new key.',
-            'warning'
-          );
-        } else {
-          showNotification('Failed to copy API key: ' + errorMessage, 'error');
-        }
-        return { success: false, error: err };
-      }
-    },
-    [showNotification]
-  );
+  // Removed handleRevealApiKey - now using secure handleCopyApiKey for all cases
 
   return {
     // State (renamed for backward compatibility)
@@ -118,7 +79,6 @@ export const useApplications = () => {
     handleToggleActive,
     handleCopyApiKey,
     handleRegenerateApiKey,
-    handleRevealApiKey,
 
     // Standard CRUD operations
     createApplication: crud.create,

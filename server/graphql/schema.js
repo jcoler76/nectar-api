@@ -27,6 +27,7 @@ const organizationTypeDefs = require('./typeDefs/organization');
 const subscriptionTypeDefs = require('./typeDefs/subscription');
 const billingTypeDefs = require('./typeDefs/billing');
 const adminAnalyticsTypeDefs = require('./typeDefs/adminAnalytics');
+const dashboardTypeDefs = require('./typeDefs/dashboard');
 
 // Import all resolvers
 const userResolvers = require('./resolvers/user');
@@ -43,6 +44,7 @@ const organizationResolvers = require('./resolvers/organization');
 const subscriptionResolvers = require('./resolvers/subscription');
 const billingResolvers = require('./resolvers/billing');
 const adminAnalyticsResolvers = require('./resolvers/adminAnalytics');
+const dashboardResolvers = require('./resolvers/dashboard');
 
 // Manually merge type definitions
 const typeDefs = [
@@ -61,6 +63,7 @@ const typeDefs = [
   subscriptionTypeDefs,
   billingTypeDefs,
   adminAnalyticsTypeDefs,
+  dashboardTypeDefs,
 ];
 
 // Manually merge resolvers
@@ -88,7 +91,8 @@ const resolvers = _.merge(
   organizationResolvers,
   subscriptionResolvers,
   billingResolvers,
-  adminAnalyticsResolvers
+  adminAnalyticsResolvers,
+  dashboardResolvers
 );
 
 // Create executable schema for subscriptions

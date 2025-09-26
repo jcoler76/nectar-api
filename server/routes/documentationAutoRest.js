@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
+// SECURITY FIX: Use proper prismaService for tenant isolation
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 
 function buildOpenApiDoc(service, entities) {
   const paths = {};
@@ -69,15 +69,44 @@ function buildOpenApiDoc(service, entities) {
 router.get('/:serviceName', async (req, res) => {
   try {
     const { serviceName } = req.params;
-    const service = await prisma.service.findFirst({
-      where: { name: serviceName, isActive: true },
+
+    // SECURITY: Ensure user is authenticated and has organization access
+    const userOrganizationId = req.user?.organizationId;
+    if (!userOrganizationId) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'User must belong to an organization to access documentation',
+        },
+      });
+    }
+
+    // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+    const result = await prismaService.withTenantContext(userOrganizationId, async tx => {
+      // Find service within organization context
+      const service = await tx.service.findFirst({
+        where: { name: serviceName, isActive: true },
+      });
+
+      if (!service) {
+        return { error: 'SERVICE_NOT_FOUND' };
+      }
+
+      // Find entities within organization context
+      const entities = await tx.exposedEntity.findMany({
+        where: { serviceId: service.id, allowRead: true },
+      });
+
+      return { service, entities };
     });
-    if (!service)
-      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Service not found' } });
-    const entities = await prisma.exposedEntity.findMany({
-      where: { serviceId: service.id, allowRead: true },
-    });
-    const doc = buildOpenApiDoc(service, entities);
+
+    if (result.error === 'SERVICE_NOT_FOUND') {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Service not found or not accessible' },
+      });
+    }
+
+    const doc = buildOpenApiDoc(result.service, result.entities);
     res.json(doc);
   } catch (e) {
     res.status(500).json({ error: { code: 'SERVER_ERROR', message: e.message } });

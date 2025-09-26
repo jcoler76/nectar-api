@@ -6,6 +6,7 @@ const connectionTypeDefs = require('./connection');
 const workflowTypeDefs = require('./workflow');
 const roleTypeDefs = require('./role');
 const endpointTypeDefs = require('./endpoint');
+const dashboardTypeDefs = require('./dashboard');
 
 const typeDefs = [
   commonTypeDefs,
@@ -16,6 +17,7 @@ const typeDefs = [
   workflowTypeDefs,
   roleTypeDefs,
   endpointTypeDefs,
+  dashboardTypeDefs,
 ];
 
 module.exports = typeDefs;

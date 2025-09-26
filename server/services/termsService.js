@@ -4,10 +4,12 @@ const geoip = require('geoip-lite');
 class TermsService {
   /**
    * Get the currently active Terms and Conditions
+   * TermsAndConditions is a global table (no organizationId), so systemPrisma is correct
    */
   async getActiveTerms() {
     try {
-      const prisma = prismaService.getClient();
+      // TermsAndConditions is global (no organizationId field), use systemPrisma
+      const prisma = prismaService.getSystemClient();
       const activeTerms = await prisma.termsAndConditions.findFirst({
         where: {
           isActive: true,
@@ -29,10 +31,10 @@ class TermsService {
 
   /**
    * Check if a user has accepted the current terms for their organization
+   * TermsAcceptance is tenant-scoped (has organizationId), must use withTenantContext
    */
   async hasUserAcceptedCurrentTerms(userId, organizationId) {
     try {
-      const prisma = prismaService.getClient();
       const activeTerms = await this.getActiveTerms();
 
       if (!activeTerms) {
@@ -40,17 +42,20 @@ class TermsService {
         return true;
       }
 
-      const acceptance = await prisma.termsAcceptance.findUnique({
-        where: {
-          organizationId_userId_termsId: {
-            organizationId,
-            userId,
-            termsId: activeTerms.id,
+      // TermsAcceptance has organizationId, use RLS-enforced client
+      return await prismaService.withTenantContext(organizationId, async tx => {
+        const acceptance = await tx.termsAcceptance.findUnique({
+          where: {
+            organizationId_userId_termsId: {
+              organizationId,
+              userId,
+              termsId: activeTerms.id,
+            },
           },
-        },
-      });
+        });
 
-      return !!acceptance;
+        return !!acceptance;
+      });
     } catch (error) {
       console.error('Error checking terms acceptance:', error);
       return false;
@@ -59,29 +64,48 @@ class TermsService {
 
   /**
    * Record a user's acceptance of the terms
+   * MIXED CLIENT USAGE: TermsAcceptance & AuditLog (tenant), Organization (infrastructure)
    */
   async recordAcceptance(userId, organizationId, ipAddress, userAgent, acceptanceMethod = 'CLICK') {
     try {
-      const prisma = prismaService.getClient();
       const activeTerms = await this.getActiveTerms();
 
       if (!activeTerms) {
         throw new Error('No active terms and conditions found');
       }
 
-      // Check if already accepted
-      const existingAcceptance = await prisma.termsAcceptance.findUnique({
-        where: {
-          organizationId_userId_termsId: {
-            organizationId,
-            userId,
-            termsId: activeTerms.id,
-          },
-        },
-      });
-
-      if (existingAcceptance) {
-        return existingAcceptance;
+      // First check if already accepted using RLS context
+      const hasAccepted = await this.hasUserAcceptedCurrentTerms(userId, organizationId);
+      if (hasAccepted) {
+        // Return existing acceptance record
+        return await prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.termsAcceptance.findUnique({
+            where: {
+              organizationId_userId_termsId: {
+                organizationId,
+                userId,
+                termsId: activeTerms.id,
+              },
+            },
+            include: {
+              terms: true,
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          });
+        });
       }
 
       // Get geolocation from IP (optional)
@@ -99,58 +123,63 @@ class TermsService {
         }
       }
 
-      // Create acceptance record
-      const acceptance = await prisma.termsAcceptance.create({
-        data: {
-          organizationId,
-          userId,
-          termsId: activeTerms.id,
-          ipAddress: ipAddress || 'unknown',
-          userAgent: userAgent || 'unknown',
-          geolocation,
-          acceptanceMethod,
-          acceptedAt: new Date(),
-        },
-        include: {
-          terms: true,
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
+      // Create acceptance record and audit log within RLS context
+      const acceptance = await prismaService.withTenantContext(organizationId, async tx => {
+        // Create acceptance record (tenant-scoped)
+        const newAcceptance = await tx.termsAcceptance.create({
+          data: {
+            organizationId,
+            userId,
+            termsId: activeTerms.id,
+            ipAddress: ipAddress || 'unknown',
+            userAgent: userAgent || 'unknown',
+            geolocation,
+            acceptanceMethod,
+            acceptedAt: new Date(),
+          },
+          include: {
+            terms: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            organization: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
-          organization: {
-            select: {
-              id: true,
-              name: true,
+        });
+
+        // Create audit log entry (tenant-scoped)
+        await tx.auditLog.create({
+          data: {
+            action: 'TERMS_ACCEPTED',
+            entityType: 'TermsAcceptance',
+            entityId: newAcceptance.id,
+            userId,
+            organizationId,
+            metadata: {
+              termsVersion: activeTerms.version,
+              ipAddress,
+              userAgent,
+              acceptanceMethod,
             },
           },
-        },
+        });
+
+        return newAcceptance;
       });
 
-      // Update organization's last prompted timestamp
-      await prisma.organization.update({
+      // Update organization's last prompted timestamp (infrastructure table, use systemPrisma)
+      await prismaService.getSystemClient().organization.update({
         where: { id: organizationId },
         data: { lastTermsPromptedAt: new Date() },
-      });
-
-      // Create audit log entry
-      await prisma.auditLog.create({
-        data: {
-          action: 'TERMS_ACCEPTED',
-          entityType: 'TermsAcceptance',
-          entityId: acceptance.id,
-          userId,
-          organizationId,
-          metadata: {
-            termsVersion: activeTerms.version,
-            ipAddress,
-            userAgent,
-            acceptanceMethod,
-          },
-        },
       });
 
       return acceptance;
@@ -162,10 +191,12 @@ class TermsService {
 
   /**
    * Create or update Terms and Conditions (admin only)
+   * TermsAndConditions is global (no organizationId), use systemPrisma
    */
   async createOrUpdateTerms(version, content, summary, effectiveDate) {
     try {
-      const prisma = prismaService.getClient();
+      // TermsAndConditions is global (no organizationId field), use systemPrisma
+      const prisma = prismaService.getSystemClient();
       // Deactivate all existing terms
       await prisma.termsAndConditions.updateMany({
         where: { isActive: true },
@@ -192,10 +223,12 @@ class TermsService {
 
   /**
    * Get all terms versions (admin only)
+   * TermsAndConditions is global (no organizationId), use systemPrisma
    */
   async getAllTermsVersions() {
     try {
-      const prisma = prismaService.getClient();
+      // TermsAndConditions is global (no organizationId field), use systemPrisma
+      const prisma = prismaService.getSystemClient();
       const allTerms = await prisma.termsAndConditions.findMany({
         orderBy: {
           effectiveDate: 'desc',
@@ -218,10 +251,10 @@ class TermsService {
 
   /**
    * Get acceptance statistics for an organization
+   * MIXED CLIENT USAGE: Membership & TermsAcceptance (tenant), TermsAndConditions (global)
    */
   async getAcceptanceStats(organizationId) {
     try {
-      const prisma = prismaService.getClient();
       const activeTerms = await this.getActiveTerms();
 
       if (!activeTerms) {
@@ -233,30 +266,33 @@ class TermsService {
         };
       }
 
-      // Get all organization members
-      const totalUsers = await prisma.membership.count({
-        where: { organizationId },
+      // Get tenant-scoped statistics within RLS context
+      return await prismaService.withTenantContext(organizationId, async tx => {
+        // Get all organization members (tenant-scoped)
+        const totalUsers = await tx.membership.count({
+          where: { organizationId },
+        });
+
+        // Get acceptance count for current terms (tenant-scoped)
+        const acceptedCount = await tx.termsAcceptance.count({
+          where: {
+            organizationId,
+            termsId: activeTerms.id,
+          },
+        });
+
+        const pendingCount = totalUsers - acceptedCount;
+        const acceptanceRate = totalUsers > 0 ? (acceptedCount / totalUsers) * 100 : 0;
+
+        return {
+          totalUsers,
+          acceptedCount,
+          pendingCount,
+          acceptanceRate: Math.round(acceptanceRate * 100) / 100,
+          currentTermsVersion: activeTerms.version,
+          currentTermsEffectiveDate: activeTerms.effectiveDate,
+        };
       });
-
-      // Get acceptance count for current terms
-      const acceptedCount = await prisma.termsAcceptance.count({
-        where: {
-          organizationId,
-          termsId: activeTerms.id,
-        },
-      });
-
-      const pendingCount = totalUsers - acceptedCount;
-      const acceptanceRate = totalUsers > 0 ? (acceptedCount / totalUsers) * 100 : 0;
-
-      return {
-        totalUsers,
-        acceptedCount,
-        pendingCount,
-        acceptanceRate: Math.round(acceptanceRate * 100) / 100,
-        currentTermsVersion: activeTerms.version,
-        currentTermsEffectiveDate: activeTerms.effectiveDate,
-      };
     } catch (error) {
       console.error('Error getting acceptance stats:', error);
       throw new Error('Failed to get acceptance statistics');
@@ -265,40 +301,43 @@ class TermsService {
 
   /**
    * Export acceptance records for compliance
+   * TermsAcceptance is tenant-scoped (has organizationId), must use withTenantContext
    */
   async exportAcceptanceRecords(organizationId, startDate, endDate) {
     try {
-      const prisma = prismaService.getClient();
-      const acceptances = await prisma.termsAcceptance.findMany({
-        where: {
-          organizationId,
-          acceptedAt: {
-            gte: startDate ? new Date(startDate) : undefined,
-            lte: endDate ? new Date(endDate) : undefined,
-          },
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
+      // TermsAcceptance has organizationId, use RLS-enforced client for secure export
+      return await prismaService.withTenantContext(organizationId, async tx => {
+        const acceptances = await tx.termsAcceptance.findMany({
+          where: {
+            organizationId,
+            acceptedAt: {
+              gte: startDate ? new Date(startDate) : undefined,
+              lte: endDate ? new Date(endDate) : undefined,
             },
           },
-          terms: {
-            select: {
-              version: true,
-              effectiveDate: true,
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            terms: {
+              select: {
+                version: true,
+                effectiveDate: true,
+              },
             },
           },
-        },
-        orderBy: {
-          acceptedAt: 'desc',
-        },
-      });
+          orderBy: {
+            acceptedAt: 'desc',
+          },
+        });
 
-      return acceptances;
+        return acceptances;
+      });
     } catch (error) {
       console.error('Error exporting acceptance records:', error);
       throw new Error('Failed to export acceptance records');

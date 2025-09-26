@@ -1,4 +1,5 @@
 import api from './api';
+import { getCurrentUser } from './authService';
 
 // Cache for service components to reduce API calls
 const componentCache = new Map();
@@ -173,12 +174,24 @@ export const getDatabaseObjectSelections = async serviceId => {
 
 export const getServiceComponents = async serviceId => {
   try {
-    // Check cache first
-    const cacheKey = `components_${serviceId}`;
+    // Get current user context for cache security
+    const currentUser = getCurrentUser();
+    if (!currentUser || !currentUser.organizationId) {
+      throw new Error('User authentication required');
+    }
+
+    // Include organization in cache key to prevent cross-tenant data leaks
+    const cacheKey = `components_${currentUser.organizationId}_${serviceId}`;
     const cached = componentCache.get(cacheKey);
 
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.data;
+      // Verify cached data still belongs to current user's organization
+      if (cached.organizationId === currentUser.organizationId) {
+        return cached.data;
+      } else {
+        // Remove invalid cache entry
+        componentCache.delete(cacheKey);
+      }
     }
 
     const startTime = Date.now();
@@ -300,10 +313,11 @@ export const getServiceComponents = async serviceId => {
       }
     }
 
-    // Cache the response (from either endpoint)
+    // Cache the response (from either endpoint) with organization context
     componentCache.set(cacheKey, {
       data: transformedData,
       timestamp: Date.now(),
+      organizationId: currentUser.organizationId, // Security: ensure cache is organization-specific
     });
 
     return transformedData;
@@ -319,7 +333,14 @@ export const getServiceComponents = async serviceId => {
 // Clear component cache for a specific service
 export const clearServiceComponentsCache = serviceId => {
   if (serviceId) {
-    componentCache.delete(`components_${serviceId}`);
+    // Clear cache for all organizations for this service (when service is updated)
+    const keysToDelete = [];
+    for (const [key] of componentCache.entries()) {
+      if (key.includes(`_${serviceId}`)) {
+        keysToDelete.push(key);
+      }
+    }
+    keysToDelete.forEach(key => componentCache.delete(key));
   } else {
     componentCache.clear();
   }

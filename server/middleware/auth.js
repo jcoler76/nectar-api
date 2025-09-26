@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { logger } = require('../utils/logger');
 const { validateToken } = require('../utils/tokenService');
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
+const { securityMonitoring } = require('../services/securityMonitoringService');
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -40,32 +40,21 @@ const authMiddleware = async (req, res, next) => {
       }
     }
 
-    // TEMPORARY DEBUG: Check if session-based auth is being used for other routes
-    if (!token && req.session?.user) {
-      logger.warn('Session-based authentication detected for non-documentation route', {
-        path: req.path,
-        userId: req.session.user.id,
-        email: req.session.user.email,
-        organizationId: req.session.user.organizationId,
-      });
-
-      // Create a user object from session but log this suspicious activity
-      req.user = {
-        userId: req.session.user.id,
-        email: req.session.user.email,
-        isAdmin: req.session.user.isAdmin,
-        organizationId: req.session.user.organizationId,
-        sessionAuth: true, // Flag to indicate session-based auth
-      };
-      return next();
-    }
-
     if (!token) {
       logger.warn('Authentication failed: No token provided', {
         ip: req.ip,
         userAgent: req.headers['user-agent'],
         path: req.path,
       });
+
+      // Track authentication failure
+      await securityMonitoring.trackAuthFailure({
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        reason: 'No token provided',
+        path: req.path,
+      });
+
       return res.status(401).json({ message: 'No token provided' });
     }
 
@@ -107,6 +96,15 @@ const authMiddleware = async (req, res, next) => {
       inSupportMode: req.user.inSupportMode,
       path: req.path,
     });
+
+    // Track successful authentication
+    await securityMonitoring.trackAuthSuccess({
+      userId: decoded.userId,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      email: decoded.email,
+    });
+
     next();
   } catch (error) {
     logger.error('Auth middleware error:', {
@@ -115,6 +113,28 @@ const authMiddleware = async (req, res, next) => {
       ip: req.ip,
       path: req.path,
       userAgent: req.headers['user-agent'],
+    });
+
+    // Track authentication failure with specific error reason
+    let reason = 'Unknown error';
+    if (error.name === 'TokenExpiredError') {
+      reason = 'Token expired';
+    } else if (error.name === 'JsonWebTokenError') {
+      reason = 'Invalid token format';
+    } else if (error.message.includes('revoked')) {
+      reason = 'Token revoked';
+    } else if (error.message.includes('issuer') || error.message.includes('audience')) {
+      reason = 'Invalid token issuer/audience';
+    } else {
+      reason = 'Token validation failed';
+    }
+
+    await securityMonitoring.trackAuthFailure({
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      reason: reason,
+      path: req.path,
+      error: error.message,
     });
 
     // Enhanced error handling for better security
@@ -139,6 +159,14 @@ const adminOnly = async (req, res, next) => {
         ip: req.ip,
         userAgent: req.headers['user-agent'],
       });
+
+      await securityMonitoring.trackAuthFailure({
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        reason: 'Admin access without authentication',
+        path: req.path,
+      });
+
       return res.status(401).json({ message: 'User needs admin privileges' });
     }
 
@@ -154,6 +182,15 @@ const adminOnly = async (req, res, next) => {
           ip: req.ip,
           userAgent: req.headers['user-agent'],
         });
+
+        await securityMonitoring.trackAuthFailure({
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          reason: 'Privilege escalation attempt - non-admin accessing admin endpoint',
+          path: req.path,
+          userId: req.user.userId || req.user._id,
+        });
+
         return res.status(401).json({ message: 'User needs admin privileges' });
       }
     }
@@ -165,7 +202,9 @@ const adminOnly = async (req, res, next) => {
       userAgent: req.headers['user-agent'],
     });
 
-    const user = await prisma.user.findUnique({
+    // Use system client for admin check - not tenant-specific operation
+    const systemClient = prismaService.getSystemClient();
+    const user = await systemClient.user.findUnique({
       where: { id: req.user.userId || req.user._id },
       select: { isAdmin: true },
     });

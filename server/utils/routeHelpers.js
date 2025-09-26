@@ -20,7 +20,7 @@ const createGraphQLContext = req => {
     jwtUser: req.user,
     apiKeyUser: req.apiKeyUser,
     req,
-    dataloaders: createDataLoaders(),
+    dataloaders: createDataLoaders(req.user?.organizationId),
     // Add any other context properties needed
   };
 };

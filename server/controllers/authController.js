@@ -1,5 +1,4 @@
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
@@ -8,31 +7,84 @@ const { logger } = require('../utils/logger');
 exports.updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const userId = req.user.userId;
+  const organizationId = req.user.organizationId;
 
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Current password and new password are required' });
   }
 
+  // Enhanced password validation
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+  }
+
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+    return res.status(400).json({
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+    });
+  }
+
+  if (!organizationId) {
+    return res.status(400).json({ message: 'Organization context required' });
+  }
+
   try {
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const user = await User.findById(userId).select('+password');
-    // For now, skip user query to allow server startup
-    const user = null;
+    // SECURITY: Use withTenantContext for RLS enforcement
+    const user = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.user.findFirst({
+        where: {
+          id: userId,
+          // organizationId handled by RLS
+        },
+        select: {
+          id: true,
+          email: true,
+          passwordHash: true,
+        },
+      });
+    });
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const isMatch = await user.comparePassword(currentPassword);
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isMatch) {
+      logger.warn('Invalid current password attempt', {
+        userId,
+        email: user.email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
       return res.status(401).json({ message: 'Invalid current password' });
     }
 
-    user.password = newPassword;
-    await user.save();
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+    // Update password with RLS enforcement
+    await prismaService.withTenantContext(organizationId, async tx => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          passwordHash: newPasswordHash,
+          passwordUpdatedAt: new Date(),
+        },
+      });
+    });
+
+    // Log successful password update
+    logger.info('Password updated successfully', {
+      userId,
+      email: user.email,
+      timestamp: new Date().toISOString(),
+    });
 
     res.json({ message: 'Password updated successfully' });
   } catch (error) {
-    logger.error('Error updating password', { error: error.message, userId: req.user.userId });
+    logger.error('Error updating password', { error: error.message, userId });
     res.status(500).json({ message: 'Failed to update password' });
   }
 };
@@ -74,18 +126,18 @@ exports.setupAccount = async (req, res) => {
   const { token, password } = req.body;
 
   if (!token || !password) {
-    return res.status(400).json({ message: 'Token and password are required.' });
+    return res.status(400).json({ message: 'Token and password are required' });
   }
 
   // Enhanced password validation
   if (password.length < 8) {
-    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+    return res.status(400).json({ message: 'Password must be at least 8 characters long' });
   }
 
   if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
     return res.status(400).json({
       message:
-        'Password must contain at least one uppercase letter, one lowercase letter, and one number.',
+        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
     });
   }
 
@@ -93,13 +145,23 @@ exports.setupAccount = async (req, res) => {
     // Create secure hash of the provided token
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const user = await User.findOne({
-    //   accountSetupToken: tokenHash,
-    //   accountSetupTokenExpires: { $gt: Date.now() },
-    // });
-    // For now, skip user query to allow server startup
-    const user = null;
+    // SECURITY: System client for account setup (no organization context yet)
+    const systemClient = prismaService.getSystemClient();
+    const user = await systemClient.user.findFirst({
+      where: {
+        accountSetupToken: tokenHash,
+        accountSetupTokenExpires: {
+          gt: new Date(),
+        },
+        isActive: false, // Only allow setup for inactive accounts
+      },
+      select: {
+        id: true,
+        email: true,
+        accountSetupTokenExpires: true,
+        organizationId: true,
+      },
+    });
 
     if (!user) {
       // Log failed attempt for security monitoring
@@ -107,38 +169,54 @@ exports.setupAccount = async (req, res) => {
         tokenHash: tokenHash.substring(0, 8) + '...',
         timestamp: new Date().toISOString(),
         ip: req.ip,
+        userAgent: req.get('User-Agent'),
       });
 
-      return res.status(400).json({ message: 'Token is invalid or has expired.' });
+      return res.status(400).json({ message: 'Token is invalid or has expired' });
     }
 
     // Additional security: Check if token was used recently (prevent replay)
-    const tokenAge = Date.now() - (user.accountSetupTokenExpires - 24 * 60 * 60 * 1000);
+    const tokenAge = Date.now() - (user.accountSetupTokenExpires.getTime() - 24 * 60 * 60 * 1000);
     if (tokenAge < 10000) {
-      // Less than 10 seconds  old
       return res.status(429).json({
-        message: 'Please wait a moment before using this token.',
+        message: 'Please wait a moment before using this token',
       });
     }
 
-    user.password = password; // The pre-save hook will hash this
-    user.accountSetupToken = undefined;
-    user.accountSetupTokenExpires = undefined;
-    user.isActive = true; // Activate the account
+    // Hash the password
+    const passwordHash = await bcrypt.hash(password, 12);
 
-    await user.save();
+    // Update user account with system client (account activation)
+    await systemClient.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        accountSetupToken: null,
+        accountSetupTokenExpires: null,
+        isActive: true,
+        passwordUpdatedAt: new Date(),
+        activatedAt: new Date(),
+      },
+    });
 
     // Log successful account setup
     logger.info('Account setup completed successfully', {
-      userId: user._id,
+      userId: user.id,
       email: user.email,
+      organizationId: user.organizationId,
       timestamp: new Date().toISOString(),
     });
 
-    res.status(200).json({ message: 'Account has been set up successfully. You can now log in.' });
+    res.status(200).json({
+      message: 'Account has been set up successfully. You can now log in',
+      success: true,
+    });
   } catch (error) {
-    logger.error('Error setting up account', { error: error.message });
-    res.status(500).json({ message: 'Internal server error during account setup.' });
+    logger.error('Error setting up account', {
+      error: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({ message: 'Internal server error during account setup' });
   }
 };
 

@@ -202,17 +202,7 @@ export const useConnectionOperations = () => {
             service => service.connectionId === connectionId && service.isActive
           );
 
-          // Log dependency check in development only
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            console.log('🔗 Connection dependency check:', {
-              connection: connection.name,
-              connectionId,
-              totalServices: services.length,
-              dependentServices: dependentServices.length,
-              serviceNames: dependentServices.map(s => s.name),
-            });
-          }
+          // Removed console logging to prevent information disclosure
 
           if (dependentServices.length > 0) {
             // Return information about dependent services for confirmation dialog
@@ -220,7 +210,7 @@ export const useConnectionOperations = () => {
               success: false,
               requiresConfirmation: true,
               dependentServices,
-              message: `This connection is used by ${dependentServices.length} active service${dependentServices.length === 1 ? '' : 's'}. Deactivating this connection will also deactivate these services:\n\n• ${dependentServices.map(s => s.name).join('\n• ')}\n\nDo you want to continue?`,
+              message: `This connection is used by ${dependentServices.length} active service${dependentServices.length === 1 ? '' : 's'}. Deactivating this connection will also deactivate ${dependentServices.length === 1 ? 'this service' : 'these services'}.\n\nDo you want to continue?`,
             };
           }
         } catch (err) {

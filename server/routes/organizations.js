@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
+// SECURITY FIX: Use proper prismaService for tenant isolation
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const AuthFactory = require('../middleware/authFactory');
 const authenticateToken = AuthFactory.createJWTMiddleware();
 const InputValidator = require('../utils/inputValidation');
@@ -32,7 +32,10 @@ const generateUniqueSlug = async name => {
   let slug = baseSlug;
   let counter = 1;
 
-  while (await prisma.organization.findUnique({ where: { slug } })) {
+  // SECURITY NOTE: Use system client for global slug uniqueness check
+  // Organization slugs must be globally unique across the platform
+  const systemPrisma = prismaService.getSystemClient();
+  while (await systemPrisma.organization.findUnique({ where: { slug } })) {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
@@ -129,9 +132,13 @@ router.post(
       const { name, domain, website } = req.body;
       const userId = req.user.userId;
 
+      // SECURITY FIX: Use system client for organization creation
+      // Organization creation requires system-level access
+      const systemPrisma = prismaService.getSystemClient();
+
       // Validate domain uniqueness if provided
       if (domain) {
-        const existingOrg = await prisma.organization.findUnique({
+        const existingOrg = await systemPrisma.organization.findUnique({
           where: { domain },
         });
 
@@ -146,7 +153,7 @@ router.post(
       const slug = await generateUniqueSlug(name);
 
       // Create organization with transaction to ensure atomicity
-      const result = await prisma.$transaction(async tx => {
+      const result = await systemPrisma.$transaction(async tx => {
         // Create organization
         const organization = await tx.organization.create({
           data: {
@@ -198,7 +205,7 @@ router.post(
       });
 
       // Return organization with subscription info
-      const orgWithSubscription = await prisma.organization.findUnique({
+      const orgWithSubscription = await systemPrisma.organization.findUnique({
         where: { id: result.organization.id },
         include: {
           subscription: {
@@ -303,7 +310,10 @@ router.get('/', async (req, res) => {
       return res.json({ organizations });
     }
 
-    const memberships = await prisma.membership.findMany({
+    // SECURITY FIX: Use system client for membership lookup to get all user's organizations
+    // This is appropriate since we need to find memberships across all organizations for this user
+    const systemPrisma = prismaService.getSystemClient();
+    const memberships = await systemPrisma.membership.findMany({
       where: { userId },
       include: {
         organization: {
@@ -363,76 +373,87 @@ router.get(
       const organizationId = req.params.id;
       const userId = req.user.userId;
 
-      // Check if user has access to this organization
-      const membership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
+      // SECURITY FIX: Check membership and get organization with proper RLS
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user has access to this organization
+        const membership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
+            },
           },
-        },
+        });
+
+        if (!membership) {
+          return { error: 'ACCESS_DENIED' };
+        }
+
+        // Get organization with full details
+        const organization = await tx.organization.findFirst({
+          where: {},
+          include: {
+            subscription: {
+              select: {
+                plan: true,
+                status: true,
+                trialEndsAt: true,
+                currentPeriodStart: true,
+                currentPeriodEnd: true,
+                maxDatabaseConnections: true,
+                maxApiCallsPerMonth: true,
+                maxUsersPerOrg: true,
+                maxWorkflows: true,
+              },
+            },
+            memberships: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+              orderBy: {
+                joinedAt: 'asc',
+              },
+            },
+            databaseConnections: {
+              select: {
+                id: true,
+                name: true,
+                type: true,
+                isActive: true,
+                createdAt: true,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+            _count: {
+              select: {
+                workflows: true,
+                apiKeys: true,
+                usageMetrics: true,
+              },
+            },
+          },
+        });
+
+        return { membership, organization };
       });
 
-      if (!membership) {
+      if (result.error === 'ACCESS_DENIED') {
         return res.status(403).json({
           error: { code: 'FORBIDDEN', message: 'Access denied to this organization' },
         });
       }
 
-      // Get organization with full details
-      const organization = await prisma.organization.findUnique({
-        where: { id: organizationId },
-        include: {
-          subscription: {
-            select: {
-              plan: true,
-              status: true,
-              trialEndsAt: true,
-              currentPeriodStart: true,
-              currentPeriodEnd: true,
-              maxDatabaseConnections: true,
-              maxApiCallsPerMonth: true,
-              maxUsersPerOrg: true,
-              maxWorkflows: true,
-            },
-          },
-          memberships: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  firstName: true,
-                  lastName: true,
-                  avatarUrl: true,
-                },
-              },
-            },
-            orderBy: {
-              joinedAt: 'asc',
-            },
-          },
-          databaseConnections: {
-            select: {
-              id: true,
-              name: true,
-              type: true,
-              isActive: true,
-              createdAt: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-          _count: {
-            select: {
-              workflows: true,
-              apiKeys: true,
-              usageMetrics: true,
-            },
-          },
-        },
-      });
+      const { membership, organization } = result;
 
       if (!organization) {
         return res.status(404).json({
@@ -477,36 +498,52 @@ router.put(
       const userId = req.user.userId;
       const { name, domain, website, logo } = req.body;
 
-      // Check if user has admin access to this organization
-      const membership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
+      // SECURITY FIX: Use withTenantContext for organization update validation
+      const validation = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user has admin access to this organization
+        const membership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
+            },
           },
-        },
+        });
+
+        if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+          return { error: 'FORBIDDEN' };
+        }
+
+        // Check if organization exists
+        const existingOrg = await tx.organization.findFirst({
+          where: {},
+        });
+
+        if (!existingOrg) {
+          return { error: 'NOT_FOUND' };
+        }
+
+        return { existingOrg };
       });
 
-      if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+      if (validation.error === 'FORBIDDEN') {
         return res.status(403).json({
           error: { code: 'FORBIDDEN', message: 'Admin access required' },
         });
       }
 
-      // Check if organization exists
-      const existingOrg = await prisma.organization.findUnique({
-        where: { id: organizationId },
-      });
-
-      if (!existingOrg) {
+      if (validation.error === 'NOT_FOUND') {
         return res.status(404).json({
           error: { code: 'NOT_FOUND', message: 'Organization not found' },
         });
       }
 
-      // Validate domain uniqueness if being changed
+      const { existingOrg } = validation;
+
+      // Validate domain uniqueness if being changed (requires system client for global check)
       if (domain && domain !== existingOrg.domain) {
-        const domainExists = await prisma.organization.findUnique({
+        const systemPrisma = prismaService.getSystemClient();
+        const domainExists = await systemPrisma.organization.findUnique({
           where: { domain },
         });
 
@@ -527,32 +564,37 @@ router.put(
       if (website !== undefined) updateData.website = website;
       if (logo !== undefined) updateData.logo = logo;
 
-      // Update organization
-      const updatedOrganization = await prisma.organization.update({
-        where: { id: organizationId },
-        data: updateData,
-        include: {
-          subscription: {
-            select: {
-              plan: true,
-              status: true,
-              trialEndsAt: true,
-              maxDatabaseConnections: true,
-              maxApiCallsPerMonth: true,
-              maxUsersPerOrg: true,
-              maxWorkflows: true,
+      // SECURITY FIX: Update organization with proper RLS
+      const updatedOrganization = await prismaService.withTenantContext(
+        organizationId,
+        async tx => {
+          return await tx.organization.update({
+            where: { id: organizationId },
+            data: updateData,
+            include: {
+              subscription: {
+                select: {
+                  plan: true,
+                  status: true,
+                  trialEndsAt: true,
+                  maxDatabaseConnections: true,
+                  maxApiCallsPerMonth: true,
+                  maxUsersPerOrg: true,
+                  maxWorkflows: true,
+                },
+              },
+              _count: {
+                select: {
+                  databaseConnections: true,
+                  workflows: true,
+                  apiKeys: true,
+                  memberships: true,
+                },
+              },
             },
-          },
-          _count: {
-            select: {
-              databaseConnections: true,
-              workflows: true,
-              apiKeys: true,
-              memberships: true,
-            },
-          },
-        },
-      });
+          });
+        }
+      );
 
       logger.info('Organization updated successfully', {
         organizationId,
@@ -585,17 +627,49 @@ router.delete(
       const organizationId = req.params.id;
       const userId = req.user.userId;
 
-      // Check if user is the owner of this organization
-      const membership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
+      // SECURITY FIX: Use withTenantContext for organization deletion
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user is the owner of this organization
+        const membership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
+            },
           },
-        },
+        });
+
+        if (!membership || membership.role !== 'OWNER') {
+          return { error: 'FORBIDDEN' };
+        }
+
+        // Check if organization exists and get details for logging
+        const organization = await tx.organization.findFirst({
+          where: {},
+          include: {
+            _count: {
+              select: {
+                memberships: true,
+                databaseConnections: true,
+                workflows: true,
+              },
+            },
+          },
+        });
+
+        if (!organization) {
+          return { error: 'NOT_FOUND' };
+        }
+
+        // Delete organization (cascade will handle related records)
+        await tx.organization.delete({
+          where: { id: organizationId },
+        });
+
+        return { organization };
       });
 
-      if (!membership || membership.role !== 'OWNER') {
+      if (result.error === 'FORBIDDEN') {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
@@ -604,30 +678,13 @@ router.delete(
         });
       }
 
-      // Check if organization exists and get details for logging
-      const organization = await prisma.organization.findUnique({
-        where: { id: organizationId },
-        include: {
-          _count: {
-            select: {
-              memberships: true,
-              databaseConnections: true,
-              workflows: true,
-            },
-          },
-        },
-      });
-
-      if (!organization) {
+      if (result.error === 'NOT_FOUND') {
         return res.status(404).json({
           error: { code: 'NOT_FOUND', message: 'Organization not found' },
         });
       }
 
-      // Delete organization (cascade will handle related records)
-      await prisma.organization.delete({
-        where: { id: organizationId },
-      });
+      const { organization } = result;
 
       logger.info('Organization deleted successfully', {
         organizationId,
@@ -663,57 +720,72 @@ router.get(
       const organizationId = req.params.id;
       const userId = req.user.userId;
 
-      // Check if user has access to this organization
-      const membership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
+      // SECURITY FIX: Use withTenantContext for organization usage lookup
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user has access to this organization
+        const membership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
+            },
           },
-        },
+        });
+
+        if (!membership) {
+          return { error: 'FORBIDDEN' };
+        }
+
+        // Get subscription limits
+        const subscription = await tx.subscription.findFirst({
+          where: {},
+          select: {
+            plan: true,
+            maxDatabaseConnections: true,
+            maxApiCallsPerMonth: true,
+            maxUsersPerOrg: true,
+            maxWorkflows: true,
+            currentPeriodStart: true,
+            currentPeriodEnd: true,
+          },
+        });
+
+        if (!subscription) {
+          return { error: 'SUBSCRIPTION_NOT_FOUND' };
+        }
+
+        // Get current usage counts
+        const [connectionCount, memberCount, workflowCount, currentMonthUsage] = await Promise.all([
+          tx.databaseConnection.count({ where: {} }),
+          tx.membership.count({ where: {} }),
+          tx.workflow.count({ where: {} }),
+          tx.usageMetric.count({
+            where: {
+              timestamp: {
+                gte: subscription.currentPeriodStart,
+                lte: subscription.currentPeriodEnd,
+              },
+            },
+          }),
+        ]);
+
+        return { subscription, connectionCount, memberCount, workflowCount, currentMonthUsage };
       });
 
-      if (!membership) {
+      if (result.error === 'FORBIDDEN') {
         return res.status(403).json({
           error: { code: 'FORBIDDEN', message: 'Access denied to this organization' },
         });
       }
 
-      // Get subscription limits
-      const subscription = await prisma.subscription.findUnique({
-        where: { organizationId },
-        select: {
-          plan: true,
-          maxDatabaseConnections: true,
-          maxApiCallsPerMonth: true,
-          maxUsersPerOrg: true,
-          maxWorkflows: true,
-          currentPeriodStart: true,
-          currentPeriodEnd: true,
-        },
-      });
-
-      if (!subscription) {
+      if (result.error === 'SUBSCRIPTION_NOT_FOUND') {
         return res.status(404).json({
           error: { code: 'NOT_FOUND', message: 'Subscription not found' },
         });
       }
 
-      // Get current usage counts
-      const [connectionCount, memberCount, workflowCount, currentMonthUsage] = await Promise.all([
-        prisma.databaseConnection.count({ where: { organizationId } }),
-        prisma.membership.count({ where: { organizationId } }),
-        prisma.workflow.count({ where: { organizationId } }),
-        prisma.usageMetric.count({
-          where: {
-            organizationId,
-            timestamp: {
-              gte: subscription.currentPeriodStart,
-              lte: subscription.currentPeriodEnd,
-            },
-          },
-        }),
-      ]);
+      const { subscription, connectionCount, memberCount, workflowCount, currentMonthUsage } =
+        result;
 
       const usage = {
         plan: subscription.plan,
@@ -764,68 +836,75 @@ router.delete(
       const { id: organizationId, memberId } = req.params;
       const userId = req.user.userId;
 
-      // Check if user has admin permissions
-      const userMembership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId,
+      // SECURITY FIX: Use withTenantContext for member removal
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user has admin permissions
+        const userMembership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
+            },
+          },
+        });
+
+        if (!userMembership || !['OWNER', 'ADMIN'].includes(userMembership.role)) {
+          return { error: 'FORBIDDEN', message: 'You must be an owner or admin to remove members' };
+        }
+
+        // Get the member to be removed
+        const memberToRemove = await tx.membership.findUnique({
+          where: { id: memberId },
+          include: { user: true },
+        });
+
+        if (!memberToRemove || memberToRemove.organizationId !== organizationId) {
+          return { error: 'NOT_FOUND', message: 'Member not found' };
+        }
+
+        // Cannot remove owner
+        if (memberToRemove.role === 'OWNER') {
+          return { error: 'BAD_REQUEST', message: 'Cannot remove organization owner' };
+        }
+
+        // Admin cannot remove another admin unless they are owner
+        if (memberToRemove.role === 'ADMIN' && userMembership.role !== 'OWNER') {
+          return { error: 'FORBIDDEN', message: 'Only owners can remove admins' };
+        }
+
+        // Remove the membership
+        await tx.membership.delete({
+          where: { id: memberId },
+        });
+
+        // Create audit log
+        await tx.auditLog.create({
+          data: {
+            action: 'MEMBER_REMOVED',
+            entityType: 'membership',
+            entityId: memberId,
             organizationId,
+            userId,
+            metadata: {
+              removedUserId: memberToRemove.userId,
+              removedUserEmail: memberToRemove.user.email,
+              removedUserRole: memberToRemove.role,
+            },
           },
-        },
+        });
+
+        return { memberToRemove };
       });
 
-      if (!userMembership || !['OWNER', 'ADMIN'].includes(userMembership.role)) {
-        return res.status(403).json({
-          error: { code: 'FORBIDDEN', message: 'You must be an owner or admin to remove members' },
+      if (result.error) {
+        const statusCode =
+          result.error === 'FORBIDDEN' ? 403 : result.error === 'NOT_FOUND' ? 404 : 400;
+        return res.status(statusCode).json({
+          error: { code: result.error, message: result.message },
         });
       }
 
-      // Get the member to be removed
-      const memberToRemove = await prisma.membership.findUnique({
-        where: { id: memberId },
-        include: { user: true },
-      });
-
-      if (!memberToRemove || memberToRemove.organizationId !== organizationId) {
-        return res.status(404).json({
-          error: { code: 'NOT_FOUND', message: 'Member not found' },
-        });
-      }
-
-      // Cannot remove owner
-      if (memberToRemove.role === 'OWNER') {
-        return res.status(400).json({
-          error: { code: 'BAD_REQUEST', message: 'Cannot remove organization owner' },
-        });
-      }
-
-      // Admin cannot remove another admin unless they are owner
-      if (memberToRemove.role === 'ADMIN' && userMembership.role !== 'OWNER') {
-        return res.status(403).json({
-          error: { code: 'FORBIDDEN', message: 'Only owners can remove admins' },
-        });
-      }
-
-      // Remove the membership
-      await prisma.membership.delete({
-        where: { id: memberId },
-      });
-
-      // Create audit log
-      await prisma.auditLog.create({
-        data: {
-          action: 'MEMBER_REMOVED',
-          entityType: 'membership',
-          entityId: memberId,
-          organizationId,
-          userId,
-          metadata: {
-            removedUserId: memberToRemove.userId,
-            removedUserEmail: memberToRemove.user.email,
-            removedUserRole: memberToRemove.role,
-          },
-        },
-      });
+      const { memberToRemove } = result;
 
       logger.info('Member removed from organization', {
         organizationId,
@@ -864,68 +943,75 @@ router.patch(
         });
       }
 
-      // Check if user has admin permissions
-      const userMembership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId,
-            organizationId,
-          },
-        },
-      });
-
-      if (!userMembership || !['OWNER', 'ADMIN'].includes(userMembership.role)) {
-        return res.status(403).json({
-          error: { code: 'FORBIDDEN', message: 'You must be an owner or admin to change roles' },
-        });
-      }
-
-      // Get the member to be updated
-      const memberToUpdate = await prisma.membership.findUnique({
-        where: { id: memberId },
-        include: { user: true },
-      });
-
-      if (!memberToUpdate || memberToUpdate.organizationId !== organizationId) {
-        return res.status(404).json({
-          error: { code: 'NOT_FOUND', message: 'Member not found' },
-        });
-      }
-
-      // Cannot change owner role
-      if (memberToUpdate.role === 'OWNER') {
-        return res.status(400).json({
-          error: { code: 'BAD_REQUEST', message: 'Cannot change owner role' },
-        });
-      }
-
-      // Admin cannot promote to admin or change admin roles unless they are owner
-      if (
-        userMembership.role !== 'OWNER' &&
-        (role === 'ADMIN' || memberToUpdate.role === 'ADMIN')
-      ) {
-        return res.status(403).json({
-          error: { code: 'FORBIDDEN', message: 'Only owners can manage admin roles' },
-        });
-      }
-
-      const oldRole = memberToUpdate.role;
-
-      // Update the membership
-      const updatedMembership = await prisma.membership.update({
-        where: { id: memberId },
-        data: { role },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
+      // SECURITY FIX: Use withTenantContext for member role update
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user has admin permissions
+        const userMembership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
             },
           },
-        },
+        });
+
+        if (!userMembership || !['OWNER', 'ADMIN'].includes(userMembership.role)) {
+          return { error: 'FORBIDDEN', message: 'You must be an owner or admin to change roles' };
+        }
+
+        // Get the member to be updated
+        const memberToUpdate = await tx.membership.findUnique({
+          where: { id: memberId },
+          include: { user: true },
+        });
+
+        if (!memberToUpdate || memberToUpdate.organizationId !== organizationId) {
+          return { error: 'NOT_FOUND', message: 'Member not found' };
+        }
+
+        // Cannot change owner role
+        if (memberToUpdate.role === 'OWNER') {
+          return { error: 'BAD_REQUEST', message: 'Cannot change owner role' };
+        }
+
+        // Admin cannot promote to admin or change admin roles unless they are owner
+        if (
+          userMembership.role !== 'OWNER' &&
+          (role === 'ADMIN' || memberToUpdate.role === 'ADMIN')
+        ) {
+          return { error: 'FORBIDDEN', message: 'Only owners can manage admin roles' };
+        }
+
+        const oldRole = memberToUpdate.role;
+
+        // Update the membership
+        const updatedMembership = await tx.membership.update({
+          where: { id: memberId },
+          data: { role },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        });
+
+        return { memberToUpdate, updatedMembership, oldRole };
       });
+
+      if (result.error) {
+        const statusCode =
+          result.error === 'FORBIDDEN' ? 403 : result.error === 'NOT_FOUND' ? 404 : 400;
+        return res.status(statusCode).json({
+          error: { code: result.error, message: result.message },
+        });
+      }
+
+      const { memberToUpdate, updatedMembership, oldRole } = result;
 
       // Log role change with enhanced audit logging
       await logRoleChange({

@@ -2,43 +2,68 @@ const express = require('express');
 const router = express.Router();
 const prismaService = require('../services/prismaService');
 const { adminOnly } = require('../middleware/auth');
+// SECURITY: Import rate limit authorization middleware
+const { createRateLimitAuthStack } = require('../middleware/rateLimitAuthorization');
 
-const prisma = prismaService.getRLSClient();
+// SECURITY: Remove direct Prisma usage - ALL operations must use tenant-aware context
+// REMOVED - Use withTenantContext for proper tenant isolation
 
-// Apply admin middleware to all routes
+// Apply admin middleware to all routes (kept for backwards compatibility)
 router.use(adminOnly);
 
 /**
  * GET /api/admin/rate-limits/configs
  * Get all rate limit configurations
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/configs', async (req, res) => {
+router.get('/configs', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
     const { type, enabled } = req.query;
-    const where = {};
+    const currentUser = req.user;
 
-    if (type) where.type = type.toUpperCase();
-    if (enabled !== undefined) where.enabled = enabled === 'true';
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for rate limit access',
+      });
+    }
 
-    const configs = await prisma.rateLimitConfig.findMany({
-      where,
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // SECURITY: Input validation - sanitize query parameters
+    if (type && !/^[A-Z_]+$/.test(type.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type parameter format',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const configs = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      const where = {};
+
+      if (type) where.type = type.toUpperCase();
+      if (enabled !== undefined) where.enabled = enabled === 'true';
+
+      return await tx.rateLimitConfig.findMany({
+        where,
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          updater: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-        updater: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: [{ type: 'asc' }, { name: 'asc' }],
+        orderBy: [{ type: 'asc' }, { name: 'asc' }],
+      });
     });
 
     res.json({
@@ -48,10 +73,11 @@ router.get('/configs', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching rate limit configs:', error);
+    // SECURITY: Sanitize error response - don't expose internal details
     res.status(500).json({
       success: false,
       message: 'Error fetching rate limit configurations',
-      error: error.message,
+      // Remove: error: error.message - potential information disclosure
     });
   }
 });
@@ -59,27 +85,50 @@ router.get('/configs', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/configs/:id
  * Get a specific rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/configs/:id', async (req, res) => {
+router.get('/configs/:id', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
-    const config = await prisma.rateLimitConfig.findUnique({
-      where: { id: req.params.id },
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    const currentUser = req.user;
+    const { id } = req.params;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for rate limit access',
+      });
+    }
+
+    // SECURITY: Validate UUID format to prevent injection
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid configuration ID format',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const config = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      return await tx.rateLimitConfig.findUnique({
+        where: { id },
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          updater: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-        updater: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
+      });
     });
 
     if (!config) {
@@ -95,10 +144,10 @@ router.get('/configs/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching rate limit config:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching rate limit configuration',
-      error: error.message,
     });
   }
 });
@@ -106,30 +155,80 @@ router.get('/configs/:id', async (req, res) => {
 /**
  * POST /api/admin/rate-limits/configs
  * Create a new rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.post('/configs', async (req, res) => {
+router.post('/configs', ...createRateLimitAuthStack('create'), async (req, res) => {
   try {
-    const userId = req.user.userId || req.user.id;
+    const currentUser = req.user;
+    const userId = currentUser.userId || currentUser.id;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for rate limit creation',
+      });
+    }
+
+    // SECURITY: Input validation - sanitize required fields
+    const { type, keyStrategy, name } = req.body;
+    if (!type || !keyStrategy || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: type, keyStrategy, name',
+      });
+    }
+
+    // SECURITY: Validate enum values
+    const validTypes = ['API', 'AUTH', 'UPLOAD', 'GRAPHQL', 'WEBSOCKET', 'CUSTOM'];
+    const validStrategies = ['IP', 'USER', 'KEY', 'COMPOSITE'];
+
+    if (!validTypes.includes(type.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type value',
+      });
+    }
+
+    if (!validStrategies.includes(keyStrategy.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid keyStrategy value',
+      });
+    }
+
+    // SECURITY: Sanitize name to prevent injection
+    const sanitizedName = name.replace(/[<>"'`]/g, '').trim();
+    if (sanitizedName !== name || sanitizedName.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid characters in configuration name',
+      });
+    }
 
     const configData = {
       ...req.body,
-      type: req.body.type.toUpperCase(),
-      keyStrategy: req.body.keyStrategy.toUpperCase(),
-      organizationId: req.user.organizationId,
+      name: sanitizedName,
+      type: type.toUpperCase(),
+      keyStrategy: keyStrategy.toUpperCase(),
+      organizationId: currentUser.organizationId,
       createdBy: userId,
     };
 
-    const config = await prisma.rateLimitConfig.create({
-      data: configData,
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const config = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      return await tx.rateLimitConfig.create({
+        data: configData,
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-      },
+      });
     });
 
     res.status(201).json({
@@ -147,10 +246,10 @@ router.post('/configs', async (req, res) => {
       });
     }
 
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error creating rate limit configuration',
-      error: error.message,
     });
   }
 });
@@ -158,47 +257,114 @@ router.post('/configs', async (req, res) => {
 /**
  * PUT /api/admin/rate-limits/configs/:id
  * Update a rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.put('/configs/:id', async (req, res) => {
+router.put('/configs/:id', ...createRateLimitAuthStack('update'), async (req, res) => {
   try {
-    const userId = req.user.userId || req.user.id;
+    const currentUser = req.user;
+    const userId = currentUser.userId || currentUser.id;
+    const { id } = req.params;
 
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for rate limit update',
+      });
+    }
+
+    // SECURITY: Validate UUID format to prevent injection
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid configuration ID format',
+      });
+    }
+
+    // SECURITY: Build sanitized update data
     const updateData = {
-      ...req.body,
       updatedBy: userId,
     };
 
+    // SECURITY: Validate and sanitize allowed fields only
+    const allowedFields = [
+      'name',
+      'description',
+      'type',
+      'keyStrategy',
+      'maxRequests',
+      'windowMs',
+      'enabled',
+    ];
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+
+    // SECURITY: Validate enum values if provided
     if (updateData.type) {
+      const validTypes = ['API', 'AUTH', 'UPLOAD', 'GRAPHQL', 'WEBSOCKET', 'CUSTOM'];
+      if (!validTypes.includes(updateData.type.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid type value',
+        });
+      }
       updateData.type = updateData.type.toUpperCase();
     }
+
     if (updateData.keyStrategy) {
+      const validStrategies = ['IP', 'USER', 'KEY', 'COMPOSITE'];
+      if (!validStrategies.includes(updateData.keyStrategy.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid keyStrategy value',
+        });
+      }
       updateData.keyStrategy = updateData.keyStrategy.toUpperCase();
     }
 
-    // Remove fields that shouldn't be updated
-    delete updateData.createdBy;
-    delete updateData.createdAt;
-    delete updateData.organizationId;
+    // SECURITY: Sanitize name if provided
+    if (updateData.name) {
+      const sanitizedName = updateData.name.replace(/[<>"'`]/g, '').trim();
+      if (sanitizedName !== updateData.name || sanitizedName.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid characters in configuration name',
+        });
+      }
+      updateData.name = sanitizedName;
+    }
 
-    const config = await prisma.rateLimitConfig.update({
-      where: { id: req.params.id },
-      data: updateData,
-      include: {
-        creator: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const config = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      // SECURITY: First verify the config exists and belongs to this tenant
+      const existingConfig = await tx.rateLimitConfig.findUnique({ where: { id } });
+      if (!existingConfig) {
+        throw new Error('RATE_LIMIT_NOT_FOUND');
+      }
+
+      return await tx.rateLimitConfig.update({
+        where: { id },
+        data: updateData,
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          updater: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-        updater: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
+      });
     });
 
     res.json({
@@ -209,17 +375,17 @@ router.put('/configs/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating rate limit config:', error);
 
-    if (error.code === 'P2025') {
+    if (error.message === 'RATE_LIMIT_NOT_FOUND' || error.code === 'P2025') {
       return res.status(404).json({
         success: false,
         message: 'Rate limit configuration not found',
       });
     }
 
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error updating rate limit configuration',
-      error: error.message,
     });
   }
 });
@@ -227,11 +393,40 @@ router.put('/configs/:id', async (req, res) => {
 /**
  * DELETE /api/admin/rate-limits/configs/:id
  * Delete a rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.delete('/configs/:id', async (req, res) => {
+router.delete('/configs/:id', ...createRateLimitAuthStack('delete'), async (req, res) => {
   try {
-    await prisma.rateLimitConfig.delete({
-      where: { id: req.params.id },
+    const currentUser = req.user;
+    const { id } = req.params;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for rate limit deletion',
+      });
+    }
+
+    // SECURITY: Validate UUID format to prevent injection
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid configuration ID format',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      // SECURITY: First verify the config exists and belongs to this tenant
+      const existingConfig = await tx.rateLimitConfig.findUnique({ where: { id } });
+      if (!existingConfig) {
+        throw new Error('RATE_LIMIT_NOT_FOUND');
+      }
+
+      return await tx.rateLimitConfig.delete({
+        where: { id },
+      });
     });
 
     res.json({
@@ -241,17 +436,17 @@ router.delete('/configs/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting rate limit config:', error);
 
-    if (error.code === 'P2025') {
+    if (error.message === 'RATE_LIMIT_NOT_FOUND' || error.code === 'P2025') {
       return res.status(404).json({
         success: false,
         message: 'Rate limit configuration not found',
       });
     }
 
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error deleting rate limit configuration',
-      error: error.message,
     });
   }
 });
@@ -259,30 +454,57 @@ router.delete('/configs/:id', async (req, res) => {
 /**
  * POST /api/admin/rate-limits/configs/:id/toggle
  * Toggle enabled/disabled status of a rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.post('/configs/:id/toggle', async (req, res) => {
+router.post('/configs/:id/toggle', ...createRateLimitAuthStack('update'), async (req, res) => {
   try {
-    const userId = req.user.userId || req.user.id;
+    const currentUser = req.user;
+    const userId = currentUser.userId || currentUser.id;
+    const { id } = req.params;
 
-    const config = await prisma.rateLimitConfig.findUnique({
-      where: { id: req.params.id },
-    });
-
-    if (!config) {
-      return res.status(404).json({
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
         success: false,
-        message: 'Rate limit configuration not found',
+        message: 'Organization context required for rate limit toggle',
       });
     }
 
-    const updatedConfig = await prisma.rateLimitConfig.update({
-      where: { id: req.params.id },
-      data: {
-        enabled: !config.enabled,
-        updatedBy: userId,
-        changeReason: req.body.reason || `${!config.enabled ? 'Enabled' : 'Disabled'} by admin`,
-      },
-    });
+    // SECURITY: Validate UUID format to prevent injection
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid configuration ID format',
+      });
+    }
+
+    // SECURITY: Sanitize reason if provided
+    const reason = req.body.reason ? req.body.reason.replace(/[<>\"'`]/g, '').trim() : null;
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const updatedConfig = await prismaService.withTenantContext(
+      currentUser.organizationId,
+      async tx => {
+        // SECURITY: First verify the config exists and belongs to this tenant
+        const config = await tx.rateLimitConfig.findUnique({
+          where: { id },
+        });
+
+        if (!config) {
+          throw new Error('RATE_LIMIT_NOT_FOUND');
+        }
+
+        // Toggle the enabled status
+        return await tx.rateLimitConfig.update({
+          where: { id },
+          data: {
+            enabled: !config.enabled,
+            updatedBy: userId,
+            changeReason: reason || `${!config.enabled ? 'Enabled' : 'Disabled'} by admin`,
+          },
+        });
+      }
+    );
 
     res.json({
       success: true,
@@ -291,10 +513,18 @@ router.post('/configs/:id/toggle', async (req, res) => {
     });
   } catch (error) {
     console.error('Error toggling rate limit config:', error);
+
+    if (error.message === 'RATE_LIMIT_NOT_FOUND') {
+      return res.status(404).json({
+        success: false,
+        message: 'Rate limit configuration not found',
+      });
+    }
+
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error toggling rate limit configuration',
-      error: error.message,
     });
   }
 });
@@ -302,20 +532,37 @@ router.post('/configs/:id/toggle', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/active
  * Get all active rate limits with current usage
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/active', async (req, res) => {
+router.get('/active', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
-    const activeLimits = await prisma.rateLimitUsage.findMany({
-      where: {
-        blocked: false,
-        resetAt: {
-          gte: new Date(),
-        },
-      },
-      orderBy: {
-        currentCount: 'desc',
-      },
-    });
+    const currentUser = req.user;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for active rate limits access',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const activeLimits = await prismaService.withTenantContext(
+      currentUser.organizationId,
+      async tx => {
+        return await tx.rateLimitUsage.findMany({
+          where: {
+            blocked: false,
+            resetAt: {
+              gte: new Date(),
+            },
+          },
+          orderBy: {
+            currentCount: 'desc',
+          },
+        });
+      }
+    );
 
     res.json({
       success: true,
@@ -324,10 +571,10 @@ router.get('/active', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching active rate limits:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching active rate limits',
-      error: error.message,
     });
   }
 });
@@ -335,19 +582,36 @@ router.get('/active', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/applications
  * Get all applications for rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/applications', async (req, res) => {
+router.get('/applications', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
-    const applications = await prisma.application.findMany({
-      where: { isActive: true },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        createdAt: true,
-      },
-      orderBy: { name: 'asc' },
-    });
+    const currentUser = req.user;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for applications access',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const applications = await prismaService.withTenantContext(
+      currentUser.organizationId,
+      async tx => {
+        return await tx.application.findMany({
+          where: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            createdAt: true,
+          },
+          orderBy: { name: 'asc' },
+        });
+      }
+    );
 
     res.json({
       success: true,
@@ -355,10 +619,10 @@ router.get('/applications', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching applications:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching applications',
-      error: error.message,
     });
   }
 });
@@ -366,19 +630,33 @@ router.get('/applications', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/roles
  * Get all roles for rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/roles', async (req, res) => {
+router.get('/roles', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
-    const roles = await prisma.role.findMany({
-      include: {
-        service: {
-          select: {
-            name: true,
-            description: true,
+    const currentUser = req.user;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for roles access',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const roles = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      return await tx.role.findMany({
+        include: {
+          service: {
+            select: {
+              name: true,
+              description: true,
+            },
           },
         },
-      },
-      orderBy: { name: 'asc' },
+        orderBy: { name: 'asc' },
+      });
     });
 
     res.json({
@@ -387,10 +665,10 @@ router.get('/roles', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching roles:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching roles',
-      error: error.message,
     });
   }
 });
@@ -398,17 +676,31 @@ router.get('/roles', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/services
  * Get all services for rate limit configuration
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/services', async (req, res) => {
+router.get('/services', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
-    const services = await prisma.service.findMany({
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        objects: true,
-      },
-      orderBy: { name: 'asc' },
+    const currentUser = req.user;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for services access',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const services = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+      return await tx.service.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          objects: true,
+        },
+        orderBy: { name: 'asc' },
+      });
     });
 
     // Extract procedure names from objects
@@ -425,10 +717,10 @@ router.get('/services', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching services:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching services',
-      error: error.message,
     });
   }
 });
@@ -436,37 +728,61 @@ router.get('/services', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/analytics
  * Get rate limiting analytics and statistics
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/analytics', async (req, res) => {
+router.get('/analytics', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
-    const configs = await prisma.rateLimitConfig.findMany();
-    const activeLimits = await prisma.rateLimitUsage.findMany({
-      where: {
-        blocked: false,
-        resetAt: {
-          gte: new Date(),
-        },
-      },
-      orderBy: {
-        currentCount: 'desc',
-      },
-      take: 10,
-    });
+    const currentUser = req.user;
 
-    const recentChanges = await prisma.rateLimitConfig.findMany({
-      include: {
-        updater: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
-      take: 10,
-    });
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for analytics access',
+      });
+    }
+
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const { configs, activeLimits, recentChanges } = await prismaService.withTenantContext(
+      currentUser.organizationId,
+      async tx => {
+        const [configsData, activeLimitsData, recentChangesData] = await Promise.all([
+          tx.rateLimitConfig.findMany(),
+          tx.rateLimitUsage.findMany({
+            where: {
+              blocked: false,
+              resetAt: {
+                gte: new Date(),
+              },
+            },
+            orderBy: {
+              currentCount: 'desc',
+            },
+            take: 10,
+          }),
+          tx.rateLimitConfig.findMany({
+            include: {
+              updater: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+            orderBy: {
+              updatedAt: 'desc',
+            },
+            take: 10,
+          }),
+        ]);
+
+        return {
+          configs: configsData,
+          activeLimits: activeLimitsData,
+          recentChanges: recentChangesData,
+        };
+      }
+    );
 
     const analytics = {
       totalConfigs: configs.length,
@@ -492,10 +808,10 @@ router.get('/analytics', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching rate limit analytics:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching rate limit analytics',
-      error: error.message,
     });
   }
 });
@@ -503,10 +819,29 @@ router.get('/analytics', async (req, res) => {
 /**
  * GET /api/admin/rate-limits/history
  * Get historical rate limiting data for analytics
+ * SECURITY: Uses tenant-aware database operations per CLAUDE.md requirements
  */
-router.get('/history', async (req, res) => {
+router.get('/history', ...createRateLimitAuthStack('read'), async (req, res) => {
   try {
+    const currentUser = req.user;
     const { timeRange = '7d', granularity = 'day' } = req.query;
+
+    // SECURITY: Validate user has organization context for RLS
+    if (!currentUser?.organizationId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Organization context required for history access',
+      });
+    }
+
+    // SECURITY: Validate timeRange parameter
+    const validTimeRanges = ['1h', '6h', '24h', '7d', '30d'];
+    if (!validTimeRanges.includes(timeRange)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid timeRange parameter',
+      });
+    }
 
     // Calculate date range
     const now = new Date();
@@ -532,25 +867,30 @@ router.get('/history', async (req, res) => {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
 
-    // Get configuration changes in time range
-    const recentConfigs = await prisma.rateLimitConfig.findMany({
-      where: {
-        updatedAt: {
-          gte: startDate,
-        },
-      },
-      include: {
-        updater: {
-          select: {
-            firstName: true,
-            lastName: true,
+    // CRITICAL: Use tenant-aware Prisma client per CLAUDE.md requirements
+    const recentConfigs = await prismaService.withTenantContext(
+      currentUser.organizationId,
+      async tx => {
+        return await tx.rateLimitConfig.findMany({
+          where: {
+            updatedAt: {
+              gte: startDate,
+            },
           },
-        },
-      },
-      orderBy: {
-        updatedAt: 'desc',
-      },
-    });
+          include: {
+            updater: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        });
+      }
+    );
 
     const historyData = {
       timeRange,
@@ -576,10 +916,10 @@ router.get('/history', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching rate limit history:', error);
+    // SECURITY: Sanitize error response
     res.status(500).json({
       success: false,
       message: 'Error fetching rate limit history',
-      error: error.message,
     });
   }
 });

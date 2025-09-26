@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const config = require('../config/blueprints');
 const { logger } = require('../utils/logger');
 
@@ -115,13 +114,6 @@ router.get('/:model', async (req, res) => {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown model' } });
     }
 
-    const delegate = prisma[mc.delegate];
-    if (!delegate) {
-      return res
-        .status(500)
-        .json({ error: { code: 'SERVER_ERROR', message: 'Model delegate not available' } });
-    }
-
     const limit = Math.max(
       1,
       Math.min(
@@ -144,20 +136,30 @@ router.get('/:model', async (req, res) => {
       where.organizationId = req.user.organizationId;
     }
 
-    const [data, total] = await Promise.all([
-      delegate.findMany({ where, select, orderBy, skip, take: limit }),
-      delegate.count({ where }),
-    ]);
+    const organizationId = req.user?.organizationId;
+    const result = await prismaService.withTenantContext(organizationId, async tx => {
+      const delegate = tx[mc.delegate];
+      if (!delegate) {
+        throw new Error('Model delegate not available');
+      }
 
-    return res.json({
-      data,
-      meta: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit) || 1,
-      },
+      const [data, total] = await Promise.all([
+        delegate.findMany({ where, select, orderBy, skip, take: limit }),
+        delegate.count({ where }),
+      ]);
+
+      return {
+        data,
+        meta: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit) || 1,
+        },
+      };
     });
+
+    return res.json(result);
   } catch (error) {
     logger.error('Blueprint list error', { error: error.message });
     return res
@@ -174,20 +176,22 @@ router.get('/:model/:id', async (req, res) => {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown model' } });
     }
 
-    const delegate = prisma[mc.delegate];
-    if (!delegate) {
-      return res
-        .status(500)
-        .json({ error: { code: 'SERVER_ERROR', message: 'Model delegate not available' } });
-    }
-
     const select = parseSelect(req.query.select, mc.fields);
     const where = { [mc.idField]: req.params.id };
     if (mc.tenantScoped && req.user && req.user.organizationId) {
       where.organizationId = req.user.organizationId;
     }
 
-    const record = await delegate.findFirst({ where, select });
+    const organizationId = req.user?.organizationId;
+    const record = await prismaService.withTenantContext(organizationId, async tx => {
+      const delegate = tx[mc.delegate];
+      if (!delegate) {
+        throw new Error('Model delegate not available');
+      }
+
+      return await delegate.findFirst({ where, select });
+    });
+
     if (!record) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Record not found' } });
     }

@@ -4,7 +4,6 @@
  */
 
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 
 /**
  * Log a general audit event
@@ -37,20 +36,22 @@ async function logAuditEvent(options) {
       userAgent,
     } = options;
 
-    await prisma.auditLog.create({
-      data: {
-        action,
-        entityType,
-        entityId,
-        userId,
-        adminPerformedById: adminUserId,
-        organizationId,
-        oldValues,
-        newValues,
-        metadata,
-        ipAddress,
-        userAgent,
-      },
+    await prismaService.withTenantContext(organizationId, async tx => {
+      await tx.auditLog.create({
+        data: {
+          action,
+          entityType,
+          entityId,
+          userId,
+          adminPerformedById: adminUserId,
+          organizationId,
+          oldValues,
+          newValues,
+          metadata,
+          ipAddress,
+          userAgent,
+        },
+      });
     });
 
     console.log(`Audit log created: ${action} on ${entityType} ${entityId}`);
@@ -94,21 +95,23 @@ async function logRoleChange(options) {
     } = options;
 
     // Create detailed role change log
-    const roleChangeLog = await prisma.roleChangeLog.create({
-      data: {
-        targetUserId,
-        targetAdminId,
-        organizationId,
-        oldRole,
-        newRole,
-        reason,
-        performedById,
-        adminPerformedById,
-        approvedById,
-        status,
-        ipAddress,
-        userAgent,
-      },
+    const roleChangeLog = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.roleChangeLog.create({
+        data: {
+          targetUserId,
+          targetAdminId,
+          organizationId,
+          oldRole,
+          newRole,
+          reason,
+          performedById,
+          adminPerformedById,
+          approvedById,
+          status,
+          ipAddress,
+          userAgent,
+        },
+      });
     });
 
     // Also log as general audit event
@@ -274,26 +277,28 @@ async function getAuditLogs(options = {}) {
     if (endDate) where.timestamp.lte = endDate;
   }
 
-  const [logs, total] = await Promise.all([
-    prisma.auditLog.findMany({
-      where,
-      orderBy: { [orderBy]: orderDir },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        user: {
-          select: { id: true, email: true, firstName: true, lastName: true },
+  const [logs, total] = await prismaService.withTenantContext(organizationId, async tx => {
+    return await Promise.all([
+      tx.auditLog.findMany({
+        where,
+        orderBy: { [orderBy]: orderDir },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          adminPerformedBy: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          organization: {
+            select: { id: true, name: true, slug: true },
+          },
         },
-        adminPerformedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true },
-        },
-        organization: {
-          select: { id: true, name: true, slug: true },
-        },
-      },
-    }),
-    prisma.auditLog.count({ where }),
-  ]);
+      }),
+      tx.auditLog.count({ where }),
+    ]);
+  });
 
   return {
     logs,
@@ -346,35 +351,37 @@ async function getRoleChangeLogs(options = {}) {
     if (endDate) where.createdAt.lte = endDate;
   }
 
-  const [logs, total] = await Promise.all([
-    prisma.roleChangeLog.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        targetUser: {
-          select: { id: true, email: true, firstName: true, lastName: true },
+  const [logs, total] = await prismaService.withTenantContext(organizationId, async tx => {
+    return await Promise.all([
+      tx.roleChangeLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          targetUser: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          targetAdmin: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          performedBy: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          adminPerformedBy: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          approvedBy: {
+            select: { id: true, email: true, firstName: true, lastName: true },
+          },
+          organization: {
+            select: { id: true, name: true, slug: true },
+          },
         },
-        targetAdmin: {
-          select: { id: true, email: true, firstName: true, lastName: true },
-        },
-        performedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true },
-        },
-        adminPerformedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true },
-        },
-        approvedBy: {
-          select: { id: true, email: true, firstName: true, lastName: true },
-        },
-        organization: {
-          select: { id: true, name: true, slug: true },
-        },
-      },
-    }),
-    prisma.roleChangeLog.count({ where }),
-  ]);
+      }),
+      tx.roleChangeLog.count({ where }),
+    ]);
+  });
 
   return {
     logs,

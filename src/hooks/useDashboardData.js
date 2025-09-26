@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import api from '../services/api';
-import { getDashboardMetrics } from '../services/dashboardService';
+import { getDashboardMetrics, getActivityStatistics } from '../services/dashboardService';
 import SecureSessionStorage from '../utils/secureStorage';
 
 // Dashboard metrics query hook
@@ -55,14 +54,7 @@ export const useActivityStatistics = (dateRange = '30d') => {
   return useQuery({
     queryKey: ['activity-statistics', dateRange],
     queryFn: async () => {
-      const response = await api.get('/api/activity-logs/statistics', {
-        params: {
-          timeframe: timeframeMap[dateRange] || '30d',
-          onlyImportant: true,
-          _t: new Date().getTime(), // Cache-busting parameter
-        },
-      });
-      return response.data.data;
+      return await getActivityStatistics(timeframeMap[dateRange] || '30d', true);
     },
     staleTime: 1000 * 60 * 1, // 1 minute - very fresh data
     cacheTime: 1000 * 60 * 3, // 3 minutes

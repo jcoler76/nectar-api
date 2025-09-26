@@ -171,12 +171,13 @@ const checkDatasourceLimit = async (req, res, next) => {
       return next();
     }
 
-    // Count current datasources
+    // Count current datasources using proper RLS
     const prismaService = require('../services/prismaService');
-    const prisma = prismaService.getRLSClient();
 
-    const currentCount = await prisma.connection.count({
-      where: { organizationId },
+    const currentCount = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.connection.count({
+        where: { organizationId },
+      });
     });
 
     if (currentCount >= limits.datasourceLimit) {

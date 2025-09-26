@@ -3,7 +3,6 @@ const cron = require('node-cron');
 // const { Workflow } = require('../models/workflowModels');
 
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const HubSpotService = require('./hubspot/HubSpotService');
 const axios = require('axios');
 const { executeWorkflow } = require('./workflows/engine');
@@ -890,9 +889,11 @@ const initializeScheduler = async () => {
           logger.info('📊 Starting daily storage usage tracking');
 
           // Get all active organizations
-          const organizations = await prisma.organization.findMany({
-            where: { isActive: true },
-            select: { id: true, name: true },
+          const organizations = await prismaService.withTenantContext(null, async tx => {
+            return await tx.organization.findMany({
+              where: { isActive: true },
+              select: { id: true, name: true },
+            });
           });
 
           let recordedCount = 0;
@@ -934,9 +935,11 @@ const initializeScheduler = async () => {
           const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
           // Get all active organizations
-          const organizations = await prisma.organization.findMany({
-            where: { isActive: true },
-            include: { subscription: true },
+          const organizations = await prismaService.withTenantContext(null, async tx => {
+            return await tx.organization.findMany({
+              where: { isActive: true },
+              include: { subscription: true },
+            });
           });
 
           let processedCount = 0;

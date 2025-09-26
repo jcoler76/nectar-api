@@ -111,14 +111,14 @@ const ConnectionList = () => {
           <Tooltip
             title={
               row.failoverHost
-                ? `Primary: ${row.host}\nFailover: ${row.failoverHost}`
-                : `Server: ${row.host}`
+                ? `Connection configured with failover support for high availability`
+                : `Standard database connection`
             }
           >
             <div className="cursor-help">
               <div className="font-medium">{row.host}</div>
               {row.failoverHost && (
-                <div className="text-xs text-muted-foreground">Mirror: {row.failoverHost}</div>
+                <div className="text-xs text-muted-foreground">High Availability</div>
               )}
             </div>
           </Tooltip>

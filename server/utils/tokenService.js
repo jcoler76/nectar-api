@@ -79,16 +79,16 @@ const generateTokens = (payload, fingerprint = null) => {
     algorithm: 'HS256', // Explicitly specify algorithm
     expiresIn: '1d', // 1 day access token
     jwtid: accessTokenId,
-    issuer: 'nectar-api',
-    audience: 'nectar-client',
+    issuer: process.env.JWT_ISSUER || 'nectar-api',
+    audience: process.env.JWT_AUDIENCE || 'nectar-client',
   });
 
   const refreshToken = jwt.sign(refreshPayload, secret, {
     algorithm: 'HS256', // Explicitly specify algorithm
     expiresIn: '7d', // Longer-lived refresh token
     jwtid: refreshTokenId,
-    issuer: 'nectar-api',
-    audience: 'nectar-client',
+    issuer: process.env.JWT_ISSUER || 'nectar-api',
+    audience: process.env.JWT_AUDIENCE || 'nectar-client',
   });
 
   return {
@@ -109,8 +109,8 @@ const validateToken = async token => {
     // Verify token with algorithm restriction
     const decoded = jwt.verify(token, secret, {
       algorithms: ['HS256'], // Only allow HS256 algorithm
-      issuer: 'nectar-api',
-      audience: 'nectar-client', // Standardized nectar audience
+      issuer: process.env.JWT_ISSUER || 'nectar-api',
+      audience: process.env.JWT_AUDIENCE || 'nectar-client',
     });
 
     // Check if token is blacklisted (Redis or in-memory)

@@ -4,7 +4,6 @@ const router = express.Router();
 // const Endpoint = require('../models/Endpoint');
 // const Connection = require('../models/Connection');
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const sql = require('mssql');
 const { decryptDatabasePassword } = require('../utils/encryption');
 const { logger } = require('../utils/logger');
@@ -32,9 +31,11 @@ const devApiKeyAuth = async (req, res, next) => {
       });
     }
 
-    // TODO: Implement proper Prisma query for endpoint lookup
-    const endpoint = await prisma.endpoint.findFirst({
-      where: { name: endpointName, apiKey: apiKey },
+    // Find endpoint with proper RLS (system-level since API key auth doesn't have org context yet)
+    const endpoint = await prismaService.withTenantContext(null, async tx => {
+      return await tx.endpoint.findFirst({
+        where: { name: endpointName, apiKey: apiKey },
+      });
     });
     if (!endpoint) {
       return res.status(403).json({
@@ -67,12 +68,18 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
 
   let pool;
   try {
-    // TODO: Implement proper Prisma query for connection lookup
-    const connection = await prisma.databaseConnection.findFirst({
-      where: {
-        databases: { array_contains: databaseName },
-      },
-    });
+    // Find connection with proper RLS using endpoint's organization context
+    const connection = await prismaService.withTenantContext(
+      req.endpoint.organizationId,
+      async tx => {
+        return await tx.connection.findFirst({
+          where: {
+            databases: { has: databaseName },
+            isActive: true,
+          },
+        });
+      }
+    );
 
     if (!connection) {
       return res.status(404).json({
@@ -85,11 +92,11 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
       name: connection.name,
       host: connection.host,
       databases: connection.databases,
-      passwordEncrypted: connection.passwordEncrypted,
-      passwordLength: connection.passwordEncrypted?.length,
-      hasColon: connection.passwordEncrypted?.includes(':'),
+      passwordEncrypted: connection.password,
+      passwordLength: connection.password?.length,
+      hasColon: connection.password?.includes(':'),
     });
-    const decryptedPassword = decryptDatabasePassword(connection.passwordEncrypted);
+    const decryptedPassword = decryptDatabasePassword(connection.password);
 
     const config = {
       user: connection.username,
@@ -182,33 +189,35 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
       });
     }
 
-    // Log API activity for the API Usage Report
+    // Log API activity for the API Usage Report with proper RLS
     try {
-      await prisma.apiActivityLog.create({
-        data: {
-          requestId: uuidv4(),
-          timestamp: new Date(),
-          method: 'POST',
-          url: req.originalUrl || '/api/developer/execute',
-          endpoint: `developer/${req.endpoint.name}`,
-          statusCode: 200,
-          responseTime: new Date() - executionStart,
-          userAgent: req.headers['user-agent'] || 'Unknown',
-          ipAddress: req.ip || req.connection.remoteAddress,
-          category: 'developer_endpoint',
-          endpointType: 'public',
-          importance: 'high',
-          metadata: {
-            endpointName: req.endpoint.name,
-            databaseName: databaseName,
-            environment: environment,
-            recordCount: result.recordset.length,
-            parameters: Object.keys(parameters || {}),
+      await prismaService.withTenantContext(req.endpoint.organizationId, async tx => {
+        await tx.apiActivityLog.create({
+          data: {
+            requestId: uuidv4(),
+            timestamp: new Date(),
+            method: 'POST',
+            url: req.originalUrl || '/api/developer/execute',
+            endpoint: `developer/${req.endpoint.name}`,
+            statusCode: 200,
+            responseTime: new Date() - executionStart,
+            userAgent: req.headers['user-agent'] || 'Unknown',
+            ipAddress: req.ip || req.connection.remoteAddress,
+            category: 'developer_endpoint',
+            endpointType: 'public',
+            importance: 'high',
+            metadata: {
+              endpointName: req.endpoint.name,
+              databaseName: databaseName,
+              environment: environment,
+              recordCount: result.recordset.length,
+              parameters: Object.keys(parameters || {}),
+            },
+            organizationId: req.endpoint.organizationId,
+            userId: null, // Developer API doesn't have user context
+            endpointId: req.endpoint.id,
           },
-          organizationId: req.endpoint.organizationId,
-          userId: null, // Developer API doesn't have user context
-          endpointId: req.endpoint.id,
-        },
+        });
       });
       logger.info('API activity logged for developer endpoint execution');
     } catch (logError) {

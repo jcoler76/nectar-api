@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const prismaService = require('../services/prismaService');
 const { sanitizeObject } = require('../utils/logSanitizer');
+const { securityMonitoring, SECURITY_EVENTS } = require('../services/securityMonitoringService');
 
 const { logger } = require('./logger');
 
@@ -17,6 +18,20 @@ class ActivityLogger {
     this.maxBodySize = 10 * 1024; // 10KB max for request/response body logging
     this.sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
     this.excludedEndpoints = ['/health', '/ping', '/favicon.ico'];
+
+    // Security-related endpoints that require special logging
+    this.securityEndpoints = [
+      '/api/auth/login',
+      '/api/auth/logout',
+      '/api/auth/refresh',
+      '/api/admin',
+      '/api/users',
+      '/api/keys',
+      '/api/applications',
+    ];
+
+    // Bulk data access patterns
+    this.bulkDataThreshold = 100; // Records returned in response
   }
 
   /**
@@ -95,6 +110,14 @@ class ActivityLogger {
       // Classify the endpoint using the full URL path
       const classification = this.classifyEndpoint(req.originalUrl || req.url, req.method);
 
+      // Security classification and risk assessment
+      const securityClassification = this.classifySecurityEvent(
+        req,
+        res,
+        classification,
+        userContext
+      );
+
       // Prepare sanitized request/response data
       const sanitizedRequestBody = this.sanitizeBody(req.body);
       const sanitizedResponseBody = this.sanitizeBody(responseBody);
@@ -169,6 +192,18 @@ class ActivityLogger {
         // Additional metadata
         metadata: {
           procedureName: this.extractProcedureName(req),
+
+          // Security metadata
+          securityClassification: securityClassification,
+
+          // Bulk data detection
+          responseRecordCount: this.estimateRecordCount(sanitizedResponseBody),
+          isBulkDataAccess: this.isBulkDataAccess(sanitizedResponseBody),
+
+          // Security flags
+          isSecurityEndpoint: this.isSecurityEndpoint(req.path),
+          hasAuthFailure: res.statusCode === 401 || res.statusCode === 403,
+          isPrivilegeEscalation: this.detectPrivilegeEscalation(req, userContext),
           normalizedEndpoint: this.normalizeEndpoint(req.route?.path || req.path),
           requestHeaders: sanitizedHeaders,
           requestBody: sanitizedRequestBody,
@@ -202,6 +237,9 @@ class ActivityLogger {
         url: req.originalUrl,
         statusCode: res.statusCode,
       });
+
+      // Integrate with security monitoring for special events
+      await this.integrateSecurityMonitoring(req, res, activityLogData, securityClassification);
 
       // Log errors for immediate attention
       if (!success) {
@@ -490,6 +528,218 @@ class ActivityLogger {
    */
   shouldSkipLogging(path) {
     return this.excludedEndpoints.some(excluded => path.startsWith(excluded));
+  }
+
+  /**
+   * Classify security events for enhanced monitoring
+   */
+  classifySecurityEvent(req, res, classification, userContext) {
+    const path = req.path || '';
+    const method = req.method || '';
+    const statusCode = res.statusCode;
+
+    let securityLevel = 'NORMAL';
+    let eventType = 'API_ACCESS';
+    const flags = [];
+
+    // Authentication-related events
+    if (path.includes('/auth/')) {
+      eventType = 'AUTHENTICATION';
+      if (statusCode === 401 || statusCode === 403) {
+        securityLevel = 'HIGH';
+        flags.push('AUTH_FAILURE');
+      } else if (statusCode === 200) {
+        securityLevel = 'MEDIUM';
+        flags.push('AUTH_SUCCESS');
+      }
+    }
+
+    // Admin endpoints
+    if (path.includes('/admin') || classification.importance === 'critical') {
+      eventType = 'ADMIN_ACCESS';
+      securityLevel = statusCode >= 400 ? 'HIGH' : 'MEDIUM';
+      if (statusCode === 403) {
+        flags.push('PRIVILEGE_ESCALATION_ATTEMPT');
+      }
+    }
+
+    // API key management
+    if (path.includes('/api/keys') || path.includes('/applications')) {
+      eventType = 'API_KEY_MANAGEMENT';
+      securityLevel = 'HIGH';
+      flags.push('SENSITIVE_RESOURCE');
+    }
+
+    // Data access patterns
+    if (method === 'GET' && this.isBulkDataAccess(req.query)) {
+      eventType = 'BULK_DATA_ACCESS';
+      securityLevel = 'MEDIUM';
+      flags.push('BULK_DATA_REQUEST');
+    }
+
+    // User management
+    if (path.includes('/users') && method !== 'GET') {
+      eventType = 'USER_MANAGEMENT';
+      securityLevel = 'HIGH';
+      flags.push('USER_MODIFICATION');
+    }
+
+    return {
+      eventType,
+      securityLevel,
+      flags,
+      timestamp: new Date(),
+      riskScore: this.calculateRiskScore(securityLevel, flags, statusCode),
+    };
+  }
+
+  /**
+   * Calculate risk score based on security factors
+   */
+  calculateRiskScore(securityLevel, flags, statusCode) {
+    let score = 0;
+
+    // Base score by security level
+    const levelScores = {
+      LOW: 1,
+      NORMAL: 2,
+      MEDIUM: 5,
+      HIGH: 10,
+      CRITICAL: 20,
+    };
+
+    score += levelScores[securityLevel] || 2;
+
+    // Add points for specific flags
+    const flagScores = {
+      AUTH_FAILURE: 5,
+      PRIVILEGE_ESCALATION_ATTEMPT: 10,
+      BULK_DATA_REQUEST: 3,
+      SENSITIVE_RESOURCE: 3,
+      USER_MODIFICATION: 4,
+    };
+
+    flags.forEach(flag => {
+      score += flagScores[flag] || 0;
+    });
+
+    // Status code modifiers
+    if (statusCode >= 500) score += 2; // Server errors
+    if (statusCode === 403) score += 3; // Forbidden
+    if (statusCode === 401) score += 2; // Unauthorized
+
+    return Math.min(score, 50); // Cap at 50
+  }
+
+  /**
+   * Check if request represents bulk data access
+   */
+  isBulkDataAccess(data) {
+    if (typeof data === 'object' && data !== null) {
+      // Check if response contains arrays with many items
+      for (const key in data) {
+        if (Array.isArray(data[key]) && data[key].length > this.bulkDataThreshold) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Estimate number of records in response
+   */
+  estimateRecordCount(data) {
+    if (typeof data === 'object' && data !== null) {
+      for (const key in data) {
+        if (Array.isArray(data[key])) {
+          return data[key].length;
+        }
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Check if endpoint is security-sensitive
+   */
+  isSecurityEndpoint(path) {
+    return this.securityEndpoints.some(endpoint => path.includes(endpoint));
+  }
+
+  /**
+   * Detect potential privilege escalation attempts
+   */
+  detectPrivilegeEscalation(req, userContext) {
+    const path = req.path || '';
+
+    // Non-admin accessing admin endpoints
+    if (path.includes('/admin') && !userContext.isAdmin) {
+      return true;
+    }
+
+    // Accessing other organization's resources
+    if (
+      req.params.organizationId &&
+      userContext.organizationId &&
+      req.params.organizationId !== userContext.organizationId
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Normalize endpoint for pattern analysis
+   */
+  normalizeEndpoint(path) {
+    if (!path) return 'unknown';
+
+    // Replace UUIDs and IDs with placeholders
+    return path
+      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi, ':uuid')
+      .replace(/\/\d+/g, '/:id')
+      .replace(/\/[0-9a-f]{24}/g, '/:objectId');
+  }
+
+  /**
+   * Integrate with security monitoring service
+   */
+  async integrateSecurityMonitoring(req, res, activityData, securityClassification) {
+    try {
+      const { eventType, securityLevel, flags } = securityClassification;
+
+      // Track bulk data access
+      if (flags.includes('BULK_DATA_REQUEST')) {
+        await securityMonitoring.trackBulkDataAccess({
+          userId: activityData.userId,
+          ip: activityData.ipAddress,
+          endpoint: activityData.url,
+          recordCount: activityData.metadata.responseRecordCount || 0,
+          userAgent: activityData.userAgent,
+        });
+      }
+
+      // Log high-risk activities
+      if (securityLevel === 'HIGH' || securityLevel === 'CRITICAL') {
+        logger.warn('High-risk security activity detected', {
+          eventType,
+          securityLevel,
+          flags,
+          userId: activityData.userId,
+          ip: activityData.ipAddress,
+          endpoint: activityData.url,
+          statusCode: activityData.statusCode,
+          requestId: activityData.requestId,
+        });
+      }
+    } catch (error) {
+      logger.error('Security monitoring integration error:', {
+        error: error.message,
+        requestId: req.requestId,
+      });
+    }
   }
 }
 

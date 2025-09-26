@@ -41,7 +41,7 @@ const routeFiles = [
   'routes/users.js',
   'routes/roles.js',
   'routes/applications.js',
-  'routes/schemaIntelligence.js',
+  // 'routes/schemaIntelligence.js', // REMOVED - deprecated route
   'routes/files.js',
   'routes/email.js',
   'routes/webhooks.js',

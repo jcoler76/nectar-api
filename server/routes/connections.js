@@ -391,6 +391,15 @@ router.post('/batch', async (req, res) => {
     });
   }
 
+  // Security: Limit batch operations to prevent DoS attacks
+  const MAX_BATCH_SIZE = 50;
+  if (ids.length > MAX_BATCH_SIZE) {
+    return res.status(400).json({
+      success: false,
+      message: `Batch size cannot exceed ${MAX_BATCH_SIZE} items. Received ${ids.length} items.`,
+    });
+  }
+
   const results = [];
   const errors = [];
 

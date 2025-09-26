@@ -248,6 +248,8 @@ class ActivityLogController {
 
   /**
    * Get activity log statistics and summary
+   * DEPRECATED: Use GraphQL activityStatistics query instead
+   * This endpoint is kept for backward compatibility but should be migrated to GraphQL
    */
   async getStatistics(req, res) {
     try {
@@ -287,7 +289,7 @@ class ActivityLogController {
       const baseWhere = {
         timestamp: { gte: startTime },
         category: { in: ['api', 'workflow'] },
-        endpointType: { in: ['client', 'public'] },
+        endpointType: 'public', // Only public customer-facing API calls
         organizationId,
         ...(shouldFilterImportant && { importance: { in: ['critical', 'high'] } }),
       };

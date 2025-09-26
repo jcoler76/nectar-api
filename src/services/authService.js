@@ -66,7 +66,23 @@ export const loginUser = async (email, password) => {
 };
 
 export const logoutUser = () => {
+  // Get user data BEFORE clearing storage for logout API call
+  const userData = secureStorage.getItem();
+
+  // Clear secure storage first
   secureStorage.removeItem();
+
+  // Clear superadmin temporary storage
+  localStorage.removeItem('superadmin_temp_session');
+  localStorage.removeItem('superadmin_temp_user');
+
+  // Clear any legacy auth storage
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('refreshToken');
 
   // Clear any other auth-related storage
   sessionStorage.clear();
@@ -74,8 +90,7 @@ export const logoutUser = () => {
   // Clear CSRF token
   clearCSRFToken();
 
-  // Optional: Call logout endpoint to blacklist tokens
-  const userData = secureStorage.getItem();
+  // Call logout endpoint to blacklist tokens (if we had valid user data)
   if (userData && userData.token) {
     api
       .post('/api/auth/logout', {

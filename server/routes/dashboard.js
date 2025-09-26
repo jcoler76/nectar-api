@@ -12,6 +12,8 @@ const { logger } = require('../utils/logger');
 const { toEasternTimeStart, createEasternTimeGrouping } = require('../utils/dateUtils');
 const errorResponses = require('../utils/errorHandler');
 
+// DEPRECATED: Use GraphQL dashboardMetrics query instead
+// This endpoint is kept for backward compatibility but should be migrated to GraphQL
 router.get('/metrics', async (req, res) => {
   try {
     const organizationId = req.user?.organizationId;
@@ -96,7 +98,7 @@ router.get('/metrics', async (req, res) => {
           where: {
             timestamp: { gte: todayStart },
             category: { in: ['api', 'workflow'] },
-            endpointType: { in: ['client', 'public'] },
+            endpointType: 'public', // Only public customer-facing API calls
             importance: { in: ['critical', 'high'] },
             organizationId,
           },
@@ -123,13 +125,13 @@ router.get('/metrics', async (req, res) => {
           DATE(timestamp AT TIME ZONE 'America/New_York') as date,
           COUNT(*) as calls,
           COUNT(CASE WHEN "statusCode" >= 400 THEN 1 END) as failures,
-          COUNT(*) as "totalRecords",
+          COALESCE(SUM(CAST(metadata->>'records' AS INTEGER)), 0) as "totalRecords",
           COALESCE(SUM("responseTime"), 0) as "totalDataSize"
         FROM "ApiActivityLog"
         WHERE
           timestamp >= ${startUTC}::timestamp
           AND category IN ('api', 'workflow')
-          AND "endpointType" IN ('client', 'public')
+          AND "endpointType" = 'public'
           AND importance IN ('critical', 'high')
           AND "organizationId" = ${organizationId}
         GROUP BY DATE(timestamp AT TIME ZONE 'America/New_York')
@@ -146,6 +148,9 @@ router.get('/metrics', async (req, res) => {
       totalRecords: Number(row.totalRecords),
       totalDataSize: Number(row.totalDataSize),
     }));
+
+    console.log('🔍 DEBUG: Raw API Activity Data:', apiActivityRaw);
+    console.log('🔍 DEBUG: Processed API Activity Data:', apiActivity);
 
     // Format activity data for the chart (using Eastern Time)
     const activityData = Array.from({ length: daysBack }, (_, i) => {
@@ -184,7 +189,7 @@ router.get('/metrics', async (req, res) => {
       { totalCalls: 0, totalFailures: 0, totalRecords: 0, totalDataSize: 0 }
     );
 
-    res.json({
+    const responseData = {
       services,
       activeUsers: users,
       roles,
@@ -192,7 +197,15 @@ router.get('/metrics', async (req, res) => {
       apiCalls: apiCallsToday,
       activityData,
       totals,
-    });
+    };
+
+    console.log(
+      '🔍 DEBUG: Dashboard Response (Activity Data):',
+      JSON.stringify(activityData, null, 2)
+    );
+    console.log('🔍 DEBUG: Dashboard Response (Totals):', totals);
+
+    res.json(responseData);
   } catch (error) {
     logger.error('Error fetching dashboard metrics:', { error: error.message });
     errorResponses.serverError(res, error);

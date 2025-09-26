@@ -1,7 +1,7 @@
 const express = require('express');
 const logger = require('../utils/logger');
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
+// SECURITY FIX: Using system client for initial workflow lookup, withTenantContext where appropriate
 const { executeWorkflow } = require('../services/workflows/engine');
 const { getFileStorageService } = require('../services/fileStorageService');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -16,7 +16,10 @@ router.use(express.json());
 router.post('/trigger/:workflowId', async (req, res) => {
   try {
     const { workflowId } = req.params;
-    const workflow = await prisma.workflow.findUnique({
+    // SECURITY NOTE: Initial workflow lookup must be global since webhooks are public endpoints
+    // We use system client here but will use RLS for subsequent operations once we have org context
+    const systemPrisma = prismaService.getSystemClient();
+    const workflow = await systemPrisma.workflow.findUnique({
       where: { id: workflowId },
       include: { organization: true },
     });

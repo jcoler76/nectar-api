@@ -27,8 +27,23 @@ const configureApp = () => {
   // Stripe webhook requires raw body to verify signature; mount before JSON parser
   app.use('/api/checkout/webhook', express.raw({ type: 'application/json' }));
 
-  // Basic middleware
-  app.use(express.json());
+  // Basic middleware with security limits
+  app.use(
+    express.json({
+      limit: '1mb',
+      verify: (req, res, buf) => {
+        // Store raw body for webhook verification if needed
+        req.rawBody = buf;
+      },
+    })
+  );
+  app.use(
+    express.urlencoded({
+      extended: true,
+      limit: '1mb',
+      parameterLimit: 1000, // Limit number of parameters
+    })
+  );
   app.use(require('cookie-parser')());
 
   // Add BigInt serialization middleware for all JSON responses

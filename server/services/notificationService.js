@@ -1,17 +1,14 @@
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const Notification = require('../models/Notification');
-// const User = require('../models/User');
-
+// PostgreSQL notification service with proper RLS enforcement
 const prismaService = require('../services/prismaService');
-const prisma = prismaService.getRLSClient();
 const { logger } = require('../utils/logger');
 const { sendEmail } = require('../utils/mailer');
 
 class NotificationService {
   /**
-   * Create a new notification for a user
+   * Create a new notification for a user - requires organization context
    * @param {Object} data - Notification data
    * @param {string} data.userId - User ID
+   * @param {string} data.organizationId - Organization ID (required for RLS)
    * @param {string} data.type - Notification type (system, workflow, security, user_message)
    * @param {string} data.priority - Priority level (high, medium, low)
    * @param {string} data.title - Notification title
@@ -25,18 +22,37 @@ class NotificationService {
    */
   static async createNotification(data, sendEmailNotification = true) {
     try {
-      // Validate required fields
-      if (!data.userId || !data.type || !data.title || !data.message) {
-        throw new Error('Missing required notification fields');
+      // Validate required fields including organization context
+      if (!data.userId || !data.organizationId || !data.type || !data.title || !data.message) {
+        throw new Error(
+          'Missing required notification fields (userId, organizationId, type, title, message)'
+        );
       }
 
-      // TODO: Replace with Prisma user query during migration
-      // const user = await User.findById(data.userId);
-      // if (!user) {
-      //   throw new Error('User not found');
-      // }
-      // For now, skip user query to allow server startup
-      const user = { notificationPreferences: {} };
+      // SECURITY FIX: Get user with proper organization validation
+      const systemPrisma = prismaService.getSystemClient();
+      const user = await systemPrisma.user.findFirst({
+        where: {
+          id: data.userId,
+          memberships: {
+            some: {
+              organizationId: data.organizationId,
+              isActive: true,
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          notificationPreferences: true,
+        },
+      });
+
+      if (!user) {
+        throw new Error('User not found or not member of organization');
+      }
 
       const preferences = user.notificationPreferences || {
         inbox: {
@@ -58,16 +74,36 @@ class NotificationService {
 
       // Security notifications are always created regardless of preferences
       if (data.type === 'security' || shouldCreateInboxNotification) {
-        // Create the notification
-        // TODO: Replace with Prisma notification creation during migration
-        // const notification = await Notification.createNotification(data);
-        const notification = { id: 'temp-id', ...data };
+        // SECURITY FIX: Create notification with proper RLS enforcement
+        const notification = await prismaService.withTenantContext(
+          data.organizationId,
+          async tx => {
+            return await tx.notification.create({
+              data: {
+                userId: data.userId,
+                organizationId: data.organizationId,
+                type: data.type,
+                priority: data.priority,
+                title: data.title,
+                message: data.message,
+                metadata: data.metadata || {},
+                actionUrl: data.actionUrl,
+                actionText: data.actionText,
+                expiresAt: data.expiresAt,
+                isRead: false,
+              },
+            });
+          }
+        );
 
-        logger.info(`Created notification ${notification._id} for user ${data.userId}`, {
-          type: data.type,
-          priority: data.priority,
-          title: data.title,
-        });
+        logger.info(
+          `Created notification ${notification.id} for user ${data.userId} in organization ${data.organizationId}`,
+          {
+            type: data.type,
+            priority: data.priority,
+            title: data.title,
+          }
+        );
 
         // Determine if email should be sent based on user preferences and notification type
         const shouldSendEmail = preferences.email[data.type] !== false;
@@ -78,7 +114,7 @@ class NotificationService {
           sendEmailNotification &&
           (data.type === 'security' || (shouldSendEmail && data.priority === 'high'))
         ) {
-          await this.sendEmailNotification(notification);
+          await this.sendEmailNotification(notification, user);
         }
 
         // TODO: Emit real-time notification via WebSocket
@@ -88,7 +124,7 @@ class NotificationService {
       } else {
         // User has disabled this notification type, log and return null
         logger.info(
-          `Skipped creating notification for user ${data.userId} - type ${data.type} disabled in preferences`
+          `Skipped creating notification for user ${data.userId} in organization ${data.organizationId} - type ${data.type} disabled in preferences`
         );
         return null;
       }
@@ -99,8 +135,9 @@ class NotificationService {
   }
 
   /**
-   * Get notifications for a user with pagination
+   * Get notifications for a user with pagination - organization-scoped
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID (required for RLS)
    * @param {Object} options - Query options
    * @param {number} [options.page=1] - Page number
    * @param {number} [options.limit=20] - Items per page
@@ -108,33 +145,67 @@ class NotificationService {
    * @param {string} [options.type] - Filter by type
    * @returns {Promise<Object>}
    */
-  static async getUserNotifications(userId, options = {}) {
+  static async getUserNotifications(userId, organizationId, options = {}) {
     try {
+      if (!userId || !organizationId) {
+        throw new Error('User ID and Organization ID are required');
+      }
+
       const { page = 1, limit = 20, unreadOnly = false, type } = options;
-
-      const query = { userId };
-
-      if (unreadOnly) {
-        query.isRead = false;
-      }
-
-      if (type) {
-        query.type = type;
-      }
-
       const skip = (page - 1) * limit;
 
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
       const [notifications, total, unreadCount] = await Promise.all([
-        // TODO: Replace with Prisma notification queries during migration
-        // Notification.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-        // Notification.countDocuments(query),
-        // Notification.getUnreadCount(userId),
-        Promise.resolve([]),
-        Promise.resolve(0),
-        Promise.resolve(0),
+        prismaService.withTenantContext(organizationId, async tx => {
+          const where = {
+            userId,
+            // organizationId handled by RLS
+          };
+
+          if (unreadOnly) {
+            where.isRead = false;
+          }
+
+          if (type) {
+            where.type = type;
+          }
+
+          return await tx.notification.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit,
+          });
+        }),
+        prismaService.withTenantContext(organizationId, async tx => {
+          const where = {
+            userId,
+            // organizationId handled by RLS
+          };
+
+          if (unreadOnly) {
+            where.isRead = false;
+          }
+
+          if (type) {
+            where.type = type;
+          }
+
+          return await tx.notification.count({ where });
+        }),
+        prismaService.withTenantContext(organizationId, async tx => {
+          return await tx.notification.count({
+            where: {
+              userId,
+              isRead: false,
+              // organizationId handled by RLS
+            },
+          });
+        }),
       ]);
 
       return {
+        organizationId,
         notifications,
         pagination: {
           page,
@@ -151,25 +222,44 @@ class NotificationService {
   }
 
   /**
-   * Mark notification as read
+   * Mark notification as read - organization-scoped for security
    * @param {string} notificationId - Notification ID
    * @param {string} userId - User ID (for security)
+   * @param {string} organizationId - Organization ID (required for RLS)
    * @returns {Promise<Notification>}
    */
-  static async markAsRead(notificationId, userId) {
+  static async markAsRead(notificationId, userId, organizationId) {
     try {
-      // TODO: Replace with Prisma notification query during migration
-      // const notification = await Notification.findOne({
-      //   _id: notificationId,
-      //   userId,
-      // });
-      const notification = null;
-
-      if (!notification) {
-        throw new Error('Notification not found');
+      if (!notificationId || !userId || !organizationId) {
+        throw new Error('Notification ID, User ID, and Organization ID are required');
       }
 
-      await notification.markAsRead();
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      const notification = await prismaService.withTenantContext(organizationId, async tx => {
+        // First find and verify ownership
+        const existing = await tx.notification.findFirst({
+          where: {
+            id: notificationId,
+            userId,
+            // organizationId handled by RLS
+          },
+        });
+
+        if (!existing) {
+          throw new Error('Notification not found or access denied');
+        }
+
+        // Update to mark as read
+        return await tx.notification.update({
+          where: { id: notificationId },
+          data: {
+            isRead: true,
+            readAt: new Date(),
+          },
+        });
+      });
+
+      logger.info(`Marked notification ${notificationId} as read for user ${userId}`);
       return notification;
     } catch (error) {
       logger.error('Error marking notification as read:', error);
@@ -178,21 +268,39 @@ class NotificationService {
   }
 
   /**
-   * Mark all notifications as read for a user
+   * Mark all notifications as read for a user - organization-scoped
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID (required for RLS)
    * @returns {Promise<Object>}
    */
-  static async markAllAsRead(userId) {
+  static async markAllAsRead(userId, organizationId) {
     try {
-      // TODO: Replace with Prisma notification update during migration
-      // const result = await Notification.markAllAsRead(userId);
-      const result = { modifiedCount: 0 };
+      if (!userId || !organizationId) {
+        throw new Error('User ID and Organization ID are required');
+      }
 
-      logger.info(`Marked ${result.modifiedCount} notifications as read for user ${userId}`);
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.notification.updateMany({
+          where: {
+            userId,
+            isRead: false,
+            // organizationId handled by RLS
+          },
+          data: {
+            isRead: true,
+            readAt: new Date(),
+          },
+        });
+      });
+
+      logger.info(
+        `Marked ${result.count} notifications as read for user ${userId} in organization ${organizationId}`
+      );
 
       return {
-        modifiedCount: result.modifiedCount,
-        message: `Marked ${result.modifiedCount} notifications as read`,
+        modifiedCount: result.count,
+        message: `Marked ${result.count} notifications as read`,
       };
     } catch (error) {
       logger.error('Error marking all notifications as read:', error);
@@ -201,25 +309,42 @@ class NotificationService {
   }
 
   /**
-   * Delete a notification
+   * Delete a notification - organization-scoped for security
    * @param {string} notificationId - Notification ID
    * @param {string} userId - User ID (for security)
+   * @param {string} organizationId - Organization ID (required for RLS)
    * @returns {Promise<boolean>}
    */
-  static async deleteNotification(notificationId, userId) {
+  static async deleteNotification(notificationId, userId, organizationId) {
     try {
-      // TODO: Replace with Prisma notification deletion during migration
-      // const result = await Notification.deleteOne({
-      //   _id: notificationId,
-      //   userId,
-      // });
-      const result = { deletedCount: 0 };
-
-      if (result.deletedCount === 0) {
-        throw new Error('Notification not found');
+      if (!notificationId || !userId || !organizationId) {
+        throw new Error('Notification ID, User ID, and Organization ID are required');
       }
 
-      logger.info(`Deleted notification ${notificationId} for user ${userId}`);
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // First verify ownership
+        const existing = await tx.notification.findFirst({
+          where: {
+            id: notificationId,
+            userId,
+            // organizationId handled by RLS
+          },
+        });
+
+        if (!existing) {
+          throw new Error('Notification not found or access denied');
+        }
+
+        // Delete the notification
+        return await tx.notification.delete({
+          where: { id: notificationId },
+        });
+      });
+
+      logger.info(
+        `Deleted notification ${notificationId} for user ${userId} in organization ${organizationId}`
+      );
       return true;
     } catch (error) {
       logger.error('Error deleting notification:', error);
@@ -228,21 +353,34 @@ class NotificationService {
   }
 
   /**
-   * Clear all notifications for a user
+   * Clear all notifications for a user - organization-scoped
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID (required for RLS)
    * @returns {Promise<Object>}
    */
-  static async clearAllNotifications(userId) {
+  static async clearAllNotifications(userId, organizationId) {
     try {
-      // TODO: Replace with Prisma notification deletion during migration
-      // const result = await Notification.deleteMany({ userId });
-      const result = { deletedCount: 0 };
+      if (!userId || !organizationId) {
+        throw new Error('User ID and Organization ID are required');
+      }
 
-      logger.info(`Cleared ${result.deletedCount} notifications for user ${userId}`);
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.notification.deleteMany({
+          where: {
+            userId,
+            // organizationId handled by RLS
+          },
+        });
+      });
+
+      logger.info(
+        `Cleared ${result.count} notifications for user ${userId} in organization ${organizationId}`
+      );
 
       return {
-        deletedCount: result.deletedCount,
-        message: `Cleared ${result.deletedCount} notifications`,
+        deletedCount: result.count,
+        message: `Cleared ${result.count} notifications`,
       };
     } catch (error) {
       logger.error('Error clearing all notifications:', error);
@@ -251,15 +389,27 @@ class NotificationService {
   }
 
   /**
-   * Get unread notification count for a user
+   * Get unread notification count for a user - organization-scoped
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID (required for RLS)
    * @returns {Promise<number>}
    */
-  static async getUnreadCount(userId) {
+  static async getUnreadCount(userId, organizationId) {
     try {
-      // TODO: Replace with Prisma notification count query during migration
-      // return await Notification.getUnreadCount(userId);
-      return 0;
+      if (!userId || !organizationId) {
+        throw new Error('User ID and Organization ID are required');
+      }
+
+      // SECURITY FIX: Use withTenantContext for RLS enforcement
+      return await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.notification.count({
+          where: {
+            userId,
+            isRead: false,
+            // organizationId handled by RLS
+          },
+        });
+      });
     } catch (error) {
       logger.error('Error getting unread count:', error);
       throw error;
@@ -269,13 +419,11 @@ class NotificationService {
   /**
    * Send email notification to user
    * @param {Notification} notification - Notification object
+   * @param {Object} user - User object with email
    * @private
    */
-  static async sendEmailNotification(notification) {
+  static async sendEmailNotification(notification, user) {
     try {
-      // TODO: Replace with Prisma user query during migration
-      // const user = await User.findById(notification.userId);
-      const user = null;
       if (!user || !user.email) {
         logger.warn(
           `Cannot send email notification - user ${notification.userId} not found or has no email`
@@ -291,7 +439,7 @@ class NotificationService {
 
       await sendEmail(emailData);
 
-      logger.info(`Sent email notification to ${user.email} for notification ${notification._id}`);
+      logger.info(`Sent email notification to ${user.email} for notification ${notification.id}`);
     } catch (error) {
       logger.error('Error sending email notification:', error);
       // Don't throw - email failure shouldn't break notification creation
@@ -372,16 +520,24 @@ class NotificationService {
   }
 
   /**
-   * Create system notification (helper method)
+   * Create system notification (helper method) - requires organization context
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID
    * @param {string} title - Notification title
    * @param {string} message - Notification message
    * @param {string} [priority='medium'] - Priority level
    * @returns {Promise<Notification>}
    */
-  static async createSystemNotification(userId, title, message, priority = 'medium') {
+  static async createSystemNotification(
+    userId,
+    organizationId,
+    title,
+    message,
+    priority = 'medium'
+  ) {
     return this.createNotification({
       userId,
+      organizationId,
       type: 'system',
       priority,
       title,
@@ -390,8 +546,9 @@ class NotificationService {
   }
 
   /**
-   * Create workflow notification (helper method)
+   * Create workflow notification (helper method) - requires organization context
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID
    * @param {string} title - Notification title
    * @param {string} message - Notification message
    * @param {Object} [metadata] - Workflow metadata
@@ -400,6 +557,7 @@ class NotificationService {
    */
   static async createWorkflowNotification(
     userId,
+    organizationId,
     title,
     message,
     metadata = {},
@@ -407,6 +565,7 @@ class NotificationService {
   ) {
     return this.createNotification({
       userId,
+      organizationId,
       type: 'workflow',
       priority,
       title,
@@ -416,16 +575,18 @@ class NotificationService {
   }
 
   /**
-   * Create security notification (helper method)
+   * Create security notification (helper method) - requires organization context
    * @param {string} userId - User ID
+   * @param {string} organizationId - Organization ID
    * @param {string} title - Notification title
    * @param {string} message - Notification message
    * @returns {Promise<Notification>}
    */
-  static async createSecurityNotification(userId, title, message) {
+  static async createSecurityNotification(userId, organizationId, title, message) {
     return this.createNotification(
       {
         userId,
+        organizationId,
         type: 'security',
         priority: 'high',
         title,

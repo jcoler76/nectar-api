@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Ensure we have a valid API_BASE_URL
+// SECURITY: Enhanced API URL validation with security checks
 const getApiBaseUrl = () => {
   const envUrl = process.env.REACT_APP_API_URL;
 
@@ -9,10 +9,58 @@ const getApiBaseUrl = () => {
     return 'http://localhost:3001';
   }
 
-  // Validate the URL format
   try {
-    new URL(envUrl);
-    return envUrl.trim();
+    const url = new URL(envUrl.trim());
+
+    // SECURITY: Block dangerous protocols
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      console.warn('Invalid protocol in REACT_APP_API_URL, falling back to localhost:', envUrl);
+      return 'http://localhost:3001';
+    }
+
+    // SECURITY: In production, require HTTPS
+    if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+      console.warn('HTTPS required in production, falling back to secure localhost:', envUrl);
+      return 'https://localhost:3001';
+    }
+
+    // SECURITY: Block suspicious hostnames
+    const suspiciousPatterns = [
+      /javascript:/i,
+      /data:/i,
+      /vbscript:/i,
+      /<script/i,
+      /localhost\.localdomain/i,
+      /169\.254\./, // Link-local addresses
+      /127\./, // Loopback except 127.0.0.1
+      /10\./, // Private network (in production)
+      /192\.168\./, // Private network (in production)
+      /172\.(1[6-9]|2[0-9]|3[0-1])\./, // Private network (in production)
+    ];
+
+    // In production, block private network access
+    if (process.env.NODE_ENV === 'production') {
+      const hostname = url.hostname.toLowerCase();
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        for (const pattern of suspiciousPatterns.slice(5)) {
+          // Skip non-production checks
+          if (pattern.test(url.href)) {
+            console.warn('Private network access blocked in production, falling back:', envUrl);
+            return 'https://api.production.domain'; // Replace with actual production domain
+          }
+        }
+      }
+    }
+
+    for (const pattern of suspiciousPatterns.slice(0, 5)) {
+      // Common dangerous patterns
+      if (pattern.test(url.href)) {
+        console.warn('Suspicious URL pattern detected, falling back to localhost:', envUrl);
+        return 'http://localhost:3001';
+      }
+    }
+
+    return url.href.replace(/\/$/, ''); // Remove trailing slash
   } catch (error) {
     console.warn('Invalid REACT_APP_API_URL, falling back to localhost:', envUrl);
     return 'http://localhost:3001';
@@ -38,8 +86,12 @@ const getCurrentToken = () => {
   }
 };
 
-// CSRF token storage
-let csrfToken = null;
+// SECURITY: Secure CSRF token storage with expiration
+let csrfTokenCache = {
+  token: null,
+  expires: null,
+  nonce: null,
+};
 
 // Create axios instance with default config
 const rateLimitApi = axios.create({
@@ -60,20 +112,40 @@ rateLimitApi.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      // Add CSRF token for state-changing requests
+      // SECURITY: Add CSRF token for state-changing requests with caching
       if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method.toUpperCase())) {
         if (token) {
-          // Always get a fresh CSRF token for each request to avoid stale token issues
           try {
-            const response = await axios.get(`${API_BASE_URL}/api/csrf-token`, {
-              headers: { Authorization: `Bearer ${token}` },
-              withCredentials: true,
-            });
-            csrfToken = response.data.csrfToken;
-            config.headers['x-csrf-token'] = csrfToken;
+            const now = Date.now();
+
+            // SECURITY: Check if cached token is still valid (5-minute expiration)
+            if (!csrfTokenCache.token || !csrfTokenCache.expires || now >= csrfTokenCache.expires) {
+              // Generate nonce for this token request
+              const nonce = btoa(
+                String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))
+              );
+
+              const response = await axios.get(`${API_BASE_URL}/api/csrf-token`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'X-CSRF-Nonce': nonce,
+                },
+                withCredentials: true,
+              });
+
+              // SECURITY: Cache token with expiration and nonce
+              csrfTokenCache = {
+                token: response.data.csrfToken,
+                expires: now + 5 * 60 * 1000, // 5 minutes
+                nonce: nonce,
+              };
+            }
+
+            config.headers['x-csrf-token'] = csrfTokenCache.token;
           } catch (err) {
             console.error('Failed to get CSRF token:', err);
-            // Don't include CSRF token if we can't get one
+            // Clear cache on error
+            csrfTokenCache = { token: null, expires: null, nonce: null };
           }
         }
       }
@@ -97,8 +169,8 @@ rateLimitApi.interceptors.response.use(
       // Don't auto-redirect, let the component handle the error
       // The ProtectedRoute with requiredPermission="isAdmin" should handle this
     } else if (error.response?.status === 403 && error.response?.data?.message?.includes('CSRF')) {
-      // Invalid CSRF token, clear it to get a fresh one on next request
-      csrfToken = null;
+      // SECURITY: Invalid CSRF token, clear cache to get a fresh one on next request
+      csrfTokenCache = { token: null, expires: null, nonce: null };
     }
     return Promise.reject(error);
   }

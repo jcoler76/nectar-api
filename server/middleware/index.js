@@ -107,6 +107,14 @@ const applySecurityMiddleware = app => {
       xssFilter: true,
       // Permissions Policy (replacing Feature Policy)
       permittedCrossDomainPolicies: false,
+      // Expect-CT for certificate transparency (production only)
+      ...(process.env.NODE_ENV === 'production' && {
+        expectCt: {
+          maxAge: 86400,
+          enforce: true,
+          reportUri: '/api/security-reports/expect-ct',
+        },
+      }),
     })
   );
 
@@ -132,6 +140,15 @@ const applySecurityMiddleware = app => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
 
+    // Additional OWASP security headers
+    res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+    res.setHeader('X-Download-Options', 'noopen');
+
+    // Clear-Site-Data on logout endpoints
+    if (req.path === '/api/auth/logout') {
+      res.setHeader('Clear-Site-Data', '"cache", "cookies", "storage", "executionContexts"');
+    }
+
     // Cache control for security
     if (req.url.includes('/api/')) {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -148,6 +165,10 @@ const applySecurityMiddleware = app => {
 
   // Apply general rate limiting and other middleware
   app.use('/api', apiLimiter);
+
+  // Add SQL injection monitoring (before other processing)
+  const { sqlInjectionMonitor } = require('./sqlInjectionMonitor');
+  app.use('/api', sqlInjectionMonitor);
 
   // Add comprehensive activity logging middleware
   const activityLogger = require('./activityLogger');

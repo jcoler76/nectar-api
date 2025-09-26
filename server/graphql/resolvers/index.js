@@ -9,6 +9,7 @@ const { workflowResolvers } = require('./workflow');
 const roleResolvers = require('./role');
 const endpointResolvers = require('./endpoint');
 const dynamicProcedureResolvers = require('./dynamicProcedure');
+const dashboardResolvers = require('./dashboard');
 
 const resolvers = _.merge(
   {
@@ -28,7 +29,8 @@ const resolvers = _.merge(
   workflowResolvers,
   roleResolvers,
   endpointResolvers,
-  dynamicProcedureResolvers
+  dynamicProcedureResolvers,
+  dashboardResolvers
 );
 
 module.exports = resolvers;

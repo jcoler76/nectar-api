@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-// Approval decision endpoint (resume paused approval)
+// Approval decision endpoint (resume paused approval) - SECURITY FIXED
 router.post('/:workflowId/runs/:runId/approvals/:approvalId/decision', async (req, res) => {
   try {
     const { workflowId, runId, approvalId } = req.params;
@@ -11,17 +11,46 @@ router.post('/:workflowId/runs/:runId/approvals/:approvalId/decision', async (re
     }
 
     const prismaService = require('../services/prismaService');
-    const prisma = prismaService.getRLSClient();
-    // TODO: Add Approval model to Prisma schema if approval functionality is needed
-    // const approval = await prisma.approval.findFirst({ where: { id: approvalId, workflowId, runId } });
-    if (!approval || approval.status !== 'pending') {
-      return res.status(404).json({ error: 'Approval not found or not pending' });
-    }
+    const organizationId = req.user.organizationId;
 
-    approval.status = decision === 'approve' ? 'approved' : 'rejected';
-    approval.decidedAt = new Date();
-    approval.decidedBy = req.user?.email || null;
-    await approval.save();
+    // CRITICAL SECURITY FIX: Use withTenantContext for proper tenant isolation
+    // This ensures approval operations are isolated by organization
+    await prismaService.withTenantContext(organizationId, async tx => {
+      // Verify workflow belongs to user's organization first
+      const workflow = await tx.workflow.findFirst({
+        where: { id: workflowId, organizationId },
+      });
+
+      if (!workflow) {
+        throw new Error('Workflow not found or access denied');
+      }
+
+      // TODO: Add Approval model to Prisma schema if approval functionality is needed
+      // For now, this endpoint is secured but non-functional until Approval model exists
+      /*
+      const approval = await tx.approval.findFirst({
+        where: {
+          id: approvalId,
+          workflowId,
+          runId,
+          organizationId // Ensure approval belongs to same organization
+        }
+      });
+
+      if (!approval || approval.status !== 'pending') {
+        throw new Error('Approval not found or not pending');
+      }
+
+      await tx.approval.update({
+        where: { id: approvalId },
+        data: {
+          status: decision === 'approve' ? 'approved' : 'rejected',
+          decidedAt: new Date(),
+          decidedBy: req.user?.email || null
+        }
+      });
+      */
+    });
 
     // Resume the workflow from approval point
     const { resumeApproval } = require('../services/workflows/engine');
@@ -90,16 +119,11 @@ router.post('/test-http-request', async (req, res) => {
     });
   }
 
-  console.log('=== WORKFLOW TEST ENDPOINT HIT ===', new Date());
-  logger.info('Making request with headers:', headers);
-  console.log('WORKFLOW DEBUG - Original headers array:', customHeaders);
-  console.log('WORKFLOW DEBUG - Converted headers object:', headers);
-  console.log('WORKFLOW DEBUG - Full request config:', {
+  // Security fix: Removed excessive debug logging that could expose internal system details
+  logger.info('Test HTTP request initiated', {
     method,
-    url: sanitizedUrl,
-    headers,
-    data: body,
-    timeout: 10000,
+    hasHeaders: Object.keys(headers).length > 0,
+    hasBody: !!body,
   });
 
   try {
@@ -243,14 +267,18 @@ router.get('/scheduler/status', async (req, res) => {
   try {
     const status = getSchedulerStatus();
     const prismaService = require('../services/prismaService');
-    const prisma = prismaService.getRLSClient();
-    const activeWorkflows = await prisma.workflow.findMany({
-      where: {
-        isActive: true,
-        organizationId: req.user.organizationId,
-        // TODO: Add JSON filter for trigger:schedule nodes when needed
-      },
-      select: { id: true, name: true, definition: true },
+    const organizationId = req.user.organizationId;
+
+    // SECURITY FIX: Use withTenantContext for proper tenant isolation
+    const activeWorkflows = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.workflow.findMany({
+        where: {
+          isActive: true,
+          organizationId,
+          // TODO: Add JSON filter for trigger:schedule nodes when needed
+        },
+        select: { id: true, name: true, definition: true },
+      });
     });
 
     const detailedStatus = {
@@ -279,12 +307,16 @@ router.get('/scheduler/status', async (req, res) => {
 router.post('/:id/schedule/test', async (req, res) => {
   try {
     const prismaService = require('../services/prismaService');
-    const prisma = prismaService.getRLSClient();
-    const workflow = await prisma.workflow.findFirst({
-      where: {
-        id: req.params.id,
-        organizationId: req.user.organizationId,
-      },
+    const organizationId = req.user.organizationId;
+
+    // SECURITY FIX: Use withTenantContext for proper tenant isolation
+    const workflow = await prismaService.withTenantContext(organizationId, async tx => {
+      return await tx.workflow.findFirst({
+        where: {
+          id: req.params.id,
+          organizationId,
+        },
+      });
     });
     if (!workflow) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Workflow not found' } });

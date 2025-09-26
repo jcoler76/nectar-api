@@ -213,7 +213,6 @@ const SERVICE_QUERIES = {
           host
           port
           username
-          passwordEncrypted
           sslEnabled
         }
         effectiveHost

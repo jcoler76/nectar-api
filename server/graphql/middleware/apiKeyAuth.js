@@ -4,8 +4,8 @@
 // const Role = require('../../models/Role');
 // const Endpoint = require('../../models/Endpoint');
 
-const { PrismaClient } = require('../../prisma/generated/client');
-const prisma = new PrismaClient();
+// SECURITY FIX: Use proper prismaService instead of direct PrismaClient
+const prismaService = require('../../services/prismaService');
 
 const { getConfiguredApiKey } = require('../../utils/headerUtils');
 
