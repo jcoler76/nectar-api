@@ -83,20 +83,21 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           setIsAuthenticated(false);
         } else {
-          // User was logged in from another tab - check auth status
-          try {
-            const authStatus = checkAuthStatus();
-            if (authStatus.isAuthenticated && authStatus.user) {
-              setUser(authStatus.user);
-              setIsAuthenticated(true);
-            } else {
-              setUser(null);
-              setIsAuthenticated(false);
+          // User was logged in from another tab OR storage was updated
+          // SAFETY: Only update if we don't already have a user to avoid logout loops
+          if (!user) {
+            try {
+              const authStatus = checkAuthStatus();
+              if (authStatus.isAuthenticated && authStatus.user) {
+                setUser(authStatus.user);
+                setIsAuthenticated(true);
+              }
+            } catch (error) {
+              // Don't logout if we already have a user - storage update might be normal
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('Error checking auth status from storage event:', error);
+              }
             }
-          } catch (error) {
-            console.error('Error checking auth status from storage event:', error);
-            setUser(null);
-            setIsAuthenticated(false);
           }
         }
       }
@@ -104,7 +105,7 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [user]);
 
   const login = useCallback(
     async (email, password) => {

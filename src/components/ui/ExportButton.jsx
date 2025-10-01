@@ -1,4 +1,4 @@
-import { Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { FileText, FileSpreadsheet } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { exportTableToCSV, exportToExcel } from '../../utils/exportUtils';

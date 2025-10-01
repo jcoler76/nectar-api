@@ -20,7 +20,6 @@ const ApplicationList = () => {
     applications,
     loading,
     error,
-    user,
     operationInProgress,
     fetchApplications,
     handleDelete,
@@ -278,7 +277,6 @@ const ApplicationList = () => {
       handleRegenerateApiKey,
       handleEdit,
       openConfirm,
-      user,
       operationInProgress,
     ]
   );
