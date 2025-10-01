@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { getDashboardMetrics, getActivityStatistics } from '../services/dashboardService';
 import SecureSessionStorage from '../utils/secureStorage';
 
 // Dashboard metrics query hook
 export const useDashboardMetrics = (days = 30) => {
-  const token = (() => {
+  // Memoize token check to prevent storage operations on every render
+  const token = useMemo(() => {
     try {
       const s = new SecureSessionStorage();
       const data = s.getItem();
@@ -14,7 +16,7 @@ export const useDashboardMetrics = (days = 30) => {
     } catch (_error) {
       return null;
     }
-  })();
+  }, []); // Empty dependency array - only check once on mount
 
   return useQuery({
     queryKey: ['dashboard-metrics', days],
@@ -40,14 +42,15 @@ export const useDashboardMetrics = (days = 30) => {
 
 // Activity logs statistics query hook
 export const useActivityStatistics = (dateRange = '30d') => {
-  const token = (() => {
+  // Memoize token check to prevent storage operations on every render
+  const token = useMemo(() => {
     try {
       const s = new SecureSessionStorage();
       return s.getItem()?.token || null;
     } catch (_) {
       return null;
     }
-  })();
+  }, []); // Empty dependency array - only check once on mount
 
   const timeframeMap = { '7d': '7d', '30d': '30d', '90d': '90d' };
 

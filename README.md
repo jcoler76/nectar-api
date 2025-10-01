@@ -1,210 +1,361 @@
-# Nectar API
+# Nectar Core Platform
 
-A comprehensive full-stack business intelligence and workflow automation platform with hybrid database architecture.
+> **Service**: Core Application Platform
+> **Version**: 2.0.0
+> **Ports**: 3000 (Frontend), 3001 (Backend)
+> **Type**: Multi-tenant SaaS Platform
+
+## Overview
+
+Nectar Core is the main application platform providing workflow automation, API management, and service orchestration for customers.
+
+## Architecture
+
+This is the **core service** in a microservices architecture:
+
+- **Nectar Core** (this repo): Customer-facing platform (ports 3000/3001)
+- **Nectar Marketing**: Marketing site and lead generation (ports 5000/5001)
+- **Nectar Admin**: Admin portal for system management (ports 4000/4001)
+
+### Service Communication
+```
+┌─────────────┐       ┌─────────────┐       ┌─────────────┐
+│   Nectar    │       │   Nectar    │       │   Nectar    │
+│    Core     │◄─────►│  Marketing  │◄─────►│    Admin    │
+│ :3000/3001  │       │ :5000/5001  │       │ :4000/4001  │
+└─────────────┘       └─────────────┘       └─────────────┘
+       │                      │                      │
+       └──────────────────────┴──────────────────────┘
+                              │
+                    ┌─────────▼──────────┐
+                    │    PostgreSQL      │
+                    │  nectarstudio_ai   │
+                    └────────────────────┘
+```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+- Node.js >= 18.0.0
+- PostgreSQL 14+
+- npm >= 8.0.0
 
-- **Node.js** 18+ and npm
-- **MongoDB** (local or hosted)
-- **Redis** (optional, will fallback to in-memory cache)
-- **SQL Server** (for business data integration)
-
-### 1. Clone and Install
+### Installation
 
 ```bash
-git clone <repository-url>
-cd nectar-api
-
-# Install frontend dependencies
+# Install dependencies
 npm install
 
-# Install backend dependencies
-cd server
-npm install
-cd ..
-```
-
-### 2. Environment Setup
-
-```bash
-# Copy environment files
+# Set up environment
 cp .env.example .env
-cp server/env.example server/.env
+# Edit .env with your configuration
 
-# Edit server/.env with your database credentials
-# Edit .env with your frontend configuration
+# Start development servers
+npm run dev
 ```
 
-### 3. Database Setup
+This will start:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+
+### Development
 
 ```bash
-# Initialize MongoDB collections and indexes
-cd server
-npm run db:init
+# Frontend only (port 3000)
+npm start
 
-# Validate database schema
-npm run db:validate
-```
+# Backend only (port 3001)
+npm run start:backend
 
-### 4. Start Development
-
-```bash
-# Start both frontend and backend concurrently
+# Both simultaneously
 npm run dev
 
-# Or start individually:
-npm run start:frontend  # React app on :3000
-npm run start:backend   # Express API on :3001
+# Run tests
+npm test
+
+# Build for production
+npm run build
 ```
 
 ## 📁 Project Structure
 
 ```
-nectar-api/
-├── src/                    # React frontend
-│   ├── components/         # UI components
-│   ├── context/           # Global state management
-│   ├── features/          # Feature-specific modules
-│   └── services/          # API communication
+nectar-core/
+├── src/                    # React frontend application
+│   ├── components/        # React components
+│   │   ├── applications/  # Application management UI
+│   │   ├── common/        # Shared components
+│   │   ├── roles/         # RBAC components
+│   │   ├── services/      # Service management UI
+│   │   └── workflows/     # Workflow builder
+│   ├── services/          # API clients
+│   ├── hooks/             # Custom React hooks
+│   ├── contexts/          # React context providers
+│   └── utils/             # Utility functions
 ├── server/                # Express backend
-│   ├── routes/            # API endpoints
-│   ├── models/            # Database schemas
-│   ├── services/          # Business logic
-│   ├── middleware/        # Auth, validation, security
-│   └── graphql/           # GraphQL schema & resolvers
-└── public/                # Static assets
+│   ├── routes/           # API routes
+│   ├── services/         # Business logic
+│   ├── middleware/       # Express middleware
+│   ├── prisma/           # Database schema
+│   └── utils/            # Backend utilities
+├── public/               # Static assets
+├── docs/                 # Documentation
+└── tests/                # Test files
 ```
 
-## 🛠 Available Scripts
+## 🔧 Key Features
 
-### Frontend
+- 🔐 **Multi-tenant Authentication**: Secure JWT-based auth with RLS
+- 🔄 **Visual Workflow Builder**: Drag-and-drop workflow creation
+- 🔌 **API Service Management**: Create and manage API services
+- 📊 **Real-time Analytics**: Dashboard with usage metrics
+- 🔑 **API Key Management**: Generate and manage API keys
+- 📁 **File Storage System**: Secure file upload and management
+- 🎯 **Role-Based Access Control**: Granular permission system
+- 🔗 **Integration Hub**: Connect to third-party services
+- 📈 **Usage Tracking**: Monitor API calls and resource usage
+
+## ⚙️ Environment Variables
+
+Key environment variables (see `.env` for full list):
+
 ```bash
-npm start          # Start development server
-npm run build      # Build for production
-npm test           # Run tests
-npm run analyze    # Analyze bundle size
+# Service Configuration
+NODE_ENV=development
+SERVICE_NAME=nectar-core
+SERVICE_VERSION=2.0.0
+
+# Ports
+PORT=3000              # Frontend port
+BACKEND_PORT=3001      # Backend API port
+
+# Database (with RLS for tenant isolation)
+DATABASE_URL=postgresql://nectar_app_user:password@localhost:5432/nectarstudio_ai
+
+# Security
+JWT_SECRET=your_secret_here
+SESSION_SECRET=your_session_secret
+
+# External Services (Optional)
+MARKETING_API_URL=http://localhost:5001
+ADMIN_API_URL=http://localhost:4001
 ```
 
-### Backend
+## 🗄️ Database
+
+Uses PostgreSQL with **Row-Level Security (RLS)** for tenant isolation.
+
 ```bash
+# Run migrations
 cd server
-npm run dev        # Start with nodemon
-npm start          # Start production server
-npm test           # Run backend tests
-npm run db:init    # Initialize database
-npm run mcp        # Start MCP server
+npx prisma migrate dev
+
+# Generate Prisma client
+npx prisma generate
+
+# Open Prisma Studio
+npx prisma studio
 ```
 
-### Full Stack
-```bash
-npm run dev        # Start both frontend and backend
-npm run deploy     # Build and deploy with PM2
-```
+### Database Access
+- **Core Service**: Uses tenant-scoped access with RLS enabled
+- **Tables**: Users, Organizations, Services, Workflows, Applications, API Keys, etc.
+- **Isolation**: Each organization's data is completely isolated via RLS
 
-## 🔧 Configuration
+## 📚 API Documentation
 
-### Environment Variables
+### Core Endpoints
 
-**Frontend (.env):**
-- `REACT_APP_API_URL` - Backend API URL
-- `REACT_APP_GRAPHQL_URL` - GraphQL endpoint
+#### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/logout` - User logout
 
-**Backend (server/.env):**
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - JWT signing secret (32+ characters)
-- `ENCRYPTION_KEY` - Data encryption key
-- `REDIS_HOST` - Redis server (optional)
+#### Services
+- `GET /api/services` - List services
+- `POST /api/services` - Create service
+- `GET /api/services/:id` - Get service details
+- `PUT /api/services/:id` - Update service
+- `DELETE /api/services/:id` - Delete service
 
-See `.env.example` files for complete configuration options.
+#### Workflows
+- `GET /api/workflows` - List workflows
+- `POST /api/workflows` - Create workflow
+- `GET /api/workflows/:id` - Get workflow
+- `PUT /api/workflows/:id` - Update workflow
+- `POST /api/workflows/:id/execute` - Execute workflow
 
-### Database Setup
+#### Applications
+- `GET /api/applications` - List applications
+- `POST /api/applications` - Create application
+- `GET /api/applications/:id` - Get application
+- `PUT /api/applications/:id` - Update application
 
-1. **MongoDB**: User accounts, workflows, application metadata
-2. **SQL Server**: Business data via stored procedures
-3. **Redis**: Session storage and caching (optional)
+#### API Keys
+- `GET /api/apikeys` - List API keys
+- `POST /api/apikeys` - Generate new API key
+- `DELETE /api/apikeys/:id` - Revoke API key
 
-## 🏗 Architecture
-
-### Frontend Stack
-- **React 18** with hooks and context
-- **Material-UI + Radix UI** for components
-- **React Router** for navigation
-- **React Query** for API state management
-- **TailwindCSS** for styling
-
-### Backend Stack
-- **Express.js** with async/await patterns
-- **Apollo GraphQL** server with DataLoader
-- **MongoDB** with Mongoose ODM
-- **JWT** authentication with 2FA
-- **Bull** queues with Redis
-
-### Key Features
-- 🔐 **Enterprise Authentication** (JWT + 2FA + trusted devices)
-- 🛡️ **Advanced Security** (CORS, CSRF, rate limiting, input validation)
-- 🚀 **Performance Optimized** (caching, connection pooling, code splitting)
-- 📊 **Business Intelligence** (AI-powered natural language queries)
-- ⚡ **Workflow Engine** (visual builder with 15+ node types)
-- 🔄 **Real-time Updates** (WebSocket connections, live notifications)
+### GraphQL Endpoint
+- `POST /graphql` - GraphQL queries and mutations
 
 ## 🧪 Testing
 
 ```bash
-# Frontend tests
+# Run all tests
 npm test
 
-# Backend tests
-cd server && npm test
+# Run specific test suite
+npm test -- --grep "authentication"
 
-# Run specific test file
-npm test -- --testNamePattern="ComponentName"
+# Run with coverage
+npm test -- --coverage
+
+# Lint code
+npm run lint
+
+# Type check
+npm run type-check
 ```
 
-## 📦 Production Deployment
+## 🎯 Role-Based Access Control (RBAC)
 
+The platform implements a comprehensive RBAC system with the following roles:
+
+| Role | Level | Permissions |
+|------|-------|-------------|
+| **SUPER_ADMIN** | 100 | Full platform access |
+| **ORGANIZATION_OWNER** | 80 | Full organization control |
+| **ORGANIZATION_ADMIN** | 60 | Admin operations |
+| **DEVELOPER** | 40 | API management |
+| **MEMBER** | 20 | Basic access |
+| **VIEWER** | 10 | Read-only |
+
+See [RBAC Documentation](./docs/RBAC-DOCUMENTATION.md) for details.
+
+## 🚢 Production Deployment
+
+### Build for Production
 ```bash
-# Build and deploy with PM2
-npm run deploy
-
-# Manual deployment
+# Build optimized frontend
 npm run build
-cd server
-pm2 start ecosystem.config.js
+
+# Test production build locally
+npx serve -s build -l 3000
+```
+
+### Environment Setup
+1. Set `NODE_ENV=production`
+2. Configure production database URL
+3. Set secure JWT_SECRET
+4. Enable HTTPS
+5. Configure CORS origins
+
+### Deployment Options
+- **Railway**: One-click deployment
+- **Heroku**: Buildpack deployment
+- **Docker**: Containerized deployment
+- **PM2**: Process management
+
+## 🔍 Monitoring & Health
+
+### Health Check
+```bash
+curl http://localhost:3001/health
+```
+
+Response:
+```json
+{
+  "service": "nectar-core",
+  "status": "healthy",
+  "timestamp": "2025-10-01T10:00:00.000Z",
+  "version": "2.0.0",
+  "database": "connected"
+}
+```
+
+## 🔒 Security
+
+### Features
+- JWT authentication with secure token storage
+- Row-Level Security (RLS) for tenant isolation
+- CORS protection
+- Rate limiting
+- SQL injection prevention via Prisma
+- XSS protection
+- CSRF tokens
+- Encrypted secrets
+
+### Security Testing
+```bash
+npm audit
+npm run security:audit
 ```
 
 ## 🐛 Troubleshooting
 
-**Common Issues:**
+### Common Issues
 
-1. **Port conflicts**: Change ports in `.env` files
-2. **Database connection**: Verify MongoDB URI and credentials
-3. **Build failures**: Clear node_modules and reinstall
-4. **Memory issues**: Increase Node.js heap size with `--max-old-space-size=4096`
-
-**Debug Commands:**
+**Port already in use**:
 ```bash
-cd server
-npm run db:validate     # Check database health
-node scripts/testAuth.js # Test authentication flow
+# Find process using port
+netstat -ano | findstr "3000"
+
+# Kill process
+taskkill /PID <PID> /F
 ```
 
-## 📚 Documentation
+**Database connection failed**:
+```bash
+# Check PostgreSQL is running
+psql -U nectar_app_user -d nectarstudio_ai
 
-- **API Documentation**: Available at `/api/docs` when server is running
-- **GraphQL Playground**: Available at `/graphql`
-- **Architecture Guide**: See `CLAUDE.md`
-- **Security Checklist**: See `server/docs/`
+# Verify DATABASE_URL in .env
+```
+
+**Module not found**:
+```bash
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## 🔗 Related Services
+
+- **Nectar Marketing**: Marketing site and lead generation (separate repo)
+- **Nectar Admin**: Admin portal and system management (separate repo)
+
+## 📖 Documentation
+
+- [API Documentation](./docs/API_DOCUMENTATION.md)
+- [Architecture Overview](./docs/ARCHITECTURE.md)
+- [RBAC System](./docs/RBAC-DOCUMENTATION.md)
+- [Production Testing Plan](./docs/PRODUCTION_TESTING_PLAN.md)
+- [Microservices Separation](./docs/MICROSERVICES_SEPARATION_PLAN.md)
+- [Safe Core Cleanup Plan](./docs/SAFE_CORE_CLEANUP_PLAN.md)
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## 📧 Support
+
+- **Documentation**: `/docs` folder
+- **Issues**: GitHub Issues
+- **Email**: support@nectarstudio.ai
 
 ## 📄 License
 
-This project is proprietary software. All rights reserved.
+Proprietary - All Rights Reserved
+
+---
+
+**Version**: 2.0.0 - Core Service (Post-Microservices Separation)
+**Last Updated**: October 1, 2025
+**Status**: ✅ Production Ready

@@ -528,14 +528,39 @@ async function refreshSchemasByService(permissions) {
 }
 
 // Generate OpenAPI 3.0 specification for a role
+// Note: This endpoint is accessed by Swagger UI iframe, so it needs to work with session auth
 router.get('/openapi/:roleId', async (req, res) => {
+  // Log that we received the request at the route level
+  console.log('=== OpenAPI endpoint hit ===', {
+    roleId: req.params.roleId,
+    hasReqUser: !!req.user,
+    hasSession: !!req.session,
+    cookies: req.headers.cookie || 'none',
+  });
+
   try {
-    const organizationId = req.user?.organizationId;
+    // Check for user from either JWT token or session
+    const organizationId = req.user?.organizationId || req.session?.user?.organizationId;
+
+    if (!organizationId) {
+      console.log('=== OpenAPI endpoint - No auth ===');
+      logger.error('OpenAPI endpoint - No authentication', {
+        hasReqUser: !!req.user,
+        hasSession: !!req.session,
+        hasSessionUser: !!req.session?.user,
+        cookies: req.headers.cookie ? 'present' : 'missing',
+        authHeader: req.headers.authorization ? 'present' : 'missing',
+      });
+      return res.status(401).json({
+        error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+      });
+    }
+
     const role = await prismaService.withTenantContext(organizationId, async tx => {
       return await tx.role.findUnique({
         where: { id: req.params.roleId },
         include: {
-          service: true,
+          service: true, // Get the service info
         },
       });
     });
@@ -544,27 +569,28 @@ router.get('/openapi/:roleId', async (req, res) => {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Role not found' } });
     }
 
-    // Handle permissions as JSON field, not relation
-    const permissions = role.permissions || [];
+    // Handle permissions as JSON field
+    const permissions = Array.isArray(role.permissions) ? role.permissions : [];
 
-    const endpoints = Array.isArray(permissions)
-      ? permissions
-          .filter(p => p.objectName) // Basic filter for valid permissions
-          .map(perm => {
-            const allowedMethods = Object.entries(perm.actions || {})
-              .filter(([_, allowed]) => allowed)
-              .map(([method]) => method);
+    const endpoints = permissions
+      .filter(perm => perm.objectName) // Only include permissions with object names
+      .map(perm => {
+        const allowedMethods = Object.entries(perm.actions || {})
+          .filter(([_, allowed]) => allowed)
+          .map(([method]) => method);
 
-            return {
-              path: `/api/services/${role.service.name}/${perm.objectName}`,
-              methods: allowedMethods,
-              service: role.service.name,
-              objectName: perm.objectName,
-              parameters: perm.procedureSchema?.parameters || [],
-              procedureInfo: perm.procedureSchema?.procedure || null,
-            };
-          })
-      : [];
+        // Extract schema from either procedureSchema or schema field
+        const schemaData = perm.procedureSchema || perm.schema;
+
+        return {
+          path: `/api/v2/${role.service.name}${perm.objectName}`,
+          methods: allowedMethods,
+          service: role.service.name,
+          objectName: perm.objectName,
+          parameters: schemaData?.parameters || [],
+          procedureInfo: schemaData?.procedure || null,
+        };
+      });
 
     const openApiSpec = generateOpenAPISpec(role, endpoints);
     res.json(openApiSpec);

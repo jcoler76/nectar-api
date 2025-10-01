@@ -46,7 +46,9 @@
       "Bash(npm install:*)",
       "Bash(npm run start:backend:*)",
       "Bash(node:*)",
-      "Read(//c/Users/jcoler/Downloads/dfparity/**)"
+      "Read(//c/Users/jcoler/Downloads/dfparity/**)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

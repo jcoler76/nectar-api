@@ -1,9 +1,0 @@
-{
-  "watch": ["src"],
-  "ext": "ts,json",
-  "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts"],
-  "exec": "node -r tsconfig-paths/register -r ts-node/register ./src/app.ts",
-  "env": {
-    "TS_NODE_TRANSPILE_ONLY": "true"
-  }
-}

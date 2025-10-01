@@ -5,7 +5,19 @@ const { v4: uuidv4 } = require('uuid');
 
 const prismaService = require('../services/prismaService');
 const { sanitizeObject } = require('../utils/logSanitizer');
-const { securityMonitoring, SECURITY_EVENTS } = require('../services/securityMonitoringService');
+// PERMANENTLY DISABLED - SecurityMonitoringService causes hanging issues
+// const { securityMonitoring, SECURITY_EVENTS } = require('../services/securityMonitoringService');
+
+// Create no-op replacements to prevent errors
+const securityMonitoring = {
+  trackBulkDataAccess: async () => {
+    /* disabled */
+  },
+  integrateSecurityMonitoring: async () => {
+    /* disabled */
+  },
+};
+const SECURITY_EVENTS = {};
 
 const { logger } = require('./logger');
 

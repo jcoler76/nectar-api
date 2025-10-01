@@ -5,7 +5,7 @@
  * It allows for gradual migration without breaking existing functionality.
  */
 
-import { format, parseISO, isValid, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
+import { parseISO, isValid, startOfDay, endOfDay, addDays, subDays } from 'date-fns';
 import { formatInTimeZone, utcToZonedTime } from 'date-fns-tz';
 
 // Timezone configuration
@@ -149,7 +149,7 @@ export const momentCompat = {
 };
 
 // Export default interface for easier migration
-export default {
+const dateUtils = {
   formatDateInTimezone,
   formatTimestampEST,
   getStartOfDay,
@@ -162,3 +162,5 @@ export default {
   nowInTimezone,
   momentCompat,
 };
+
+export default dateUtils;

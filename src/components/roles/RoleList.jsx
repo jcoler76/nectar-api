@@ -100,7 +100,7 @@ const RoleList = () => {
 
     // SECURITY: Sanitize role name for display
     const sanitizedRoleName =
-      swaggerDialog.selectedRole.name?.replace(/[<>\"']/g, '') || 'Unknown Role';
+      swaggerDialog.selectedRole.name?.replace(/[<>"']/g, '') || 'Unknown Role';
 
     const apiUrl = getApiUrl();
     const url = `${apiUrl}/api/swagger-ui/openapi/${encodeURIComponent(swaggerDialog.selectedRole.id)}/ui`;
@@ -333,7 +333,7 @@ const RoleList = () => {
               className="rounded-b-lg"
               style={{ minHeight: '70vh' }}
               onLoad={() => {
-                console.log('Secure documentation loaded:', docViewer.title);
+                // Documentation loaded successfully
               }}
               onError={() => {
                 console.error('Failed to load documentation:', docViewer.title);

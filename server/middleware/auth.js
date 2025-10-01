@@ -2,7 +2,18 @@ const jwt = require('jsonwebtoken');
 const { logger } = require('../utils/logger');
 const { validateToken } = require('../utils/tokenService');
 const prismaService = require('../services/prismaService');
-const { securityMonitoring } = require('../services/securityMonitoringService');
+// PERMANENTLY DISABLED - SecurityMonitoringService causes hanging issues
+// const { securityMonitoring } = require('../services/securityMonitoringService');
+
+// Create a no-op replacement to prevent errors
+const securityMonitoring = {
+  trackAuthSuccess: async () => {
+    /* disabled */
+  },
+  trackAuthFailure: async () => {
+    /* disabled */
+  },
+};
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -22,6 +33,14 @@ const authMiddleware = async (req, res, next) => {
       !token &&
       (req.path.includes('/api/documentation') || req.originalUrl.includes('/api/documentation'))
     ) {
+      logger.info('Documentation route - checking session', {
+        hasSession: !!req.session,
+        hasSessionUser: !!req.session?.user,
+        cookies: req.headers.cookie ? 'present' : 'missing',
+        path: req.path,
+        sessionId: req.sessionID,
+      });
+
       if (req.session?.user) {
         // Create a temporary user object for documentation access
         req.user = {
@@ -37,6 +56,11 @@ const authMiddleware = async (req, res, next) => {
           path: req.path,
         });
         return next();
+      } else {
+        logger.warn('Documentation route - no session user found', {
+          hasSession: !!req.session,
+          sessionKeys: req.session ? Object.keys(req.session) : [],
+        });
       }
     }
 

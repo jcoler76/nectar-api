@@ -10,7 +10,6 @@ import ApplicationList from './components/applications/ApplicationList';
 import AcceptInvitation from './components/auth/AcceptInvitation';
 import Login from './components/auth/Login';
 import SetupAccount from './components/auth/SetupAccount';
-import TermsGate from './components/auth/TermsGate';
 import LazyRoute from './components/common/LazyRoute';
 import RateLimitErrorBoundary from './components/common/RateLimitErrorBoundary';
 import EndpointList from './components/endpoints/EndpointList';
@@ -71,11 +70,7 @@ const TeamManagement = lazy(() => import('./components/settings/TeamManagement')
 const TermsManagement = lazy(() => import('./components/settings/TermsManagement'));
 
 const ProtectedLayout = ({ children }) => {
-  return (
-    <TermsGate>
-      <ModernLayout>{children}</ModernLayout>
-    </TermsGate>
-  );
+  return <ModernLayout>{children}</ModernLayout>;
 };
 
 const ProtectedRoute = ({ children, requiredPermission }) => {

@@ -1,7 +1,6 @@
 {
-  "name": "nectar-core",
-  "version": "2.0.0",
-  "description": "Nectar Studio Core Platform - Main Application Service",
+  "name": "nectar-api",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@aws-sdk/client-sns": "^3.891.0",
@@ -97,7 +96,6 @@
     "zustand": "^5.0.5"
   },
   "scripts": {
-    "dev": "concurrently \"npm run start\" \"npm run start:backend\"",
     "start": "react-app-rewired start",
     "start:frontend": "react-app-rewired start",
     "start:backend": "cd server && npm run dev",

@@ -14,14 +14,15 @@ const getKey = () => {
 
 const decryptDatabasePassword = encryptedPassword => {
   try {
-    if (
-      !encryptedPassword ||
-      typeof encryptedPassword !== 'string' ||
-      !encryptedPassword.includes(':')
-    ) {
-      throw new Error('Invalid encrypted password format');
+    if (!encryptedPassword || typeof encryptedPassword !== 'string') {
+      throw new Error('Invalid password: must be a non-empty string');
     }
 
+    if (!encryptedPassword.includes(':')) {
+      throw new Error('Invalid encrypted password format - missing delimiter');
+    }
+
+    // Decrypt the encrypted password
     const [encryptedHex, ivHex] = encryptedPassword.split(':');
     const key = getKey();
 

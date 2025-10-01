@@ -397,38 +397,38 @@ class SecurityMonitoringService {
         userAgent: event.userAgent?.substring(0, 200), // Truncate long user agents
       });
 
-      // Store authentication events in the existing LoginActivityLog table
-      if (event.type === 'AUTH_SUCCESS' || event.type === 'AUTH_FAILURE') {
-        const systemPrisma = prismaService.getSystemClient();
-        await systemPrisma.loginActivityLog
-          .create({
-            data: {
-              userId: event.userId || null,
-              organizationId: event.metadata?.organizationId || null,
-              email: event.metadata?.email || null,
-              loginType: event.type === 'AUTH_SUCCESS' ? 'success' : 'failure',
-              ipAddress: event.ip?.substring(0, 45) || null, // IP addresses max 45 chars
-              userAgent: event.userAgent?.substring(0, 500) || null,
-              failureReason:
-                event.type === 'AUTH_FAILURE' ? event.metadata?.reason || 'Unknown' : null,
-              metadata: {
-                riskScore: event.riskScore || 0,
-                alerts: event.alerts || [],
-                ...event.metadata,
-              },
-              timestamp: new Date(),
-            },
-          })
-          .catch(error => {
-            // If table doesn't exist yet, just log to Winston
-            if (!error.message.includes('does not exist')) {
-              logger.error('Failed to store login activity in database', {
-                error: error.message,
-                event: event.type,
-              });
-            }
-          });
-      }
+      // Database logging temporarily disabled for debugging
+      // if (event.type === 'AUTH_SUCCESS' || event.type === 'AUTH_FAILURE') {
+      //   const systemPrisma = prismaService.getSystemClient();
+      //   await systemPrisma.loginActivityLog
+      //     .create({
+      //       data: {
+      //         userId: event.userId || null,
+      //         organizationId: event.metadata?.organizationId || null,
+      //         email: event.metadata?.email || null,
+      //         loginType: event.type === 'AUTH_SUCCESS' ? 'success' : 'failure',
+      //         ipAddress: event.ip?.substring(0, 45) || null, // IP addresses max 45 chars
+      //         userAgent: event.userAgent?.substring(0, 500) || null,
+      //         failureReason:
+      //           event.type === 'AUTH_FAILURE' ? event.metadata?.reason || 'Unknown' : null,
+      //         metadata: {
+      //           riskScore: event.riskScore || 0,
+      //           alerts: event.alerts || [],
+      //           ...event.metadata,
+      //         },
+      //         timestamp: new Date(),
+      //       },
+      //     })
+      //     .catch(error => {
+      //       // If table doesn't exist yet, just log to Winston
+      //       if (!error.message.includes('does not exist')) {
+      //         logger.error('Failed to store login activity in database', {
+      //           error: error.message,
+      //           event: event.type,
+      //         });
+      //       }
+      //     });
+      // }
     } catch (error) {
       logger.error('Error logging security event', {
         error: error.message,

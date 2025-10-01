@@ -24,7 +24,8 @@ const ALLOWED_IFRAME_SOURCES = [
 // SECURITY: Restricted sandbox permissions (minimal required permissions)
 const SECURE_SANDBOX_PERMISSIONS = [
   'allow-same-origin', // Required for API documentation
-  // Note: Removed 'allow-scripts', 'allow-forms', 'allow-popups' which were security risks
+  'allow-scripts', // Required for Swagger UI and interactive documentation
+  // Note: 'allow-forms' and 'allow-popups' still restricted for security
 ];
 
 /**

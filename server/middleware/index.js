@@ -166,17 +166,15 @@ const applySecurityMiddleware = app => {
   // Apply general rate limiting and other middleware
   app.use('/api', apiLimiter);
 
-  // Lightweight SQL injection monitor (rewritten)
-  const { sqlInjectionMonitor } = require('./sqlInjectionMonitor');
-  app.use('/api', sqlInjectionMonitor);
+  // EMERGENCY DISABLE ALL MIDDLEWARE AGAIN
+  // const { sqlInjectionMonitor } = require('./sqlInjectionMonitor');
+  // app.use('/api', sqlInjectionMonitor);
 
-  // activityLogger CAUSES HANGING - DISABLED
   // const activityLogger = require('./activityLogger');
   // app.use('/api', activityLogger.middleware());
 
-  // Testing performanceMiddleware
-  const performanceMiddleware = require('./performanceMiddleware');
-  app.use('/api', performanceMiddleware);
+  // const performanceMiddleware = require('./performanceMiddleware');
+  // app.use('/api', performanceMiddleware);
 
   // Apply API versioning to all API routes
   app.use('/api', apiVersioning);

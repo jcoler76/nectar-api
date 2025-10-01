@@ -1,113 +1,150 @@
-# Bundle Analysis Guide
+# Bundle Analysis Report - SDK Optimization Opportunities
 
-This document describes the webpack bundle analysis setup for the Nectar API frontend.
+## 📊 Current Bundle Statistics
+- **Total Size**: 7.01 MB (1.88 MB gzipped)
+- **JavaScript**: 6.92 MB (98.6%)
+- **CSS**: 101.81 KB (1.4%)
+- **Compression**: 26.8%
 
-## Overview
+## 🔴 **Priority Issues Found**
 
-The project uses `webpack-bundle-analyzer` to provide insights into:
-- Bundle size composition
-- Module dependencies
-- Optimization opportunities
-- Duplicate dependencies
+### 1. **OVERSIZED MAIN BUNDLE** (Critical)
+- `main.a9b063f2.js`: **1.99 MB** (439.47 KB gzipped)
+- **Issue**: Too much code in main bundle affects initial load time
+- **Impact**: Users wait longer for app to start
 
-## Available Commands
+### 2. **LARGE VENDOR CHUNKS** (High Impact)
+- `863.17af7087.chunk.js`: **1.62 MB** (492.86 KB gzipped)
+- `223.20f6a86d.chunk.js`: **926.75 KB** (252.30 KB gzipped)
+- `967.c80738f9.chunk.js`: **624.26 KB** (220.77 KB gzipped)
+- **Likely contains**: MUI, React, moment.js, other large dependencies
 
-### Primary Commands
+## 🎯 **Immediate Optimization Opportunities**
 
-```bash
-# Interactive analysis (opens browser with bundle visualization)
-npm run analyze
-
-# Generate static HTML report
-npm run analyze:static
-
-# Force rebuild and analyze (ignores existing build)
-npm run analyze:force
-
-# Analyze existing build files only
-npm run analyze:existing
+### **A. Remove Moment.js Duplication** ⭐️ **HIGHEST IMPACT**
+```javascript
+// Current redundancy
+- moment.js (~67KB gzipped)
+- date-fns (~11KB gzipped)
+// Savings: ~65KB by standardizing on date-fns
 ```
 
-### Advanced Usage
+### **B. Optimize MUI Tree-Shaking** ⭐️ **HIGH IMPACT**
+```javascript
+// Instead of:
+import { Button, TextField } from '@mui/material';
 
-```bash
-# Direct script usage with options
-node scripts/bundleAnalyzer.js --help
-node scripts/bundleAnalyzer.js --static
-node scripts/bundleAnalyzer.js --force
+// Use:
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 ```
 
-## How It Works
+### **C. Code Splitting Improvements** ⭐️ **MEDIUM IMPACT**
+- Already using lazy loading ✅
+- **Opportunity**: Split vendor libraries into separate chunks
+- **Opportunity**: Split admin vs regular user features
 
-1. **Build Detection**: Script checks if build files exist in `build/static/js/`
-2. **Conditional Building**: Only rebuilds if necessary (unless `--force` is used)
-3. **Analysis Modes**:
-   - **Server Mode** (default): Opens interactive browser interface on port 8888
-   - **Static Mode**: Generates `bundle-report.html` file
+## 💡 **Low-Risk Optimizations to Implement**
 
-## Bundle Optimization Insights
-
-The analyzer helps identify:
-
-### Performance Issues
-- Large dependencies that could be code-split
-- Duplicate modules across chunks
-- Unused code that could be tree-shaken
-
-### Optimization Opportunities
-- **Code Splitting**: Split large routes/components into separate chunks
-- **Dynamic Imports**: Load components only when needed  
-- **Dependency Analysis**: Find opportunities to replace heavy libraries
-
-## Integration with Development Workflow
-
-### After Major Changes
-Run bundle analysis after:
-- Adding new dependencies
-- Implementing new features
-- Performance optimization work
-
-### Monitoring Bundle Size
-- Current bundle size targets are documented in `CODESCOREIMPROVEMENT.md`
-- Target: Bundle size < 1.5MB (gzipped)
-- Use analyzer to track progress toward size goals
-
-## Technical Details
-
-### Configuration
-- Bundle analyzer is integrated via `config-overrides.js`
-- Uses environment variable `ANALYZE=true` to conditionally enable
-- Generates stats file at `build/bundle-stats.json` when enabled
-
-### Script Features
-- Cross-platform compatibility (Windows/Linux/Mac)
-- Automatic build detection and conditional building
-- Multiple analysis modes for different use cases
-- Comprehensive error handling and user feedback
-
-## Troubleshooting
-
-### Build Issues
-If analysis fails due to build issues:
-```bash
-# Force clean build
-npm run analyze:force
+### 1. **Webpack Bundle Splitting** (30 minutes)
+```javascript
+// Add to config-overrides.js or webpack config
+module.exports = {
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+          enforce: true
+        },
+        mui: {
+          test: /[\\/]node_modules[\\/]@mui[\\/]/,
+          name: 'mui',
+          chunks: 'all',
+          enforce: true
+        },
+        moment: {
+          test: /[\\/]node_modules[\\/]moment[\\/]/,
+          name: 'moment',
+          chunks: 'all',
+          enforce: true
+        }
+      }
+    }
+  }
+};
 ```
 
-### Port Conflicts
-If port 8888 is in use:
-- The analyzer will automatically find an available port
-- Or use static mode: `npm run analyze:static`
+### 2. **Date Library Consolidation** (2 hours)
+Create `src/utils/dateHelpers.js`:
+```javascript
+// Wrapper to gradually replace moment
+export const formatDate = (date, format) => {
+  // Use date-fns instead of moment
+  return format(date, format);
+};
+```
 
-### No Bundle Files Found
-Ensure the build completed successfully:
-- Check `build/static/js/` directory exists
-- Verify JavaScript files are present (not just .map files)
-- Run `npm run build` manually to debug build issues
+### 3. **MUI Optimization** (1 hour)
+```javascript
+// Add babel plugin for automatic tree-shaking
+npm install --save-dev babel-plugin-import
 
-## Next Steps
+// In babel config:
+{
+  "plugins": [
+    ["import", {
+      "libraryName": "@mui/material",
+      "libraryDirectory": "",
+      "camel2DashComponentName": false
+    }, "core"]
+  ]
+}
+```
 
-This bundle analysis setup enables the next medium-risk items in the code improvement plan:
-- **Route-based code splitting** - Use analyzer to identify largest components
-- **Performance optimizations** - Target highest-impact modules first
-- **Bundle size monitoring** - Track progress toward < 1.5MB target
+## 📈 **Expected Results**
+
+| Optimization | Size Reduction | Risk Level | Effort |
+|--------------|----------------|------------|--------|
+| Remove moment.js | -65KB | Very Low | 2 hours |
+| MUI tree-shaking | -50-100KB | Low | 1 hour |
+| Bundle splitting | Better caching | Very Low | 30 min |
+| Route-based splitting | Faster initial load | Low | 1 hour |
+
+## 🚀 **Quick Wins (Next 30 minutes)**
+
+1. **Add bundle size tracking**:
+```bash
+npm run analyze:build
+# Save baseline measurements
+```
+
+2. **Identify specific dependencies**:
+```bash
+npm install --save-dev webpack-bundle-analyzer
+# Generate detailed dependency map
+```
+
+3. **Check for duplicate dependencies**:
+```bash
+npm ls | grep -E "(moment|date-fns|@mui)"
+```
+
+## 🎯 **Recommended Implementation Order**
+
+1. ✅ **Bundle analysis** (DONE)
+2. 🔄 **Remove moment.js** (Start here - biggest impact)
+3. 🔄 **Optimize MUI imports**
+4. 🔄 **Configure bundle splitting**
+5. 🔄 **Measure improvements**
+
+## 📝 **Success Metrics**
+- Initial load time: Target < 2 seconds
+- Bundle size: Target < 1.5MB gzipped
+- First contentful paint: Target < 1.5 seconds
+
+---
+*Generated: ${new Date().toISOString()}*

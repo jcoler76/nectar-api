@@ -56,9 +56,10 @@ router.use('/openapi/:roleId/ui', swaggerUi.serve, (req, res, next) => {
     swaggerOptions: {
       url: baseUrl,
       displayRequestDuration: true,
+      withCredentials: true, // Enable sending cookies with requests
       requestInterceptor: `(function(request) {
-        // Note: Authentication now requires proper Authorization header
-        // Token must be provided via Bearer token in API calls
+        // Ensure credentials are included for cross-origin requests
+        request.credentials = 'include';
         return request;
       })`,
     },

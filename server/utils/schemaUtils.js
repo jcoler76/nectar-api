@@ -152,14 +152,12 @@ const fetchSchemaFromDatabase = async (serviceOrPool, objectName) => {
   try {
     // If service object was passed, create connection
     if (serviceOrPool && !serviceOrPool.request) {
-      const { decryptDatabasePassword } = require('./encryption');
-
       const config = {
         server: serviceOrPool.host,
         port: serviceOrPool.port,
         database: serviceOrPool.database,
         user: serviceOrPool.username,
-        password: decryptDatabasePassword(serviceOrPool.password),
+        password: serviceOrPool.password, // Password should already be decrypted by caller
         options: {
           encrypt: true,
           trustServerCertificate: true,
