@@ -1,7 +1,8 @@
 const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-server-express');
+
+const prismaService = require('../../services/prismaService');
 const { logger } = require('../../utils/logger');
 const { fetchSchemaFromDatabase } = require('../../utils/schemaUtils');
-const prismaService = require('../../services/prismaService');
 
 const roleResolvers = {
   // Type resolvers
@@ -368,10 +369,13 @@ const roleResolvers = {
         });
 
         return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
-          // Verify service exists and belongs to organization
+          // Verify service exists and belongs to organization - include connection for schema fetch
           const service = await tx.service.findFirst({
             where: {
               id: serviceId,
+            },
+            include: {
+              connection: true,
             },
           });
 
@@ -384,15 +388,84 @@ const roleResolvers = {
           }
 
           // Ensure permissions are properly serialized for JSON storage
-          const serializedPermissions = Array.isArray(permissions)
-            ? permissions.map(permission => ({
+          // Also fetch schema details for each permission
+          const serializedPermissions = [];
+
+          if (Array.isArray(permissions)) {
+            for (const permission of permissions) {
+              const permissionData = {
                 serviceId: permission.serviceId,
                 objectName: permission.objectName,
                 actions: permission.actions || {},
-              }))
-            : [];
+              };
 
-          logger.info('Serialized permissions', { serializedPermissions });
+              // Fetch schema details for this permission
+              // Services can have password stored directly OR via connection
+              const hasDirectPassword = service.passwordEncrypted;
+              const hasConnectionPassword = service.connection?.passwordEncrypted;
+
+              if (hasDirectPassword || hasConnectionPassword) {
+                try {
+                  const { decryptDatabasePassword } = require('../../utils/encryption');
+
+                  // Build service object with connection details for schema fetch
+                  let serviceWithPassword;
+                  if (hasDirectPassword) {
+                    // Service has password stored directly
+                    serviceWithPassword = {
+                      host: service.host,
+                      port: service.port,
+                      database: service.database,
+                      username: service.username,
+                      password: decryptDatabasePassword(service.passwordEncrypted),
+                    };
+                  } else {
+                    // Service uses connection
+                    serviceWithPassword = {
+                      host: service.connection.host,
+                      port: service.connection.port,
+                      database: service.database,
+                      username: service.connection.username,
+                      password: decryptDatabasePassword(service.connection.passwordEncrypted),
+                    };
+                  }
+
+                  const schema = await fetchSchemaFromDatabase(
+                    serviceWithPassword,
+                    permission.objectName
+                  );
+                  if (schema) {
+                    // Store schema in both fields for backward compatibility
+                    permissionData.procedureSchema = schema;
+                    permissionData.schema = schema;
+                    logger.info(`Schema fetched for ${permission.objectName}:`, {
+                      hasParameters: !!schema.parameters,
+                      paramCount: schema.parameters?.length || 0,
+                    });
+                  } else {
+                    logger.warn(`No schema found for ${permission.objectName}`);
+                  }
+                } catch (schemaError) {
+                  logger.error(`Failed to fetch schema for ${permission.objectName}:`, {
+                    error: schemaError.message,
+                    stack: schemaError.stack,
+                  });
+                  // Continue without schema - it can be refreshed later
+                }
+              } else {
+                logger.warn(
+                  `Service ${serviceId} has no password configured (neither direct nor via connection), skipping schema fetch`
+                );
+              }
+
+              serializedPermissions.push(permissionData);
+            }
+          }
+
+          logger.info('Serialized permissions', {
+            count: serializedPermissions.length,
+            withSchema: serializedPermissions.filter(p => p.procedureSchema).length,
+          });
 
           const role = await tx.role.create({
             data: {
@@ -460,6 +533,13 @@ const roleResolvers = {
 
           const existingRole = await tx.role.findFirst({
             where,
+            include: {
+              service: {
+                include: {
+                  connection: true,
+                },
+              },
+            },
           });
 
           if (!existingRole) {
@@ -471,26 +551,125 @@ const roleResolvers = {
 
           // Handle permissions serialization if being updated
           if (permissions !== undefined) {
-            updateData.permissions = Array.isArray(permissions)
-              ? permissions.map(permission => ({
+            const serializedPermissions = [];
+
+            if (Array.isArray(permissions)) {
+              // Get the service for schema fetching (use updated serviceId or existing)
+              const targetServiceId = serviceId || existingRole.serviceId;
+              const service = await tx.service.findFirst({
+                where: { id: targetServiceId },
+                include: { connection: true },
+              });
+
+              if (!service) {
+                throw new UserInputError('Service not found');
+              }
+
+              // Process each permission and fetch schema
+              for (const permission of permissions) {
+                const permissionData = {
                   serviceId: permission.serviceId,
                   objectName: permission.objectName,
                   actions: permission.actions || {},
-                }))
-              : [];
+                };
+
+                // Check if this permission already has a schema
+                const existingPermission = (existingRole.permissions || []).find(
+                  p =>
+                    p.objectName === permission.objectName && p.serviceId === permission.serviceId
+                );
+
+                // If permission has existing schema, preserve it, otherwise fetch new schema
+                if (existingPermission?.schema || existingPermission?.procedureSchema) {
+                  permissionData.schema = existingPermission.schema;
+                  permissionData.procedureSchema = existingPermission.procedureSchema;
+                } else {
+                  // Fetch schema for new permissions
+                  const hasDirectPassword = service.passwordEncrypted;
+                  const hasConnectionPassword = service.connection?.passwordEncrypted;
+
+                  if (hasDirectPassword || hasConnectionPassword) {
+                    try {
+                      const { decryptDatabasePassword } = require('../../utils/encryption');
+
+                      // Build service object with connection details for schema fetch
+                      let serviceWithPassword;
+                      if (hasDirectPassword) {
+                        serviceWithPassword = {
+                          host: service.host,
+                          port: service.port,
+                          database: service.database,
+                          username: service.username,
+                          password: decryptDatabasePassword(service.passwordEncrypted),
+                        };
+                      } else {
+                        serviceWithPassword = {
+                          host: service.connection.host,
+                          port: service.connection.port,
+                          database: service.database,
+                          username: service.connection.username,
+                          password: decryptDatabasePassword(service.connection.passwordEncrypted),
+                        };
+                      }
+
+                      const schema = await fetchSchemaFromDatabase(
+                        serviceWithPassword,
+                        permission.objectName
+                      );
+                      if (schema) {
+                        permissionData.procedureSchema = schema;
+                        permissionData.schema = schema;
+                        logger.info(`Schema fetched for ${permission.objectName} during update:`, {
+                          hasParameters: !!schema.parameters,
+                          paramCount: schema.parameters?.length || 0,
+                        });
+                      } else {
+                        logger.warn(`No schema found for ${permission.objectName} during update`);
+                      }
+                    } catch (schemaError) {
+                      logger.error(
+                        `Failed to fetch schema for ${permission.objectName} during update:`,
+                        {
+                          error: schemaError.message,
+                          stack: schemaError.stack,
+                        }
+                      );
+                      // Continue without schema - it can be refreshed later
+                    }
+                  } else {
+                    logger.warn(
+                      `Service ${targetServiceId} has no password configured, skipping schema fetch during update`
+                    );
+                  }
+                }
+
+                serializedPermissions.push(permissionData);
+              }
+            }
+
+            updateData.permissions = serializedPermissions;
+
+            logger.info('Update: Serialized permissions', {
+              count: serializedPermissions.length,
+              withSchema: serializedPermissions.filter(p => p.procedureSchema || p.schema).length,
+            });
           }
 
-          // Verify service if being updated
+          // Verify service if being updated (only if we didn't already fetch it above)
           if (serviceId && serviceId !== existingRole.serviceId) {
-            const service = await tx.service.findFirst({
-              where: {
-                id: serviceId,
-              },
-            });
+            if (permissions === undefined) {
+              // We didn't fetch the service above, so verify it now
+              const service = await tx.service.findFirst({
+                where: {
+                  id: serviceId,
+                },
+              });
 
-            if (!service) {
-              throw new UserInputError('Service not found');
+              if (!service) {
+                throw new UserInputError('Service not found');
+              }
             }
+            // Service was already verified in the permissions block above
 
             updateData.serviceId = serviceId;
           }

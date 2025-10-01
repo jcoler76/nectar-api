@@ -289,11 +289,40 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
         return;
       }
 
+      // Merge existing permissions with new bulk permissions
+      let mergedPermissions = [];
+      if (mode === 'edit' && existingRole?.permissions?.length > 0) {
+        // Start with existing permissions
+        const existingPerms = existingRole.permissions.map(p => ({
+          ...p,
+          _isExisting: true,
+        }));
+
+        if (bulkPermissions.length > 0) {
+          // Create a map of existing permissions by objectName for deduplication
+          const existingPermsMap = new Map(existingPerms.map(p => [p.objectName, p]));
+
+          // Add or update with new permissions
+          bulkPermissions.forEach(newPerm => {
+            existingPermsMap.set(newPerm.objectName, newPerm);
+          });
+
+          mergedPermissions = Array.from(existingPermsMap.values());
+        } else {
+          mergedPermissions = existingPerms;
+        }
+
+        // Remove the _isExisting flag before saving
+        mergedPermissions = mergedPermissions.map(({ _isExisting, ...perm }) => perm);
+      } else {
+        mergedPermissions = bulkPermissions.length > 0 ? bulkPermissions : role.permissions || [];
+      }
+
       const roleData = {
         name: role.name,
         description: role.description,
         serviceId: serviceId,
-        permissions: bulkPermissions.length > 0 ? bulkPermissions : role.permissions || [],
+        permissions: mergedPermissions,
         isActive: role.isActive,
       };
 
@@ -398,7 +427,46 @@ const CreateRole = ({ mode = 'create', existingRole = null }) => {
 
   // Bulk selection callbacks
   const handleTablesSelected = (tables, serviceId) => {
-    setSelectedTables(tables);
+    // In edit mode, merge newly selected tables with existing ones from permissions
+    if (mode === 'edit' && existingRole?.permissions?.length > 0) {
+      // Get existing tables from permissions
+      const existingTablesFromPerms = existingRole.permissions
+        .filter(p => p.objectName)
+        .map(p => {
+          let tableName = p.objectName;
+
+          // Handle different objectName formats
+          if (tableName.startsWith('/table/')) {
+            tableName = tableName.replace('/table/', '');
+          } else if (tableName.startsWith('table/')) {
+            tableName = tableName.replace('table/', '');
+          }
+
+          return {
+            name: tableName,
+            type: 'table',
+            schema: 'dbo',
+          };
+        });
+
+      // Create a map to deduplicate by table name
+      const tablesMap = new Map();
+
+      // Add existing tables first
+      existingTablesFromPerms.forEach(table => {
+        tablesMap.set(table.name, table);
+      });
+
+      // Add or override with newly selected tables
+      tables.forEach(table => {
+        tablesMap.set(table.name, table);
+      });
+
+      setSelectedTables(Array.from(tablesMap.values()));
+    } else {
+      setSelectedTables(tables);
+    }
+
     setRole(prev => ({ ...prev, serviceId }));
   };
 
