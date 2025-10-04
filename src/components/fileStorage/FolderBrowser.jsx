@@ -118,9 +118,8 @@ const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => 
 
   // Handle MCP disable
   const handleDisableMCP = async (folderId, folderName) => {
-    // eslint-disable-next-line no-restricted-globals
     if (
-      !confirm(
+      !window.confirm(
         `Are you sure you want to disable MCP on "${folderName}"? This will remove all embeddings and API keys.`
       )
     ) {
