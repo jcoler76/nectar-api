@@ -1,126 +1,153 @@
 const DataLoader = require('dataloader');
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const { Workflow } = require('../../models/workflowModels');
-// const WorkflowRun = require('../../models/WorkflowRun');
-
 const { PrismaClient } = require('../../prisma/generated/client');
 const prisma = new PrismaClient();
 
 const createWorkflowLoader = () => {
   return new DataLoader(async workflowIds => {
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const workflows = await Workflow.find({ _id: { $in: workflowIds } }).populate('userId');
-    // For now, return empty array to allow server startup
-    const workflows = [];
+    const workflows = await prisma.workflow.findMany({
+      where: {
+        id: {
+          in: workflowIds,
+        },
+      },
+      include: {
+        creator: true,
+        organization: true,
+      },
+    });
 
     // Return workflows in the same order as the input IDs
     const workflowMap = {};
     workflows.forEach(workflow => {
-      workflowMap[workflow._id.toString()] = workflow;
+      workflowMap[workflow.id] = workflow;
     });
 
-    return workflowIds.map(id => workflowMap[id.toString()] || null);
+    return workflowIds.map(id => workflowMap[id] || null);
   });
 };
 
 const createWorkflowRunLoader = () => {
   return new DataLoader(async runIds => {
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const runs = await WorkflowRun.find({ _id: { $in: runIds } }).populate('workflowId');
-    // For now, return empty array to allow server startup
-    const runs = [];
+    const runs = await prisma.workflowExecution.findMany({
+      where: {
+        id: {
+          in: runIds,
+        },
+      },
+      include: {
+        workflow: true,
+      },
+    });
 
     // Return runs in the same order as the input IDs
     const runMap = {};
     runs.forEach(run => {
-      runMap[run._id.toString()] = run;
+      runMap[run.id] = run;
     });
 
-    return runIds.map(id => runMap[id.toString()] || null);
+    return runIds.map(id => runMap[id] || null);
   });
 };
 
 const createWorkflowRunsByWorkflowLoader = () => {
   return new DataLoader(async workflowIds => {
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const runs = await WorkflowRun.find({
-    //   workflowId: { $in: workflowIds },
-    // }).sort({ createdAt: -1 });
-    // For now, return empty array to allow server startup
-    const runs = [];
+    const runs = await prisma.workflowExecution.findMany({
+      where: {
+        workflowId: {
+          in: workflowIds,
+        },
+      },
+      orderBy: {
+        startedAt: 'desc',
+      },
+    });
 
     // Group runs by workflow ID
     const runsByWorkflow = {};
     workflowIds.forEach(id => {
-      runsByWorkflow[id.toString()] = [];
+      runsByWorkflow[id] = [];
     });
 
     runs.forEach(run => {
-      const workflowId = run.workflowId.toString();
-      if (runsByWorkflow[workflowId]) {
-        runsByWorkflow[workflowId].push(run);
+      if (runsByWorkflow[run.workflowId]) {
+        runsByWorkflow[run.workflowId].push(run);
       }
     });
 
-    return workflowIds.map(id => runsByWorkflow[id.toString()] || []);
+    return workflowIds.map(id => runsByWorkflow[id] || []);
   });
 };
 
 const createLastWorkflowRunLoader = () => {
   return new DataLoader(async workflowIds => {
-    // TODO: Replace MongoDB aggregation with Prisma query during migration
-    // const runs = await WorkflowRun.aggregate([
-    //   { $match: { workflowId: { $in: workflowIds } } },
-    //   { $sort: { createdAt: -1 } },
-    //   { $group: { _id: '$workflowId', lastRun: { $first: '$$ROOT' } } },
-    // ]);
-    // For now, return empty array to allow server startup
-    const runs = [];
-
-    const runMap = {};
-    runs.forEach(result => {
-      runMap[result._id.toString()] = result.lastRun;
+    const runs = await prisma.workflowExecution.findMany({
+      where: {
+        workflowId: {
+          in: workflowIds,
+        },
+      },
+      orderBy: {
+        startedAt: 'desc',
+      },
+      include: {
+        workflow: true,
+      },
     });
 
-    return workflowIds.map(id => runMap[id.toString()] || null);
+    // Get the first (most recent) run for each workflow
+    const runMap = {};
+    runs.forEach(run => {
+      if (!runMap[run.workflowId]) {
+        runMap[run.workflowId] = run;
+      }
+    });
+
+    return workflowIds.map(id => runMap[id] || null);
   });
 };
 
 const createWorkflowStatsLoader = () => {
   return new DataLoader(async workflowIds => {
-    // TODO: Replace MongoDB aggregation with Prisma query during migration
-    // const stats = await WorkflowRun.aggregate([
-    //   { $match: { workflowId: { $in: workflowIds } } },
-    //   {
-    //     $group: {
-    //       _id: '$workflowId',
-    //       totalRuns: { $sum: 1 },
-    //       successfulRuns: {
-    //         $sum: { $cond: [{ $eq: ['$status', 'succeeded'] }, 1, 0] },
-    //       },
-    //       averageDuration: {
-    //         $avg: {
-    //           $subtract: ['$finishedAt', '$startedAt'],
-    //         },
-    //       },
-    //     },
-    //   },
-    // ]);
-    // For now, return empty array to allow server startup
-    const stats = [];
+    const runs = await prisma.workflowExecution.findMany({
+      where: {
+        workflowId: {
+          in: workflowIds,
+        },
+      },
+      select: {
+        workflowId: true,
+        status: true,
+        startedAt: true,
+        completedAt: true,
+      },
+    });
 
+    // Aggregate stats by workflow
     const statsMap = {};
-    stats.forEach(stat => {
-      const successRate = stat.totalRuns > 0 ? (stat.successfulRuns / stat.totalRuns) * 100 : 0;
-      statsMap[stat._id.toString()] = {
-        totalRuns: stat.totalRuns,
+    workflowIds.forEach(id => {
+      const workflowRuns = runs.filter(run => run.workflowId === id);
+      const totalRuns = workflowRuns.length;
+      const successfulRuns = workflowRuns.filter(run => run.status === 'SUCCESS').length;
+      const successRate = totalRuns > 0 ? (successfulRuns / totalRuns) * 100 : 0;
+
+      // Calculate average duration for completed runs
+      const completedRuns = workflowRuns.filter(run => run.completedAt && run.startedAt);
+      const averageDuration =
+        completedRuns.length > 0
+          ? completedRuns.reduce((sum, run) => {
+              return sum + (run.completedAt.getTime() - run.startedAt.getTime());
+            }, 0) / completedRuns.length
+          : 0;
+
+      statsMap[id] = {
+        totalRuns,
         successRate: parseFloat(successRate.toFixed(2)),
-        averageDuration: stat.averageDuration || 0,
+        averageDuration: Math.round(averageDuration),
       };
     });
 
     return workflowIds.map(
-      id => statsMap[id.toString()] || { totalRuns: 0, successRate: 0, averageDuration: 0 }
+      id => statsMap[id] || { totalRuns: 0, successRate: 0, averageDuration: 0 }
     );
   });
 };

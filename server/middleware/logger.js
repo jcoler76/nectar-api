@@ -18,7 +18,8 @@ const baseLogger = winston.createLogger({
 });
 
 // Add console transport for non-production
-if (process.env.NODE_ENV !== 'production') {
+// CRITICAL: In MCP mode, disable console transport to keep stdout clean
+if (process.env.NODE_ENV !== 'production' && process.env.MCP_MODE !== 'true') {
   baseLogger.add(
     new winston.transports.Console({
       format: winston.format.combine(winston.format.colorize(), winston.format.simple()),

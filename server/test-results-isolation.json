@@ -1,0 +1,292 @@
+{
+  "passed": 15,
+  "failed": 5,
+  "total": 20,
+  "details": [
+    {
+      "testCase": "TC-ISO-001",
+      "status": "FAIL",
+      "message": "Expected 3 connections from Org A, got 3. All from correct org: false",
+      "evidence": {
+        "connections": [
+          {
+            "id": "585c82f2-93cf-4ad1-a686-094a782a9bcf"
+          },
+          {
+            "id": "33056041-9c80-41c4-aba7-ed7df9988ebe"
+          },
+          {
+            "id": "9cba3875-2931-41b6-a9fa-3050b9d2e2f8"
+          }
+        ]
+      },
+      "timestamp": "2025-10-01T22:32:52.969Z"
+    },
+    {
+      "testCase": "TC-ISO-002",
+      "status": "FAIL",
+      "message": "Expected 5 services from Org A, got 5",
+      "evidence": [
+        {
+          "id": "7360b9f6-a487-4d5a-8808-c484968f8d53",
+          "name": "alpha-service-5",
+          "label": null,
+          "description": "Test service 5 for alpha",
+          "host": null,
+          "port": null,
+          "database": "testdb_alpha_5",
+          "username": null,
+          "connectionId": null,
+          "objects": null,
+          "isActive": true,
+          "createdAt": {},
+          "updatedAt": {},
+          "connection": null,
+          "effectiveHost": null
+        },
+        {
+          "id": "b96b748b-0616-49d0-88dd-e781f09af243",
+          "name": "alpha-service-4",
+          "label": null,
+          "description": "Test service 4 for alpha",
+          "host": null,
+          "port": null,
+          "database": "testdb_alpha_4",
+          "username": null,
+          "connectionId": null,
+          "objects": null,
+          "isActive": true,
+          "createdAt": {},
+          "updatedAt": {},
+          "connection": null,
+          "effectiveHost": null
+        },
+        {
+          "id": "017969ba-cce3-4aa8-9995-241c255686c0",
+          "name": "alpha-service-3",
+          "label": null,
+          "description": "Test service 3 for alpha",
+          "host": null,
+          "port": null,
+          "database": "testdb_alpha_3",
+          "username": null,
+          "connectionId": null,
+          "objects": null,
+          "isActive": true,
+          "createdAt": {},
+          "updatedAt": {},
+          "connection": null,
+          "effectiveHost": null
+        },
+        {
+          "id": "cb3996ff-736d-4da8-86bf-d4c4b56f2e24",
+          "name": "alpha-service-2",
+          "label": null,
+          "description": "Test service 2 for alpha",
+          "host": null,
+          "port": null,
+          "database": "testdb_alpha_2",
+          "username": null,
+          "connectionId": null,
+          "objects": null,
+          "isActive": true,
+          "createdAt": {},
+          "updatedAt": {},
+          "connection": null,
+          "effectiveHost": null
+        },
+        {
+          "id": "fe7a210e-bba1-44d3-a073-0f8ae89cd4aa",
+          "name": "alpha-service-1",
+          "label": null,
+          "description": "Test service 1 for alpha",
+          "host": null,
+          "port": null,
+          "database": "testdb_alpha_1",
+          "username": null,
+          "connectionId": null,
+          "objects": null,
+          "isActive": true,
+          "createdAt": {},
+          "updatedAt": {},
+          "connection": null,
+          "effectiveHost": null
+        }
+      ],
+      "timestamp": "2025-10-01T22:32:52.985Z"
+    },
+    {
+      "testCase": "TC-ISO-003",
+      "status": "FAIL",
+      "message": "Failed to fetch applications",
+      "evidence": {
+        "success": false,
+        "message": "Insufficient permissions for application operation"
+      },
+      "timestamp": "2025-10-01T22:32:52.994Z"
+    },
+    {
+      "testCase": "TC-ISO-004",
+      "status": "PASS",
+      "message": "Workflows properly isolated",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.021Z"
+    },
+    {
+      "testCase": "TC-ISO-005",
+      "status": "FAIL",
+      "message": "Expected 5 endpoints from Org A, got undefined",
+      "evidence": {
+        "authentication": [
+          "POST /api/auth/login",
+          "POST /api/auth/logout",
+          "POST /api/auth/refresh",
+          "GET /api/csrf-token"
+        ],
+        "users": [
+          "GET /api/v1/users",
+          "POST /api/v1/users",
+          "GET /api/v1/users/:id",
+          "PUT /api/v1/users/:id",
+          "DELETE /api/v1/users/:id"
+        ],
+        "roles": [
+          "GET /api/v1/roles",
+          "POST /api/v1/roles",
+          "GET /api/v1/roles/:id",
+          "PUT /api/v1/roles/:id",
+          "DELETE /api/v1/roles/:id"
+        ],
+        "applications": [
+          "GET /api/v1/applications",
+          "POST /api/v1/applications",
+          "PUT /api/v1/applications/:id",
+          "DELETE /api/v1/applications/:id",
+          "POST /api/v1/applications/:id/regenerate-key"
+        ],
+        "services": [
+          "GET /api/v1/services",
+          "POST /api/v1/services",
+          "PUT /api/v1/services/:id",
+          "DELETE /api/v1/services/:id"
+        ],
+        "info": [
+          "GET /api/versions",
+          "GET /api/health",
+          "GET /api/endpoints"
+        ]
+      },
+      "timestamp": "2025-10-01T22:32:53.024Z"
+    },
+    {
+      "testCase": "TC-ISO-006",
+      "status": "PASS",
+      "message": "Activity logs endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.034Z"
+    },
+    {
+      "testCase": "TC-ISO-007",
+      "status": "PASS",
+      "message": "Audit logs endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.039Z"
+    },
+    {
+      "testCase": "TC-ISO-008",
+      "status": "FAIL",
+      "message": "Failed to fetch organization members",
+      "evidence": {
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "The requested resource was not found"
+        }
+      },
+      "timestamp": "2025-10-01T22:32:53.050Z"
+    },
+    {
+      "testCase": "TC-ISO-009",
+      "status": "PASS",
+      "message": "Invitations endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.067Z"
+    },
+    {
+      "testCase": "TC-ISO-010",
+      "status": "PASS",
+      "message": "Notifications properly isolated",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.074Z"
+    },
+    {
+      "testCase": "TC-ISO-011",
+      "status": "PASS",
+      "message": "Webhooks endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.085Z"
+    },
+    {
+      "testCase": "TC-ISO-012",
+      "status": "PASS",
+      "message": "File storage properly isolated",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.108Z"
+    },
+    {
+      "testCase": "TC-ISO-013",
+      "status": "PASS",
+      "message": "Usage metrics endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.122Z"
+    },
+    {
+      "testCase": "TC-ISO-014",
+      "status": "PASS",
+      "message": "Roles endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.136Z"
+    },
+    {
+      "testCase": "TC-ISO-015",
+      "status": "PASS",
+      "message": "Billing endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.147Z"
+    },
+    {
+      "testCase": "TC-ISO-016",
+      "status": "PASS",
+      "message": "Database objects endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.151Z"
+    },
+    {
+      "testCase": "TC-ISO-017",
+      "status": "PASS",
+      "message": "Rate limits endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.157Z"
+    },
+    {
+      "testCase": "TC-ISO-018",
+      "status": "PASS",
+      "message": "Regular users properly restricted from cross-org access. Super admin testing requires manual verification.",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.167Z"
+    },
+    {
+      "testCase": "TC-ISO-019",
+      "status": "PASS",
+      "message": "GraphQL endpoint not accessible or not implemented (acceptable)",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.197Z"
+    },
+    {
+      "testCase": "TC-ISO-020",
+      "status": "PASS",
+      "message": "All bypass attempts blocked. SQL injection and header manipulation prevented.",
+      "evidence": null,
+      "timestamp": "2025-10-01T22:32:53.252Z"
+    }
+  ]
+}

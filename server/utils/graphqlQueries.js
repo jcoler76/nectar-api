@@ -164,6 +164,7 @@ const SERVICE_QUERIES = {
             isActive
             createdAt
             updatedAt
+            organizationId
             creator {
               id
               email
@@ -513,6 +514,7 @@ const CONNECTION_QUERIES = {
             databases
             createdAt
             updatedAt
+            organizationId
             creator {
               id
               email

@@ -1,7 +1,19 @@
-import { Folder, ChevronRight, Home, MoreVertical, Edit, Trash2, FolderOpen } from 'lucide-react';
+import {
+  Folder,
+  ChevronRight,
+  Home,
+  MoreVertical,
+  Edit,
+  Trash2,
+  FolderOpen,
+  Bot,
+  Key,
+  BarChart3,
+} from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import api from '../../services/api';
+import { Badge } from '../ui/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,15 +27,25 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
+
+import FolderAPIKeyManager from './FolderAPIKeyManager';
+import FolderMCPStatus from './FolderMCPStatus';
+import FolderMCPToggle from './FolderMCPToggle';
 
 const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => {
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingFolder, setEditingFolder] = useState(null);
   const [editName, setEditName] = useState('');
+
+  // MCP dialog states
+  const [mcpToggleDialog, setMcpToggleDialog] = useState({ open: false, folder: null });
+  const [mcpStatusDialog, setMcpStatusDialog] = useState({ open: false, folder: null });
+  const [mcpApiKeyDialog, setMcpApiKeyDialog] = useState({ open: false, folder: null });
 
   // Load folders for current path
   const loadFolders = useCallback(async () => {
@@ -92,6 +114,43 @@ const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => 
   // Navigate to folder
   const handleFolderClick = folderPath => {
     onPathChange(folderPath);
+  };
+
+  // Handle MCP disable
+  const handleDisableMCP = async (folderId, folderName) => {
+    // eslint-disable-next-line no-restricted-globals
+    if (
+      !confirm(
+        `Are you sure you want to disable MCP on "${folderName}"? This will remove all embeddings and API keys.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await api.post(`/api/folders/${folderId}/mcp/disable`);
+
+      if (response.data.success) {
+        loadFolders();
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error disabling MCP:', error);
+      alert('Failed to disable MCP: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  // Open MCP dialogs
+  const openMCPToggle = folder => {
+    setMcpToggleDialog({ open: true, folder });
+  };
+
+  const openMCPStatus = folder => {
+    setMcpStatusDialog({ open: true, folder });
+  };
+
+  const openAPIKeyManager = folder => {
+    setMcpApiKeyDialog({ open: true, folder });
   };
 
   // Build breadcrumb from current path
@@ -175,10 +234,22 @@ const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => 
               key={folder.id}
               className="group relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
             >
+              {/* MCP Badge */}
+              {folder.mcpEnabled && (
+                <div className="absolute top-2 left-2">
+                  <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <Bot className="h-3 w-3 mr-1" />
+                    MCP
+                  </Badge>
+                </div>
+              )}
+
               {/* Folder Icon and Content */}
               <div onClick={() => handleFolderClick(folder.path)}>
                 <div className="flex flex-col items-center text-center space-y-2">
-                  <Folder className="h-12 w-12 text-blue-600" />
+                  <Folder
+                    className={`h-12 w-12 ${folder.mcpEnabled ? 'text-purple-600' : 'text-blue-600'}`}
+                  />
                   <div className="w-full">
                     {editingFolder === folder.id ? (
                       <Input
@@ -232,6 +303,56 @@ const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => 
                       <Edit className="h-4 w-4 mr-2" />
                       Rename
                     </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    {/* MCP Options */}
+                    {!folder.mcpEnabled ? (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation();
+                          openMCPToggle(folder);
+                        }}
+                        className="text-purple-600"
+                      >
+                        <Bot className="h-4 w-4 mr-2" />
+                        Enable MCP Server
+                      </DropdownMenuItem>
+                    ) : (
+                      <>
+                        <DropdownMenuItem
+                          onClick={e => {
+                            e.stopPropagation();
+                            openMCPStatus(folder);
+                          }}
+                        >
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          MCP Status
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={e => {
+                            e.stopPropagation();
+                            openAPIKeyManager(folder);
+                          }}
+                        >
+                          <Key className="h-4 w-4 mr-2" />
+                          Manage API Keys
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleDisableMCP(folder.id, folder.name);
+                          }}
+                          className="text-orange-600"
+                        >
+                          <Bot className="h-4 w-4 mr-2" />
+                          Disable MCP Server
+                        </DropdownMenuItem>
+                      </>
+                    )}
+
+                    <DropdownMenuSeparator />
+
                     <DropdownMenuItem
                       onClick={e => {
                         e.stopPropagation();
@@ -254,6 +375,41 @@ const FolderBrowser = ({ currentPath, onPathChange, onRefresh, refreshKey }) => 
           <p>No folders in this directory</p>
           <p className="text-sm">Create your first folder to get started</p>
         </div>
+      )}
+
+      {/* MCP Dialogs */}
+      {mcpToggleDialog.folder && (
+        <FolderMCPToggle
+          folder={mcpToggleDialog.folder}
+          open={mcpToggleDialog.open}
+          onOpenChange={open =>
+            setMcpToggleDialog({ open, folder: open ? mcpToggleDialog.folder : null })
+          }
+          onSuccess={() => {
+            loadFolders();
+            if (onRefresh) onRefresh();
+          }}
+        />
+      )}
+
+      {mcpStatusDialog.folder && (
+        <FolderMCPStatus
+          folder={mcpStatusDialog.folder}
+          open={mcpStatusDialog.open}
+          onOpenChange={open =>
+            setMcpStatusDialog({ open, folder: open ? mcpStatusDialog.folder : null })
+          }
+        />
+      )}
+
+      {mcpApiKeyDialog.folder && (
+        <FolderAPIKeyManager
+          folder={mcpApiKeyDialog.folder}
+          open={mcpApiKeyDialog.open}
+          onOpenChange={open =>
+            setMcpApiKeyDialog({ open, folder: open ? mcpApiKeyDialog.folder : null })
+          }
+        />
       )}
     </div>
   );

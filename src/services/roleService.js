@@ -38,6 +38,7 @@ export const updateRole = async (id, roleData) => {
         description: roleData.description,
         permissions: roleData.permissions,
         isActive: roleData.isActive,
+        mcpEnabled: roleData.mcpEnabled,
       },
     });
     return data.updateRole;

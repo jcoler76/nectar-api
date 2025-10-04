@@ -67,8 +67,14 @@ export const loginUser = async (email, password) => {
 
 export const logoutUser = () => {
   // Get user data BEFORE clearing storage for logout API call
-  const userData = secureStorage.getItem();
+  let userData = null;
+  try {
+    userData = secureStorage.getItem();
+  } catch (error) {
+    // Ignore errors during logout - we're clearing anyway
+  }
 
+  // CRITICAL FIX: Clear ALL storage first to prevent stale data
   // Clear secure storage first
   secureStorage.removeItem();
 
@@ -86,6 +92,13 @@ export const logoutUser = () => {
 
   // Clear any other auth-related storage
   sessionStorage.clear();
+
+  // CRITICAL FIX: Clear axios authorization header immediately
+  try {
+    delete api.defaults.headers.common.Authorization;
+  } catch {
+    // Ignore cleanup errors
+  }
 
   // Clear CSRF token
   clearCSRFToken();

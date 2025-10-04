@@ -133,7 +133,6 @@ class SecureSessionStorage {
     try {
       const encrypted = this.encrypt(data);
       if (encrypted) {
-        const oldValue = localStorage.getItem(this.storageKey);
         localStorage.setItem(this.storageKey, encrypted);
 
         // SAFETY: Create fallback storage in case main storage gets corrupted
@@ -148,16 +147,6 @@ class SecureSessionStorage {
           console.warn('Failed to create backup storage:', fallbackError);
         }
 
-        // Manually trigger storage event for cross-tab synchronization
-        // This ensures other tabs/windows know about the auth state change
-        window.dispatchEvent(
-          new StorageEvent('storage', {
-            key: this.storageKey,
-            newValue: encrypted,
-            oldValue: oldValue,
-          })
-        );
-
         return true;
       }
       return false;
@@ -171,11 +160,14 @@ class SecureSessionStorage {
   getItem() {
     try {
       const encrypted = localStorage.getItem(this.storageKey);
-      if (encrypted) {
-        const decrypted = this.decrypt(encrypted);
-        if (decrypted) {
-          return decrypted;
-        }
+      if (!encrypted) {
+        // No encrypted data - likely logged out, return null without warnings
+        return null;
+      }
+
+      const decrypted = this.decrypt(encrypted);
+      if (decrypted) {
+        return decrypted;
       }
 
       // SAFETY: Try fallback storage if main storage fails
@@ -204,19 +196,14 @@ class SecureSessionStorage {
   }
 
   removeItem() {
-    const oldValue = localStorage.getItem(this.storageKey);
+    // Remove ALL nectar-related storage to prevent encryption key mismatch
     localStorage.removeItem(this.storageKey);
     localStorage.removeItem('nectar_session_id');
-    localStorage.removeItem('nectar_session_backup'); // Remove backup too
+    localStorage.removeItem('nectar_session_backup');
 
-    // Manually trigger storage event for logout synchronization
-    window.dispatchEvent(
-      new StorageEvent('storage', {
-        key: this.storageKey,
-        newValue: null,
-        oldValue: oldValue,
-      })
-    );
+    // Clear superadmin temporary storage
+    localStorage.removeItem('superadmin_temp_session');
+    localStorage.removeItem('superadmin_temp_user');
   }
 
   // Emergency cleanup when storage is corrupted

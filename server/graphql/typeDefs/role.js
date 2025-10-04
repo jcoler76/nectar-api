@@ -25,6 +25,7 @@ const roleTypeDefs = gql`
     name: String!
     description: String
     isActive: Boolean!
+    mcpEnabled: Boolean!
     serviceId: ID!
     service: Service!
     permissions: [Permission!]!
@@ -77,6 +78,7 @@ const roleTypeDefs = gql`
     name: String
     description: String
     isActive: Boolean
+    mcpEnabled: Boolean
     permissions: [PermissionInput!]
   }
 

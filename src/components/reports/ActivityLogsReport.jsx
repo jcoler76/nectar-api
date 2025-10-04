@@ -235,6 +235,7 @@ const ActivityLogsReport = () => {
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="api">API</SelectItem>
+                <SelectItem value="mcp">MCP (AI Agents)</SelectItem>
                 <SelectItem value="workflow">Workflow</SelectItem>
                 <SelectItem value="webhook">Webhook</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
@@ -254,6 +255,7 @@ const ActivityLogsReport = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
+                <SelectItem value="agent">Agent (MCP)</SelectItem>
                 <SelectItem value="client">Client</SelectItem>
                 <SelectItem value="developer">Developer</SelectItem>
                 <SelectItem value="internal">Internal</SelectItem>

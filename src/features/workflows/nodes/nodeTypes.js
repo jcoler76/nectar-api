@@ -1,6 +1,7 @@
 import ArticleIcon from '@mui/icons-material/Article';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import BusinessIcon from '@mui/icons-material/Business';
+import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import { default as CloudUploadIcon, default as FtpIcon } from '@mui/icons-material/CloudUpload';
@@ -9,6 +10,7 @@ import ContactPageIcon from '@mui/icons-material/ContactPage';
 import DescriptionIcon from '@mui/icons-material/Description';
 import EmailIcon from '@mui/icons-material/Email';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import ForumIcon from '@mui/icons-material/Forum';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import HttpIcon from '@mui/icons-material/Http';
@@ -16,6 +18,7 @@ import IntegrationInstructionsIcon from '@mui/icons-material/IntegrationInstruct
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import SpeakerNotesIcon from '@mui/icons-material/SpeakerNotes';
 import StorageIcon from '@mui/icons-material/Storage';
+import TelegramIcon from '@mui/icons-material/Telegram';
 import WebhookIcon from '@mui/icons-material/Webhook';
 
 import ApiSequencePanel from './panels/ApiSequencePanel';
@@ -25,6 +28,7 @@ import CodePanel from './panels/CodePanel';
 import CsvParsePanel from './panels/CsvParsePanel.tsx';
 import DatabaseTriggerPanel from './panels/DatabaseTriggerPanel';
 import DelayPanel from './panels/DelayPanel';
+import DiscordNotifyPanel from './panels/DiscordNotifyPanel.tsx';
 import EmailActionPanel from './panels/EmailActionPanel';
 import EmailTriggerPanel from './panels/EmailTriggerPanel';
 import FileGenerationPanel from './panels/FileGenerationPanel';
@@ -38,6 +42,7 @@ import HubSpotActionPanel from './panels/HubSpotActionPanel.jsx';
 import HubSpotRecordTriggerPanel from './panels/HubSpotRecordTriggerPanel.jsx';
 import IdempotencyPanel from './panels/IdempotencyPanel.tsx';
 import LoggerPanel from './panels/LoggerPanel';
+import MailchimpActionPanel from './panels/MailchimpActionPanel.tsx';
 import OpenAiPanel from './panels/OpenAiPanel';
 import RouterPanel from './panels/RouterPanel';
 import S3BucketTriggerPanel from './panels/S3BucketTriggerPanel';
@@ -45,8 +50,10 @@ import SalesforceActionPanel from './panels/SalesforceActionPanel.jsx';
 import SalesforceOutboundMessageTriggerPanel from './panels/SalesforceOutboundMessageTriggerPanel.jsx';
 import SalesforceRecordTriggerPanel from './panels/SalesforceRecordTriggerPanel.jsx';
 import SchedulerTriggerPanel from './panels/SchedulerTriggerPanel';
+import SlackNotifyPanel from './panels/SlackNotifyPanel.tsx';
 import SqlServerAdminPanel from './panels/SqlServerAdminPanel.tsx';
 import TeamsNotifyPanel from './panels/TeamsNotifyPanel.tsx';
+import TelegramNotifyPanel from './panels/TelegramNotifyPanel.tsx';
 import TransformPanel from './panels/TransformPanel.tsx';
 import WebhookTriggerPanel from './panels/WebhookTriggerPanel';
 import ZoomInfoContactDiscoveryPanel from './panels/ZoomInfoContactDiscoveryPanel';
@@ -622,6 +629,63 @@ export const NODE_TYPES = {
       color: '#0078D4',
     },
   },
+  'action:slack:notify': {
+    type: 'action:slack:notify',
+    name: 'Slack Notify',
+    description: 'Send a message to a Slack channel via Incoming Webhook.',
+    category: 'actions',
+    icon: ChatIcon,
+    inputs: 1,
+    outputs: 1,
+    getPropertiesComponent: () => SlackNotifyPanel,
+    defaultData: {
+      label: 'Slack Notify',
+      webhookUrl: '',
+      message: '',
+      username: '',
+      iconEmoji: '',
+      channel: '',
+    },
+  },
+  'action:discord:notify': {
+    type: 'action:discord:notify',
+    name: 'Discord Notify',
+    description: 'Send a message to a Discord channel via Webhook.',
+    category: 'actions',
+    icon: ForumIcon,
+    inputs: 1,
+    outputs: 1,
+    getPropertiesComponent: () => DiscordNotifyPanel,
+    defaultData: {
+      label: 'Discord Notify',
+      webhookUrl: '',
+      content: '',
+      username: '',
+      avatarUrl: '',
+      embedTitle: '',
+      embedDescription: '',
+      embedColor: '#5865F2',
+    },
+  },
+  'action:telegram:notify': {
+    type: 'action:telegram:notify',
+    name: 'Telegram Notify',
+    description: 'Send a message to a Telegram chat/channel via Bot API.',
+    category: 'actions',
+    icon: TelegramIcon,
+    inputs: 1,
+    outputs: 1,
+    getPropertiesComponent: () => TelegramNotifyPanel,
+    defaultData: {
+      label: 'Telegram Notify',
+      botToken: '',
+      chatId: '',
+      message: '',
+      parseMode: '',
+      disableWebPagePreview: false,
+      disableNotification: false,
+    },
+  },
   'action:sqlServerAdmin': {
     type: 'action:sqlServerAdmin',
     name: 'SQL Server Admin',
@@ -799,6 +863,32 @@ export const NODE_TYPES = {
         retryOnError: true,
         retryCount: 3,
         retryDelay: 1000,
+      },
+    },
+  },
+  'action:mailchimp:action': {
+    type: 'action:mailchimp:action',
+    name: 'Mailchimp Action',
+    description: 'Manage subscribers, tags, and audiences in Mailchimp.',
+    category: 'actions',
+    icon: EmailIcon,
+    inputs: 1,
+    outputs: 1,
+    getPropertiesComponent: () => MailchimpActionPanel,
+    defaultData: {
+      label: 'Mailchimp Action',
+      connection: {
+        apiKey: '',
+        server: '',
+      },
+      operation: 'subscribe',
+      listId: '',
+      email: '',
+      status: 'subscribed',
+      doubleOptIn: false,
+      tags: [],
+      dataMapping: {
+        mergeFields: {},
       },
     },
   },

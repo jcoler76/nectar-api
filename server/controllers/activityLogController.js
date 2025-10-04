@@ -18,8 +18,17 @@ class ActivityLogController {
    */
   async getLogs(req, res) {
     try {
-      // Get RLS-aware Prisma client for this request
-      const prisma = prismaService.getClient();
+      // SECURITY: Require organization context for RLS enforcement
+      const organizationId = req.user?.organizationId;
+      if (!organizationId) {
+        return res.status(401).json({
+          error: {
+            code: 'AUTHENTICATION_REQUIRED',
+            message: 'Organization context required for activity logs access',
+          },
+        });
+      }
+
       const {
         page = 1,
         limit = 50,
@@ -133,28 +142,35 @@ class ActivityLogController {
         skip,
         limit: parseInt(limit),
         orderBy,
+        organizationId,
       });
 
-      // Execute query with Prisma
-      const [logs, total] = await Promise.all([
-        prisma.apiActivityLog.findMany({
-          where,
-          orderBy,
-          skip,
-          take: parseInt(limit),
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
+      // SECURITY FIX: Use withTenantContext for proper RLS enforcement
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        const [logs, total] = await Promise.all([
+          tx.apiActivityLog.findMany({
+            where,
+            orderBy,
+            skip,
+            take: parseInt(limit),
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
               },
             },
-          },
-        }),
-        prisma.apiActivityLog.count({ where }),
-      ]);
+          }),
+          tx.apiActivityLog.count({ where }),
+        ]);
+
+        return { logs, total };
+      });
+
+      const { logs, total } = result;
 
       logger.info('Activity logs query results:', {
         totalFound: total,

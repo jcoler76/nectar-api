@@ -39,10 +39,10 @@ const Login = () => {
     setLoading(true);
     try {
       await login(email, password);
+      // Login successful - navigation will happen in AuthContext
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to log in. Please check your credentials.');
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only set loading to false on error
     }
   };
 

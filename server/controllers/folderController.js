@@ -1,4 +1,6 @@
 const prismaService = require('../services/prismaService');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 class FolderController {
   /**
@@ -224,7 +226,10 @@ class FolderController {
             organizationId,
             isActive: true,
           };
-          if (currentFolder?.id) {
+          // For root path, only show files not in any folder
+          if (path === '/' && !currentFolder) {
+            where.folderId = null;
+          } else if (currentFolder?.id) {
             where.folderId = currentFolder.id;
           }
 
@@ -836,6 +841,740 @@ class FolderController {
         message: 'Failed to get folder tree',
       });
     }
+  }
+
+  // ========== MCP (Model Context Protocol) Methods ==========
+
+  /**
+   * Enable MCP on a folder
+   * POST /api/folders/:folderId/mcp/enable
+   */
+  async enableFolderMCP(req, res) {
+    try {
+      const { folderId } = req.params;
+      const { config } = req.body;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      const userId = req.user.id;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+
+      // Get folder
+      const folder = await prisma.fileFolder.findFirst({
+        where: {
+          id: folderId,
+          organizationId,
+        },
+      });
+
+      if (!folder) {
+        await prisma.$disconnect();
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found',
+        });
+      }
+
+      if (folder.mcpEnabled) {
+        await prisma.$disconnect();
+        return res.status(400).json({
+          success: false,
+          message: 'MCP is already enabled for this folder',
+        });
+      }
+
+      // Default config
+      const mcpConfig = {
+        embedding_model: config?.embedding_model || 'text-embedding-3-small',
+        llm_model: config?.llm_model || 'gpt-4-turbo',
+        chunk_size: config?.chunk_size || 1000,
+        chunk_overlap: config?.chunk_overlap || 200,
+        top_k_results: config?.top_k_results || 5,
+        min_similarity: config?.min_similarity || 0.5,
+      };
+
+      // Update folder to enable MCP
+      await prisma.fileFolder.update({
+        where: { id: folderId },
+        data: {
+          mcpEnabled: true,
+          mcpConfig,
+          indexingStatus: 'pending',
+        },
+      });
+
+      // Create background job to index all files
+      await prisma.backgroundJob.create({
+        data: {
+          jobType: 'folder_embedding',
+          status: 'pending',
+          priority: 5,
+          folderId,
+          organizationId,
+          payload: {
+            folderId,
+            organizationId,
+            triggeredBy: userId,
+          },
+        },
+      });
+
+      await prisma.$disconnect();
+
+      res.json({
+        success: true,
+        message: 'MCP enabled successfully. Indexing has started in the background.',
+        config: mcpConfig,
+      });
+    } catch (error) {
+      console.error('Error enabling folder MCP:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to enable MCP',
+      });
+    }
+  }
+
+  /**
+   * Disable MCP on a folder
+   * POST /api/folders/:folderId/mcp/disable
+   */
+  async disableFolderMCP(req, res) {
+    try {
+      const { folderId } = req.params;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const EmbeddingService = require('../services/mcp/EmbeddingService');
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+
+      // Get folder
+      const folder = await prisma.fileFolder.findFirst({
+        where: {
+          id: folderId,
+          organizationId,
+        },
+      });
+
+      if (!folder) {
+        await prisma.$disconnect();
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found',
+        });
+      }
+
+      if (!folder.mcpEnabled) {
+        await prisma.$disconnect();
+        return res.status(400).json({
+          success: false,
+          message: 'MCP is not enabled for this folder',
+        });
+      }
+
+      // Delete all embeddings
+      const deletedCount = await EmbeddingService.deleteFolderEmbeddings(folderId);
+
+      // Update folder
+      await prisma.fileFolder.update({
+        where: { id: folderId },
+        data: {
+          mcpEnabled: false,
+          mcpConfig: null,
+          embeddingCount: 0,
+          lastIndexedAt: null,
+          indexingStatus: 'idle',
+        },
+      });
+
+      await prisma.$disconnect();
+
+      res.json({
+        success: true,
+        message: 'MCP disabled successfully',
+        deletedEmbeddings: deletedCount,
+      });
+    } catch (error) {
+      console.error('Error disabling folder MCP:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to disable MCP',
+      });
+    }
+  }
+
+  /**
+   * Trigger folder reindexing
+   * POST /api/folders/:folderId/mcp/reindex
+   */
+  async reindexFolder(req, res) {
+    try {
+      const { folderId } = req.params;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      const userId = req.user.id;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+
+      // Get folder
+      const folder = await prisma.fileFolder.findFirst({
+        where: {
+          id: folderId,
+          organizationId,
+        },
+      });
+
+      if (!folder) {
+        await prisma.$disconnect();
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found',
+        });
+      }
+
+      if (!folder.mcpEnabled) {
+        await prisma.$disconnect();
+        return res.status(400).json({
+          success: false,
+          message: 'MCP is not enabled for this folder',
+        });
+      }
+
+      // Create reindex job
+      await prisma.backgroundJob.create({
+        data: {
+          jobType: 'folder_reindex',
+          status: 'pending',
+          priority: 3, // Higher priority for reindex
+          folderId,
+          organizationId,
+          payload: {
+            folderId,
+            organizationId,
+            triggeredBy: userId,
+          },
+        },
+      });
+
+      // Update folder status
+      await prisma.fileFolder.update({
+        where: { id: folderId },
+        data: {
+          indexingStatus: 'pending',
+        },
+      });
+
+      await prisma.$disconnect();
+
+      res.json({
+        success: true,
+        message: 'Reindexing started successfully',
+      });
+    } catch (error) {
+      console.error('Error reindexing folder:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to start reindexing',
+      });
+    }
+  }
+
+  /**
+   * Get folder MCP status
+   * GET /api/folders/:folderId/mcp/status
+   */
+  async getFolderMCPStatus(req, res) {
+    try {
+      const { folderId } = req.params;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+
+      // Get folder with counts
+      const folder = await prisma.fileFolder.findFirst({
+        where: {
+          id: folderId,
+          organizationId,
+        },
+        include: {
+          _count: {
+            select: {
+              files: { where: { isActive: true } },
+              embeddings: true,
+            },
+          },
+        },
+      });
+
+      if (!folder) {
+        await prisma.$disconnect();
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found',
+        });
+      }
+
+      // Get pending/processing jobs
+      const activeJobs = await prisma.backgroundJob.findMany({
+        where: {
+          folderId,
+          status: { in: ['pending', 'processing'] },
+        },
+        select: {
+          id: true,
+          jobType: true,
+          status: true,
+          createdAt: true,
+          startedAt: true,
+        },
+      });
+
+      await prisma.$disconnect();
+
+      res.json({
+        success: true,
+        status: {
+          mcpEnabled: folder.mcpEnabled,
+          indexingStatus: folder.indexingStatus,
+          embeddingCount: folder.embeddingCount,
+          fileCount: folder._count.files,
+          lastIndexedAt: folder.lastIndexedAt,
+          config: folder.mcpConfig,
+          activeJobs: activeJobs.length,
+          jobs: activeJobs,
+        },
+      });
+    } catch (error) {
+      console.error('Error getting folder MCP status:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get MCP status',
+      });
+    }
+  }
+
+  /**
+   * Query folder documents
+   * POST /api/folders/:folderId/mcp/query
+   */
+  async queryFolder(req, res) {
+    try {
+      const { folderId } = req.params;
+      const { question, options } = req.body;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      const userId = req.user.id;
+
+      // Support both regular auth and folder API key auth
+      const apiKeyId = req.user.apiKeyId || null;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      if (!question || !question.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Question is required',
+        });
+      }
+
+      const FolderQueryService = require('../services/mcp/FolderQueryService');
+
+      const result = await FolderQueryService.queryFolder({
+        folderId,
+        organizationId,
+        question: question.trim(),
+        userId,
+        apiKeyId, // Track queries made with API keys
+        options,
+      });
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error('Error querying folder:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to query folder',
+      });
+    }
+  }
+
+  /**
+   * Get folder query history
+   * GET /api/folders/:folderId/mcp/queries
+   */
+  async getFolderQueryHistory(req, res) {
+    try {
+      const { folderId } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+
+      const [queries, totalCount] = await Promise.all([
+        prisma.folderMCPQuery.findMany({
+          where: { folderId },
+          orderBy: { createdAt: 'desc' },
+          take: parseInt(limit),
+          skip: parseInt(offset),
+          select: {
+            id: true,
+            question: true,
+            answer: true,
+            createdAt: true,
+            relevanceScore: true,
+            responseTimeMs: true,
+            tokensUsed: true,
+            costUsd: true,
+          },
+        }),
+        prisma.folderMCPQuery.count({ where: { folderId } }),
+      ]);
+
+      await prisma.$disconnect();
+
+      res.json({
+        success: true,
+        queries,
+        totalCount,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+      });
+    } catch (error) {
+      console.error('Error getting query history:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get query history',
+      });
+    }
+  }
+
+  /**
+   * Get folder MCP statistics
+   * GET /api/folders/:folderId/mcp/stats
+   */
+  async getFolderMCPStats(req, res) {
+    try {
+      const { folderId } = req.params;
+      const { startDate, endDate } = req.query;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const FolderQueryService = require('../services/mcp/FolderQueryService');
+      const EmbeddingService = require('../services/mcp/EmbeddingService');
+
+      // Default to last 30 days if no dates provided
+      const start = startDate
+        ? new Date(startDate)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate) : new Date();
+
+      const [usageStats, embeddingStats] = await Promise.all([
+        FolderQueryService.getUsageStats(folderId, start, end),
+        EmbeddingService.getFolderStats(folderId),
+      ]);
+
+      res.json({
+        success: true,
+        dateRange: { start, end },
+        usage: usageStats,
+        embeddings: embeddingStats,
+      });
+    } catch (error) {
+      console.error('Error getting folder stats:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get folder statistics',
+      });
+    }
+  }
+
+  // ========== Folder API Key Methods ==========
+
+  /**
+   * Generate API key for folder MCP access
+   * POST /api/folders/:folderId/mcp/api-key
+   */
+  async generateFolderApiKey(req, res) {
+    try {
+      const { folderId } = req.params;
+      const { name, expiresIn = '1y' } = req.body;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      const userId = req.user.id;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'API key name is required',
+        });
+      }
+
+      // Verify folder exists and MCP is enabled
+      const folder = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.fileFolder.findFirst({
+          where: {
+            id: folderId,
+            organizationId,
+          },
+        });
+      });
+
+      if (!folder) {
+        return res.status(404).json({
+          success: false,
+          message: 'Folder not found',
+        });
+      }
+
+      if (!folder.mcpEnabled) {
+        return res.status(400).json({
+          success: false,
+          message: 'MCP must be enabled on this folder before generating an API key',
+        });
+      }
+
+      // Calculate expiration
+      let expiresAt = null;
+      if (expiresIn && expiresIn !== 'never') {
+        const expirationMs = this._parseExpiration(expiresIn);
+        expiresAt = new Date(Date.now() + expirationMs);
+      }
+
+      // Generate API key using existing pattern
+      const apiKeyValue = this._generateApiKey();
+      const keyHash = await bcrypt.hash(apiKeyValue, 12);
+      const keyPrefix = `${apiKeyValue.substring(0, 8)}...${apiKeyValue.slice(-4)}`;
+
+      // Create API key scoped to folder
+      const apiKey = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.apiKey.create({
+          data: {
+            name: name.trim(),
+            keyHash,
+            keyPrefix,
+            organizationId,
+            createdById: userId,
+            folderId, // Scope to folder
+            permissions: ['folder:query', 'folder:mcp'],
+            expiresAt,
+            isActive: true,
+          },
+          include: {
+            folder: {
+              select: { id: true, name: true, path: true },
+            },
+            createdBy: {
+              select: { id: true, firstName: true, lastName: true, email: true },
+            },
+          },
+        });
+      });
+
+      res.status(201).json({
+        success: true,
+        apiKey: {
+          ...apiKey,
+          keyHash: undefined, // Don't return hash
+        },
+        key: apiKeyValue,
+        warning: 'Store this API key securely. It will not be shown again.',
+      });
+    } catch (error) {
+      console.error('Error generating folder API key:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to generate folder API key',
+      });
+    }
+  }
+
+  /**
+   * List API keys for a folder
+   * GET /api/folders/:folderId/mcp/api-keys
+   */
+  async listFolderApiKeys(req, res) {
+    try {
+      const { folderId } = req.params;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      const apiKeys = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.apiKey.findMany({
+          where: {
+            folderId,
+          },
+          select: {
+            id: true,
+            name: true,
+            keyPrefix: true,
+            isActive: true,
+            lastUsedAt: true,
+            expiresAt: true,
+            createdAt: true,
+            permissions: true,
+            createdBy: {
+              select: { id: true, firstName: true, lastName: true, email: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+      });
+
+      res.json({
+        success: true,
+        apiKeys,
+        count: apiKeys.length,
+      });
+    } catch (error) {
+      console.error('Error listing folder API keys:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to list folder API keys',
+      });
+    }
+  }
+
+  /**
+   * Revoke folder API key
+   * DELETE /api/folders/:folderId/mcp/api-key/:keyId
+   */
+  async revokeFolderApiKey(req, res) {
+    try {
+      const { folderId, keyId } = req.params;
+      const organizationId = req.user.organizationId || req.user.memberships?.[0]?.organizationId;
+      const userId = req.user.id;
+
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization ID required',
+        });
+      }
+
+      // Verify key belongs to folder
+      const apiKey = await prismaService.withTenantContext(organizationId, async tx => {
+        return await tx.apiKey.findFirst({
+          where: {
+            id: keyId,
+            folderId,
+          },
+        });
+      });
+
+      if (!apiKey) {
+        return res.status(404).json({
+          success: false,
+          message: 'API key not found for this folder',
+        });
+      }
+
+      // Revoke the key
+      await prismaService.withTenantContext(organizationId, async tx => {
+        await tx.apiKey.update({
+          where: { id: keyId },
+          data: {
+            isActive: false,
+          },
+        });
+      });
+
+      res.json({
+        success: true,
+        message: 'Folder API key revoked successfully',
+      });
+    } catch (error) {
+      console.error('Error revoking folder API key:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to revoke folder API key',
+      });
+    }
+  }
+
+  // Helper methods
+  _generateApiKey() {
+    const prefix = 'nk_folder_'; // nectar key - folder scoped
+    const randomBytes = crypto.randomBytes(32).toString('hex');
+    return `${prefix}${randomBytes}`;
+  }
+
+  _parseExpiration(expiresIn) {
+    const match = expiresIn.match(/^(\d+)([ymwd])$/);
+    if (!match) {
+      throw new Error('Invalid expiration format. Use format like: 1y, 6m, 30d, 1w');
+    }
+
+    const [, amount, unit] = match;
+    const multipliers = {
+      d: 24 * 60 * 60 * 1000,
+      w: 7 * 24 * 60 * 60 * 1000,
+      m: 30 * 24 * 60 * 60 * 1000,
+      y: 365 * 24 * 60 * 60 * 1000,
+    };
+
+    return parseInt(amount) * multipliers[unit];
   }
 }
 

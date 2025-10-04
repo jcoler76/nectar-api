@@ -40,8 +40,8 @@ const hasApplicationPermission = async (user, permission, organizationId) => {
     return true;
   }
 
-  // SECURITY: Organization admins have manage permissions within their tenant
-  if (user.isAdmin || user.role === 'ORGANIZATION_ADMIN') {
+  // SECURITY: Organization owners and admins have manage permissions within their tenant
+  if (user.isAdmin || user.role === 'ORGANIZATION_ADMIN' || user.role === 'ORGANIZATION_OWNER') {
     // CRITICAL: Verify user belongs to the organization (RLS enforcement)
     if (user.organizationId === organizationId) {
       return [

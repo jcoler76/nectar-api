@@ -66,8 +66,7 @@ const getSessionConfig = () => {
  * @returns {Promise<Object>} Service instances
  */
 const initializeServices = async () => {
-  // Temporarily skip MongoDB connection for PostgreSQL transition
-  console.log('Skipping MongoDB connection - using PostgreSQL with Prisma');
+  // Using PostgreSQL with Prisma for database operations
 
   // Initialize Prisma service
   const prismaService = require('../services/prismaService');

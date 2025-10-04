@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -51,6 +52,12 @@ model Organization {
   webhooks                Webhook[]
   workflows               Workflow[]
   fileFolders             FileFolder[]
+  agentExecutions         AgentExecution[]
+  agentMemories           AgentMemory[]
+  mcpServerInstances      MCPServerInstance[]
+  fileEmbeddings          FileEmbedding[]
+  backgroundJobs          BackgroundJob[]
+  folderMCPQueries        FolderMCPQuery[]
 
   @@index([slug])
   @@index([createdAt])
@@ -101,6 +108,8 @@ model User {
   termsAcceptances           TermsAcceptance[]
   workflowsCreated           Workflow[]
   fileFoldersCreated         FileFolder[]
+  agentExecutions            AgentExecution[]
+  folderMCPQueries           FolderMCPQuery[]
 
   @@index([email])
   @@index([createdAt])
@@ -311,23 +320,27 @@ model Endpoint {
 }
 
 model ApiKey {
-  id             String        @id @default(uuid())
-  name           String
-  keyHash        String        @unique
-  keyPrefix      String
-  lastUsedAt     DateTime?
-  expiresAt      DateTime?
-  isActive       Boolean       @default(true)
-  permissions    String[]
-  createdAt      DateTime      @default(now())
-  organizationId String
-  createdById    String
-  createdBy      User          @relation(fields: [createdById], references: [id])
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  usageMetrics   UsageMetric[]
+  id               String           @id @default(uuid())
+  name             String
+  keyHash          String           @unique
+  keyPrefix        String
+  lastUsedAt       DateTime?
+  expiresAt        DateTime?
+  isActive         Boolean          @default(true)
+  permissions      String[]
+  createdAt        DateTime         @default(now())
+  organizationId   String
+  createdById      String
+  folderId         String?          // Optional: Scope API key to specific folder for MCP access
+  createdBy        User             @relation(fields: [createdById], references: [id])
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  folder           FileFolder?      @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  usageMetrics     UsageMetric[]
+  folderMCPQueries FolderMCPQuery[]
 
   @@index([keyPrefix])
   @@index([organizationId])
+  @@index([folderId])
 }
 
 model UsageMetric {
@@ -486,6 +499,12 @@ model Role {
   description          String?
   isActive             Boolean              @default(true)
   permissions          Json
+
+  // MCP Server Configuration
+  mcpEnabled           Boolean              @default(false)
+  mcpServerConfig      Json?
+  mcpToolsGenerated    DateTime?
+
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   organizationId       String
@@ -494,6 +513,7 @@ model Role {
   applications         Application[]        @relation("ApplicationDefaultRole")
   exposedFieldPolicies ExposedFieldPolicy[]
   exposedRowPolicies   ExposedRowPolicy[]
+  mcpServerInstances   MCPServerInstance[]
   creator              User                 @relation("RoleCreator", fields: [createdBy], references: [id])
   organization         Organization         @relation("RoleOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
   service              Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
@@ -503,6 +523,7 @@ model Role {
   @@index([serviceId])
   @@index([isActive])
   @@index([createdBy])
+  @@index([mcpEnabled])
 }
 
 model Notification {
@@ -772,6 +793,8 @@ model FileStorage {
   uploader        User?           @relation(fields: [uploadedBy], references: [id])
   thumbnails      FileThumbnail[]
   versions        FileVersion[]
+  embeddings      FileEmbedding[] @relation("FileEmbeddings")
+  backgroundJobs  BackgroundJob[] @relation("FileJobs")
 
   @@index([organizationId])
   @@index([uploadedBy])
@@ -836,21 +859,32 @@ model FileShare {
 }
 
 model FileFolder {
-  id             String        @id @default(uuid())
-  name           String
-  path           String
-  parentId       String?
-  depth          Int           @default(0)
-  isRoot         Boolean       @default(false)
-  organizationId String
-  createdBy      String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  files          FileStorage[] @relation("FolderFiles")
-  creator        User?         @relation(fields: [createdBy], references: [id])
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  parent         FileFolder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children       FileFolder[]  @relation("FolderHierarchy")
+  id              String          @id @default(uuid())
+  name            String
+  path            String
+  parentId        String?
+  depth           Int             @default(0)
+  isRoot          Boolean         @default(false)
+  organizationId  String
+  createdBy       String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  // MCP Server fields
+  mcpEnabled      Boolean         @default(false) @map("mcp_enabled")
+  mcpConfig       Json?           @map("mcp_config")
+  embeddingCount  Int             @default(0) @map("embedding_count")
+  lastIndexedAt   DateTime?       @map("last_indexed_at")
+  indexingStatus  String          @default("idle") @map("indexing_status") // idle, pending, processing, completed, failed
+  // Relations
+  files           FileStorage[]   @relation("FolderFiles")
+  embeddings      FileEmbedding[]
+  mcpQueries      FolderMCPQuery[]
+  backgroundJobs  BackgroundJob[]
+  apiKeys         ApiKey[]        // API keys scoped to this folder
+  creator         User?           @relation(fields: [createdBy], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent          FileFolder?     @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children        FileFolder[]    @relation("FolderHierarchy")
 
   @@unique([organizationId, path])
   @@unique([parentId, name])
@@ -858,6 +892,8 @@ model FileFolder {
   @@index([parentId])
   @@index([path])
   @@index([depth])
+  @@index([mcpEnabled])
+  @@index([indexingStatus])
   @@map("file_folders")
 }
 
@@ -1116,6 +1152,76 @@ model ContactNote {
   @@map("contact_notes")
 }
 
+model MCPServerInstance {
+  id                   String            @id @default(uuid())
+  roleId               String
+  organizationId       String
+  serverUrl            String
+  status               MCPServerStatus   @default(ACTIVE)
+  tools                Json
+  lastHealthCheck      DateTime?
+  requestCount         Int               @default(0)
+  avgResponseTime      Float?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  role                 Role              @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([roleId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model AgentExecution {
+  id                   String            @id @default(uuid())
+  businessRequirement  String
+  agentType            String
+  status               AgentStatus       @default(RUNNING)
+  mcpServersUsed       Json
+  toolsInvoked         Json
+  thoughtProcess       Json
+  discoveries          Json
+  generatedCode        String?
+  testResults          Json?
+  documentation        String?
+  performanceMetrics   Json?
+  success              Boolean?
+  feedback             String?
+  improvements         Json?
+  createdAt            DateTime          @default(now())
+  completedAt          DateTime?
+  organizationId       String
+  userId               String
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([agentType])
+  @@index([userId])
+}
+
+model AgentMemory {
+  id                   String            @id @default(uuid())
+  type                 MemoryType
+  content              String
+  embedding            Json?
+  tags                 String[]
+  relevanceScore       Float             @default(0.5)
+  usageCount           Int               @default(0)
+  lastUsed             DateTime?
+  sourceExecutionId    String?
+  relatedMemories      String[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  organizationId       String
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([type])
+  @@index([relevanceScore])
+}
+
 enum ExposedEntityType {
   TABLE
   VIEW
@@ -1143,7 +1249,7 @@ enum AdminRole {
 enum SubscriptionPlan {
   FREE
   STARTER
-  PROFESSIONAL
+  TEAM
   BUSINESS
   ENTERPRISE
   CUSTOM
@@ -1307,4 +1413,118 @@ enum MessageRole {
   USER
   BOT
   AGENT
+}
+
+enum MCPServerStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  GENERATING
+}
+
+enum AgentStatus {
+  PENDING
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  LEARNING
+}
+
+enum MemoryType {
+  SUCCESS_PATTERN
+  ANTI_PATTERN
+  BUSINESS_RULE
+  OPTIMIZATION
+  CODE_SNIPPET
+  API_PATTERN
+}
+
+// ============================================
+// File Storage MCP Server Models
+// ============================================
+
+model FileEmbedding {
+  id             String       @id @default(uuid())
+  fileId         String       @map("file_id")
+  folderId       String       @map("folder_id")
+  organizationId String       @map("organization_id")
+  chunkIndex     Int          @map("chunk_index")
+  chunkText      String       @map("chunk_text") @db.Text
+  embedding      Unsupported("vector(1536)")
+  metadata       Json?        @default("{}")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  // Relations
+  file           FileStorage  @relation("FileEmbeddings", fields: [fileId], references: [id], onDelete: Cascade)
+  folder         FileFolder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@index([folderId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([folderId, organizationId])
+  @@map("FileEmbedding")
+}
+
+model BackgroundJob {
+  id             String        @id @default(uuid())
+  jobType        String        @map("job_type") // folder_embedding, file_embedding, folder_reindex
+  status         String        @default("pending") // pending, processing, completed, failed, cancelled
+  priority       Int           @default(5) // 1 (highest) to 10 (lowest)
+  folderId       String?       @map("folder_id")
+  fileId         String?       @map("file_id")
+  organizationId String        @map("organization_id")
+  payload        Json?         @default("{}")
+  result         Json?
+  errorMessage   String?       @map("error_message") @db.Text
+  attempts       Int           @default(0)
+  maxAttempts    Int           @default(3) @map("max_attempts")
+  startedAt      DateTime?     @map("started_at")
+  completedAt    DateTime?     @map("completed_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  // Relations
+  folder         FileFolder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  file           FileStorage?  @relation("FileJobs", fields: [fileId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([priority])
+  @@index([folderId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([status, priority, createdAt])
+  @@map("BackgroundJob")
+}
+
+model FolderMCPQuery {
+  id             String        @id @default(uuid())
+  folderId       String        @map("folder_id")
+  organizationId String        @map("organization_id")
+  apiKeyId       String?       @map("api_key_id")
+  userId         String?       @map("user_id")
+  question       String        @db.Text
+  answer         String?       @db.Text
+  sources        Json?         @default("[]")
+  embeddingModel String?       @map("embedding_model")
+  llmModel       String?       @map("llm_model")
+  tokensUsed     Int?          @map("tokens_used")
+  costUsd        Decimal?      @map("cost_usd") @db.Decimal(10, 6)
+  responseTimeMs Int?          @map("response_time_ms")
+  relevanceScore Decimal?      @map("relevance_score") @db.Decimal(3, 2)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  // Relations
+  folder         FileFolder    @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  apiKey         ApiKey?       @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([folderId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([costUsd])
+  @@index([organizationId, createdAt])
+  @@map("FolderMCPQuery")
 }

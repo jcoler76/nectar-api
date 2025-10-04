@@ -7,6 +7,9 @@ const { fetchSchemaFromDatabase } = require('../utils/schemaUtils');
 const { errorResponses } = require('../utils/errorHandler');
 const sql = require('mssql');
 const crypto = require('crypto');
+const { authMiddleware } = require('../middleware/auth');
+
+const authWithRLS = authMiddleware;
 
 // Get documentation using stored schema
 router.get('/role/:roleId', async (req, res) => {
@@ -527,29 +530,59 @@ async function refreshSchemasByService(permissions) {
   }
 }
 
-// Generate OpenAPI 3.0 specification for a role
-// Note: This endpoint is accessed by Swagger UI iframe, so it needs to work with session auth
-router.get('/openapi/:roleId', async (req, res) => {
-  // Log that we received the request at the route level
-  console.log('=== OpenAPI endpoint hit ===', {
-    roleId: req.params.roleId,
-    hasReqUser: !!req.user,
-    hasSession: !!req.session,
-    cookies: req.headers.cookie || 'none',
-  });
-
+// Generate a short-lived access token for OpenAPI access from iframes
+// IMPORTANT: This route must come BEFORE /openapi/:roleId to match correctly
+router.get('/openapi/:roleId/token', authWithRLS, async (req, res) => {
   try {
-    // Check for user from either JWT token or session
-    const organizationId = req.user?.organizationId || req.session?.user?.organizationId;
+    const organizationId = req.user?.organizationId;
+    if (!organizationId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Generate short-lived token (5 minutes)
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      {
+        roleId: req.params.roleId,
+        organizationId,
+        purpose: 'openapi-access',
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '5m' }
+    );
+
+    res.json({ token });
+  } catch (error) {
+    logger.error('Error generating OpenAPI access token', error);
+    errorResponses.serverError(res, error);
+  }
+});
+
+// Generate OpenAPI 3.0 specification for a role
+// Note: This endpoint is accessed by Swagger UI iframe, supports both session and token auth
+router.get('/openapi/:roleId', async (req, res) => {
+  try {
+    let organizationId = req.user?.organizationId || req.session?.user?.organizationId;
+
+    // Check for iframe access token in query param
+    if (!organizationId && req.query.token) {
+      const jwt = require('jsonwebtoken');
+      try {
+        const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+        if (decoded.purpose === 'openapi-access' && decoded.roleId === req.params.roleId) {
+          organizationId = decoded.organizationId;
+        }
+      } catch (tokenError) {
+        logger.warn('Invalid OpenAPI access token', { error: tokenError.message });
+      }
+    }
 
     if (!organizationId) {
-      console.log('=== OpenAPI endpoint - No auth ===');
       logger.error('OpenAPI endpoint - No authentication', {
         hasReqUser: !!req.user,
         hasSession: !!req.session,
         hasSessionUser: !!req.session?.user,
-        cookies: req.headers.cookie ? 'present' : 'missing',
-        authHeader: req.headers.authorization ? 'present' : 'missing',
+        hasToken: !!req.query.token,
       });
       return res.status(401).json({
         error: { code: 'UNAUTHORIZED', message: 'Authentication required' },

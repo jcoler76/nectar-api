@@ -31,19 +31,23 @@ const devApiKeyAuth = async (req, res, next) => {
       });
     }
 
-    // Find endpoint with proper RLS (system-level since API key auth doesn't have org context yet)
-    const endpoint = await prismaService.withTenantContext(null, async tx => {
-      return await tx.endpoint.findFirst({
-        where: { name: endpointName, apiKey: apiKey },
-      });
+    // SECURITY FIX: Use system client for API key lookup (no org context yet)
+    // This is the exception to RLS - we need to find the endpoint to get its organization
+    const systemPrisma = prismaService.getSystemClient();
+    const endpoint = await systemPrisma.endpoint.findFirst({
+      where: { name: endpointName, apiKey: apiKey },
+      include: { organization: true },
     });
+
     if (!endpoint) {
       return res.status(403).json({
         error: { code: 'FORBIDDEN', message: 'Forbidden: Invalid API key or endpoint name' },
       });
     }
 
+    // Now we have the organization context for subsequent queries
     req.endpoint = endpoint;
+    req.organizationId = endpoint.organizationId;
     next();
   } catch (error) {
     logger.error('Developer API key auth error:', error);
@@ -68,11 +72,11 @@ router.post('/execute', devApiKeyAuth, async (req, res) => {
 
   let pool;
   try {
-    // Find connection with proper RLS using endpoint's organization context
+    // SECURITY: Use proper tenant context from authenticated endpoint
     const connection = await prismaService.withTenantContext(
       req.endpoint.organizationId,
       async tx => {
-        return await tx.connection.findFirst({
+        return await tx.databaseConnection.findFirst({
           where: {
             databases: { has: databaseName },
             isActive: true,

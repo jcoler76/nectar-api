@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const AuthFactory = require('../middleware/authFactory');
 const authenticateJWT = AuthFactory.createJWTMiddleware();
-const { getPrismaClient } = require('../config/prisma');
-const logger = require('../utils/logger');
+const prismaService = require('../services/prismaService');
+const { logger } = require('../utils/logger');
 
 // Create Stripe Customer Portal session for subscription management
 router.post('/portal', authenticateJWT, async (req, res) => {
@@ -21,7 +21,7 @@ router.post('/portal', authenticateJWT, async (req, res) => {
     }
 
     const stripe = new Stripe(secret, { apiVersion: '2024-06-20' });
-    const prisma = getPrismaClient({ userId: req.user?.userId });
+    const prisma = prismaService.getSystemClient();
 
     // Find user's primary organization and subscription
     const membership = await prisma.membership.findFirst({
@@ -80,7 +80,9 @@ router.post('/portal', authenticateJWT, async (req, res) => {
 // Get current subscription details
 router.get('/subscription', authenticateJWT, async (req, res) => {
   try {
-    const prisma = getPrismaClient({ userId: req.user?.userId });
+    const prisma = prismaService.getSystemClient();
+
+    console.log('🔍 [BILLING] Fetching subscription for user:', req.user.userId, req.user.email);
 
     const membership = await prisma.membership.findFirst({
       where: { userId: req.user.userId },
@@ -103,8 +105,34 @@ router.get('/subscription', authenticateJWT, async (req, res) => {
       },
     });
 
+    console.log('🔍 [BILLING] Membership found:', membership ? 'YES' : 'NO');
+    if (membership) {
+      console.log('🔍 [BILLING] Organization:', membership.organization?.name);
+      console.log('🔍 [BILLING] Subscription plan:', membership.organization?.subscription?.plan);
+      console.log(
+        '🔍 [BILLING] Subscription status:',
+        membership.organization?.subscription?.status
+      );
+    }
+
     if (!membership || !membership.organization) {
-      return res.status(404).json({ error: 'Organization not found' });
+      console.log('⚠️  [BILLING] No membership found, returning FREE plan');
+      // Return FREE plan if no organization found
+      return res.json({
+        organization: null,
+        subscription: null,
+        plan: 'FREE',
+        invoices: [],
+        usage: {
+          apiCallsThisMonth: 0,
+          storageUsedGB: 0,
+          datasourceCount: 0,
+        },
+        permissions: {
+          canManageBilling: false,
+          canViewBilling: false,
+        },
+      });
     }
 
     const subscription = membership.organization.subscription;
@@ -112,7 +140,7 @@ router.get('/subscription', authenticateJWT, async (req, res) => {
     // Calculate usage metrics
     const usageMetrics = await calculateUsageMetrics(prisma, membership.organization.id);
 
-    res.json({
+    const response = {
       organization: {
         id: membership.organization.id,
         name: membership.organization.name,
@@ -130,13 +158,25 @@ router.get('/subscription', authenticateJWT, async (req, res) => {
             monthlyRevenue: subscription.monthlyRevenue,
           }
         : null,
+      plan: subscription?.plan || 'FREE', // Add plan at root level for easier access
       invoices: subscription?.invoices || [],
       usage: usageMetrics,
       permissions: {
         canManageBilling: ['OWNER', 'ADMIN'].includes(membership.role),
         canViewBilling: true,
       },
-    });
+    };
+
+    console.log(
+      '✅ [BILLING] Returning response:',
+      JSON.stringify({
+        plan: response.plan,
+        subscriptionPlan: response.subscription?.plan,
+        organizationName: response.organization.name,
+      })
+    );
+
+    res.json(response);
   } catch (error) {
     logger.error('Get subscription error:', error);
     res.status(500).json({
@@ -149,7 +189,7 @@ router.get('/subscription', authenticateJWT, async (req, res) => {
 // Get billing history
 router.get('/invoices', authenticateJWT, async (req, res) => {
   try {
-    const prisma = getPrismaClient({ userId: req.user?.userId });
+    const prisma = prismaService.getSystemClient();
     const { limit = 20, offset = 0 } = req.query;
 
     const membership = await prisma.membership.findFirst({
@@ -197,6 +237,8 @@ router.get('/invoices', authenticateJWT, async (req, res) => {
 // Get available plans for upgrade/downgrade
 router.get('/plans', authenticateJWT, async (req, res) => {
   try {
+    const prisma = prismaService.getSystemClient();
+
     // Define available plans with their features
     const plans = [
       {
@@ -272,7 +314,6 @@ router.get('/plans', authenticateJWT, async (req, res) => {
     ];
 
     // Get current subscription to highlight current plan
-    const prisma = getPrismaClient({ userId: req.user?.userId });
     const membership = await prisma.membership.findFirst({
       where: { userId: req.user.userId },
       include: {

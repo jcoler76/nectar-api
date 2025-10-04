@@ -9,6 +9,8 @@ import {
   User,
   CreditCard,
   ExternalLink,
+  Bot,
+  Key,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -59,6 +61,19 @@ const UserSettings = () => {
   const [notificationError, setNotificationError] = useState('');
   const [notificationSuccess, setNotificationSuccess] = useState('');
 
+  // AI/LLM Configuration state
+  const [llmConfig, setLlmConfig] = useState({
+    openaiKey: '',
+    anthropicKey: '',
+    preferredProvider: 'openai', // 'openai' or 'anthropic'
+    preferredModel: 'gpt-4', // default model
+  });
+  const [llmLoading, setLlmLoading] = useState(false);
+  const [llmError, setLlmError] = useState('');
+  const [llmSuccess, setLlmSuccess] = useState('');
+  const [showOpenAIKey, setShowOpenAIKey] = useState(false);
+  const [showAnthropicKey, setShowAnthropicKey] = useState(false);
+
   const { updatePassword, user } = useAuth();
   const [billingLoading, setBillingLoading] = useState(false);
   const openPortal = async () => {
@@ -79,7 +94,7 @@ const UserSettings = () => {
     }
   };
 
-  // Load notification preferences on component mount
+  // Load notification preferences and LLM config on component mount
   useEffect(() => {
     const loadNotificationPreferences = async () => {
       try {
@@ -90,7 +105,24 @@ const UserSettings = () => {
       }
     };
 
+    const loadLLMConfig = async () => {
+      try {
+        const response = await api.get('/api/users/llm-config');
+        if (response.data) {
+          setLlmConfig({
+            openaiKey: response.data.openaiKey || '',
+            anthropicKey: response.data.anthropicKey || '',
+            preferredProvider: response.data.preferredProvider || 'openai',
+            preferredModel: response.data.preferredModel || 'gpt-4',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load LLM configuration:', error);
+      }
+    };
+
     loadNotificationPreferences();
+    loadLLMConfig();
   }, []);
 
   const handleSubmit = async e => {
@@ -175,6 +207,36 @@ const UserSettings = () => {
     }
   };
 
+  const saveLLMConfig = async () => {
+    setLlmLoading(true);
+    setLlmError('');
+    setLlmSuccess('');
+
+    try {
+      await api.put('/api/users/llm-config', llmConfig);
+      setLlmSuccess('AI configuration updated successfully!');
+      setTimeout(() => setLlmSuccess(''), 3000);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to update AI configuration';
+      setLlmError(errorMessage);
+    } finally {
+      setLlmLoading(false);
+    }
+  };
+
+  const modelOptions = {
+    openai: [
+      { value: 'gpt-4', label: 'GPT-4 (Most Capable)' },
+      { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Faster)' },
+      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (Economical)' },
+    ],
+    anthropic: [
+      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Most Capable)' },
+      { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet (Balanced)' },
+      { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fastest)' },
+    ],
+  };
+
   const notificationTypes = [
     {
       key: 'system',
@@ -237,6 +299,200 @@ const UserSettings = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* AI/LLM Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              AI Agent Configuration
+            </CardTitle>
+            <CardDescription>
+              Configure your AI API keys for autonomous agents and MCP servers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormContainer>
+              <StatusMessages error={llmError} success={llmSuccess} variant="inline" />
+
+              <div className="space-y-6">
+                {/* API Keys */}
+                <FormSection>
+                  <h3 className="text-sm font-semibold mb-4">API Keys</h3>
+
+                  <FormFieldGroup>
+                    <Label htmlFor="openaiKey">OpenAI API Key</Label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="openaiKey"
+                        type={showOpenAIKey ? 'text' : 'password'}
+                        value={llmConfig.openaiKey}
+                        onChange={e => setLlmConfig({ ...llmConfig, openaiKey: e.target.value })}
+                        placeholder="sk-..."
+                        className="pl-8 pr-10 font-mono text-sm"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                      >
+                        {showOpenAIKey ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <FormHint>
+                      Get your key from{' '}
+                      <a
+                        href="https://platform.openai.com/api-keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        OpenAI Platform
+                      </a>
+                    </FormHint>
+                  </FormFieldGroup>
+
+                  <FormFieldGroup>
+                    <Label htmlFor="anthropicKey">Anthropic (Claude) API Key</Label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="anthropicKey"
+                        type={showAnthropicKey ? 'text' : 'password'}
+                        value={llmConfig.anthropicKey}
+                        onChange={e => setLlmConfig({ ...llmConfig, anthropicKey: e.target.value })}
+                        placeholder="sk-ant-..."
+                        className="pl-8 pr-10 font-mono text-sm"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowAnthropicKey(!showAnthropicKey)}
+                      >
+                        {showAnthropicKey ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <FormHint>
+                      Get your key from{' '}
+                      <a
+                        href="https://console.anthropic.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        Anthropic Console
+                      </a>
+                    </FormHint>
+                  </FormFieldGroup>
+                </FormSection>
+
+                {/* Provider and Model Selection */}
+                <FormSection>
+                  <h3 className="text-sm font-semibold mb-4">
+                    Default Settings for Autonomous Agents
+                  </h3>
+
+                  <FormGrid columns={2}>
+                    <FormFieldGroup>
+                      <Label htmlFor="preferredProvider">Preferred AI Provider</Label>
+                      <select
+                        id="preferredProvider"
+                        value={llmConfig.preferredProvider}
+                        onChange={e => {
+                          const provider = e.target.value;
+                          setLlmConfig({
+                            ...llmConfig,
+                            preferredProvider: provider,
+                            preferredModel: modelOptions[provider][0].value,
+                          });
+                        }}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic (Claude)</option>
+                      </select>
+                    </FormFieldGroup>
+
+                    <FormFieldGroup>
+                      <Label htmlFor="preferredModel">Preferred Model</Label>
+                      <select
+                        id="preferredModel"
+                        value={llmConfig.preferredModel}
+                        onChange={e =>
+                          setLlmConfig({ ...llmConfig, preferredModel: e.target.value })
+                        }
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {modelOptions[llmConfig.preferredProvider].map(model => (
+                          <option key={model.value} value={model.value}>
+                            {model.label}
+                          </option>
+                        ))}
+                      </select>
+                    </FormFieldGroup>
+                  </FormGrid>
+                </FormSection>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-md p-4">
+                  <h4 className="text-sm font-semibold text-purple-900 mb-2">
+                    About AI Configuration
+                  </h4>
+                  <ul className="text-xs text-purple-800 space-y-1">
+                    <li>• Your API keys are encrypted and never shared</li>
+                    <li>• Autonomous agents will use your selected provider and model</li>
+                    <li>• MCP servers leverage these settings for database operations</li>
+                    <li>• You control all AI costs through your own API keys</li>
+                  </ul>
+                </div>
+
+                <FormActions>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setLlmError('');
+                      setLlmSuccess('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="gradient"
+                    onClick={saveLLMConfig}
+                    disabled={llmLoading}
+                  >
+                    {llmLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save AI Configuration
+                      </>
+                    )}
+                  </Button>
+                </FormActions>
+              </div>
+            </FormContainer>
+          </CardContent>
+        </Card>
+
         {/* Account Information */}
         <Card>
           <CardHeader>

@@ -98,12 +98,16 @@ class EnhancedFileStorageService {
       const mimeType = this.getMimeType(buffer, filename);
       const fileSize = buffer.length;
 
-      // Prepare S3 upload parameters
+      // Prepare S3 upload parameters with performance optimizations
       const uploadParams = {
         Bucket: this.bucketName,
         Key: storageKey,
         Body: buffer,
         ContentType: mimeType,
+        // Browser caching: files are immutable (key includes timestamp/hash)
+        CacheControl: 'public, max-age=31536000, immutable',
+        // Server-side encryption for security
+        ServerSideEncryption: 'AES256',
         Metadata: {
           'original-filename': filename,
           'uploaded-by': uploadedBy || 'system',
@@ -195,11 +199,15 @@ class EnhancedFileStorageService {
       const randomId = crypto.randomBytes(8).toString('hex');
       const storageKey = `${organizationId}/${timestamp}-${randomId}-${baseName}${fileExt}`;
 
-      // Prepare upload parameters
+      // Prepare upload parameters with performance optimizations
       const uploadParams = {
         Bucket: this.bucketName,
         Key: storageKey,
         ContentType: this.getMimeTypeFromExtension(fileExt),
+        // Browser caching: files are immutable (key includes timestamp/hash)
+        CacheControl: 'public, max-age=31536000, immutable',
+        // Server-side encryption for security
+        ServerSideEncryption: 'AES256',
         Metadata: {
           'original-filename': filename,
           'uploaded-by': uploadedBy || 'system',
@@ -464,12 +472,15 @@ class EnhancedFileStorageService {
           const filename = pathParts.pop();
           const thumbnailKey = `${pathParts.join('/')}/thumbnails/${size.name}-${filename}`;
 
-          // Upload thumbnail to S3
+          // Upload thumbnail to S3 with performance optimizations
           const uploadCommand = new PutObjectCommand({
             Bucket: this.bucketName,
             Key: thumbnailKey,
             Body: thumbnailBuffer,
             ContentType: 'image/jpeg',
+            // Aggressive caching for thumbnails (immutable)
+            CacheControl: 'public, max-age=31536000, immutable',
+            ServerSideEncryption: 'AES256',
             Metadata: {
               'thumbnail-size': size.name,
               'parent-file': fileId,

@@ -1,6 +1,0 @@
-claude "Resolve GitHub issue #3"
-claude "Resolve GitHub issue #4"
-claude "Resolve GitHub issue #6"
-claude "Resolve GitHub issue #9"
-claude "Resolve GitHub issue #11"
-claude "Resolve GitHub issue #11"

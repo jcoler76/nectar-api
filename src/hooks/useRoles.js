@@ -60,6 +60,39 @@ export const useRoles = () => {
     role => role.id
   );
 
+  const handleToggleMCP = createProtectedHandler(
+    'toggle-mcp',
+    async role => {
+      try {
+        const newMcpEnabled = !role.mcpEnabled;
+        const updateData = {
+          mcpEnabled: newMcpEnabled,
+        };
+
+        // If enabling MCP, show notification about tool generation
+        if (newMcpEnabled) {
+          showNotification('Enabling MCP server and generating tools...', 'info');
+        }
+
+        await updateRole(role.id, updateData);
+        await fetchRoles();
+
+        if (newMcpEnabled) {
+          showNotification('MCP server enabled successfully! Tools generated.', 'success');
+        } else {
+          showNotification('MCP server disabled', 'info');
+        }
+
+        return { success: true };
+      } catch (err) {
+        setError('Failed to toggle MCP server');
+        showNotification('Failed to toggle MCP server', 'error');
+        return { success: false, error: err };
+      }
+    },
+    role => role.id
+  );
+
   const handleEdit = useCallback(
     role => {
       navigate(`/roles/edit/${role.id}`);
@@ -91,6 +124,7 @@ export const useRoles = () => {
     fetchRoles,
     handleDelete,
     handleToggleActive,
+    handleToggleMCP,
     handleEdit,
     handleAdd,
 

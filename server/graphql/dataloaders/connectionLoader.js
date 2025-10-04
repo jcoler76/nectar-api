@@ -1,26 +1,28 @@
 const DataLoader = require('dataloader');
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const Connection = require('../../models/Connection');
-
 const { PrismaClient } = require('../../prisma/generated/client');
 const prisma = new PrismaClient();
 
 const createConnectionLoader = () => {
   return new DataLoader(async connectionIds => {
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const connections = await Connection.find({ _id: { $in: connectionIds } }).populate(
-    //   'createdBy'
-    // );
-    // For now, return empty array to allow server startup
-    const connections = [];
+    const connections = await prisma.databaseConnection.findMany({
+      where: {
+        id: {
+          in: connectionIds,
+        },
+      },
+      include: {
+        creator: true,
+        organization: true,
+      },
+    });
 
     // Return connections in the same order as the input IDs
     const connectionMap = {};
     connections.forEach(connection => {
-      connectionMap[connection._id.toString()] = connection;
+      connectionMap[connection.id] = connection;
     });
 
-    return connectionIds.map(id => connectionMap[id.toString()] || null);
+    return connectionIds.map(id => connectionMap[id] || null);
   });
 };
 

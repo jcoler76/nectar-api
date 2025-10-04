@@ -313,6 +313,7 @@ exports.Prisma.ApiKeyScalarFieldEnum = {
   createdAt: 'createdAt',
   organizationId: 'organizationId',
   createdById: 'createdById',
+  folderId: 'folderId',
 };
 
 exports.Prisma.UsageMetricScalarFieldEnum = {
@@ -422,6 +423,9 @@ exports.Prisma.RoleScalarFieldEnum = {
   description: 'description',
   isActive: 'isActive',
   permissions: 'permissions',
+  mcpEnabled: 'mcpEnabled',
+  mcpServerConfig: 'mcpServerConfig',
+  mcpToolsGenerated: 'mcpToolsGenerated',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   organizationId: 'organizationId',
@@ -667,6 +671,11 @@ exports.Prisma.FileFolderScalarFieldEnum = {
   createdBy: 'createdBy',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  mcpEnabled: 'mcpEnabled',
+  mcpConfig: 'mcpConfig',
+  embeddingCount: 'embeddingCount',
+  lastIndexedAt: 'lastIndexedAt',
+  indexingStatus: 'indexingStatus',
 };
 
 exports.Prisma.StorageUsageScalarFieldEnum = {
@@ -840,6 +849,107 @@ exports.Prisma.ContactNoteScalarFieldEnum = {
   createdAt: 'createdAt',
 };
 
+exports.Prisma.MCPServerInstanceScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  organizationId: 'organizationId',
+  serverUrl: 'serverUrl',
+  status: 'status',
+  tools: 'tools',
+  lastHealthCheck: 'lastHealthCheck',
+  requestCount: 'requestCount',
+  avgResponseTime: 'avgResponseTime',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.AgentExecutionScalarFieldEnum = {
+  id: 'id',
+  businessRequirement: 'businessRequirement',
+  agentType: 'agentType',
+  status: 'status',
+  mcpServersUsed: 'mcpServersUsed',
+  toolsInvoked: 'toolsInvoked',
+  thoughtProcess: 'thoughtProcess',
+  discoveries: 'discoveries',
+  generatedCode: 'generatedCode',
+  testResults: 'testResults',
+  documentation: 'documentation',
+  performanceMetrics: 'performanceMetrics',
+  success: 'success',
+  feedback: 'feedback',
+  improvements: 'improvements',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt',
+  organizationId: 'organizationId',
+  userId: 'userId',
+};
+
+exports.Prisma.AgentMemoryScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  content: 'content',
+  embedding: 'embedding',
+  tags: 'tags',
+  relevanceScore: 'relevanceScore',
+  usageCount: 'usageCount',
+  lastUsed: 'lastUsed',
+  sourceExecutionId: 'sourceExecutionId',
+  relatedMemories: 'relatedMemories',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  organizationId: 'organizationId',
+};
+
+exports.Prisma.FileEmbeddingScalarFieldEnum = {
+  id: 'id',
+  fileId: 'fileId',
+  folderId: 'folderId',
+  organizationId: 'organizationId',
+  chunkIndex: 'chunkIndex',
+  chunkText: 'chunkText',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.BackgroundJobScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  status: 'status',
+  priority: 'priority',
+  folderId: 'folderId',
+  fileId: 'fileId',
+  organizationId: 'organizationId',
+  payload: 'payload',
+  result: 'result',
+  errorMessage: 'errorMessage',
+  attempts: 'attempts',
+  maxAttempts: 'maxAttempts',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+};
+
+exports.Prisma.FolderMCPQueryScalarFieldEnum = {
+  id: 'id',
+  folderId: 'folderId',
+  organizationId: 'organizationId',
+  apiKeyId: 'apiKeyId',
+  userId: 'userId',
+  question: 'question',
+  answer: 'answer',
+  sources: 'sources',
+  embeddingModel: 'embeddingModel',
+  llmModel: 'llmModel',
+  tokensUsed: 'tokensUsed',
+  costUsd: 'costUsd',
+  responseTimeMs: 'responseTimeMs',
+  relevanceScore: 'relevanceScore',
+  createdAt: 'createdAt',
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc',
@@ -891,7 +1001,7 @@ exports.MemberRole = exports.$Enums.MemberRole = {
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
   STARTER: 'STARTER',
-  PROFESSIONAL: 'PROFESSIONAL',
+  TEAM: 'TEAM',
   BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE',
   CUSTOM: 'CUSTOM',
@@ -1035,6 +1145,31 @@ exports.MessageRole = exports.$Enums.MessageRole = {
   AGENT: 'AGENT',
 };
 
+exports.MCPServerStatus = exports.$Enums.MCPServerStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  ERROR: 'ERROR',
+  GENERATING: 'GENERATING',
+};
+
+exports.AgentStatus = exports.$Enums.AgentStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  LEARNING: 'LEARNING',
+};
+
+exports.MemoryType = exports.$Enums.MemoryType = {
+  SUCCESS_PATTERN: 'SUCCESS_PATTERN',
+  ANTI_PATTERN: 'ANTI_PATTERN',
+  BUSINESS_RULE: 'BUSINESS_RULE',
+  OPTIMIZATION: 'OPTIMIZATION',
+  CODE_SNIPPET: 'CODE_SNIPPET',
+  API_PATTERN: 'API_PATTERN',
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
@@ -1084,6 +1219,12 @@ exports.Prisma.ModelName = {
   ContactConversation: 'ContactConversation',
   ContactMessage: 'ContactMessage',
   ContactNote: 'ContactNote',
+  MCPServerInstance: 'MCPServerInstance',
+  AgentExecution: 'AgentExecution',
+  AgentMemory: 'AgentMemory',
+  FileEmbedding: 'FileEmbedding',
+  BackgroundJob: 'BackgroundJob',
+  FolderMCPQuery: 'FolderMCPQuery',
 };
 
 /**

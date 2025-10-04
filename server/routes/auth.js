@@ -434,14 +434,7 @@ router.post('/logout', AuthFactory.createJWTMiddleware(), async (req, res) => {
     const token = authHeader && authHeader.split(' ')[1];
     const refreshToken = req.body?.refreshToken;
 
-    // 1. Clear session data for documentation access
-    req.session.destroy(err => {
-      if (err) {
-        logger.error('Session destruction failed', { error: err.message });
-      }
-    });
-
-    // 2. Blacklist tokens to prevent reuse
+    // 1. Blacklist tokens FIRST to prevent reuse
     if (token) {
       const { logout } = require('../utils/tokenService');
       try {
@@ -458,6 +451,27 @@ router.post('/logout', AuthFactory.createJWTMiddleware(), async (req, res) => {
         // Don't fail logout if blacklisting fails
       }
     }
+
+    // 2. Clear session data - CRITICAL FIX: Wait for session destruction and clear cookie
+    await new Promise((resolve, reject) => {
+      req.session.destroy(err => {
+        if (err) {
+          logger.error('Session destruction failed', { error: err.message });
+          resolve(); // Continue even if session destruction fails
+        } else {
+          logger.info('Session destroyed successfully', { userId: req.user.userId });
+          resolve();
+        }
+      });
+    });
+
+    // CRITICAL FIX: Explicitly clear the session cookie from browser
+    res.clearCookie('connect.sid', {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    });
 
     // 3. Log the logout event
     logger.info('User logged out', {

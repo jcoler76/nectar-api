@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { useNotification } from '../context/NotificationContext';
 import NotificationService from '../services/notificationService';
@@ -24,16 +24,17 @@ export const useNotifications = (options = {}) => {
 
   const { showNotification } = useNotification();
   const refreshIntervalRef = useRef(null);
+  const [hasToken, setHasToken] = useState(false);
 
-  // Memoize token check to prevent storage operations on every render
-  const hasToken = useMemo(() => {
+  // Check for token after mount to avoid triggering storage events during render
+  useEffect(() => {
     try {
       const s = new SecureSessionStorage();
-      return !!s.getItem()?.token;
+      setHasToken(!!s.getItem()?.token);
     } catch (_) {
-      return false;
+      setHasToken(false);
     }
-  }, []); // Empty dependency array - only check once on mount
+  }, []);
 
   /**
    * Fetch notifications from the API

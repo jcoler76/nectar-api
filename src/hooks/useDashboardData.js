@@ -1,22 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
+import { useAuth } from '../context/AuthContext';
 import { getDashboardMetrics, getActivityStatistics } from '../services/dashboardService';
-import SecureSessionStorage from '../utils/secureStorage';
 
 // Dashboard metrics query hook
 export const useDashboardMetrics = (days = 30) => {
-  // Memoize token check to prevent storage operations on every render
-  const token = useMemo(() => {
-    try {
-      const s = new SecureSessionStorage();
-      const data = s.getItem();
-      const tkn = data?.token || null;
-      return tkn;
-    } catch (_error) {
-      return null;
-    }
-  }, []); // Empty dependency array - only check once on mount
+  // Use AuthContext to check authentication state - more reliable than storage
+  // Also ensure user has organization context for backend queries
+  const { isAuthenticated, user } = useAuth();
+  const hasOrganization = !!user?.organizationId;
 
   return useQuery({
     queryKey: ['dashboard-metrics', days],
@@ -24,7 +16,7 @@ export const useDashboardMetrics = (days = 30) => {
     staleTime: 1000 * 60 * 2, // 2 minutes - frequent updates for critical metrics
     cacheTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true,
-    enabled: !!token,
+    enabled: isAuthenticated && hasOrganization,
     select: data => {
       // Transform data if needed
       return {
@@ -42,15 +34,10 @@ export const useDashboardMetrics = (days = 30) => {
 
 // Activity logs statistics query hook
 export const useActivityStatistics = (dateRange = '30d') => {
-  // Memoize token check to prevent storage operations on every render
-  const token = useMemo(() => {
-    try {
-      const s = new SecureSessionStorage();
-      return s.getItem()?.token || null;
-    } catch (_) {
-      return null;
-    }
-  }, []); // Empty dependency array - only check once on mount
+  // Use AuthContext to check authentication state - more reliable than storage
+  // Also ensure user has organization context for backend queries
+  const { isAuthenticated, user } = useAuth();
+  const hasOrganization = !!user?.organizationId;
 
   const timeframeMap = { '7d': '7d', '30d': '30d', '90d': '90d' };
 
@@ -62,7 +49,7 @@ export const useActivityStatistics = (dateRange = '30d') => {
     staleTime: 1000 * 60 * 1, // 1 minute - very fresh data
     cacheTime: 1000 * 60 * 3, // 3 minutes
     refetchOnWindowFocus: true,
-    enabled: !!token,
+    enabled: isAuthenticated && hasOrganization,
     select: data => {
       // Ensure data structure and provide defaults
       return {

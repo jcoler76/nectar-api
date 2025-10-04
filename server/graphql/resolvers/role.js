@@ -3,6 +3,7 @@ const { AuthenticationError, ForbiddenError, UserInputError } = require('apollo-
 const prismaService = require('../../services/prismaService');
 const { logger } = require('../../utils/logger');
 const { fetchSchemaFromDatabase } = require('../../utils/schemaUtils');
+const MCPServerService = require('../../services/mcp/MCPServerService');
 
 const roleResolvers = {
   // Type resolvers
@@ -520,7 +521,10 @@ const roleResolvers = {
       if (!currentUser) throw new AuthenticationError('Authentication required');
 
       try {
-        return await prismaService.withTenantContext(currentUser.organizationId, async tx => {
+        // Store existingRole outside transaction scope for MCP operations
+        let existingRole;
+
+        const role = await prismaService.withTenantContext(currentUser.organizationId, async tx => {
           // SECURITY: Build where clause with authorization BEFORE data retrieval
           const where = {
             id,
@@ -531,7 +535,7 @@ const roleResolvers = {
             where.createdBy = currentUser.userId;
           }
 
-          const existingRole = await tx.role.findFirst({
+          existingRole = await tx.role.findFirst({
             where,
             include: {
               service: {
@@ -701,6 +705,61 @@ const roleResolvers = {
 
           return role;
         });
+
+        // Handle MCP server enabling/disabling OUTSIDE the transaction
+        // This prevents transaction timeout and allows role update to commit quickly
+        if (input.mcpEnabled !== undefined) {
+          const mcpWasEnabled = existingRole.mcpEnabled;
+          const mcpNowEnabled = input.mcpEnabled;
+
+          if (mcpNowEnabled && !mcpWasEnabled) {
+            // Enabling MCP server
+            logger.info('Enabling MCP server for role', { roleId: id });
+            try {
+              await MCPServerService.enableMCPServer(
+                id,
+                currentUser.organizationId,
+                currentUser.userId
+              );
+            } catch (mcpError) {
+              logger.error('Failed to enable MCP server', {
+                roleId: id,
+                error: mcpError.message,
+              });
+              // Don't fail the role update if MCP enabling fails
+            }
+          } else if (!mcpNowEnabled && mcpWasEnabled) {
+            // Disabling MCP server
+            logger.info('Disabling MCP server for role', { roleId: id });
+            try {
+              await MCPServerService.disableMCPServer(id, currentUser.organizationId);
+            } catch (mcpError) {
+              logger.error('Failed to disable MCP server', {
+                roleId: id,
+                error: mcpError.message,
+              });
+              // Don't fail the role update if MCP disabling fails
+            }
+          } else if (mcpNowEnabled && mcpWasEnabled && permissions !== undefined) {
+            // MCP is enabled and permissions changed - regenerate tools
+            logger.info('Regenerating MCP tools due to permission changes', { roleId: id });
+            try {
+              await MCPServerService.regenerateTools(
+                id,
+                currentUser.organizationId,
+                currentUser.userId
+              );
+            } catch (mcpError) {
+              logger.error('Failed to regenerate MCP tools', {
+                roleId: id,
+                error: mcpError.message,
+              });
+              // Don't fail the role update if tool regeneration fails
+            }
+          }
+        }
+
+        return role;
       } catch (error) {
         if (error.code === 'P2002') {
           throw new UserInputError('Role name already exists in your organization');

@@ -148,30 +148,35 @@ const ApiUsageReport = () => {
       header: 'Service',
       sortable: true,
       width: '15%',
+      id: 'serviceName',
     },
     {
       accessorKey: 'component',
       header: 'Component',
       sortable: true,
       width: '15%',
+      id: 'component',
     },
     {
       accessorKey: 'roleName',
       header: 'Role',
       sortable: true,
       width: '15%',
+      id: 'roleName',
     },
     {
       accessorKey: 'applicationName',
       header: 'Application',
       sortable: true,
       width: '15%',
+      id: 'applicationName',
     },
     {
       accessorKey: 'method',
       header: 'Method',
       sortable: true,
       width: '15%',
+      id: 'method',
     },
     ...(filters.showDetails
       ? [
@@ -180,6 +185,7 @@ const ApiUsageReport = () => {
             header: 'Timestamp',
             sortable: true,
             width: '20%',
+            id: 'timestamp',
             cell: ({ value }) => (
               <span className="text-sm text-muted-foreground">
                 {formatTimestampEST(value, 'MM/DD/YY h:mm:ss A')}
@@ -191,6 +197,7 @@ const ApiUsageReport = () => {
             header: 'Data Size',
             sortable: true,
             width: '15%',
+            id: 'dataSize',
             cell: ({ row }) => {
               // The data is directly in row, not row.original for this table implementation
               const rowData = row.original || row;
@@ -215,6 +222,7 @@ const ApiUsageReport = () => {
             header: 'Count',
             sortable: true,
             width: '25%',
+            id: 'count',
             cell: ({ value }) => (
               <Badge variant="secondary" className="text-sm">
                 {value}

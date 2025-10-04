@@ -29,6 +29,8 @@ const mountRoutes = app => {
       '/api/auth/oauth', // OAuth callbacks
       '/api/v1', // Public API with API key auth
       '/api/v2', // Public API with API key auth
+      '/api/mcp', // MCP server API with API key auth
+      '/api/public/folders', // Public folder query API with folder API key auth
       '/api/webhooks/trigger', // Webhook triggers use signature validation
       '/api/forms/public', // Public form submission
       '/api/email/trigger', // Email triggers use signature validation
@@ -44,6 +46,7 @@ const mountRoutes = app => {
       /\/databases\/refresh$/, // Any database refresh endpoint
       /\/refresh-databases$/, // Any refresh-databases endpoint
       /\/test$/, // Any connection test endpoint
+      /^\/api\/documentation\/openapi\//, // OpenAPI specs accessed from Swagger UI iframes
     ],
   };
 
@@ -59,6 +62,9 @@ const mountRoutes = app => {
 
   // CSRF token endpoint (must be before CSRF protection middleware)
   app.get('/api/csrf-token', authWithRLS, getCSRFToken);
+
+  // Endpoints route (must be before apiInfo to avoid conflict)
+  app.use('/api/endpoints', authWithRLS, csrfProtection(csrfOptions), require('./endpoints'));
 
   // API information endpoints (no auth required for basic info)
   app.use('/api', require('./apiInfo'));
@@ -86,6 +92,10 @@ const mountRoutes = app => {
     require('./organizations')
   );
   app.use('/api/roles', authWithRLS, csrfProtection(csrfOptions), require('./roles'));
+  // MCP routes use API key auth (not session), no CSRF needed
+  app.use('/api/mcp', require('./mcp'));
+  // Public folder query routes use folder API key auth (not session), no CSRF needed
+  app.use('/api/public/folders', require('./publicFolders'));
   app.use('/api/applications', authWithRLS, csrfProtection(csrfOptions), require('./applications'));
   app.use('/api/services', authWithRLS, csrfProtection(csrfOptions), require('./services'));
   // Temporarily disabled during MongoDB to Prisma migration
@@ -135,12 +145,8 @@ const mountRoutes = app => {
   app.use('/api/swagger-ui', require('./swaggerUi'));
 
   // API documentation & OpenAPI routes (enabled)
-  app.use(
-    '/api/documentation',
-    authWithRLS,
-    csrfProtection(csrfOptions),
-    require('./documentation')
-  );
+  // Note: Auth is handled within the documentation routes themselves
+  app.use('/api/documentation', csrfProtection(csrfOptions), require('./documentation'));
   // Auto-REST OpenAPI (service-scoped)
   app.use(
     '/api/documentation/auto-rest',

@@ -43,6 +43,7 @@ export const UPDATE_ROLE = `
       name
       description
       isActive
+      mcpEnabled
       permissions {
         serviceId
         objectName
@@ -87,6 +88,7 @@ export const GET_ROLES = `
           name
           description
           isActive
+          mcpEnabled
           permissions {
             serviceId
             objectName

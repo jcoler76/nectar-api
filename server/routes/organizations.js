@@ -709,6 +709,77 @@ router.delete(
   }
 );
 
+// GET /api/organizations/:id/members - Get organization members
+router.get(
+  '/:id/members',
+  authenticateToken,
+  AuthFactory.requireOrganizationAccess(),
+  validateOrganizationId,
+  async (req, res) => {
+    try {
+      const organizationId = req.params.id;
+      const userId = req.user.userId;
+
+      // SECURITY FIX: Use withTenantContext for member list lookup
+      const result = await prismaService.withTenantContext(organizationId, async tx => {
+        // Check if user has access to this organization
+        const membership = await tx.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId,
+            },
+          },
+        });
+
+        if (!membership) {
+          return { error: 'FORBIDDEN' };
+        }
+
+        // Get all members of the organization
+        const members = await tx.membership.findMany({
+          where: {},
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+                isActive: true,
+              },
+            },
+          },
+          orderBy: {
+            joinedAt: 'asc',
+          },
+        });
+
+        return { members };
+      });
+
+      if (result.error === 'FORBIDDEN') {
+        return res.status(403).json({
+          error: { code: 'FORBIDDEN', message: 'Access denied to this organization' },
+        });
+      }
+
+      const { members } = result;
+
+      res.json({ members });
+    } catch (error) {
+      logger.error('Error fetching organization members:', {
+        error: error.message,
+        organizationId: req.params.id,
+        userId: req.user?.userId,
+        ip: req.ip,
+      });
+      errorResponses.serverError(res, error);
+    }
+  }
+);
+
 // GET /api/organizations/:id/usage - Get organization usage statistics
 router.get(
   '/:id/usage',

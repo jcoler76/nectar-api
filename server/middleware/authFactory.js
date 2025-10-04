@@ -20,11 +20,15 @@ class AuthFactory {
 
         const token = authHeader.substring(7);
 
-        if (!skipBlacklist && tokenService.isTokenBlacklisted(token)) {
-          return res.status(401).json({
-            success: false,
-            message: 'Token has been revoked',
-          });
+        // CRITICAL FIX: checkTokenBlacklist is async, must await it
+        if (!skipBlacklist) {
+          const isBlacklisted = await tokenService.checkTokenBlacklist(token);
+          if (isBlacklisted) {
+            return res.status(401).json({
+              success: false,
+              message: 'Token has been revoked',
+            });
+          }
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET, {

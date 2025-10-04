@@ -11,7 +11,7 @@ const { isValidApiKeyFormat, generateStandardApiKey } = require('../utils/apiKey
 // Authentication is already handled at app level in server.js
 
 // GET all endpoints
-router.get('/', adminOnly, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const organizationId = req.user.organizationId;
 
@@ -45,7 +45,7 @@ router.get('/', adminOnly, async (req, res) => {
 });
 
 // POST create new endpoint
-router.post('/', adminOnly, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { name, path, method, query, description, apiKey } = req.body;
     const organizationId = req.user.organizationId;

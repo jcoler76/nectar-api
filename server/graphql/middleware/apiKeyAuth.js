@@ -1,9 +1,3 @@
-// MongoDB models replaced with Prisma for PostgreSQL migration
-// const Application = require('../../models/Application');
-// const Service = require('../../models/Service');
-// const Role = require('../../models/Role');
-// const Endpoint = require('../../models/Endpoint');
-
 // SECURITY FIX: Use proper prismaService instead of direct PrismaClient
 const prismaService = require('../../services/prismaService');
 
@@ -17,18 +11,21 @@ const getApiKeyUser = async req => {
     if (!apiKey) return null;
 
     // OPTION 1: Check if it's a CLIENT API KEY (Application-based)
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const application = await Application.findOne({
-    //   apiKey: apiKey,
-    //   isActive: true,
-    // }).populate({
-    //   path: 'defaultRole',
-    //   populate: {
-    //     path: 'permissions',
-    //   },
-    // });
-    // For now, skip application check to allow server startup
-    const application = null;
+    const application = await prismaService.application.findFirst({
+      where: {
+        apiKeyHash: apiKey,
+        isActive: true,
+      },
+      include: {
+        defaultRole: {
+          include: {
+            service: true,
+          },
+        },
+        organization: true,
+        creator: true,
+      },
+    });
 
     if (
       application &&
@@ -39,7 +36,7 @@ const getApiKeyUser = async req => {
       // Return CLIENT API key context
       return {
         type: 'client',
-        applicationId: application._id.toString(),
+        applicationId: application.id,
         application: application,
         role: application.defaultRole,
         permissions: application.defaultRole.permissions,
@@ -49,20 +46,24 @@ const getApiKeyUser = async req => {
     }
 
     // OPTION 2: Check if it's a DEVELOPER ENDPOINT KEY (Endpoint-based)
-    // TODO: Replace MongoDB query with Prisma query during migration
-    // const endpoint = await Endpoint.findOne({
-    //   apiKey: apiKey,
-    // }).populate('createdBy');
-    // For now, skip endpoint check to allow server startup
-    const endpoint = null;
+    const endpoint = await prismaService.endpoint.findFirst({
+      where: {
+        apiKey: apiKey,
+      },
+      include: {
+        creator: true,
+        connection: true,
+        organization: true,
+      },
+    });
 
     if (endpoint) {
       // Return DEVELOPER API key context
       return {
         type: 'developer',
-        endpointId: endpoint._id.toString(),
+        endpointId: endpoint.id,
         endpoint: endpoint,
-        createdBy: endpoint.createdBy,
+        createdBy: endpoint.creator,
         // Developer endpoints have more flexibility across databases
         clientIsolation: false,
       };
@@ -199,23 +200,31 @@ const getServiceForApiKey = async (apiKeyUser, serviceName = null, explicitEnvir
     if (serviceName) {
       // First try to find environment-specific service (e.g., "icoler-staging")
       const environmentSpecificServiceName = `${serviceName}-${environment}`;
-      // TODO: Replace MongoDB query with Prisma query during migration
-      // let service = await Service.findOne({
-      //   name: environmentSpecificServiceName,
-      //   isActive: true,
-      // }).populate('connectionId');
-      // For now, skip service lookup to allow server startup
-      let service = null;
+      let service = await prismaService.service.findFirst({
+        where: {
+          name: environmentSpecificServiceName,
+          isActive: true,
+        },
+        include: {
+          connection: true,
+          organization: true,
+          creator: true,
+        },
+      });
 
       // If environment-specific service not found and it's production, try original name
       if (!service && environment === 'production') {
-        // TODO: Replace MongoDB query with Prisma query during migration
-        // service = await Service.findOne({
-        //   name: serviceName,
-        //   isActive: true,
-        // }).populate('connectionId');
-        // For now, skip service lookup to allow server startup
-        service = null;
+        service = await prismaService.service.findFirst({
+          where: {
+            name: serviceName,
+            isActive: true,
+          },
+          include: {
+            connection: true,
+            organization: true,
+            creator: true,
+          },
+        });
       }
 
       if (service) {
@@ -239,23 +248,33 @@ const getServiceForApiKey = async (apiKeyUser, serviceName = null, explicitEnvir
     // If no specific service found, return the first service they have permission for
     if (apiKeyUser.permissions.length > 0) {
       const firstPermission = apiKeyUser.permissions[0];
-      // TODO: Replace MongoDB query with Prisma query during migration
-      // let service = await Service.findById(
-      //   firstPermission.serviceId._id || firstPermission.serviceId
-      // ).populate('connectionId');
-      // For now, skip service lookup to allow server startup
-      let service = null;
+      const serviceId = firstPermission.serviceId?._id || firstPermission.serviceId;
+
+      let service = await prismaService.service.findUnique({
+        where: {
+          id: serviceId,
+        },
+        include: {
+          connection: true,
+          organization: true,
+          creator: true,
+        },
+      });
 
       // If testing in non-production, try to find environment-specific version
       if (service && environment !== 'production') {
         const environmentSpecificServiceName = `${service.name}-${environment}`;
-        // TODO: Replace MongoDB query with Prisma query during migration
-        // const envService = await Service.findOne({
-        //   name: environmentSpecificServiceName,
-        //   isActive: true,
-        // }).populate('connectionId');
-        // For now, skip service lookup to allow server startup
-        const envService = null;
+        const envService = await prismaService.service.findFirst({
+          where: {
+            name: environmentSpecificServiceName,
+            isActive: true,
+          },
+          include: {
+            connection: true,
+            organization: true,
+            creator: true,
+          },
+        });
 
         if (envService) {
           return envService;
@@ -271,23 +290,31 @@ const getServiceForApiKey = async (apiKeyUser, serviceName = null, explicitEnvir
     if (serviceName) {
       // Try environment-specific service name first
       const environmentSpecificServiceName = `${serviceName}-${environment}`;
-      // TODO: Replace MongoDB query with Prisma query during migration
-      // let service = await Service.findOne({
-      //   name: environmentSpecificServiceName,
-      //   isActive: true,
-      // }).populate('connectionId');
-      // For now, skip service lookup to allow server startup
-      let service = null;
+      let service = await prismaService.service.findFirst({
+        where: {
+          name: environmentSpecificServiceName,
+          isActive: true,
+        },
+        include: {
+          connection: true,
+          organization: true,
+          creator: true,
+        },
+      });
 
       // If not found and it's production, try original name
       if (!service && environment === 'production') {
-        // TODO: Replace MongoDB query with Prisma query during migration
-        // service = await Service.findOne({
-        //   name: serviceName,
-        //   isActive: true,
-        // }).populate('connectionId');
-        // For now, skip service lookup to allow server startup
-        service = null;
+        service = await prismaService.service.findFirst({
+          where: {
+            name: serviceName,
+            isActive: true,
+          },
+          include: {
+            connection: true,
+            organization: true,
+            creator: true,
+          },
+        });
       }
 
       return service;

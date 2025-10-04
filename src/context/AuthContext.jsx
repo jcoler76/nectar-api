@@ -78,40 +78,54 @@ export const AuthProvider = ({ children }) => {
     const handleStorageChange = e => {
       // Watch for both old 'user' key and new 'nectar_session' key
       if (e.key === 'user' || e.key === 'nectar_session') {
-        if (!e.newValue) {
-          // User was logged out from another tab
-          setUser(null);
-          setIsAuthenticated(false);
-        } else {
-          // User was logged in from another tab OR storage was updated
-          // SAFETY: Only update if we don't already have a user to avoid logout loops
-          if (!user) {
-            try {
-              const authStatus = checkAuthStatus();
-              if (authStatus.isAuthenticated && authStatus.user) {
-                setUser(authStatus.user);
-                setIsAuthenticated(true);
+        // Use queueMicrotask to defer state updates until after current render cycle
+        queueMicrotask(() => {
+          if (!e.newValue) {
+            // User was logged out from another tab
+            setUser(prevUser => {
+              // Only update if we currently have a user
+              if (prevUser) {
+                setIsAuthenticated(false);
+                return null;
               }
-            } catch (error) {
-              // Don't logout if we already have a user - storage update might be normal
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('Error checking auth status from storage event:', error);
+              return prevUser;
+            });
+          } else {
+            // User was logged in from another tab OR storage was updated
+            // Check current state and only update if needed
+            setUser(prevUser => {
+              // Only update if we don't already have a user
+              if (!prevUser) {
+                try {
+                  const authStatus = checkAuthStatus();
+                  if (authStatus.isAuthenticated && authStatus.user) {
+                    setIsAuthenticated(true);
+                    return authStatus.user;
+                  }
+                } catch (error) {
+                  // Don't logout if we already have a user - storage update might be normal
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn('Error checking auth status from storage event:', error);
+                  }
+                }
               }
-            }
+              return prevUser;
+            });
           }
-        }
+        });
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user]);
+  }, []); // Remove user dependency to avoid stale closures
 
   const login = useCallback(
     async (email, password) => {
       try {
         setTwoFactorRequired(false); // Reset on new login attempt
         setSetupTwoFactorRequired(false);
+
         const data = await loginUser(email, password);
 
         if (data.twoFactorRequired) {
@@ -124,10 +138,11 @@ export const AuthProvider = ({ children }) => {
           setSecret(data.secret);
         } else if (data.token || data.accessToken) {
           // Regular login with token
-          setUser(data.user);
-          setIsAuthenticated(true);
+          const userData = data.user;
+          const token = data.accessToken || data.token || data.user?.token;
+
+          // Set axios header FIRST before setting state
           try {
-            const token = data.accessToken || data.token || data.user?.token;
             if (token) {
               api.defaults.headers.common.Authorization = `Bearer ${token}`;
             }
@@ -137,18 +152,23 @@ export const AuthProvider = ({ children }) => {
 
           // Track successful login from frontend
           try {
-            appTracker.setUserInfo(data.user.id || data.user.userId, data.user.organizationId);
+            appTracker.setUserInfo(userData.id || userData.userId, userData.organizationId);
             appTracker.trackEvent('login_success', 'auth_system', {
-              userId: data.user.id || data.user.userId,
-              organizationId: data.user.organizationId,
-              email: data.user.email,
+              userId: userData.id || userData.userId,
+              organizationId: userData.organizationId,
+              email: userData.email,
               loginMethod: 'password',
             });
           } catch (error) {
             // Silently handle tracking errors - login still successful
           }
 
-          navigate('/dashboard');
+          // Set auth state and navigate
+          setUser(userData);
+          setIsAuthenticated(true);
+
+          // Navigate immediately - the state updates will be batched by React 18
+          navigate('/dashboard', { replace: true });
         } else {
           // Unexpected response format
           console.error('Login response missing token:', data);
@@ -241,23 +261,34 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
+      // Clear all auth data
       logoutUser();
-      setUser(null);
-      setIsAuthenticated(false);
-      setTwoFactorRequired(false);
-      setSetupTwoFactorRequired(false);
-      setTwoFactorEmail('');
+
+      // Clear axios header first
       try {
         delete api.defaults.headers.common.Authorization;
       } catch {
-        // Ignore storage cleanup errors
+        // Ignore cleanup errors
       }
 
       // Clear tracking user info
       appTracker.clearUserInfo();
 
+      // Clear all auth state
+      setUser(null);
+      setIsAuthenticated(false);
+      setTwoFactorRequired(false);
+      setSetupTwoFactorRequired(false);
+      setTwoFactorEmail('');
+      setQrCode('');
+      setSecret('');
+      setOtpRequested(false);
+
       if (redirect) {
-        navigate('/login');
+        // Use replace to prevent back button from going to protected routes
+        setTimeout(() => {
+          navigate('/login', { replace: true });
+        }, 0);
       }
     },
     [navigate, user]

@@ -148,7 +148,7 @@ class AuthService {
       const primaryMembership = user.memberships[0];
       const organization = primaryMembership.organization;
 
-      // Generate JWT token
+      // Generate JWT token with jti for blacklisting support
       const tokenPayload = {
         userId: user.id,
         email: user.email,
@@ -162,10 +162,15 @@ class AuthService {
         type: 'access', // Required by tokenService validation
       };
 
+      // CRITICAL FIX: Generate unique JWT ID for blacklisting support
+      const jwtId = crypto.randomBytes(16).toString('hex');
+
       const token = jwt.sign(tokenPayload, this.jwtSecret, {
         expiresIn: this.tokenExpiry,
         issuer: this.jwtIssuer,
         audience: this.jwtAudience,
+        jwtid: jwtId, // Add unique JWT ID for token blacklisting
+        algorithm: 'HS256', // Explicitly specify algorithm for security
       });
 
       // Update last login

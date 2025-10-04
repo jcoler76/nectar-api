@@ -48,9 +48,11 @@ router.use('/blueprints/ui', swaggerUi.serve, (req, res, next) => {
 
 // Role-based Swagger UI (dynamic per role)
 router.use('/openapi/:roleId/ui', swaggerUi.serve, (req, res, next) => {
+  // Include access token in URL for iframe authentication
+  const token = req.query.token || '';
   const baseUrl = `${req.protocol}://${req.get('host')}/api/documentation/openapi/${encodeURIComponent(
     req.params.roleId
-  )}`;
+  )}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 
   return swaggerUi.setup(null, {
     swaggerOptions: {

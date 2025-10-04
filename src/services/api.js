@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { clearAllAuthData } from '../utils/authMigration';
+import getAuthToken from '../utils/getAuthToken';
 import SecureSessionStorage from '../utils/secureStorage';
 
 // Ensure we have a valid API_URL
@@ -25,9 +26,6 @@ const getApiUrl = () => {
 const API_URL = getApiUrl();
 
 const secureStorage = new SecureSessionStorage();
-
-// Import getToken from authService to avoid circular dependency issues
-let getToken = null;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -56,19 +54,9 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Helper function to get current token
+// Helper function to get current token (uses centralized getter)
 const getCurrentToken = () => {
-  try {
-    // Lazy load getToken to avoid circular dependency
-    if (!getToken) {
-      const authService = require('./authService');
-      getToken = authService.getToken;
-    }
-    return getToken();
-  } catch (error) {
-    console.error('Error getting token:', error);
-    return null;
-  }
+  return getAuthToken();
 };
 
 // Add request interceptor to include auth token and CSRF token
@@ -86,7 +74,15 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       } else {
-        console.error('❌ NO TOKEN - Authorization header NOT added');
+        // CRITICAL FIX: Only log missing token for non-auth endpoints
+        if (
+          !config.url.startsWith('/api/auth/login') &&
+          !config.url.startsWith('/api/auth/register')
+        ) {
+          console.error('❌ NO TOKEN - Authorization header NOT added');
+        }
+        // Ensure no stale Authorization header exists
+        delete config.headers.Authorization;
       }
 
       // Skip CSRF for auth endpoints entirely

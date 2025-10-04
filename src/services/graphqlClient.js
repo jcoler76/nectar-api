@@ -1,23 +1,13 @@
 import { GraphQLClient } from 'graphql-request';
 
+import getAuthToken from '../utils/getAuthToken';
+
 // Get the GraphQL endpoint from environment or use default
 const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_URL || 'http://localhost:3001/graphql';
 
-// Get token using the same method as the REST API
-const getCurrentToken = () => {
-  try {
-    // Import authService to get token properly
-    const authService = require('./authService');
-    return authService.getToken();
-  } catch (error) {
-    console.error('Error getting token:', error);
-    return null;
-  }
-};
-
-// Create GraphQL client
+// Create GraphQL client with current auth token
 const createGraphQLClient = () => {
-  const token = getCurrentToken();
+  const token = getAuthToken();
 
   return new GraphQLClient(GRAPHQL_ENDPOINT, {
     headers: {
